@@ -230,6 +230,9 @@
 *           with this value on the command line will signify the presence
 *           of an additional argument which will be validated as the
 *           value of this parameter.
+*
+* [optional]- Specify whether parameter is optional. The allowed values
+*           is "true" or "false". It false by default.
 * 
 * [default] - defines a default value for a parameter. Any parameters
 *           at the end of command line which have default values need 
