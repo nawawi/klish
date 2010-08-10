@@ -1,0 +1,48 @@
+## Process this file with automake to generate Makefile.in
+noinst_PROGRAMS            = \
+    test/bintree             \
+    test/string
+
+test_bintree_SOURCES       = \
+    test/bintree.c           \
+    test/bintree.h
+test_bintree_LDADD         = \
+    liblub.la                \
+     @BFD_LIBS@
+
+if LUBHEAP
+  noinst_PROGRAMS           += \
+    test/heap                  \
+    test/mallocTest            \
+    test/lubMallocTest
+
+  test_heap_SOURCES          = \
+    test/heap.c
+  test_heap_LDADD            = \
+    liblub.la                  \
+    @BFD_LIBS@
+
+  test_mallocTest_CFLAGS     = @RT_CFLAGS@ 
+  test_mallocTest_SOURCES    = \
+    test/mallocTest.c
+  test_mallocTest_LDADD      = \
+    @RT_LIBS@
+
+  test_lubMallocTest_CFLAGS  = @RT_CFLAGS@
+  test_lubMallocTest_LDFLAGS = 
+  test_lubMallocTest_SOURCES = \
+    test/mallocTest.c
+
+  test_lubMallocTest_LDADD   = \
+    @RT_LIBS@                  \
+    liblubheap.la              \
+    liblub.la                  \
+    @BFD_LIBS@
+endif
+
+test_string_SOURCES        = \
+    test/string.c
+test_string_LDADD          = \
+    liblub.la                \
+    @BFD_LIBS@
+

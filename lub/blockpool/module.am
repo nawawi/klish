@@ -1,0 +1,7 @@
+## Process this file with automake to produce Makefile.in
+liblub_la_SOURCES  += lub/blockpool/blockpool_alloc.c   \
+              lub/blockpool/blockpool__get_stats.c      \
+              lub/blockpool/blockpool_free.c            \
+              lub/blockpool/blockpool_init.c            \
+              lub/blockpool/private.h
+

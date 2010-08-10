@@ -1,0 +1,253 @@
+/**
+\defgroup lubheap "Little Useful Bits Heap" Library
+@{
+\section Overview
+This library can be linked with executables to override the standard memory
+management provided by the system libraries. This may provide a 
+performance and debugging advantage.
+
+The implementation uses the \ref lub_heap component to control system memory
+and hence provides all the features available within that memory manager. 
+(including leak detection)
+
+\section VxWorks
+Replaces the memPartLib.o, memLib.o and memShow.o found in the
+libos.a library archive.
+
+\subsection memlib memLib.o functions
+<code>
+calloc, cfree, memFindMax, memInit, memLibInit, memOptionsSet, 
+memPartFindMax, memPartOptionsSet, memPartRealloc, memalign, realloc, valloc
+</code>
+
+\subsection mempartlib memPartLib.o functions
+<code>
+free, malloc, memAddToPool, memPartAddToPool, memPartAlignedAlloc, 
+memPartAlloc, memPartBlockIsValid, memPartCreate, memPartFree, 
+memPartInit, memPartLibInit
+</code>
+
+\subsection memshow memShow.o functions
+<code>
+memShow, memPartInfoGet, memParShow
+</code>
+
+\section posix POSIX
+Replaces the dynamic memory functionality found in the libc.a 
+library archive.
+
+This implementation relies on the sbrk() function to provide memory
+chunks to feed the standard heap.
+
+\subsection Functions
+<code>
+calloc, cfree, free, malloc, memalign, realloc, valloc
+</code>
+
+
+\section Performance
+Running the unittests with this library provides the following comparisons on
+some test machines:
+
+\section x86_64-unknown-linux-gnu
+<TABLE>
+<TR>
+  <TD><B>Native memory management</B> (<code>./test/mallocTest</code>)</TD>
+  <TD><B>lubheap memory management</B> (<code>./test/lubMallocTest</code>)</TD>
+</TR>
+<TR>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          0 milliseconds
+***    400 in          0 milliseconds
+***    500 in          1 milliseconds
+***   1000 in          3 milliseconds
+***   2000 in          7 milliseconds
+***   3000 in         12 milliseconds
+***   4000 in         16 milliseconds
+***   5000 in         21 milliseconds
+***  10000 in         48 milliseconds
+***  15000 in         79 milliseconds
+***  20000 in        143 milliseconds
+***  25000 in        200 milliseconds
+***  30000 in        253 milliseconds
+***  35000 in        314 milliseconds
+***  40000 in        378 milliseconds
+***  45000 in        460 milliseconds
+***  50000 in        561 milliseconds
+***  60000 in        790 milliseconds
+***  70000 in       1036 milliseconds
+***  80000 in       1320 milliseconds
+***  90000 in       1653 milliseconds
+*** 100000 in       2037 milliseconds
+</PRE>
+</TD>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          0 milliseconds
+***    400 in          1 milliseconds
+***    500 in          1 milliseconds
+***   1000 in          3 milliseconds
+***   2000 in          6 milliseconds
+***   3000 in          9 milliseconds
+***   4000 in         11 milliseconds
+***   5000 in         13 milliseconds
+***  10000 in         37 milliseconds
+***  15000 in         49 milliseconds
+***  20000 in         61 milliseconds
+***  25000 in         75 milliseconds
+***  30000 in         89 milliseconds
+***  35000 in         99 milliseconds
+***  40000 in        113 milliseconds
+***  45000 in        125 milliseconds
+***  50000 in        138 milliseconds
+***  60000 in        177 milliseconds
+***  70000 in        203 milliseconds
+***  80000 in        228 milliseconds
+***  90000 in        254 milliseconds
+*** 100000 in        277 milliseconds
+</PRE>
+</TD>
+</TR>
+</TABLE>
+
+\section i686-pc-linux-gnu
+<TABLE>
+<TR>
+  <TD><B>Native memory management</B> (<code>./test/mallocTest</code>)</TD>
+  <TD><B>lubheap memory management</B> (<code>./test/lubMallocTest</code>)</TD>
+</TR>
+<TR>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          0 milliseconds
+***    400 in          1 milliseconds
+***    500 in          1 milliseconds
+***   1000 in          3 milliseconds
+***   2000 in          7 milliseconds
+***   3000 in         12 milliseconds
+***   4000 in         16 milliseconds
+***   5000 in         21 milliseconds
+***  10000 in         46 milliseconds
+***  15000 in         76 milliseconds
+***  20000 in        111 milliseconds
+***  25000 in        151 milliseconds
+***  30000 in        199 milliseconds
+***  35000 in        256 milliseconds
+***  40000 in        318 milliseconds
+***  45000 in        393 milliseconds
+***  50000 in        472 milliseconds
+***  60000 in        658 milliseconds
+***  70000 in        874 milliseconds
+***  80000 in       1121 milliseconds
+***  90000 in       1411 milliseconds
+*** 100000 in       1745 milliseconds
+</PRE>
+</TD>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          1 milliseconds
+***    400 in          1 milliseconds
+***    500 in          1 milliseconds
+***   1000 in          4 milliseconds
+***   2000 in          7 milliseconds
+***   3000 in         11 milliseconds
+***   4000 in         13 milliseconds
+***   5000 in         15 milliseconds
+***  10000 in         42 milliseconds
+***  15000 in         57 milliseconds
+***  20000 in         72 milliseconds
+***  25000 in         89 milliseconds
+***  30000 in        105 milliseconds
+***  35000 in        121 milliseconds
+***  40000 in        136 milliseconds
+***  45000 in        154 milliseconds
+***  50000 in        169 milliseconds
+***  60000 in        213 milliseconds
+***  70000 in        246 milliseconds
+***  80000 in        278 milliseconds
+***  90000 in        311 milliseconds
+*** 100000 in        341 milliseconds
+</PRE>
+</TD>
+</TR>
+</TABLE>
+
+\section i686-pc-cygwin
+For some reason the native memory management under cygwin is quicker. My suspcion is that there is an overhead in the
+<CODE>sbrk()</CODE> call via the cygwin sub-system which slows the lubheap implementation...
+<TABLE>
+<TR>
+  <TD><B>Native memory management</B> (<code>./test/mallocTest</code>)</TD>
+  <TD><B>lubheap memory management</B> (<code>./test/lubMallocTest</code>)</TD>
+</TR>
+<TR>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          0 milliseconds
+***    400 in          0 milliseconds
+***    500 in          0 milliseconds
+***   1000 in          0 milliseconds
+***   2000 in          0 milliseconds
+***   3000 in         16 milliseconds
+***   4000 in         15 milliseconds
+***   5000 in         16 milliseconds
+***  10000 in         31 milliseconds
+***  15000 in         47 milliseconds
+***  20000 in         63 milliseconds
+***  25000 in         93 milliseconds
+***  30000 in        125 milliseconds
+***  35000 in        204 milliseconds
+***  40000 in        203 milliseconds
+***  45000 in        218 milliseconds
+***  50000 in        266 milliseconds
+***  60000 in        328 milliseconds
+***  70000 in        360 milliseconds
+***  80000 in        406 milliseconds
+***  90000 in        500 milliseconds
+*** 100000 in        515 milliseconds
+</PRE>
+</TD>
+<TD>
+<PRE>
+***    100 in          0 milliseconds
+***    200 in          0 milliseconds
+***    300 in          0 milliseconds
+***    400 in          0 milliseconds
+***    500 in         15 milliseconds
+***   1000 in          0 milliseconds
+***   2000 in         16 milliseconds
+***   3000 in         31 milliseconds
+***   4000 in         31 milliseconds
+***   5000 in         47 milliseconds
+***  10000 in         94 milliseconds
+***  15000 in        156 milliseconds
+***  20000 in        188 milliseconds
+***  25000 in        250 milliseconds
+***  30000 in        281 milliseconds
+***  35000 in        375 milliseconds
+***  40000 in        375 milliseconds
+***  45000 in        453 milliseconds
+***  50000 in        484 milliseconds
+***  60000 in        625 milliseconds
+***  70000 in        672 milliseconds
+***  80000 in        813 milliseconds
+***  90000 in        875 milliseconds
+*** 100000 in        984 milliseconds
+</PRE>
+</TD>
+</TR>
+</TABLE>
+
+@}
+*/

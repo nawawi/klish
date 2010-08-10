@@ -1,0 +1,565 @@
+/**
+\page _changes_page Changes
+
+<HR>
+
+The following updates were introduced as part of work undertaken as an employee
+of Newport Networks. (http://www.newport-networks.com)
+
+    Graeme McKerrell
+
+\section _0_7_3 0.7.3
+- minor bug fix from Cliff Martin which avoids a SEGV when CTRL-C is invoked
+  on an empty line.
+
+\section _0_7_2 0.7.2
+- updated the default value fix slightly to ensure that if the default is set
+  to the empty string then the parameter will not be translated. This means
+  that legacy code which uses an empty default as an indicator of a parameter
+  not being provided will continue to work.
+  
+- incorporated bug from Charlie (nmsguru at sourceforge dot net) to make
+  sure that default values are correctly translated. e.g. a SELECT parameter
+  can be given the textual name in the XML and will be translated into the
+  appropriate interpretation when used.
+
+- updated the configuration so that the --enable-lubheap option is disabled by default. There
+  were a number of people which were having problems compiling the memory management code and tests.
+
+- added in lub_partition component which provides a fast local memory heap for the current thread
+  as well as a global mutex controlled heap which is used by multiple threads.
+  
+- added statistics to lub_blockpool component
+
+- performance overhaul of lub_heap component. Added a cache for smaller sized blocks which provides
+  a boost to the alocation/deallocation speed.
+  
+- updated escape_decode() function in vt100.c to become non-blocking for
+  the scope of decoding an escape sequence. This prevents hanging the
+  input if a user presses the ESC key.
+  
+- added a lub_heap_show_allocs() function which enables any leak detection
+  tracked allocations to be output. This is useful in the case where memory
+  corruption is preventing a scan from taking place.
+  
+- updated lub_heap__set_framecount() so that when you disable leak detection
+  the tainting state is returned to that before leak detection was enabled.
+
+- implemented correct alignement allocations of sizes other than 
+  native alignment. Changed the naming convention to 
+  LUB_HEAP_ALIGN_2_POWER_X and provided support upto 128MB alignment.
+  
+- updated the memInit() function in lubheap/vxwork/memLib.c to call
+  memLibInit() and memPartLibInit(). This is necessary for systems which
+  only call memInit() in usrRoot() routine.
+
+- updated the root-view.xml example file to demonstrate the use of different
+  parameter types.
+
+- updated the named-view.xml example file to demonstrate the use of viewid.
+
+- added patch from Anselmo Lacerda Silveira de Melo to add CTRL-U key
+  combination to tinyrl which deletes the current line contents.
+
+- fixed "const-ness" issue in lub/heap/context.c
+
+- added error checking to posix/heap_leak_mutex.c in case the pthread
+  calls fail.
+  
+- added heap address to the details output by lub_heap_show()
+
+- fixed possible uninitialised variable in heap_realloc.c
+
+- updated clish.xsd to make sure the "PARAM" tag is named.
+
+\section _0_7_1 0.7.1
+-  Cleaned up configure.ac, added --enable-lubheap experimental option which can
+   be used to replace the normal system memory libraries with a lub/heap implementation.
+   Added librt and libintl support as well as POSIXifiying the build for clean
+   building under LINUX.
+
+-  Updated the shell_spawn.c file to enable tilde expansion in CLISH_PATH.
+
+-  split lub_heap platform specifics into two parts 
+   1) the platform specific support code required by the core 
+      lub_heap implementation. 
+   2) a lubheap component which can be linked in to replace the normal
+      platform memory libraries.
+
+-  updated lub_heap component so that memory scanning is handled by specific functions
+   rather than assume the naming conventions of particular sections during the link.
+   The platform specific code now has to perform the scanning.
+
+-  refactored lub/heap/vxworks to better override vxworks libraries when linked in
+   as a library.
+
+-  fixed lub_heap component so that it compiles on 64 bit architecture, and with GCC-4.0
+
+-  updated tinyxml to version 2.5.1
+
+-  updated lub/heap/vxworks/malloc.c/free.c/realloc.c to undefine any
+   MACRO set with their function name. This ensures that they always get compiled 
+   with the correct name, even if the rest of the CLISH framework is being 
+   compiled to use an alternative memory heap, via -D options
+   
+-  Fixed issue in tinyrl_readline where raw mode was enabled (and input buffer
+   flushed) between printing prompt and accepting input. This was causing
+   things like expect scripts to fail. Fix was to change to raw mode prior to
+   printing the prompt.
+
+-  Fixed lub_heap component to work with latest version of Cygwin.
+   The areas which use the __builtin_return_address() function,
+   provided by GCC, now uses the lub_heap_data_start value to
+   check whether a returned address is beyond the "text" section.
+   Hence a stack trace is deemed to come to an end if either the return
+   address is 0 or greater than lub_heap_data_start.
+   
+- Changed next pointer in lub_heap_s to be "lub_heap_s *"as opposed 
+  to "lub_heap_t *" so that GDB does not give incomplete type.
+
+  Fixed memory stomp in tinyrl_completion.
+
+- Updated to account for obscure problem related to C-strings
+  being signed and the ctype.h API taking a signed integer.
+
+  If a string contains characters greater than 127 then the signed bit
+  will be set and when calling a ctype.h utility this can get sign
+  extended.
+  e.g. 
+  char *ptr = "£10"; isspace(*ptr);  will have the value -100
+  passed to the function (or MACRO) as the '£' character (decimal 156)
+  is negative when held as a signed char.
+
+  The solution is to ensure that you always used unsigned chars to
+  pass to the utility functions. This was achieved by adding a lub_ctype 
+  component which provides 8-bit safe versions of these functions.
+
+- added ability to have scripts stop on error or not by introducing a new
+  clish_source_no_stop entry point,
+
+- added ability to limit the maximum line length in tinyrl.
+
+- fixed bug in tinyrl_completion which was stomping on memory when there
+  were an exact multiple of 10 completions. Fix is to allocate one extra
+  entry for the NULL terminator.
+
+- added lub_heap_destroy() operation which frees up a heap object so
+  that the memory segments used for it can be reused for something else.
+  
+- Updated lub_heap so that leak scanning will account for
+  any non-monitored allocated blocks in the system. This 
+  prevents false leaks from being reported. However it
+  cannot account for any of the non-monitored blocks being
+  leaked themselves.
+
+- stripped out some spurious code in vxworks/heap_symShow.c
+
+- lubMallocTest.exe now exercises stress test on lub_heap component.
+  mallocTest.exe runs the same test on the native heap manager for the
+  host platform.
+
+- fixed lub_heap__get_max_free() to work when no free blocks are present.
+
+- added a generic lub_heap_scan_stack() function which can be used
+  to scan any variables held in the current stack up to 32 levels.
+  (needed for non VxWorks systems)
+
+- made lub_heap_scan_memory() take a const void* argument.
+
+- updated lub/heap.h to work when included from C++ file.
+
+- updated the posix/heap_symShow.c to use libbfd for symbol decoding.
+  A lub_heap_init() operation now exists which is called to
+  provide the filename of the current program so that symbols can be
+  loaded.
+
+- disabled memory leak detection and memory taiting by default for
+  the POSIX platform.
+
+- changed default behaviour to tainting and leak detection off.
+
+- when leak detection is enabled for the first time an exit handler is
+  registered to dump memory when a program completes.
+
+- updated configure.ac so that -disable-gpl may be used to prevent
+  linking with GPL licenced libraries.
+
+- fixed bug in tinyrl_completion which was stomping on memory when there
+  were an exact multiple of 10 completions. Fix is to allocate one extra
+  entry for the NULL terminator.
+
+- fixed bug in clish_pargv_new() which was only allocating enough memory 
+  for the number of arguments entered on the command-line. In the case of
+  optional trailing parameters, which were not entered, this caused a memory
+  stomp! Fixed by allocating enough memory for the maximum of the entered 
+  parameters or the command parameters.
+
+- added clish_command__get_param_count() method to obtain the number of 
+  parameters associated with a command.
+
+- fixed bug in lub_heap_graft_to_bottom; the tail was not getting it's 
+  free and segment fields set up.
+
+\section _0_7_0 0.7.0
+- Updated shell_execute.c to ensure that directories are not executed
+
+- fixed minor bug in autocompletion of parameters. 
+  clish_shell_parameter_generator() needed to account for trailing space 
+  when giving context sensitive help for parameters.
+  
+- updated lub_heap to maintain the length of blocks inclusive of the block
+  headers and tail. This reduces the overhead of manipulating sizes during
+  operations and also addresses an issue with the re-use of previously freed blocks.
+
+- added dblockpool component for creating dynamic chunks to be used as 
+  blockpools. The lub_heap implementation now uses this for holding
+  context instances, which both reduces the overhead memory used and
+  greatly reduces fragmentation when detecting leaks.
+  
+- fixed double insert bug in the lub_bintree_insert.c file.
+  Although the function was correctly returning -1 it was also 
+  replacing the root node with the provided client node!
+
+- updated shell_tinyrl.c so that typing "?" whilst in the middle of a 
+  quoted string inserts the '?' character rather than giving context
+  sensitive help.
+
+- fixed memory leaks which occurred when clish thread is cancelled during 
+  execution of a script.
+
+- updated to make the execution of a script asynchronously cancellable.
+
+- modified clish_shell's history command to use new methods 
+
+- added tinyrl_history_entry__get_index() method and removed 
+  tinyrl_history__get_base()
+
+- modified tinyrl_history so that index is held in the history_entry 
+  instances Then updated the history insertion code so that duplicate
+  entries are only held once in the history. This means that numeric
+  gaps can now occur in the history list, but a stifled list will no
+  longer force recent commands off the list through the repetition of 
+  a single command.
+  
+- updated tinyrl_completion() so that if the completion list contains
+  words which have a common (case insensitive) prefix are correctly
+  handled. Before this fix if commands "one" and "OneTwoThree" both
+  existed in the same view then the user would be unable to type
+  anything beyond "one".
+
+- fixed bug in clish_shell_tinyrl_key_enter() where a pointer to the line
+  for the current tinyrl instance was being held onto after it had been 
+  changed by an auto-completion, hence was now referencing freed memory.
+
+- ensure that when reading a script and an error occurs we don't bother
+  to show the errored command line after the "DING"
+
+- ensure that after reading a script the prompt isn't duplicated.
+
+- fixed memory leak in clish_pargv_init() where the 'args' parameter wasn't
+  releasing its working string.
+
+- fixed tinyrl_redisplay so that CTRL-K works; wasn't accounting for 
+  insertion point movements before erasing characters from end of line.
+
+- fixed history.c so that stifled history lists add_n_replace() properly.
+  This also addresses an assertion which was occuring with "history 1"
+
+- updated clish_shell class so that when an error occurs in a script, 
+  execution is terminated in any parent scripts. 
+  This doesn't terminate an interactive session.
+  This means that a script will now only run until it's first error 
+  (or the first error of a child script etc...)
+
+- plugged a poential memory leak in lub_string_catn() function.
+
+- fixed clish_shell_delete() so that the file stack is cleared out.
+
+- updated lub/argv class to be more resilient when memory
+  allocation failures occur.
+
+- reduced the terminal noise generated by tinyrl when 
+  auto-completion occurs.
+
+- reduced the termnal noise generated by tinyrl when user deletes
+  characters from the end of a line.
+   
+- VxWorks has an issue with its pthreads library which means that a
+  cleanup hook can be called multiple times (recursively)!!!. Updated
+  the cleanup function to set the pthread cancel state to 
+  PTHREAD_CANCEL_DISABLE to prevent this.
+  
+- found and fixed a memory leak in the stack of files being used for input.
+
+- updated auto-completion code to handle quoted arguments.
+
+- fixed echoing issue when echoing should be hidden.
+
+- overhauled the auto-completion code. Now capable of autocompleting 
+  parameters as well as commands. Parameters are now validated as they
+  are typed. This has involved some restructuring of the
+  tinyrl_completion interfaces.
+
+- fixed so that validation of integers works correctly.
+
+- removing the spurious auto-completions has had the side effect of not 
+  echoing commands executed from scripts. fixed this issue.
+  
+- modified the help system so that if a command has possible other
+  commands which are an extension of the current command name 
+  (e.g. slot, slotOne, slotTwo) then the command help will be augmented
+  the summary help of the possile completion commands.
+  
+- fixed bug where the SPACE key could cause spurious completion 
+  information to be displayed before entering a space character.
+
+- fixed clish_shell_help.c so that any detailed help held for
+  "place-holder" commands (e.g. "show slot" has a place holder command 
+  called "show") will be displayed when ?? is entered.
+
+- fixed bug where entering a command which happened to be a prefix
+  of other commands, caused spurious completion information to be
+  displayed before executing the command.
+
+- cleaned up the tinyrl.c to remove a spurious tinyrl_crlf() call
+  when reading a line. If a command outputs no text to stdout/stderr
+  then the prompt will now reappear on the following
+  line rather than leave a blank.
+
+- Updated the context sensitive help so that any parmeters which
+  have specific ranges e.g. "integer" or "selection" indicate
+  these possible values in the help text.
+  
+- Updated the ptype class to allow for pre-processing of parameter
+  before validation. See the XML schema for details.
+
+- Updated the ptype class to allow three methods for parameter validation.
+ "regexp"[default], "integer" and "select" See the XML schema for details.
+
+- Went through the code cleaning up PC Lint issues.
+
+- Added a last_buffer field to the tinyrl class to cache the last
+ displayed line. This can then be used to reduce the number of output
+ characters when only a single char has been added to the end. 
+ This simplifies the automated testing/interaction with the CLI.
+ e.g. expect scripts.
+ 
+- updated tinyrl.c to cache the isatty settings. This provides a
+  new operation called tinyrl__get_isatty()
+
+- removed nested shell support for a single client. It is no longer
+  needed as the "clish_source" command is used instead of spawning
+  another shell.
+
+- changed so that history entries are only added for interactive lines.
+  So if for example a user were to "clish_source" another file, 
+  the commands so issued from that file will not be added to the history.
+  
+- changed "clish_spawn" back to "clish_source" and implemented a stack of 
+  file handles per shell instance. The spawning of a sub-script was 
+  resource intensive, and had issues with spawned pthreads not having 
+  the attributes (e.g. stack size) as the parent thread. It also felt
+  too clunky to have multiple shell associated with a single client.
+
+- fixed tinyrl_readline() to make sure that lines longer than 80 chars are
+  handled correctly when read from a script.
+  
+- modified tinyrl_replace_line() to only modify the insertion point if
+  the buffer shrinks beyond the current insertion point. This
+  addresses the inserting spaces in the middle of a line issue.
+  
+- fixed clish_shell_spawn_from_file() so that it returns 
+  BOOL_TRUE upon success.
+
+- fixed tclish executable to read input from files correctly.
+
+- updated tinyrl.c to simply read non-tty input streams rather than
+  try and treat them like an interactive session.
+  
+- fixed tclish executable to account for nested shells being attached
+  to a single client. (using the "clish_spawn" builtin command.) 
+  Only when the root shell is initialised or finalised will
+  the resources be allocated and freed.
+
+- renamed the "clish_source" builtin command to "clish_spawn"; it takes
+  a filename and spawns a new shell to interpret the contents of the file.
+
+- added tinyrl__get_istream() tinyrl__get_ostream(), 
+  tinyrl_vt100__get_istream() and tinyrl_vt100__get_ostream() operations. 
+  This means that a client of CLISH can identify which file handles are 
+  being used. This is useful in the case of a client which is sourcing 
+  files using the "clish_source" builtin command.
+
+- Fixed to ensure that SPACE auto-completion works with commands which
+  take "args" type parameters.
+  
+\section _0_6_3 0.6.3
+- Updated tinyrl.c to ensure that SPACE auto-completes multi-word commands.
+  
+- Updated tinyrl.c to ensure that the line is redisplayed after a
+  completion has been performed. This is needed to ensure that when
+  a line is complete e.g. when pressing ENTER, the completion is 
+  shown before moving on.
+
+- fixed a freed memory usage in clish/shell/shell_tinyrl.c where a 
+  line pointer was obtained before completion was performed, then used. 
+  Needed to re-aquire the line pointer after completion, because it
+  could have changed.
+
+- fixed a memory corruption in tinyrl/history.c where a spurious NULL
+  terminator was being added to the vector of history entries
+  and corrupting the heap.
+
+- Updated command help to show the full multi-word command in the
+  detailed help. Also shows required parameters &lt;like_this&gt;
+
+\section _0_6_2 0.6.2
+- removed any non-interpreter specific setup/restore details from
+  tclish_init_callback and tclishell_fini_callback and put them into 
+  tclish.cpp
+  
+- updated tinyrl_readline() to change the terminal input mode on the fly 
+  to raw mode and then restore it when the line has been entered. This
+  is needed to ensure that the terminal is in the correct mode for any 
+  sub-shells which are launched. This means that clish_init_callback.c
+  and clish_fini_callback.c are redundant so have been removed.
+
+- updated clish_shell_spawn interface to take a pthread attibute as
+  a parameter this makes it possible for a client to control the
+  thread details.  
+
+- Documentation cleanups; added link to sourceforge pages, removed
+  redundant issues, started a doxygen todo list.
+
+\section _0_6_1 0.6.1
+- Fixed a bug where trying to insert text in the middle of a line
+  caused the remains of the line to be deleted.
+
+- updated the tdemo script to use the normal installation location for TCL
+  /usr/share/tcl8.4 rather than /usr/local/share/tcl8.4 which is used when 
+  you build it from scratch.
+
+\section _0_6_0 0.6.0
+
+    
+\subsection _0_6_0e 0.6.0e
+- Fixed shell_spawn.c so that client initialisation can fail hence cause the 
+  creation of the shell instance to be terminated. This means that client's 
+  may choose to perform user authentication at this point if they so wish.
+
+- Added a cmd_line hook which is called to provide the client details of 
+  each command line accepted by the shell. This enables logging of this
+  detail if so required. 
+
+\subsection _0_6_0d 0.6.0d
+- updated the autoconf system to use the TCL version for the tclishX.X name.
+
+- fixed clish/tclish_init_callback.c so that Tcl_FindExecutable() is called.
+  This is required to setup the TCL environment correctly. 0.6.0c release 
+  didn't load init.tcl correctly and was also crashing when file operations
+  were performed (e.g. glob, pwd)
+
+- finalized clish.xsd with proper namespace details
+
+
+\subsection _0_6_0c 0.6.0c
+- Fixed autoconf scripts to check for pthreads and TCL library.
+
+- Updated lub_argv class to be able to tell you when a parameter was quoted.
+  The paramter value itself will not contain the " marks.
+  
+- Introduced "args" and "args_help" attributes to the COMMAND element. 
+  This enables the remenant of a command line, after the parameters defined in
+  the PARAMS elements, to be assigned to a psuedo parameter variable.
+
+- Introduced a "escape_chars" attribute to the COMMAND element. This allows 
+  commands to override the default selection of characters which are escaped 
+  (e.g. \$) when expanded from a variable. Escaping of special characters is a
+  security feature to prevent the user from executing an underlying shell
+  command through the use of "clever" parameters. e.g. "fred`rm -rf \*`bloggs"
+  would be a rather unfortunate parameter on a UNIX system!!!
+
+- Introduced a "builtin" attribute to the ACTION element. Also enabled clients
+  to register their own built commands when spawning a shell. The XML MUST now
+  specify a builtin attribute to invoke a builtin command callback.
+  
+- entering an empty line simply redisplays the prompt. This enables a user to 
+  create some clear space on the screen.
+
+- Added tinyxml into the distibution; currently the tarball of this 
+  component (available from http://www.grinninglizard.com/tinyxml/index.html)
+  doesn't support autoconf, so by adding this in (plus a module.am) you get 
+  autoconf support. This library is 'much' smaller than libxml2 and hence is
+  more appropriate for an embedded system. libxml2 is no longer needed by 
+  clish.
+  
+- Added spawn interface to the shell class. This causes a separate thread to 
+  be lauched to handle the shell session. This is required for flat namespace 
+  embedded envrioments where you may need to sustain multiple concurrent
+  sessions.
+  
+- Introduced tinyrl component. This is a simplistic replacement for the 
+  readline library, which cannot be used in embedded-single memory space 
+  systems due to the use of global variables. Tinyrl implements sufficient 
+  functionality for the clish component to function, and no-more although more 
+  may be added in the future. readline is no longer needed to build clish.
+
+- Updated clish component so that "viewid" tag can be used to define view
+  specific variables. The syntax is of the form "fred=hello world;bert=goodbye"
+  and causes ${fred} and ${bert} to expand to the assigned values whilst in the
+  new view.
+  NB. the values themselves may be based on variables available in the current
+  context (e.g. environment, parameters or current viewid variables.)
+  
+- Updated clish component to use history escape sequences via an external
+  history_expand function. 
+  tinyrl_history currently supports "!!" "!N" and "!-N" expansion.
+  
+- Updated clish component to not use the exit(1) command to terminate the shell
+  instead a "close" instruction can be given to the shell and it will exit it's
+  external loop and terminate normally. This is for ease of use in 
+  single-memory-space embedded systems.
+  
+- Added a partial string test, which confirmed a bug in the VxWorks standard
+  headers which was causing lub_string_nocase_cmp() to work incorrectly.
+  
+- Updated clish component to support STARTUP XML element. This is used to 
+  display a banner and perform a startup action when a shell is first started.
+
+- Updated clish component to support OVERVIEW XML element. This is used to 
+  display some textual help when the clish_overview internal command is 
+  specified in an ACTION element.
+  
+- Updated clish component to support the DETAILS XML element.
+  These enhance the context sensitive help with the ability to provide more
+  details for a particular command. (a repeated press of the '?' key displays
+  this extra detail)
+  
+- Introduces more built in commands (can be specified in the ACTION element)
+  There are now four in total.
+  "clish_close"        - terminates the session.
+  "clish_overview"     - displays the text defined in the OVERVIEW element
+                         of the XML.
+  "clish_history [n]"  - displays the currently held history of command lines.
+                         Also enables the stifling of the history list to a
+                         value specified by the optional parameter 'n'. 
+                         A value of zero means unstifled.                   
+  "clish_source file"  - spawn a separate clish session reading the input from
+                         the specified file. Output still goes to the current
+                         output stream.
+
+- Mapped [space] and [enter] to auto-complete commands if appropriate.
+
+
+<HR>
+
+\section _0_5_4 0.5.4
+This work was done as an employee of 3Com (http://www.3com.com)
+
+    Graeme McKerrell
+
+- Initial public release
+
+
+*/
+*/

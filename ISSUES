@@ -1,0 +1,91 @@
+/**
+\page _issues_page Issues
+
+\todo
+- placing a "?" character in a text file doesn't display help text when 
+  passed into clish.
+
+- ACTIONS which are meant to handle signals like CTRL-C 
+  don't seem to work properly, either the sub-script fails and the
+  shell breaks, or the sub-script never handles the signal (depending on 
+  platform).
+  
+- the heap unittest current has 10 failures
+
+- no unittests for the dblockpool component yet...
+
+- lub_heap_destroy() method should be provided which will de-register any allocated blocks from the
+  leak detection trees.
+
+- update leak detection to scan non-monitored allocated memory blocks, for references. This requires
+  the ability to iterate all the heaps in the system.
+
+- auto-completion currently doesn't handle optional parameters (defined using the "prefix" attribute).
+  
+- If a multi-word command is defined in global and local views then
+auto-completion currently works for both, but resolving doesn't seem to.
+\verbatim
+e.g. "mode"     - local view
+     "mode qos" - global view
+     Will auto-complete "mode qos" but won't run it...
+\endverbatim
+- Doesn't handle wrapping of long lines properly; get multiple lines scrolling
+  down the screen.
+- Not all files have been split out into one file per function...
+- need to complete the Doxygen documentation for clish, tinyrl and lub/argv
+
+\section _nice Nice to have
+- when importing from a namespace, allow the specification of the following:
+  no-help         - defaults to false but may be set true to prevent display in the help menu.
+  no-completion   - defaults to false but may be set true to prevent auto-completion. 
+  no-context-help - defaults to false but may be set true to prevent context sensitive help for 
+                    commands.
+
+- place an access level on namespaces; saves worrying about defining access for
+  every single command. e.g. device_show namespace could have different access
+  to device_config namespace. device view simply imports both namespaces.
+
+- When defining a default attribute if you could include a variable in the 
+  definition, default could be given meaningful values.
+- Augment the XML schema for support of dynamic variables.
+  e.g. 
+  \verbatim
+  <VARIABLE name="fred"><ACTION>puts "hello world"</ACTION></VARIABLE>
+  \endverbatim
+  will get the value of "hello world" when expanded as ${fred}... 
+  This is simple for TCL as the result is returned... what about for clish ,  
+  how do we get a return value into the execitable?
+
+- Currently handles commands in one view or all views. Better model is to be able
+  to specify a namespace for commands and then assign a view to a namespace.
+  e.g.
+  \verbatim
+ <NAMESPACE name="fred">
+    <COMMAND>
+ </NAMESPACE>
+ <VIEW name=" kdjkdj"...>
+    <IMPORT namespace="fred">
+    <COMMAND ...>
+ </VIEW>
+  \endverbatim
+  by default a view imports commands from the global namespace.
+  NB. need to be able to resolve commands from all included namespaces.
+  
+- In addition a command could become an alias for an entire namespace's worth
+  of sub-commands.
+  e.g.
+  \verbatim
+ <NAMESPACE name="config">
+   <COMMAND name="show"...>
+   <COMMAND name="show ip"...>
+   ...
+ </NAMESPACE>
+  
+ <VIEW name="foobar"...>
+    <COMMAND      name="do" 
+                  help="perform a configuration command" 
+             namespace="config"/>
+ </VIEW>
+  \endverbatim
+
+*/

@@ -1,0 +1,21 @@
+## Process this file with automake to generate Makefile.in
+lib_LTLIBRARIES         += libcliconf.la
+libcliconf_la_SOURCES        =
+libcliconf_la_LIBADD         =
+
+nobase_include_HEADERS  +=  \
+    cliconf/conf.h          \
+    cliconf/query.h         \
+    cliconf/buf.h           \
+    cliconf/net.h
+
+EXTRA_DIST             +=   \
+    cliconf/conf/module.am  \
+    cliconf/query/module.am \
+    cliconf/buf/module.am   \
+    cliconf/net/module.am
+
+include $(top_srcdir)/cliconf/conf/module.am
+include $(top_srcdir)/cliconf/query/module.am
+include $(top_srcdir)/cliconf/buf/module.am
+include $(top_srcdir)/cliconf/net/module.am

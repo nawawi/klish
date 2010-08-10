@@ -1,0 +1,2 @@
+libcliconf_la_SOURCES +=	cliconf/query/query.c	\
+				cliconf/query/private.h

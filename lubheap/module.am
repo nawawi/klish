@@ -1,0 +1,13 @@
+## Process this file with automake to generate Makefile.in
+if LUBHEAP
+  lib_LTLIBRARIES             += liblubheap.la
+  liblubheap_la_SOURCES        =
+endif
+
+EXTRA_DIST                  += \
+    lubheap/posix/module.am    \
+    lubheap/vxworks/module.am  \
+    lubheap/README
+
+include $(top_srcdir)/lubheap/posix/module.am
+include $(top_srcdir)/lubheap/vxworks/module.am

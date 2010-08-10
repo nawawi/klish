@@ -1,0 +1,42 @@
+## Process this file with automake to produce Makefile.in
+bin_PROGRAMS += bin/clish bin/confd
+
+bin_clish_SOURCES = bin/clish.cpp	
+bin_clish_LDADD  = \
+    libclish.la    \
+    @CLICONF_LIBS@ \
+    @TINYRL_LIBS@  \
+    @TINYXML_LIBS@ \
+    @LUBHEAP_LIBS@ \
+    @LUB_LIBS@     \
+    @PTHREAD_LIBS@ \
+    @BFD_LIBS@
+
+bin_confd_SOURCES = bin/confd.c
+bin_confd_LDADD  = \
+    @CLICONF_LIBS@ \
+    @LUB_LIBS@
+
+bin_PROGRAMS += bin/tclish@TCL_VERSION@
+
+bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp
+bin_tclish@TCL_VERSION@_LDADD   = \
+    libclish.la                   \
+    @CLICONF_LIBS@ \
+    @TINYRL_LIBS@                 \
+    @TINYXML_LIBS@                \
+    @TCL_LIBS@                    \
+    @LUBHEAP_LIBS@                \
+    @LUB_LIBS@                    \
+    @PTHREAD_LIBS@                \
+    @BFD_LIBS@
+
+if LUBHEAP
+  bin_PROGRAMS += bin/lubheap
+  bin_lubheap_SOURCES = bin/lubheap.c
+  bin_lubheap_LDADD = \
+    @LUBHEAP_LIBS@    \
+    @LUB_LIBS@        \
+    @PTHREAD_LIBS@    \
+    @BFD_LIBS@
+endif

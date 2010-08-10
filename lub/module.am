@@ -1,0 +1,42 @@
+## Process this file with automake to generate Makefile.in
+lib_LTLIBRARIES         += liblub.la
+liblub_la_SOURCES        =
+liblub_la_LIBADD         = -lpthread
+
+nobase_include_HEADERS  +=  \
+    lub/argv.h              \
+    lub/bintree.h           \
+    lub/blockpool.h         \
+    lub/ctype.h             \
+    lub/dblockpool.h        \
+    lub/c_decl.h            \
+    lub/dump.h              \
+    lub/heap.h              \
+    lub/partition.h         \
+    lub/string.h            \
+    lub/size_fmt.h          \
+    lub/test.h              \
+    lub/types.h
+
+EXTRA_DIST             +=   \
+    lub/argv/module.am      \
+    lub/bintree/module.am   \
+    lub/blockpool/module.am \
+    lub/ctype/module.am     \
+    lub/dblockpool/module.am\
+    lub/dump/module.am      \
+    lub/heap/module.am      \
+    lub/string/module.am    \
+    lub/test/module.am      \
+    lub/README
+
+include $(top_srcdir)/lub/argv/module.am
+include $(top_srcdir)/lub/bintree/module.am
+include $(top_srcdir)/lub/blockpool/module.am
+include $(top_srcdir)/lub/ctype/module.am
+include $(top_srcdir)/lub/dblockpool/module.am
+include $(top_srcdir)/lub/dump/module.am
+include $(top_srcdir)/lub/heap/module.am
+include $(top_srcdir)/lub/partition/module.am
+include $(top_srcdir)/lub/string/module.am
+include $(top_srcdir)/lub/test/module.am

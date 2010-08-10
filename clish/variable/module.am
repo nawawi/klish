@@ -1,0 +1,2 @@
+libclish_la_SOURCES +=	clish/variable/variable_expand.c		\
+			clish/variable/private.h

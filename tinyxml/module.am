@@ -1,0 +1,19 @@
+## Process this file with automake to generate Makefile.in
+lib_LTLIBRARIES		    += libtinyxml.la
+
+nobase_include_HEADERS  +=      \
+    tinyxml/tinystr.h           \
+    tinyxml/tinyxml.h
+
+EXTRA_DIST              +=      \
+    tinyxml/changes.txt         \
+    tinyxml/readme.txt		\
+    tinyxml/README
+            
+libtinyxml_la_SOURCES    =      \
+    tinyxml/tinyxml.cpp         \
+    tinyxml/tinyxmlerror.cpp    \
+    tinyxml/tinyxmlparser.cpp   \
+    tinyxml/tinystr.cpp
+
+libtinyxml_la_CXXFLAGS = @TINYXML_CXXFLAGS@

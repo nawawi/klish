@@ -1,0 +1,57 @@
+if LUBHEAP
+  liblub_la_SOURCES +=  lub/heap/cache.c                        \
+                        lub/heap/cache.h                        \
+                        lub/heap/cache_bucket.c                 \
+                        lub/heap/context.c                      \
+                        lub/heap/context.h                      \
+                        lub/heap/heap__get_max_free.c           \
+                        lub/heap/heap__get_stacktrace.c         \
+                        lub/heap/heap__get_stats.c              \
+                        lub/heap/heap_add_segment.c             \
+                        lub/heap/heap_align_block.c             \
+                        lub/heap/heap_block__get_tail.c         \
+                        lub/heap/heap_block_from_ptr.c          \
+                        lub/heap/heap_block_getfirst.c          \
+                        lub/heap/heap_block_getkey.c            \
+                        lub/heap/heap_block_getnext.c           \
+                        lub/heap/heap_block_getprevious.c       \
+                        lub/heap/heap_block_check.c             \
+                        lub/heap/heap_check.c                   \
+                        lub/heap/heap_context_delete.c          \
+                        lub/heap/heap_context_find_or_create.c  \
+                        lub/heap/heap_create.c                  \
+                        lub/heap/heap_destroy.c                 \
+                        lub/heap/heap_extend_both_ways.c        \
+                        lub/heap/heap_extend_downwards.c        \
+                        lub/heap/heap_extend_upwards.c          \
+                        lub/heap/heap_foreach_free_block.c      \
+                        lub/heap/heap_foreach_segment.c         \
+                        lub/heap/heap_graft_to_bottom.c         \
+                        lub/heap/heap_graft_to_top.c            \
+                        lub/heap/heap_init_free_block.c         \
+                        lub/heap/heap_merge_with_next.c         \
+                        lub/heap/heap_merge_with_previous.c     \
+                        lub/heap/heap_new_alloc_block.c         \
+                        lub/heap/heap_new_free_block.c          \
+                        lub/heap/heap_post_realloc.c            \
+                        lub/heap/heap_pre_realloc.c             \
+                        lub/heap/heap_raw_realloc.c             \
+                        lub/heap/heap_realloc.c                 \
+                        lub/heap/heap_scan_stack.c              \
+                        lub/heap/heap_show.c                    \
+                        lub/heap/heap_slice_from_bottom.c       \
+                        lub/heap/heap_slice_from_top.c          \
+                        lub/heap/heap_static_alloc.c            \
+                        lub/heap/heap_stop_here.c               \
+                        lub/heap/heap_tainted_memory.c          \
+                        lub/heap/node.c                         \
+                        lub/heap/node.h                         \
+                        lub/heap/private.h
+endif
+
+EXTRA_DIST             +=       \
+    lub/heap/posix/module.am    \
+    lub/heap/vxworks/module.am
+
+include $(top_srcdir)/lub/heap/posix/module.am
+include $(top_srcdir)/lub/heap/vxworks/module.am

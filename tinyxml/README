@@ -1,0 +1,12 @@
+/**
+\defgroup tinyxml "Tiny XML Library"
+@{
+
+This library provides a small footprint XML parsing facility. CLISH uses this
+in prefence to libxml2 as it is far more suited to embedded systems.
+
+Full documentation and details of this library can be found at
+http://www.grinninglizard.com/tinyxml/
+
+@}
+*/

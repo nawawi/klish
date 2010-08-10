@@ -1,0 +1,24 @@
+if LUBHEAP
+  liblub_la_SOURCES +=  lub/partition/partition_check_memory.c           \
+                        lub/partition/partition_destroy_local_heap.c     \
+                        lub/partition/partition_disable_leak_detection.c \
+                        lub/partition/partition_enable_leak_detection.c  \
+                        lub/partition/partition_extend_memory.c          \
+                        lub/partition/partition_findcreate_local_heap.c  \
+                        lub/partition/partition_fini.c                   \
+                        lub/partition/partition_init.c                   \
+                        lub/partition/partition_realloc.c                \
+                        lub/partition/partition_segment_alloc.c          \
+                        lub/partition/partition_show.c                   \
+                        lub/partition/partition_sysalloc.c               \
+                        lub/partition/private.h
+
+endif
+
+EXTRA_DIST             +=            \
+    lub/partition/posix/module.am    \
+    lub/partition/vxworks/module.am
+
+include $(top_srcdir)/lub/partition/posix/module.am
+include $(top_srcdir)/lub/partition/vxworks/module.am
+

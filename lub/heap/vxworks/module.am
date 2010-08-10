@@ -1,0 +1,6 @@
+EXTRA_DIST  +=                                       \
+            lub/heap/vxworks/heap_clean_stacks.c     \
+            lub/heap/vxworks/heap_leak_mutex.c       \
+            lub/heap/vxworks/heap_scan_bss.c         \
+            lub/heap/vxworks/heap_scan_data.c        \
+            lub/heap/vxworks/heap_symShow.c

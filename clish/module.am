@@ -1,0 +1,47 @@
+## Process this file with automake to produce Makefile.in
+                                
+libclish_la_SOURCES              = \
+    clish/clish_access_callback.c  \
+    clish/clish_script_callback.c  \
+    clish/clish_config_callback.c  \
+    clish/clish_shutdown.c         \
+    clish/clish_startup.c          \
+    clish/tclish_fini_callback.c   \
+    clish/tclish_init_callback.c   \
+    clish/tclish_script_callback.c \
+    clish/tclish_show_result.c     \
+    clish/private.h
+
+libclish_la_CFLAGS = @LUB_CFLAGS@ @LUBHEAP_CFLAGS@ $(DEBUG_CFLAGS)
+
+lib_LTLIBRARIES += libclish.la
+
+nobase_include_HEADERS  +=      \
+    clish/command.h             \
+    clish/param.h               \
+    clish/pargv.h               \
+    clish/ptype.h               \
+    clish/shell.h               \
+    clish/variable.h            \
+    clish/view.h                \
+    clish/nspace.h
+
+EXTRA_DIST                 += \
+    clish/command/module.am   \
+    clish/param/module.am     \
+    clish/pargv/module.am     \
+    clish/ptype/module.am     \
+    clish/shell/module.am     \
+    clish/variable/module.am  \
+    clish/view/module.am      \
+    clish/nspace/module.am    \
+    clish/README
+
+include $(top_srcdir)/clish/command/module.am
+include $(top_srcdir)/clish/param/module.am
+include $(top_srcdir)/clish/pargv/module.am
+include $(top_srcdir)/clish/ptype/module.am
+include $(top_srcdir)/clish/shell/module.am
+include $(top_srcdir)/clish/variable/module.am
+include $(top_srcdir)/clish/view/module.am
+include $(top_srcdir)/clish/nspace/module.am

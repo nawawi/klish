@@ -1,0 +1,160 @@
+/**
+\mainpage
+
+\section abstract Abstract
+A modular framework for implementing a CISCO-like CLI on a *NIX system.
+Arbitary command menus and actions can be defined using XML files.
+This software handles the user interaction, and forks the appropriate system
+commands to perform any actions. 
+
+- \ref _licence_page 
+- \ref _changes_page 
+- \ref _issues_page
+
+\section downloads Downloads
+This project is hosted on 
+<A HREF="http://sourceforge.net/projects/clish/">sourceforge.</A> from where
+the source-code can be downloaded.
+
+\section background Background
+The CISCO-like CLI has become a de-facto standard in the domain of network 
+devices. It is a much more restricted interface than traditional *NIX shells,
+hence is simpler to use and inherently more secure. As more devices move to 
+using an embedded *NIX operating systems, a simple, scalable means of producing 
+such a CLI becomes valuable.
+
+\section existing Existing Solutions
+
+\subsection Libcli
+<A HREF="http://libcli.sourceforge.net/">Libcli</A>
+provides a similar facility but has the following main limitations:-
+
+1) In order to add new commands a monolithic executable (which uses the
+   library) needs to be recompiled, after editing the source code to add the
+   newly required commands and actions.
+
+2) libcli takes responsiblity for attaching to a socket (telnet-like). This 
+   limits the usage of the CLI; difficult to use over SSH for example, similarly
+   cannot get the menus directly from an existing shell.
+
+3) The implementation of the command actions is hard-linked into the monolithic
+   executable, this can cause licence concerns/issues when a commercial company
+   wishes to control proprietry software from within the CLI.
+
+4) libcli takes responsiblity for the authentication of the user. This is
+   different from other "shells" which do not deal with authentication, but are
+   simply spawned as the required user.
+   
+\subsection GNU-zebra
+<A HREF="http://www.zebra.org/">Zebra</A>
+is a routing package, and comes with it's own integrated CLI, to handle its
+configuration (VTYSH).
+
+\section project CLISH Project
+The project is written (mostly) in ANSI-C and provides two example executables
+which can be used as a drop-in replacement for a more conventional "shell".
+
+The software was initially developed as part of some internal work at 3Com and
+due to the dependancy on 3rd party open-source packages, and it's self contained
+nature, it is being released into the public domain.
+
+It is designed to run on any *NIX system e.g. Linux, BSD, Cygwin and makes use
+of the following other opensource packages (glibc,tinyxml,doxygen)
+
+\subsection clish  clish  (pronounced see-lish)
+This application is a standard UNIX shell replacement. The ACTION tags in the XML
+specification are mapped to the system() call and hence will be interpreted as
+a Bourne-shell script.
+
+\subsection tclish tclish (pronounced tickle-ish)
+This application is built if the TCL libraries are present on the build system.
+The name of the executable produced will reflect the version of TCL used. e.g. 
+tclish8.4 will be generated if TCL8.4 is present on the system.
+
+This application will spawn a TCL interpreter when started, and the contents of
+the ACTION tags will be interpreted as TCL scripts within that interpreter for
+the duration of the shell.
+  
+\subsection Features
+The "clish" shell has the following features:-
+
+-	Provides CLI tree handling facilities
+	-	Tree built from multiple XML encoded files. (uses tinyxml)
+	        This means that XML configuration files can be be made part of
+		3rd party packages and simply installing them integrates
+		commands into the CLI.
+	
+-	Access permissions are defined as part of the CLI tree definition; a CLI
+	node/branch may be limited to a specific *NIX group.
+
+-	Provides interface to user
+	-	Handles auto-completion of commands
+	-	Only appropriate commands for the current user's "group" will be 
+		available.
+	-	Provides parameter type verification facility
+		*	Each parameter may be of a specific type, which the
+		        framework will ensure is correctly entered by the user.
+	-	Provides key-handling for the interface (uses tinyrl)
+		*	Provides command line editing facilities
+		*	up/down arrow keys
+		*	[TAB] command completion 
+		*	[CTRL-A] move to start of command line
+		*	[?] provides context sensitive help.
+
+- 	Able to be launched non-interactively
+	- textual scripts can be written to drive the CLI
+
+-	Executes a specified CLI command by launching the appropriate
+        (as defined in the CLI tree) system command line to perform the
+        required action
+	-	Only commands permitted for the current user are available.
+	-	During execution the I/O streams are handed over to the new 
+	        program.
+	-	Able to spawn a 3rd party shell, where necessary
+	        This will take over control of the  I/O channel until that
+		sub-shell exits.
+
+
+"clish" makes use of multiple XML files to define it's behaviour these...
+
+-	Identify scope of the commands (global or specific view(s))
+
+-	Include access permissions. By default a command will be
+        accessible to all users, but the schema will provide
+	the ability to limit the command based on UNIX group membership.
+
+-	Includes help text for menus
+
+-	Includes parameter definitions (with types where appropriate)
+
+-	Includes prompt modifications (different views)
+
+-	Includes full command line which each leaf node should execute
+        to achieve result.
+
+-	Separate set of files for each localization (language) can be
+        provided and determined by the user logging in.
+
+-	"packages" can contribute files to define their facilities
+        within the CLI; this makes augmentation of the CLI as simple
+	as including/excluding a particular package.
+
+\section example xml-example directory
+
+\include README
+
+Some of the example files are put here for reference:
+
+\subsection global_xml global-command.xml
+\include global-commands.xml
+
+\subsection startup_xml startup.xml
+\include startup.xml
+
+\subsection types_xml types.xml
+\include types.xml
+
+\subsection debug_xml debug-view.xml
+\include debug-view.xml
+
+*/
