@@ -1,3 +1,0 @@
-libclish_la_SOURCES +=	clish/conf/conf.c	\
-			clish/conf/conf_dump.c	\
-			clish/conf/private.h
