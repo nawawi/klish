@@ -159,6 +159,10 @@ static const char *method_names[] = {
 /*--------------------------------------------------------- */
 const char *clish_ptype_method__get_name(clish_ptype_method_e method)
 {
+	int max_method = sizeof(method_names) / sizeof(char *);
+
+	if (method >= max_method)
+		return NULL;
 	return method_names[method];
 }
 
@@ -442,7 +446,11 @@ clish_ptype_init(clish_ptype_t * this,
 	if (NULL != pattern) {
 		/* set the pattern for this type */
 		clish_ptype__set_pattern(this, pattern, method);
+	} else {
+		/* The method is regexp by default */
+		this->method = CLISH_PTYPE_REGEXP;
 	}
+	
 	if (NULL != text) {
 		/* set the help text for this type */
 		clish_ptype__set_text(this, text);
