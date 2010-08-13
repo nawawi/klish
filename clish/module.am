@@ -24,7 +24,8 @@ nobase_include_HEADERS  +=      \
     clish/shell.h               \
     clish/variable.h            \
     clish/view.h                \
-    clish/nspace.h
+    clish/nspace.h              \
+    clish/internal.h
 
 EXTRA_DIST                 += \
     clish/command/module.am   \
