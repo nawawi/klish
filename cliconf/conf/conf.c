@@ -187,16 +187,16 @@ cliconf_t *cliconf_find_conf(cliconf_t * this,
 		return lub_bintree_find(&this->tree, &key);
 	}
 
-	/* Empty tree */
+	/* If tree is empty */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
 		return NULL;
 
 	/* Iterate non-empty tree */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
-	while ((conf = lub_bintree_iterator_next(&iter))) {
+	do {
 		if (0 == lub_string_nocasecmp(conf->line, line))
 			return conf;
-	}
+	} while ((conf = lub_bintree_iterator_next(&iter)));
 
 	return NULL;
 }
@@ -213,12 +213,12 @@ void cliconf_del_pattern(cliconf_t *this,
 		return;
 
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
-	while ((conf = lub_bintree_iterator_next(&iter))) {
+	do {
 		if (lub_string_nocasestr(conf->line, pattern) == conf->line) {
 			lub_bintree_remove(&this->tree, conf);
 			cliconf_delete(conf);
 		}
-	}
+	} while ((conf = lub_bintree_iterator_next(&iter)));
 }
 
 /*--------------------------------------------------------- */
