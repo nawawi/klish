@@ -16,8 +16,6 @@ Use it to implement config in memory.
 
 #include <stdio.h>
 
-#include "cliconf/conf/private.h"
-
 #include "lub/types.h"
 #include "lub/bintree.h"
 

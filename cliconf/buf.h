@@ -16,7 +16,6 @@ Use it to implement config in memory.
 
 #include <stdio.h>
 
-#include "cliconf/buf/private.h"
 #include "lub/bintree.h"
 
 typedef struct conf_buf_s conf_buf_t;

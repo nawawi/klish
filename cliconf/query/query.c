@@ -14,7 +14,8 @@
 #include <assert.h>
 
 #include "clish/private.h"
-#include "cliconf/query.h"
+#include "private.h"
+#include "lub/types.h"
 #include "lub/argv.h"
 #include "lub/string.h"
 
@@ -87,30 +88,6 @@ void query_add_pwd(query_t *query, char *str)
 	query->pwd[query->pwdc++] = lub_string_dup(str);
 }
 
-char * query__get_pwd(query_t *query, unsigned index)
-{
-	if (!query)
-		return NULL;
-	if (index >= query->pwdc)
-		return NULL;
-
-	return query->pwd[index];
-}
-
-int query__get_pwdc(query_t *query)
-{
-	return query->pwdc;
-}
-
-query_op_t query__get_op(query_t *query)
-{
-	return query->op;
-}
-
-char * query__get_path(query_t *query)
-{
-	return query->path;
-}
 
 void query_free(query_t *query)
 {
@@ -249,7 +226,49 @@ int query_parse_str(query_t *query, char *str)
 	return res;
 }
 
+char * query__get_pwd(query_t *query, unsigned index)
+{
+	if (!query)
+		return NULL;
+	if (index >= query->pwdc)
+		return NULL;
+
+	return query->pwd[index];
+}
+
+int query__get_pwdc(query_t *query)
+{
+	return query->pwdc;
+}
+
+query_op_t query__get_op(query_t *query)
+{
+	return query->op;
+}
+
+char * query__get_path(query_t *query)
+{
+	return query->path;
+}
+
+
 const char * query__get_pattern(query_t *this)
 {
 	return this->pattern;
 }
+
+const char * query__get_line(query_t *this)
+{
+	return this->line;
+}
+
+unsigned short query__get_priority(query_t *this)
+{
+	return this->priority;
+}
+
+bool_t query__get_splitter(query_t *this)
+{
+	return this->splitter;
+}
+

@@ -3,8 +3,6 @@
 
 typedef struct conf_client_s conf_client_t;
 
-#include "cliconf/net/private.h"
-
 #define CONFD_SOCKET_PATH "/tmp/confd.socket"
 
 conf_client_t *conf_client_new(char *path);

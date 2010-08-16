@@ -15,8 +15,6 @@ typedef enum
 
 typedef struct query_s query_t;
 
-#include "cliconf/query/private.h"
-
 int query_parse(query_t *query, int argc, char **argv);
 int query_parse_str(query_t *query, char *str);
 query_t *query_new(void);
@@ -26,6 +24,9 @@ int query__get_pwdc(query_t *query);
 void query_dump(query_t *query);
 query_op_t query__get_op(query_t *query);
 char * query__get_path(query_t *query);
-const char *query__get_pattern(query_t *instance);
+const char * query__get_pattern(query_t *instance);
+const char * query__get_line(query_t *instance);
+unsigned short query__get_priority(query_t *instance);
+bool_t query__get_splitter(query_t *instance);
 
 #endif

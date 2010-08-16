@@ -17,6 +17,7 @@
 #include <sys/un.h>
 
 #include "clish/private.h"
+#include "private.h"
 #include "lub/string.h"
 
 #ifndef UNIX_PATH_MAX

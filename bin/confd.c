@@ -225,22 +225,23 @@ static char * process_query(int sock, cliconf_t * conf, char *str)
 	switch (query__get_op(query)) {
 
 	case QUERY_OP_SET:
-		if (cliconf_find_conf(iconf, query->line, 0)) {
+		if (cliconf_find_conf(iconf, query__get_line(query), 0)) {
 			ret = QUERY_OP_OK;
 			break;
 		}
-		cliconf_del_pattern(iconf, query->pattern);
-		tmpconf = cliconf_new_conf(iconf, query->line, query->priority);
+		cliconf_del_pattern(iconf, query__get_pattern(query));
+		tmpconf = cliconf_new_conf(iconf, 
+			query__get_line(query), query__get_priority(query));
 		if (!tmpconf) {
 			ret = QUERY_OP_ERROR;
 			break;
 		}
-		cliconf__set_splitter(tmpconf, query->splitter);
+		cliconf__set_splitter(tmpconf, query__get_splitter(query));
 		ret = QUERY_OP_OK;
 		break;
 
 	case QUERY_OP_UNSET:
-		cliconf_del_pattern(iconf, query->pattern);
+		cliconf_del_pattern(iconf, query__get_pattern(query));
 		ret = QUERY_OP_OK;
 		break;
 
