@@ -10,6 +10,22 @@
 /*-------------------------------------
  * PRIVATE TYPES 
  *------------------------------------- */
+
+/*-------------------------------------------------------- */
+/* 
+ * The context structure is used to simplify the cleanup of 
+ * a CLI session when a thread is cancelled.
+ */
+struct clish_context_s {
+	pthread_t pthread;
+	const clish_shell_hooks_t *hooks;
+	void *cookie;
+	FILE *istream;
+	clish_shell_t *shell;
+	clish_pargv_t *pargv;
+	char *prompt;
+};
+
 typedef enum {
 	SHELL_STATE_INITIALISING,
 	SHELL_STATE_READY,

@@ -19,21 +19,6 @@
 const char *default_path = "/etc/clish;~/.clish";
 
 /*-------------------------------------------------------- */
-/* 
- * The context structure is used to simplify the cleanup of 
- * a CLI session when a thread is cancelled.
- */
-typedef struct _context context_t;
-struct _context {
-	pthread_t pthread;
-	const clish_shell_hooks_t *hooks;
-	void *cookie;
-	FILE *istream;
-	clish_shell_t *shell;
-	clish_pargv_t *pargv;
-	char *prompt;
-};
-/*-------------------------------------------------------- */
 /* perform a simple tilde substitution for the home directory
  * defined in HOME
  */
@@ -129,7 +114,7 @@ void clish_shell_load_files(clish_shell_t * this)
 /*
  * This is invoked when the thread ends or is cancelled.
  */
-static void clish_shell_cleanup(context_t * context)
+static void clish_shell_cleanup(clish_context_t * context)
 {
 #ifdef __vxworks
 	int last_state;
@@ -166,7 +151,7 @@ static void clish_shell_cleanup(context_t * context)
  */
 static void *clish_shell_thread(void *arg)
 {
-	context_t *context = arg;
+	clish_context_t *context = arg;
 	bool_t running = BOOL_TRUE;
 	clish_shell_t *this;
 	int last_type;
@@ -277,12 +262,12 @@ static void *clish_shell_thread(void *arg)
 }
 
 /*-------------------------------------------------------- */
-static context_t *_clish_shell_spawn(const pthread_attr_t * attr,
+static clish_context_t *_clish_shell_spawn(const pthread_attr_t * attr,
 				     const clish_shell_hooks_t * hooks,
 				     void *cookie, FILE * istream)
 {
 	int rtn;
-	context_t *context = malloc(sizeof(context_t));
+	clish_context_t *context = malloc(sizeof(clish_context_t));
 	assert(context);
 
 	if (context) {
@@ -310,13 +295,48 @@ _clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks,
 			    void *cookie, FILE * file)
 {
 	void *result = NULL;
-	context_t *context = _clish_shell_spawn(NULL, hooks, cookie, file);
+	clish_context_t *context = _clish_shell_spawn(NULL, hooks, cookie, file);
 
 	if (context) {
 		/* join the shell's thread and wait for it to exit */
 		(void)pthread_join(context->pthread, &result);
 	}
 	return result ? BOOL_TRUE : BOOL_FALSE;
+}
+
+/*-------------------------------------------------------- */
+int clish_context_wait(const clish_context_t * this)
+{
+	void *result = NULL;
+
+	if (!this || !this->pthread)
+		return BOOL_FALSE;
+
+	/* join the shell's thread and wait for it to exit */
+	(void)pthread_join(this->pthread, &result);
+
+	return result ? BOOL_TRUE : BOOL_FALSE;
+}
+
+/*-------------------------------------------------------- */
+clish_context_t *clish_context_spawn(const pthread_attr_t * attr,
+				     const clish_shell_hooks_t * hooks,
+				     void *cookie, FILE * istream)
+{
+	return _clish_shell_spawn(attr, hooks, cookie, istream);
+}
+
+
+/*-------------------------------------------------------- */
+clish_context_t *clish_context_spawn_fd(const pthread_attr_t * attr,
+				     const clish_shell_hooks_t * hooks,
+				     void *cookie, int fd)
+{
+	FILE *istream;
+
+	istream = fdopen(fd, "r");
+
+	return _clish_shell_spawn(attr, hooks, cookie, istream);
 }
 
 /*-------------------------------------------------------- */
@@ -331,7 +351,7 @@ clish_shell_spawn(pthread_t * pthread,
 		  const pthread_attr_t * attr,
 		  const clish_shell_hooks_t * hooks, void *cookie)
 {
-	context_t *context;
+	clish_context_t *context;
 	bool_t result = BOOL_FALSE;
 
 	/* spawn the thread... */

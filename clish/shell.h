@@ -323,6 +323,15 @@ const char *clish_shell__get_pwd(const clish_shell_t * instance,
 char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
 conf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 
+/* Context */
+typedef struct clish_context_s clish_context_t;
+
+int clish_context_wait(const clish_context_t * instance);
+clish_context_t *clish_context_spawn(const pthread_attr_t * attr,
+	const clish_shell_hooks_t * hooks, void *cookie, FILE * istream);
+clish_context_t *clish_context_spawn_fd(const pthread_attr_t * attr,
+	const clish_shell_hooks_t * hooks, void *cookie, int fd);
+
 _END_C_DECL
 #endif				/* _clish_shell_h */
 /** @} clish_shell */
