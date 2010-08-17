@@ -138,8 +138,6 @@ static void clish_shell_cleanup(clish_context_t * context)
 		context->prompt = NULL;
 	}
 
-	/* finished with this */
-	free(context);
 #ifdef __vxworks
 	pthread_setcancelstate(last_state, &last_state);
 #endif				/* __vxworks */
@@ -300,12 +298,14 @@ _clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks,
 	if (context) {
 		/* join the shell's thread and wait for it to exit */
 		(void)pthread_join(context->pthread, &result);
+		/* finished with this */
+		free(context);
 	}
 	return result ? BOOL_TRUE : BOOL_FALSE;
 }
 
 /*-------------------------------------------------------- */
-int clish_context_wait(const clish_context_t * this)
+int clish_shell_wait(clish_context_t * this)
 {
 	void *result = NULL;
 
@@ -314,28 +314,17 @@ int clish_context_wait(const clish_context_t * this)
 
 	/* join the shell's thread and wait for it to exit */
 	(void)pthread_join(this->pthread, &result);
+	/* finished with this */
+	free(this);
 
 	return result ? BOOL_TRUE : BOOL_FALSE;
 }
 
 /*-------------------------------------------------------- */
-clish_context_t *clish_context_spawn(const pthread_attr_t * attr,
+clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
 				     const clish_shell_hooks_t * hooks,
 				     void *cookie, FILE * istream)
 {
-	return _clish_shell_spawn(attr, hooks, cookie, istream);
-}
-
-
-/*-------------------------------------------------------- */
-clish_context_t *clish_context_spawn_fd(const pthread_attr_t * attr,
-				     const clish_shell_hooks_t * hooks,
-				     void *cookie, int fd)
-{
-	FILE *istream;
-
-	istream = fdopen(fd, "r");
-
 	return _clish_shell_spawn(attr, hooks, cookie, istream);
 }
 
