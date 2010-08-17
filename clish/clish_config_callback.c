@@ -146,7 +146,7 @@ clish_config_callback(const clish_shell_t * shell,
 	client = clish_shell__get_client(shell);
 
 #ifdef DEBUG
-	printf("CONFIG request: %s\n", command);
+	fprintf(stderr, "CONFIG request: %s\n", command);
 #endif
 
 	if (send_request(client, command) < 0) {
@@ -172,7 +172,8 @@ clish_config_callback(const clish_shell_t * shell,
 				if (!(fd = fopen(filename, "r")))
 					break;
 				while (fgets(str, sizeof(str), fd))
-					fprintf(stdout, "%s", str);
+					fprintf(clish_shell__get_ostream(shell),
+						"%s", str);
 				fclose(fd);
 			}
 			if (buf) {
@@ -183,7 +184,8 @@ clish_config_callback(const clish_shell_t * shell,
 						lub_string_free(str);
 						break;
 					}
-					printf("%s\n", str);
+					fprintf(clish_shell__get_ostream(shell),
+						"%s\n", str);
 					lub_string_free(str);
 				}
 				konf_buf_delete(buf);
@@ -262,7 +264,7 @@ static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **da
 	do {
 		while ((str = konf_buf_parse(buf))) {
 #ifdef DEBUG
-			printf("RECV DATA: [%s]\n", str);
+			fprintf(stderr, "RECV DATA: [%s]\n", str);
 #endif
 			konf_buf_add(tmpdata, str, strlen(str) + 1);
 			if (strlen(str) == 0) {
@@ -295,13 +297,13 @@ static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, ko
 	if (res < 0) {
 		konf_query_free(query);
 #ifdef DEBUG
-		printf("CONFIG error: Cannot parse answer string.\n");
+		fprintf(stderr, "CONFIG error: Cannot parse answer string.\n");
 #endif
 		return -1;
 	}
 
 #ifdef DEBUG
-	printf("CONFIG answer: %s\n", str);
+	fprintf(stderr, "CONFIG answer: %s\n", str);
 	// konf_query_dump(query);
 #endif
 

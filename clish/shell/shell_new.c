@@ -9,7 +9,7 @@
 static void
 clish_shell_init(clish_shell_t * this,
 		 const clish_shell_hooks_t * hooks,
-		 void *cookie, FILE * istream)
+		 void *cookie, FILE * istream, FILE * ostream)
 {
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
@@ -33,7 +33,7 @@ clish_shell_init(clish_shell_t * this,
 	this->state = SHELL_STATE_INITIALISING;
 	this->overview = NULL;
 	clish_shell_iterator_init(&this->iter, CLISH_NSPACE_NONE);
-	this->tinyrl = clish_shell_tinyrl_new(istream, stdout, 0);
+	this->tinyrl = clish_shell_tinyrl_new(istream, ostream, 0);
 	this->current_file = NULL;
 	this->cfg_pwdv = NULL;
 	this->cfg_pwdc = 0;
@@ -43,12 +43,13 @@ clish_shell_init(clish_shell_t * this,
 
 /*-------------------------------------------------------- */
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-			       void *cookie, FILE * istream)
+		void *cookie, FILE * istream, FILE * ostream)
 {
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 
 	if (this) {
-		clish_shell_init(this, hooks, cookie, istream);
+		clish_shell_init(this, hooks, cookie, 
+			istream, ostream);
 
 		if (hooks->init_fn) {
 			/* now call the client initialisation */

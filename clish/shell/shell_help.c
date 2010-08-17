@@ -40,7 +40,7 @@ available_commands(clish_shell_t * this, const char *line, bool_t full)
 			buf = lub_string_dup("");
 		}
 		/* indicate the point of error */
-		printf("%*s\n", error_offset, "^");
+		fprintf(stderr, "%*s\n", error_offset, "^");
 	} else {
 		/* take a copy */
 		buf = lub_string_dup(line);
@@ -70,7 +70,7 @@ available_commands(clish_shell_t * this, const char *line, bool_t full)
 		} else {
 			name = clish_command__get_suffix(cmd);
 		}
-		printf("%-*s  %s\n",
+		fprintf(stderr, "%-*s  %s\n",
 		       (int)max_width, name, clish_command__get_text(cmd));
 	}
 	/* cleanup */
@@ -104,7 +104,7 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 				const char *detail =
 				    clish_command__get_detail(cmd);
 				if (NULL != detail) {
-					printf("%s\n", detail);
+					fprintf(stderr, "%s\n", detail);
 				} else {
 					/* get the command to describe itself */
 					clish_command_help(cmd, line);

@@ -276,7 +276,7 @@ clish_shell_spawn_from_file(const clish_shell_hooks_t * hooks,
 			    void *cookie, const char *filename);
 
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-			       void *cookie, FILE * istream);
+			       void *cookie, FILE * istream, FILE * ostream);
 /*-----------------
  * methods
  *----------------- */
@@ -322,13 +322,16 @@ const char *clish_shell__get_pwd(const clish_shell_t * instance,
 				 unsigned index);
 char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
+FILE *clish_shell__get_istream(const clish_shell_t * instance);
+FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 
 /* Context */
 typedef struct clish_context_s clish_context_t;
 
 int clish_shell_wait(clish_context_t * instance);
 clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
-	const clish_shell_hooks_t * hooks, void *cookie, FILE * istream);
+	const clish_shell_hooks_t * hooks, void *cookie, 
+	FILE * istream, FILE * ostream);
 
 _END_C_DECL
 #endif				/* _clish_shell_h */

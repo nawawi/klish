@@ -17,7 +17,9 @@
 static clish_shell_builtin_fn_t
     clish_close,
     clish_overview,
-    clish_source, clish_source_nostop, clish_history, clish_running_config;
+    clish_source,
+    clish_source_nostop,
+    clish_history;
 
 static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_close", clish_close},
@@ -25,7 +27,6 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_source", clish_source},
 	{"clish_source_nostop", clish_source_nostop},
 	{"clish_history", clish_history},
-	{"clish_running_config", clish_running_config},
 	{NULL, NULL}
 };
 
@@ -155,27 +156,6 @@ static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
 			      tinyrl_history_entry__get_line(entry));
 	}
 	return BOOL_TRUE;
-}
-
-/*----------------------------------------------------------- */
-/*
- Write running-config to the specified file.
-*/
-static bool_t
-clish_running_config(const clish_shell_t * shell, const lub_argv_t * argv)
-{
-/*    bool_t result = BOOL_FALSE;
-    FILE *stream  = stdout;
-    clish_conf_t *conf = clish_shell__get_conf(shell);
-
-    if (argv && (lub_argv__get_count(argv) > 0)) {
-        if (!(stream = fopen(lub_argv__get_arg(argv,0),"w")))
-            return BOOL_FALSE;
-        clish_conf_fprintf(stream, conf);
-        fclose(stream);
-    } else
-        clish_conf_fprintf(stream, conf);
-*/
 }
 
 /*----------------------------------------------------------- */

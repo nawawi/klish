@@ -21,6 +21,7 @@ struct clish_context_s {
 	const clish_shell_hooks_t *hooks;
 	void *cookie;
 	FILE *istream;
+	FILE *ostream;
 	clish_shell_t *shell;
 	clish_pargv_t *pargv;
 	char *prompt;

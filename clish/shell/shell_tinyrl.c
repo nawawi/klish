@@ -91,7 +91,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 		break;
 	case 2:
 		/* just display line */
-		printf("\n%s", buffer);
+		fprintf(tinyrl__get_ostream(this), "\n%s", buffer);
 		free(buffer);
 		buffer = NULL;
 		break;
@@ -261,7 +261,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 			case clish_BAD_CMD:
 			case clish_BAD_PARAM:
 				tinyrl_crlf(this);
-				printf("Error. Illegal command line.\n");
+				fprintf(stderr, "Error. Illegal command line.\n");
 				tinyrl_crlf(this);
 				tinyrl_reset_line_state(this);
 				break;
@@ -396,6 +396,20 @@ clish_shell_readline(clish_shell_t * this,
 		}
 	}
 	return result;
+}
+
+/*-------------------------------------------------------- */
+
+FILE * clish_shell__get_istream(const clish_shell_t * this)
+{
+	return tinyrl__get_istream(this->tinyrl);
+}
+
+/*-------------------------------------------------------- */
+
+FILE * clish_shell__get_ostream(const clish_shell_t * this)
+{
+	return tinyrl__get_ostream(this->tinyrl);
 }
 
 /*-------------------------------------------------------- */

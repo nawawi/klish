@@ -162,7 +162,8 @@ static void *clish_shell_thread(void *arg)
 	/* create a shell object... */
 	this = context->shell = clish_shell_new(context->hooks,
 						context->cookie,
-						context->istream);
+						context->istream,
+						context->ostream);
 	assert(this);
 
 	/*
@@ -262,7 +263,8 @@ static void *clish_shell_thread(void *arg)
 /*-------------------------------------------------------- */
 static clish_context_t *_clish_shell_spawn(const pthread_attr_t * attr,
 				     const clish_shell_hooks_t * hooks,
-				     void *cookie, FILE * istream)
+				     void *cookie, FILE * istream,
+				     FILE * ostream)
 {
 	int rtn;
 	clish_context_t *context = malloc(sizeof(clish_context_t));
@@ -272,6 +274,7 @@ static clish_context_t *_clish_shell_spawn(const pthread_attr_t * attr,
 		context->hooks = hooks;
 		context->cookie = cookie;
 		context->istream = istream;
+		context->ostream = ostream;
 		context->shell = NULL;
 		context->prompt = NULL;
 		context->pargv = NULL;
@@ -293,7 +296,8 @@ _clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks,
 			    void *cookie, FILE * file)
 {
 	void *result = NULL;
-	clish_context_t *context = _clish_shell_spawn(NULL, hooks, cookie, file);
+	clish_context_t *context = _clish_shell_spawn(NULL, hooks, cookie, 
+		file, stdout);
 
 	if (context) {
 		/* join the shell's thread and wait for it to exit */
@@ -323,9 +327,10 @@ int clish_shell_wait(clish_context_t * this)
 /*-------------------------------------------------------- */
 clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
 				     const clish_shell_hooks_t * hooks,
-				     void *cookie, FILE * istream)
+				     void *cookie, FILE * istream,
+				     FILE * ostream)
 {
-	return _clish_shell_spawn(attr, hooks, cookie, istream);
+	return _clish_shell_spawn(attr, hooks, cookie, istream, ostream);
 }
 
 /*-------------------------------------------------------- */
@@ -344,7 +349,7 @@ clish_shell_spawn(pthread_t * pthread,
 	bool_t result = BOOL_FALSE;
 
 	/* spawn the thread... */
-	context = _clish_shell_spawn(attr, hooks, cookie, stdin);
+	context = _clish_shell_spawn(attr, hooks, cookie, stdin, stdout);
 
 	if (NULL != context) {
 		result = BOOL_TRUE;

@@ -166,17 +166,18 @@ void clish_param_help(const clish_param_t * this, size_t offset)
 	else
 		name = clish_ptype__get_text(this->ptype);
 
-	printf("%s %*c%s", name, (int)(offset - strlen(name)), ' ', this->text);
+	fprintf(stderr, "%s %*c%s",
+		name, (int)(offset - strlen(name)), ' ', this->text);
 	if (NULL != range) {
-		printf(" (%s)", range);
+		fprintf(stderr, " (%s)", range);
 	}
-	printf("\n");
+	fprintf(stderr, "\n");
 }
 
 /*--------------------------------------------------------- */
 void clish_param_help_arrow(const clish_param_t * this, size_t offset)
 {
-	printf("%*c\n", (int)offset, '^');
+	fprintf(stderr, "%*c\n", (int)offset, '^');
 }
 
 /*--------------------------------------------------------- */

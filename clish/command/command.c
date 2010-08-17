@@ -176,7 +176,7 @@ void clish_command_help(const clish_command_t * this, const char *line)
 
 	/* Line has no any parameters */
 	if (strlen(line) <= strlen(name)) {
-		printf("%s  %s\n", name,
+		fprintf(stderr, "%s  %s\n", name,
 			clish_command__get_text(this));
 		return;
 	}
