@@ -62,16 +62,16 @@ AC_SUBST(LUB_LIBS)
 AC_SUBST(LUB_CFLAGS)
 
 ################################
-# Check for the CLICONF library
+# Check for the KONF library
 ################################
-CLICONF_LIBS="-lcliconf"
-CLICONF_CFLAGS=""
+KONF_LIBS="-lkonf"
+KONF_CFLAGS=""
 
-if test x$CLICONF_LIBS = x; then
+if test x$KONF_LIBS = x; then
     AC_MSG_ERROR([Cannot find the "CLI config" library])
 fi
-AC_SUBST(CLICONF_LIBS)
-AC_SUBST(CLICONF_CFLAGS)
+AC_SUBST(KONF_LIBS)
+AC_SUBST(KONF_CFLAGS)
 
 ################################
 # Check for the TINYRL library

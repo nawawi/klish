@@ -66,7 +66,7 @@ struct clish_shell_s {
 	clish_shell_file_t *current_file;	/* file currently in use for input */
 	char **cfg_pwdv;	/* Levels for the config file structure */
 	unsigned cfg_pwdc;
-	conf_client_t *client;
+	konf_client_t *client;
 	clish_pargv_t *completion_pargv;
 	unsigned completion_index;
 	unsigned completion_pindex;

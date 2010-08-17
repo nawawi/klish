@@ -19,14 +19,14 @@
 #include <signal.h>
 
 #include "clish/private.h"
-#include "cliconf/conf.h"
-#include "cliconf/query.h"
-#include "cliconf/buf.h"
+#include "konf/tree.h"
+#include "konf/query.h"
+#include "konf/buf.h"
 #include "lub/argv.h"
 #include "lub/string.h"
 
-#define CONFD_SOCKET_PATH "/tmp/confd.socket"
-#define CONFD_CONFIG_PATH "/tmp/running-config"
+#define KONFD_SOCKET_PATH "/tmp/konfd.socket"
+#define KONFD_CONFIG_PATH "/tmp/running-config"
 
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX 108
@@ -37,9 +37,9 @@
 static volatile int sigterm = 0;
 static void sighandler(int signo);
 
-static char * process_query(int sock, cliconf_t * conf, char *str);
+static char * process_query(int sock, konf_tree_t * conf, char *str);
 int answer_send(int sock, char *command);
-static int dump_running_config(int sock, cliconf_t *conf, query_t *query);
+static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query);
 
 /*--------------------------------------------------------- */
 int main(int argc, char **argv)
@@ -47,9 +47,9 @@ int main(int argc, char **argv)
 	int retval = 0;
 	unsigned i;
 	char *str;
-	cliconf_t *conf;
+	konf_tree_t *conf;
 	lub_bintree_t bufs;
-	conf_buf_t *tbuf;
+	konf_buf_t *tbuf;
 
 	/* Network vars */
 	int sock;
@@ -75,12 +75,12 @@ int main(int argc, char **argv)
 	sigaction(SIGQUIT, &sig_act, NULL);
 
 	/* Configuration tree */
-	conf = cliconf_new("", 0);
+	conf = konf_tree_new("", 0);
 
 	/* Initialize the tree of buffers */
 	lub_bintree_init(&bufs,
-		conf_buf_bt_offset(),
-		conf_buf_bt_compare, conf_buf_bt_getkey);
+		konf_buf_bt_offset(),
+		konf_buf_bt_compare, konf_buf_bt_getkey);
 
 	/* Create listen socket */
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
@@ -89,9 +89,9 @@ int main(int argc, char **argv)
 */		return -1;
 	}
 
-	unlink(CONFD_SOCKET_PATH);
+	unlink(KONFD_SOCKET_PATH);
 	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, CONFD_SOCKET_PATH, UNIX_PATH_MAX);
+	strncpy(laddr.sun_path, KONFD_SOCKET_PATH, UNIX_PATH_MAX);
 	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
 	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
 		fprintf(stderr, "Can't bind()\n");
@@ -142,21 +142,21 @@ int main(int argc, char **argv)
 						continue;
 					}
 					fprintf(stderr, "Server: connect %u\n", new);
-					conf_buftree_remove(&bufs, new);
-					tbuf = conf_buf_new(new);
+					konf_buftree_remove(&bufs, new);
+					tbuf = konf_buf_new(new);
 					/* insert it into the binary tree for this conf */
 					lub_bintree_insert(&bufs, tbuf);
 					FD_SET(new, &active_fd_set);
 				} else {
 					int nbytes;
 					/* Data arriving on an already-connected socket. */
-					if ((nbytes = conf_buftree_read(&bufs, i)) <= 0) {
+					if ((nbytes = konf_buftree_read(&bufs, i)) <= 0) {
 						close(i);
 						FD_CLR(i, &active_fd_set);
-						conf_buftree_remove(&bufs, i);
+						konf_buftree_remove(&bufs, i);
 						continue;
 					}
-					while ((str = conf_buftree_parse(&bufs, i))) {
+					while ((str = konf_buftree_parse(&bufs, i))) {
 						char *answer;
 						if (!(answer = process_query(i, conf, str)))
 							answer = lub_string_dup("-e");
@@ -170,47 +170,47 @@ int main(int argc, char **argv)
 	}
 
 	/* Free resources */
-	cliconf_delete(conf);
+	konf_tree_delete(conf);
 
 	/* delete each buf */
 	while ((tbuf = lub_bintree_findfirst(&bufs))) {
 		/* remove the buf from the tree */
 		lub_bintree_remove(&bufs, tbuf);
 		/* release the instance */
-		conf_buf_delete(tbuf);
+		konf_buf_delete(tbuf);
 	}
 
 	return retval;
 }
 
-static char * process_query(int sock, cliconf_t * conf, char *str)
+static char * process_query(int sock, konf_tree_t * conf, char *str)
 {
 	unsigned i;
 	int res;
-	cliconf_t *iconf;
-	cliconf_t *tmpconf;
-	query_t *query;
+	konf_tree_t *iconf;
+	konf_tree_t *tmpconf;
+	konf_query_t *query;
 	char *retval = NULL;
-	query_op_t ret;
+	konf_query_op_t ret;
 
 	/* Parse query */
-	query = query_new();
-	res = query_parse_str(query, str);
+	query = konf_query_new();
+	res = konf_query_parse_str(query, str);
 	if (res < 0) {
-		query_free(query);
+		konf_query_free(query);
 		return NULL;
 	}
 	printf("----------------------\n");
 	printf("REQUEST: %s\n", str);
-/*	query_dump(query);
+/*	konf_query_dump(query);
 */
 
 	/* Go through the pwd */
 	iconf = conf;
-	for (i = 0; i < query__get_pwdc(query); i++) {
+	for (i = 0; i < konf_query__get_pwdc(query); i++) {
 		if (!
 		    (iconf =
-		     cliconf_find_conf(iconf, query__get_pwd(query, i), 0))) {
+		     konf_tree_find_conf(iconf, konf_query__get_pwd(query, i), 0))) {
 			iconf = NULL;
 			break;
 		}
@@ -218,58 +218,58 @@ static char * process_query(int sock, cliconf_t * conf, char *str)
 
 	if (!iconf) {
 		printf("Unknown path\n");
-		query_free(query);
+		konf_query_free(query);
 		return NULL;
 	}
 
-	switch (query__get_op(query)) {
+	switch (konf_query__get_op(query)) {
 
-	case QUERY_OP_SET:
-		if (cliconf_find_conf(iconf, query__get_line(query), 0)) {
-			ret = QUERY_OP_OK;
+	case konf_query_OP_SET:
+		if (konf_tree_find_conf(iconf, konf_query__get_line(query), 0)) {
+			ret = konf_query_OP_OK;
 			break;
 		}
-		cliconf_del_pattern(iconf, query__get_pattern(query));
-		tmpconf = cliconf_new_conf(iconf, 
-			query__get_line(query), query__get_priority(query));
+		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
+		tmpconf = konf_tree_new_conf(iconf, 
+			konf_query__get_line(query), konf_query__get_priority(query));
 		if (!tmpconf) {
-			ret = QUERY_OP_ERROR;
+			ret = konf_query_OP_ERROR;
 			break;
 		}
-		cliconf__set_splitter(tmpconf, query__get_splitter(query));
-		ret = QUERY_OP_OK;
+		konf_tree__set_splitter(tmpconf, konf_query__get_splitter(query));
+		ret = konf_query_OP_OK;
 		break;
 
-	case QUERY_OP_UNSET:
-		cliconf_del_pattern(iconf, query__get_pattern(query));
-		ret = QUERY_OP_OK;
+	case konf_query_OP_UNSET:
+		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
+		ret = konf_query_OP_OK;
 		break;
 
-	case QUERY_OP_DUMP:
+	case konf_query_OP_DUMP:
 		if (dump_running_config(sock, iconf, query))
-			ret = QUERY_OP_ERROR;
+			ret = konf_query_OP_ERROR;
 		else
-			ret = QUERY_OP_OK;
+			ret = konf_query_OP_OK;
 		break;
 
 	default:
-		ret = QUERY_OP_ERROR;
+		ret = konf_query_OP_ERROR;
 		break;
 	}
 
 #ifdef DEBUG
 	/* Print whole tree */
-	cliconf_fprintf(conf, stdout, NULL, -1, 0);
+	konf_tree_fprintf(conf, stdout, NULL, -1, 0);
 #endif
 
 	/* Free resources */
-	query_free(query);
+	konf_query_free(query);
 
 	switch (ret) {
-	case QUERY_OP_OK:
+	case konf_query_OP_OK:
 		lub_string_cat(&retval, "-o");
 		break;
-	case QUERY_OP_ERROR:
+	case konf_query_OP_ERROR:
 		lub_string_cat(&retval, "-e");
 		break;
 	default:
@@ -293,13 +293,13 @@ int answer_send(int sock, char *command)
 	return send(sock, command, strlen(command) + 1, MSG_NOSIGNAL);
 }
 
-static int dump_running_config(int sock, cliconf_t *conf, query_t *query)
+static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 {
 	FILE *fd;
 	char *filename;
 	int dupsock = -1;
 
-	if ((filename = query__get_path(query))) {
+	if ((filename = konf_query__get_path(query))) {
 		if (!(fd = fopen(filename, "w")))
 			return -1;
 	} else {
@@ -313,8 +313,8 @@ static int dump_running_config(int sock, cliconf_t *conf, query_t *query)
 		printf("ANSWER: -t\n");
 #endif
 	}
-	cliconf_fprintf(conf, fd, query__get_pattern(query),
-		query__get_pwdc(query) - 1, 0);
+	konf_tree_fprintf(conf, fd, konf_query__get_pattern(query),
+		konf_query__get_pwdc(query) - 1, 0);
 	if (!filename) {
 		fprintf(fd, "\n");
 #ifdef DEBUG

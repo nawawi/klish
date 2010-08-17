@@ -1,10 +1,3 @@
-/*
- * clish_config_callback.c
- *
- *
- * Callback hook to execute config operations.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,14 +12,14 @@
 #include "lub/argv.h"
 #include "lub/string.h"
 
-query_t *query_new(void)
+konf_query_t *konf_query_new(void)
 {
-	query_t *query;
+	konf_query_t *query;
 
 	if (!(query = malloc(sizeof(*query))))
 		return NULL;
 
-	query->op = QUERY_OP_NONE;
+	query->op = konf_query_OP_NONE;
 	query->pattern = NULL;
 	query->priority = 0x7f00;
 	query->pwdc = 0;
@@ -38,25 +31,25 @@ query_t *query_new(void)
 	return query;
 }
 
-void query_dump(query_t *query)
+void konf_query_dump(konf_query_t *query)
 {
 	switch (query->op) {
-	case QUERY_OP_SET:
+	case konf_query_OP_SET:
 		printf("op=SET\n");
 		break;
-	case QUERY_OP_UNSET:
+	case konf_query_OP_UNSET:
 		printf("op=UNSET\n");
 		break;
-	case QUERY_OP_DUMP:
+	case konf_query_OP_DUMP:
 		printf("op=DUMP\n");
 		break;
-	case QUERY_OP_OK:
+	case konf_query_OP_OK:
 		printf("op=OK\n");
 		break;
-	case QUERY_OP_ERROR:
+	case konf_query_OP_ERROR:
 		printf("op=ERROR\n");
 		break;
-	case QUERY_OP_STREAM:
+	case konf_query_OP_STREAM:
 		printf("op=STREAM\n");
 		break;
 	default:
@@ -70,7 +63,7 @@ void query_dump(query_t *query)
 	printf("pwdc=%u\n", query->pwdc);
 }
 
-void query_add_pwd(query_t *query, char *str)
+void konf_query_add_pwd(konf_query_t *query, char *str)
 {
 	size_t new_size;
 	char **tmp;
@@ -89,7 +82,7 @@ void query_add_pwd(query_t *query, char *str)
 }
 
 
-void query_free(query_t *query)
+void konf_query_free(konf_query_t *query)
 {
 	unsigned i;
 
@@ -106,7 +99,7 @@ void query_free(query_t *query)
 }
 
 /* Parse query */
-int query_parse(query_t *query, int argc, char **argv)
+int konf_query_parse(konf_query_t *query, int argc, char **argv)
 {
 	unsigned i = 0;
 	int pwdc = 0;
@@ -137,22 +130,22 @@ int query_parse(query_t *query, int argc, char **argv)
 			break;
 		switch (opt) {
 		case 'o':
-			query->op = QUERY_OP_OK;
+			query->op = konf_query_OP_OK;
 			break;
 		case 'e':
-			query->op = QUERY_OP_ERROR;
+			query->op = konf_query_OP_ERROR;
 			break;
 		case 's':
-			query->op = QUERY_OP_SET;
+			query->op = konf_query_OP_SET;
 			break;
 		case 'u':
-			query->op = QUERY_OP_UNSET;
+			query->op = konf_query_OP_UNSET;
 			break;
 		case 'd':
-			query->op = QUERY_OP_DUMP;
+			query->op = konf_query_OP_DUMP;
 			break;
 		case 't':
-			query->op = QUERY_OP_STREAM;
+			query->op = konf_query_OP_STREAM;
 			break;
 		case 'p':
 			{
@@ -187,9 +180,9 @@ int query_parse(query_t *query, int argc, char **argv)
 	}
 
 	/* Check options */
-	if (QUERY_OP_NONE == query->op)
+	if (konf_query_OP_NONE == query->op)
 		return -1;
-	if (QUERY_OP_SET == query->op) {
+	if (konf_query_OP_SET == query->op) {
 		if (NULL == query->pattern)
 			return -1;
 		if (NULL == query->line)
@@ -200,13 +193,13 @@ int query_parse(query_t *query, int argc, char **argv)
 		return -1;
 
 	for (i = 0; i < pwdc; i ++)
-		query_add_pwd(query, argv[optind + i]);
+		konf_query_add_pwd(query, argv[optind + i]);
 
 	return 0;
 }
 
 /* Parse query string */
-int query_parse_str(query_t *query, char *str)
+int konf_query_parse_str(konf_query_t *query, char *str)
 {
 	int res;
 	lub_argv_t *lub_argv;
@@ -219,14 +212,14 @@ int query_parse_str(query_t *query, char *str)
 	str_argc = lub_argv__get_count(lub_argv) + 1;
 
 	/* Parse query */
-	res = query_parse(query, str_argc, str_argv);
+	res = konf_query_parse(query, str_argc, str_argv);
 	free(str_argv);
 	lub_argv_delete(lub_argv);
 
 	return res;
 }
 
-char * query__get_pwd(query_t *query, unsigned index)
+char * konf_query__get_pwd(konf_query_t *query, unsigned index)
 {
 	if (!query)
 		return NULL;
@@ -236,39 +229,38 @@ char * query__get_pwd(query_t *query, unsigned index)
 	return query->pwd[index];
 }
 
-int query__get_pwdc(query_t *query)
+int konf_query__get_pwdc(konf_query_t *query)
 {
 	return query->pwdc;
 }
 
-query_op_t query__get_op(query_t *query)
+konf_query_op_t konf_query__get_op(konf_query_t *query)
 {
 	return query->op;
 }
 
-char * query__get_path(query_t *query)
+char * konf_query__get_path(konf_query_t *query)
 {
 	return query->path;
 }
 
 
-const char * query__get_pattern(query_t *this)
+const char * konf_query__get_pattern(konf_query_t *this)
 {
 	return this->pattern;
 }
 
-const char * query__get_line(query_t *this)
+const char * konf_query__get_line(konf_query_t *this)
 {
 	return this->line;
 }
 
-unsigned short query__get_priority(query_t *this)
+unsigned short konf_query__get_priority(konf_query_t *this)
 {
 	return this->priority;
 }
 
-bool_t query__get_splitter(query_t *this)
+bool_t konf_query__get_splitter(konf_query_t *this)
 {
 	return this->splitter;
 }
-

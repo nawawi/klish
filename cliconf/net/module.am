@@ -1,2 +1,0 @@
-libcliconf_la_SOURCES +=	cliconf/net/net.c	\
-				cliconf/net/private.h

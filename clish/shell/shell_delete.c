@@ -52,7 +52,7 @@ static void clish_shell_fini(clish_shell_t * this)
 	free(this->cfg_pwdv);
 	this->cfg_pwdc = 0;
 	this->cfg_pwdv = NULL;
-	conf_client_free(this->client);
+	konf_client_free(this->client);
 	if (this->completion_pargv) {
 		clish_pargv_delete(this->completion_pargv);
 		this->completion_pargv = NULL;

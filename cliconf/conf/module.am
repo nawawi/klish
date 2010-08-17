@@ -1,3 +1,0 @@
-libcliconf_la_SOURCES +=	cliconf/conf/conf.c	\
-				cliconf/conf/conf_dump.c	\
-				cliconf/conf/private.h

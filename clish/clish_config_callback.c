@@ -13,15 +13,15 @@
 #include <sys/un.h>
 
 #include "private.h"
-#include "cliconf/net.h"
-#include "cliconf/buf.h"
-#include "cliconf/query.h"
+#include "konf/net.h"
+#include "konf/buf.h"
+#include "konf/query.h"
 #include "clish/variable.h"
 
-static int send_request(conf_client_t * client, char *command);
-static int receive_answer(conf_client_t * client, conf_buf_t **data);
-static int process_answer(conf_client_t * client, char *str, conf_buf_t *buf, conf_buf_t **data);
-static int receive_data(conf_client_t * client, conf_buf_t *buf, conf_buf_t **data);
+static int send_request(konf_client_t * client, char *command);
+static int receive_answer(konf_client_t * client, konf_buf_t **data);
+static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
+static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data);
 
 /*--------------------------------------------------------- */
 bool_t
@@ -31,8 +31,8 @@ clish_config_callback(const clish_shell_t * shell,
 	unsigned i;
 	char *line;
 	char *command = NULL;
-	conf_client_t *client;
-	conf_buf_t *buf = NULL;
+	konf_client_t *client;
+	konf_buf_t *buf = NULL;
 
 	switch (clish_command__get_cfg_op(cmd)) {
 
@@ -177,8 +177,8 @@ clish_config_callback(const clish_shell_t * shell,
 			}
 			if (buf) {
 				char *str;
-				conf_buf_lseek(buf, 0);
-				while ((str = conf_buf_preparse(buf))) {
+				konf_buf_lseek(buf, 0);
+				while ((str = konf_buf_preparse(buf))) {
 					if (strlen(str) == 0) {
 						lub_string_free(str);
 						break;
@@ -186,7 +186,7 @@ clish_config_callback(const clish_shell_t * shell,
 					printf("%s\n", str);
 					lub_string_free(str);
 				}
-				conf_buf_delete(buf);
+				konf_buf_delete(buf);
 			}
 			break;
 		}
@@ -200,36 +200,36 @@ clish_config_callback(const clish_shell_t * shell,
 
 /*--------------------------------------------------------- */
 
-static int send_request(conf_client_t * client, char *command)
+static int send_request(konf_client_t * client, char *command)
 {
-	if ((conf_client_connect(client) < 0))
+	if ((konf_client_connect(client) < 0))
 		return -1;
 
-	if (conf_client_send(client, command) < 0) {
-		if (conf_client_reconnect(client) < 0)
+	if (konf_client_send(client, command) < 0) {
+		if (konf_client_reconnect(client) < 0)
 			return -1;
-		if (conf_client_send(client, command) < 0)
+		if (konf_client_send(client, command) < 0)
 			return -1;
 	}
 
 	return 0;
 }
 
-static int receive_answer(conf_client_t * client, conf_buf_t **data)
+static int receive_answer(konf_client_t * client, konf_buf_t **data)
 {
-	conf_buf_t *buf;
+	konf_buf_t *buf;
 	int nbytes;
 	char *str;
 	int retval = 0;
 	int processed = 0;
 
-	if ((conf_client_connect(client) < 0))
+	if ((konf_client_connect(client) < 0))
 		return -1;
 
-	buf = conf_buf_new(conf_client__get_sock(client));
-	while ((!processed) && (nbytes = conf_buf_read(buf)) > 0) {
-		while ((str = conf_buf_parse(buf))) {
-			conf_buf_t *tmpdata = NULL;
+	buf = konf_buf_new(konf_client__get_sock(client));
+	while ((!processed) && (nbytes = konf_buf_read(buf)) > 0) {
+		while ((str = konf_buf_parse(buf))) {
+			konf_buf_t *tmpdata = NULL;
 			retval = process_answer(client, str, buf, &tmpdata);
 			lub_string_free(str);
 			if (retval < 0)
@@ -238,33 +238,33 @@ static int receive_answer(conf_client_t * client, conf_buf_t **data)
 				processed = 1;
 			if (tmpdata) {
 				if (*data)
-					conf_buf_delete(*data);
+					konf_buf_delete(*data);
 				*data = tmpdata;
 			}
 		}
 	}
-	conf_buf_delete(buf);
+	konf_buf_delete(buf);
 
 	return retval;
 }
 
-static int receive_data(conf_client_t * client, conf_buf_t *buf, conf_buf_t **data)
+static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data)
 {
-	conf_buf_t *tmpdata;
+	konf_buf_t *tmpdata;
 	char *str;
 	int retval = 0;
 	int processed = 0;
 
-	if ((conf_client_connect(client) < 0))
+	if ((konf_client_connect(client) < 0))
 		return -1;
 
-	tmpdata = conf_buf_new(conf_client__get_sock(client));
+	tmpdata = konf_buf_new(konf_client__get_sock(client));
 	do {
-		while ((str = conf_buf_parse(buf))) {
+		while ((str = konf_buf_parse(buf))) {
 #ifdef DEBUG
 			printf("RECV DATA: [%s]\n", str);
 #endif
-			conf_buf_add(tmpdata, str, strlen(str) + 1);
+			konf_buf_add(tmpdata, str, strlen(str) + 1);
 			if (strlen(str) == 0) {
 				processed = 1;
 				lub_string_free(str);
@@ -272,9 +272,9 @@ static int receive_data(conf_client_t * client, conf_buf_t *buf, conf_buf_t **da
 			}
 			lub_string_free(str);
 		}
-	} while ((!processed) && (conf_buf_read(buf)) > 0);
+	} while ((!processed) && (konf_buf_read(buf)) > 0);
 	if (!processed) {
-		conf_buf_delete(tmpdata);
+		konf_buf_delete(tmpdata);
 		*data = NULL;
 		return -1;
 	}
@@ -284,16 +284,16 @@ static int receive_data(conf_client_t * client, conf_buf_t *buf, conf_buf_t **da
 	return 0;
 }
 
-static int process_answer(conf_client_t * client, char *str, conf_buf_t *buf, conf_buf_t **data)
+static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data)
 {
 	int res;
-	query_t *query;
+	konf_query_t *query;
 
 	/* Parse query */
-	query = query_new();
-	res = query_parse_str(query, str);
+	query = konf_query_new();
+	res = konf_query_parse_str(query, str);
 	if (res < 0) {
-		query_free(query);
+		konf_query_free(query);
 #ifdef DEBUG
 		printf("CONFIG error: Cannot parse answer string.\n");
 #endif
@@ -302,20 +302,20 @@ static int process_answer(conf_client_t * client, char *str, conf_buf_t *buf, co
 
 #ifdef DEBUG
 	printf("CONFIG answer: %s\n", str);
-	// query_dump(query);
+	// konf_query_dump(query);
 #endif
 
-	switch (query__get_op(query)) {
+	switch (konf_query__get_op(query)) {
 
-	case QUERY_OP_OK:
+	case konf_query_OP_OK:
 		res = 0;
 		break;
 
-	case QUERY_OP_ERROR:
+	case konf_query_OP_ERROR:
 		res = -1;
 		break;
 
-	case QUERY_OP_STREAM:
+	case konf_query_OP_STREAM:
 		if (receive_data(client, buf, data) < 0)
 			res = -1;
 		else
@@ -328,7 +328,7 @@ static int process_answer(conf_client_t * client, char *str, conf_buf_t *buf, co
 	}
 
 	/* Free resources */
-	query_free(query);
+	konf_query_free(query);
 
 	return res;
 }

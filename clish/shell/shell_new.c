@@ -37,7 +37,7 @@ clish_shell_init(clish_shell_t * this,
 	this->current_file = NULL;
 	this->cfg_pwdv = NULL;
 	this->cfg_pwdc = 0;
-	this->client = conf_client_new(CONFD_SOCKET_PATH);
+	this->client = konf_client_new(KONFD_SOCKET_PATH);
 	this->completion_pargv = NULL;
 }
 

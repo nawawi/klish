@@ -24,7 +24,7 @@ EXTRA_DIST              =  \
     tinyxml/module.am      \
     test/module.am         \
     xml-examples/module.am \
-    cliconf/module.am      \
+    konf/module.am         \
     doxygen.config         \
     clish.xsd              \
     LICENCE                \
@@ -42,4 +42,4 @@ include $(top_srcdir)/tinyrl/module.am
 include $(top_srcdir)/tinyxml/module.am
 include $(top_srcdir)/test/module.am
 include $(top_srcdir)/xml-examples/module.am
-include $(top_srcdir)/cliconf/module.am
+include $(top_srcdir)/konf/module.am

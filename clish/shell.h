@@ -22,7 +22,7 @@
 #include "tinyrl/tinyrl.h"
 
 #include "view.h"
-#include "cliconf/net.h"
+#include "konf/net.h"
 
 _BEGIN_C_DECL typedef struct clish_shell_s clish_shell_t;
 
@@ -321,7 +321,7 @@ clish_shell__set_pwd(clish_shell_t * instance, unsigned index,
 const char *clish_shell__get_pwd(const clish_shell_t * instance,
 				 unsigned index);
 char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
-conf_client_t *clish_shell__get_client(const clish_shell_t * instance);
+konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 
 /* Context */
 typedef struct clish_context_s clish_context_t;

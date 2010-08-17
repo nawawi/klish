@@ -39,7 +39,7 @@ const char *clish_shell__get_pwd(const clish_shell_t * this, unsigned index)
 	return this->cfg_pwdv[index];
 }
 
-conf_client_t *clish_shell__get_client(const clish_shell_t * this)
+konf_client_t *clish_shell__get_client(const clish_shell_t * this)
 {
 	return this->client;
 }

@@ -16,23 +16,23 @@
 /*---------------------------------------------------------
  * PRIVATE META FUNCTIONS
  *--------------------------------------------------------- */
-int cliconf_bt_compare(const void *clientnode, const void *clientkey)
+int konf_tree_bt_compare(const void *clientnode, const void *clientkey)
 {
-	const cliconf_t *this = clientnode;
+	const konf_tree_t *this = clientnode;
 	unsigned short *pri = (unsigned short *)clientkey;
 	char *line = ((char *)clientkey + sizeof(unsigned short));
 
 /*	printf("COMPARE: node_pri=%d node_line=[%s] key_pri=%d key_line=[%s]\n",
-	cliconf__get_priority(this), this->line, *pri, line);
+	konf_tree__get_priority(this), this->line, *pri, line);
 */
-	if (cliconf__get_priority(this) == *pri)
+	if (konf_tree__get_priority(this) == *pri)
 		return lub_string_nocasecmp(this->line, line);
 
-	return (cliconf__get_priority(this) - *pri);
+	return (konf_tree__get_priority(this) - *pri);
 }
 
 /*-------------------------------------------------------- */
-static void cliconf_key(lub_bintree_key_t * key,
+static void konf_tree_key(lub_bintree_key_t * key,
 	unsigned short priority, const char *text)
 {
 	unsigned short *pri = (unsigned short *)key;
@@ -44,18 +44,18 @@ static void cliconf_key(lub_bintree_key_t * key,
 }
 
 /*-------------------------------------------------------- */
-void cliconf_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
+void konf_tree_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 {
-	const cliconf_t *this = clientnode;
+	const konf_tree_t *this = clientnode;
 
-	cliconf_key(key, cliconf__get_priority(this), this->line);
+	konf_tree_key(key, konf_tree__get_priority(this), this->line);
 }
 
 /*---------------------------------------------------------
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static void
-cliconf_init(cliconf_t * this, const char *line, unsigned short priority)
+konf_tree_init(konf_tree_t * this, const char *line, unsigned short priority)
 {
 	/* set up defaults */
 	this->line = lub_string_dup(line);
@@ -67,21 +67,21 @@ cliconf_init(cliconf_t * this, const char *line, unsigned short priority)
 
 	/* initialise the tree of commands for this conf */
 	lub_bintree_init(&this->tree,
-		cliconf_bt_offset(),
-		 cliconf_bt_compare, cliconf_bt_getkey);
+		konf_tree_bt_offset(),
+		 konf_tree_bt_compare, konf_tree_bt_getkey);
 }
 
 /*--------------------------------------------------------- */
-static void cliconf_fini(cliconf_t * this)
+static void konf_tree_fini(konf_tree_t * this)
 {
-	cliconf_t *conf;
+	konf_tree_t *conf;
 
 	/* delete each conf held by this conf */
 	while ((conf = lub_bintree_findfirst(&this->tree))) {
 		/* remove the conf from the tree */
 		lub_bintree_remove(&this->tree, conf);
 		/* release the instance */
-		cliconf_delete(conf);
+		konf_tree_delete(conf);
 	}
 
 	/* free our memory */
@@ -92,18 +92,18 @@ static void cliconf_fini(cliconf_t * this)
 /*---------------------------------------------------------
  * PUBLIC META FUNCTIONS
  *--------------------------------------------------------- */
-size_t cliconf_bt_offset(void)
+size_t konf_tree_bt_offset(void)
 {
-	return offsetof(cliconf_t, bt_node);
+	return offsetof(konf_tree_t, bt_node);
 }
 
 /*--------------------------------------------------------- */
-cliconf_t *cliconf_new(const char *line, unsigned short priority)
+konf_tree_t *konf_tree_new(const char *line, unsigned short priority)
 {
-	cliconf_t *this = malloc(sizeof(cliconf_t));
+	konf_tree_t *this = malloc(sizeof(konf_tree_t));
 
 	if (this) {
-		cliconf_init(this, line, priority);
+		konf_tree_init(this, line, priority);
 	}
 
 	return this;
@@ -112,17 +112,17 @@ cliconf_t *cliconf_new(const char *line, unsigned short priority)
 /*---------------------------------------------------------
  * PUBLIC METHODS
  *--------------------------------------------------------- */
-void cliconf_delete(cliconf_t * this)
+void konf_tree_delete(konf_tree_t * this)
 {
-	cliconf_fini(this);
+	konf_tree_fini(this);
 	free(this);
 }
 
-void cliconf_fprintf(cliconf_t * this, FILE * stream,
+void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		const char *pattern, int depth,
 		unsigned char prev_pri_hi)
 {
-	cliconf_t *conf;
+	konf_tree_t *conf;
 	lub_bintree_iterator_t iter;
 	unsigned char pri = 0;
 
@@ -136,7 +136,7 @@ void cliconf_fprintf(cliconf_t * this, FILE * stream,
 		}
 		if ((0 == depth) &&
 			(this->splitter ||
-			(cliconf__get_priority_hi(this) != prev_pri_hi)))
+			(konf_tree__get_priority_hi(this) != prev_pri_hi)))
 			fprintf(stream, "!\n");
 		fprintf(stream, "%s%s\n", space ? space : "", this->line);
 		free(space);
@@ -151,23 +151,23 @@ void cliconf_fprintf(cliconf_t * this, FILE * stream,
 		if (pattern &&
 			(lub_string_nocasestr(conf->line, pattern) != conf->line))
 			continue;
-		cliconf_fprintf(conf, stream, NULL, depth + 1, pri);
-		pri = cliconf__get_priority_hi(conf);
+		konf_tree_fprintf(conf, stream, NULL, depth + 1, pri);
+		pri = konf_tree__get_priority_hi(conf);
 	}
 }
 
 /*--------------------------------------------------------- */
-cliconf_t *cliconf_new_conf(cliconf_t * this,
+konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 					const char *line, unsigned short priority)
 {
 	/* allocate the memory for a new child element */
-	cliconf_t *conf = cliconf_new(line, priority);
+	konf_tree_t *conf = konf_tree_new(line, priority);
 	assert(conf);
 
 	/* ...insert it into the binary tree for this conf */
 	if (-1 == lub_bintree_insert(&this->tree, conf)) {
 		/* inserting a duplicate command is bad */
-		cliconf_delete(conf);
+		konf_tree_delete(conf);
 		conf = NULL;
 	}
 
@@ -175,15 +175,15 @@ cliconf_t *cliconf_new_conf(cliconf_t * this,
 }
 
 /*--------------------------------------------------------- */
-cliconf_t *cliconf_find_conf(cliconf_t * this,
+konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	const char *line, unsigned short priority)
 {
-	cliconf_t *conf;
+	konf_tree_t *conf;
 	lub_bintree_key_t key;
 	lub_bintree_iterator_t iter;
 
 	if (0 != priority) {
-		cliconf_key(&key, priority, line);
+		konf_tree_key(&key, priority, line);
 		return lub_bintree_find(&this->tree, &key);
 	}
 
@@ -202,10 +202,10 @@ cliconf_t *cliconf_find_conf(cliconf_t * this,
 }
 
 /*--------------------------------------------------------- */
-void cliconf_del_pattern(cliconf_t *this,
+void konf_tree_del_pattern(konf_tree_t *this,
 	const char *pattern)
 {
-	cliconf_t *conf;
+	konf_tree_t *conf;
 	lub_bintree_iterator_t iter;
 
 	/* Empty tree */
@@ -216,38 +216,37 @@ void cliconf_del_pattern(cliconf_t *this,
 	do {
 		if (lub_string_nocasestr(conf->line, pattern) == conf->line) {
 			lub_bintree_remove(&this->tree, conf);
-			cliconf_delete(conf);
+			konf_tree_delete(conf);
 		}
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 }
 
 /*--------------------------------------------------------- */
-unsigned short cliconf__get_priority(const cliconf_t * this)
+unsigned short konf_tree__get_priority(const konf_tree_t * this)
 {
 	return this->priority;
 }
 
 /*--------------------------------------------------------- */
-unsigned char cliconf__get_priority_hi(const cliconf_t * this)
+unsigned char konf_tree__get_priority_hi(const konf_tree_t * this)
 {
 	return (unsigned char)(this->priority >> 8);
 }
 
 /*--------------------------------------------------------- */
-unsigned char cliconf__get_priority_lo(const cliconf_t * this)
+unsigned char konf_tree__get_priority_lo(const konf_tree_t * this)
 {
 	return (unsigned char)(this->priority & 0xff);
 }
 
 /*--------------------------------------------------------- */
-bool_t cliconf__get_splitter(const cliconf_t * this)
+bool_t konf_tree__get_splitter(const konf_tree_t * this)
 {
 	return this->splitter;
 }
 
 /*--------------------------------------------------------- */
-void cliconf__set_splitter(cliconf_t *this, bool_t splitter)
+void konf_tree__set_splitter(konf_tree_t *this, bool_t splitter)
 {
 	this->splitter = splitter;
 }
-
