@@ -224,36 +224,36 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 	switch (konf_query__get_op(query)) {
 
-	case konf_query_OP_SET:
+	case KONF_QUERY_OP_SET:
 		if (konf_tree_find_conf(iconf, konf_query__get_line(query), 0)) {
-			ret = konf_query_OP_OK;
+			ret = KONF_QUERY_OP_OK;
 			break;
 		}
 		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
 		tmpconf = konf_tree_new_conf(iconf, 
 			konf_query__get_line(query), konf_query__get_priority(query));
 		if (!tmpconf) {
-			ret = konf_query_OP_ERROR;
+			ret = KONF_QUERY_OP_ERROR;
 			break;
 		}
 		konf_tree__set_splitter(tmpconf, konf_query__get_splitter(query));
-		ret = konf_query_OP_OK;
+		ret = KONF_QUERY_OP_OK;
 		break;
 
-	case konf_query_OP_UNSET:
+	case KONF_QUERY_OP_UNSET:
 		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
-		ret = konf_query_OP_OK;
+		ret = KONF_QUERY_OP_OK;
 		break;
 
-	case konf_query_OP_DUMP:
+	case KONF_QUERY_OP_DUMP:
 		if (dump_running_config(sock, iconf, query))
-			ret = konf_query_OP_ERROR;
+			ret = KONF_QUERY_OP_ERROR;
 		else
-			ret = konf_query_OP_OK;
+			ret = KONF_QUERY_OP_OK;
 		break;
 
 	default:
-		ret = konf_query_OP_ERROR;
+		ret = KONF_QUERY_OP_ERROR;
 		break;
 	}
 
@@ -266,10 +266,10 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	konf_query_free(query);
 
 	switch (ret) {
-	case konf_query_OP_OK:
+	case KONF_QUERY_OP_OK:
 		lub_string_cat(&retval, "-o");
 		break;
-	case konf_query_OP_ERROR:
+	case KONF_QUERY_OP_ERROR:
 		lub_string_cat(&retval, "-e");
 		break;
 	default:

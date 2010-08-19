@@ -3,13 +3,13 @@
 
 typedef enum
 {
-  konf_query_OP_NONE,
-  konf_query_OP_OK,
-  konf_query_OP_ERROR,
-  konf_query_OP_SET,
-  konf_query_OP_UNSET,
-  konf_query_OP_STREAM,
-  konf_query_OP_DUMP
+  KONF_QUERY_OP_NONE,
+  KONF_QUERY_OP_OK,
+  KONF_QUERY_OP_ERROR,
+  KONF_QUERY_OP_SET,
+  KONF_QUERY_OP_UNSET,
+  KONF_QUERY_OP_STREAM,
+  KONF_QUERY_OP_DUMP
 } konf_query_op_t;
 
 typedef struct konf_query_s konf_query_t;

@@ -309,15 +309,15 @@ static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, ko
 
 	switch (konf_query__get_op(query)) {
 
-	case konf_query_OP_OK:
+	case KONF_QUERY_OP_OK:
 		res = 0;
 		break;
 
-	case konf_query_OP_ERROR:
+	case KONF_QUERY_OP_ERROR:
 		res = -1;
 		break;
 
-	case konf_query_OP_STREAM:
+	case KONF_QUERY_OP_STREAM:
 		if (receive_data(client, buf, data) < 0)
 			res = -1;
 		else

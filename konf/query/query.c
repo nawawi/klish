@@ -19,7 +19,7 @@ konf_query_t *konf_query_new(void)
 	if (!(query = malloc(sizeof(*query))))
 		return NULL;
 
-	query->op = konf_query_OP_NONE;
+	query->op = KONF_QUERY_OP_NONE;
 	query->pattern = NULL;
 	query->priority = 0x7f00;
 	query->pwdc = 0;
@@ -34,22 +34,22 @@ konf_query_t *konf_query_new(void)
 void konf_query_dump(konf_query_t *query)
 {
 	switch (query->op) {
-	case konf_query_OP_SET:
+	case KONF_QUERY_OP_SET:
 		printf("op=SET\n");
 		break;
-	case konf_query_OP_UNSET:
+	case KONF_QUERY_OP_UNSET:
 		printf("op=UNSET\n");
 		break;
-	case konf_query_OP_DUMP:
+	case KONF_QUERY_OP_DUMP:
 		printf("op=DUMP\n");
 		break;
-	case konf_query_OP_OK:
+	case KONF_QUERY_OP_OK:
 		printf("op=OK\n");
 		break;
-	case konf_query_OP_ERROR:
+	case KONF_QUERY_OP_ERROR:
 		printf("op=ERROR\n");
 		break;
-	case konf_query_OP_STREAM:
+	case KONF_QUERY_OP_STREAM:
 		printf("op=STREAM\n");
 		break;
 	default:
@@ -130,22 +130,22 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 			break;
 		switch (opt) {
 		case 'o':
-			query->op = konf_query_OP_OK;
+			query->op = KONF_QUERY_OP_OK;
 			break;
 		case 'e':
-			query->op = konf_query_OP_ERROR;
+			query->op = KONF_QUERY_OP_ERROR;
 			break;
 		case 's':
-			query->op = konf_query_OP_SET;
+			query->op = KONF_QUERY_OP_SET;
 			break;
 		case 'u':
-			query->op = konf_query_OP_UNSET;
+			query->op = KONF_QUERY_OP_UNSET;
 			break;
 		case 'd':
-			query->op = konf_query_OP_DUMP;
+			query->op = KONF_QUERY_OP_DUMP;
 			break;
 		case 't':
-			query->op = konf_query_OP_STREAM;
+			query->op = KONF_QUERY_OP_STREAM;
 			break;
 		case 'p':
 			{
@@ -180,9 +180,9 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 	}
 
 	/* Check options */
-	if (konf_query_OP_NONE == query->op)
+	if (KONF_QUERY_OP_NONE == query->op)
 		return -1;
-	if (konf_query_OP_SET == query->op) {
+	if (KONF_QUERY_OP_SET == query->op) {
 		if (NULL == query->pattern)
 			return -1;
 		if (NULL == query->line)
