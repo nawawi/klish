@@ -200,10 +200,12 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		konf_query_free(query);
 		return NULL;
 	}
-	printf("----------------------\n");
-	printf("REQUEST: %s\n", str);
+#ifdef DEBUG
+	fprintf(stderr, "----------------------\n");
+	fprintf(stderr, "REQUEST: %s\n", str);
 /*	konf_query_dump(query);
 */
+#endif
 
 	/* Go through the pwd */
 	iconf = conf;
@@ -217,7 +219,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	}
 
 	if (!iconf) {
-		printf("Unknown path\n");
+		fprintf(stderr, "Unknown path\n");
 		konf_query_free(query);
 		return NULL;
 	}
@@ -259,7 +261,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 #ifdef DEBUG
 	/* Print whole tree */
-	konf_tree_fprintf(conf, stdout, NULL, -1, 0);
+	konf_tree_fprintf(conf, stderr, NULL, -1, 0);
 #endif
 
 	/* Free resources */
@@ -310,7 +312,7 @@ static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 	if (!filename) {
 		fprintf(fd, "-t\n");
 #ifdef DEBUG
-		printf("ANSWER: -t\n");
+		fprintf(stderr, "ANSWER: -t\n");
 #endif
 	}
 	konf_tree_fprintf(conf, fd, konf_query__get_pattern(query),
@@ -318,7 +320,7 @@ static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 	if (!filename) {
 		fprintf(fd, "\n");
 #ifdef DEBUG
-		printf("SEND DATA: \n");
+		fprintf(stderr, "SEND DATA: \n");
 #endif
 	}
 
