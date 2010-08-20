@@ -1,8 +1,9 @@
 /*
- * conf.c
+ * tree.c
  *
- * This file provides the implementation of a conf class
+ * This file provides the implementation of a konf_tree class
  */
+
 #include "private.h"
 #include "lub/argv.h"
 #include "lub/string.h"
@@ -12,6 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <regex.h>
 
 /*---------------------------------------------------------
  * PRIVATE META FUNCTIONS
@@ -22,9 +25,6 @@ int konf_tree_bt_compare(const void *clientnode, const void *clientkey)
 	unsigned short *pri = (unsigned short *)clientkey;
 	char *line = ((char *)clientkey + sizeof(unsigned short));
 
-/*	printf("COMPARE: node_pri=%d node_line=[%s] key_pri=%d key_line=[%s]\n",
-	konf_tree__get_priority(this), this->line, *pri, line);
-*/
 	if (konf_tree__get_priority(this) == *pri)
 		return lub_string_nocasecmp(this->line, line);
 
@@ -118,6 +118,7 @@ void konf_tree_delete(konf_tree_t * this)
 	free(this);
 }
 
+/*--------------------------------------------------------- */
 void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		const char *pattern, int depth,
 		unsigned char prev_pri_hi)
@@ -207,18 +208,25 @@ void konf_tree_del_pattern(konf_tree_t *this,
 {
 	konf_tree_t *conf;
 	lub_bintree_iterator_t iter;
+	regex_t regexp;
 
-	/* Empty tree */
+	/* Is tree empty? */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
 		return;
 
+	/* Compile regular expression */
+	regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
+
+	/* Iterate configuration tree */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
 	do {
-		if (lub_string_nocasestr(conf->line, pattern) == conf->line) {
+		if (0 == regexec(&regexp, conf->line, 0, NULL, 0)) {
 			lub_bintree_remove(&this->tree, conf);
 			konf_tree_delete(conf);
 		}
 	} while ((conf = lub_bintree_iterator_next(&iter)));
+
+	regfree(&regexp);
 }
 
 /*--------------------------------------------------------- */

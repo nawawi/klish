@@ -519,7 +519,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	if (pattern != NULL)
 		clish_command__set_pattern(cmd, pattern);
 	else
-		clish_command__set_pattern(cmd, "${cmd}");
+		clish_command__set_pattern(cmd, "^${cmd}");
 
 	if (file != NULL)
 		clish_command__set_file(cmd, file);

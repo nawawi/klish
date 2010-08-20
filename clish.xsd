@@ -379,7 +379,7 @@
     <xs:complexType name="config_t">
         <xs:attribute name="operation" type="operation_t" use="optional" default="set"/>
         <xs:attribute name="priority" type="xs:string" use="optional" default="0x7f00"/>
-        <xs:attribute name="pattern" type="xs:string" use="optional" default="${cmd}"/>
+        <xs:attribute name="pattern" type="xs:string" use="optional" default="^${cmd}"/>
         <xs:attribute name="file" type="xs:string" use="optional" default="startup-config"/>
         <xs:attribute name="splitter" type="bool_t" use="optional" default="true"/>
     </xs:complexType>
