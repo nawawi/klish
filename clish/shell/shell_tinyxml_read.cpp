@@ -63,9 +63,9 @@ static void process_node(clish_shell_t * shell, TiXmlNode * node, void *parent)
 			if (0 == strcmp(node->Value(), cb->element)) {
 				TiXmlElement *element = (TiXmlElement *) node;
 #ifdef DEBUG
-				printf("NODE:");
-				element->Print(stdout, 0);
-				printf("\n***\n");
+				fprintf(stderr, "NODE:");
+				element->Print(stderr, 0);
+				fprintf(stderr, "\n***\n");
 #endif
 				// process the elements at this level
 				cb->handler(shell, element, parent);

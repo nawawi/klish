@@ -17,8 +17,8 @@ lub_dump_printf(const char *fmt,...)
     int len;
 
     va_start(args, fmt);
-    printf("%*s",indent,"");
-    len = vprintf(fmt, args);
+    fprintf(stderr, "%*s", indent, "");
+    len = vfprintf(stderr, fmt, args);
     va_end(args);
 
     return len;
@@ -34,9 +34,9 @@ lub_dump_divider(char c)
         i < (80 - indent);
         i++)
     {
-        putchar(c);
+        fputc(c, stderr);
     }
-    putchar('\n');
+    fputc('\n', stderr);
 }
 /*--------------------------------------------------------- */
 void 
