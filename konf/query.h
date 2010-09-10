@@ -27,5 +27,7 @@ const char * konf_query__get_pattern(konf_query_t *instance);
 const char * konf_query__get_line(konf_query_t *instance);
 unsigned short konf_query__get_priority(konf_query_t *instance);
 bool_t konf_query__get_splitter(konf_query_t *instance);
+bool_t konf_query__get_seq(konf_query_t *instance);
+unsigned short konf_query__get_seq_num(konf_query_t *instance);
 
 #endif

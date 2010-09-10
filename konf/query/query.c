@@ -22,6 +22,8 @@ konf_query_t *konf_query_new(void)
 	query->op = KONF_QUERY_OP_NONE;
 	query->pattern = NULL;
 	query->priority = 0x7f00;
+	query->seq = BOOL_FALSE;
+	query->seq_num = 0;
 	query->pwdc = 0;
 	query->pwd = NULL;
 	query->line = NULL;
@@ -58,6 +60,7 @@ void konf_query_dump(konf_query_t *query)
 	}
 	printf("pattern=%s\n", query->pattern);
 	printf("priority=%u\n", query->priority);
+	printf("sequence=%u\n", query->seq);
 	printf("line=%s\n", query->line);
 	printf("path=%s\n", query->path);
 	printf("pwdc=%u\n", query->pwdc);
@@ -104,7 +107,7 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 	unsigned i = 0;
 	int pwdc = 0;
 
-	static const char *shortopts = "suoedtp:r:l:f:i";
+	static const char *shortopts = "suoedtp:qn:r:l:f:i";
 /*	static const struct option longopts[] = {
 		{"set",		0, NULL, 's'},
 		{"unset",	0, NULL, 'u'},
@@ -113,6 +116,8 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 		{"dump",	0, NULL, 'd'},
 		{"stream",	0, NULL, 't'},
 		{"priority",	1, NULL, 'p'},
+		{"seq",		0, NULL, 'q'},
+		{"seq_num",	1, NULL, 'n'},
 		{"pattern",	1, NULL, 'r'},
 		{"line",	1, NULL, 'l'},
 		{"file",	1, NULL, 'f'},
@@ -151,15 +156,29 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 			{
 			long val = 0;
 			char *endptr;
-			unsigned short pri;
 
 			val = strtol(optarg, &endptr, 0);
 			if (endptr == optarg)
 				break;
 			if ((val > 0xffff) || (val < 0))
 				break;
-			pri = (unsigned short)val;
-			query->priority = pri;
+			query->priority = (unsigned short)val;
+			break;
+			}
+		case 'q':
+			query->seq = BOOL_TRUE;
+			break;
+		case 'n':
+			{
+			long val = 0;
+			char *endptr;
+
+			val = strtol(optarg, &endptr, 0);
+			if (endptr == optarg)
+				break;
+			if ((val > 0xffff) || (val < 0))
+				break;
+			query->seq_num = (unsigned short)val;
 			break;
 			}
 		case 'r':
@@ -263,4 +282,14 @@ unsigned short konf_query__get_priority(konf_query_t *this)
 bool_t konf_query__get_splitter(konf_query_t *this)
 {
 	return this->splitter;
+}
+
+bool_t konf_query__get_seq(konf_query_t *this)
+{
+	return this->seq;
+}
+
+unsigned short konf_query__get_seq_num(konf_query_t *this)
+{
+	return this->seq_num;
 }

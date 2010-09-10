@@ -16,6 +16,7 @@ struct konf_tree_s {
 	lub_bintree_node_t bt_node;
 	char *line;
 	unsigned short priority;
+	unsigned short seq_num;
 	bool_t splitter;
 };
 

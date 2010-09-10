@@ -8,6 +8,8 @@ struct konf_query_s {
 	konf_query_op_t op;
 	char *pattern;
 	unsigned short priority;
+	bool_t seq; /* sequence aka auto priority */
+	unsigned short seq_num; /* sequence number */
 	unsigned pwdc;
 	char **pwd;
 	char *line;

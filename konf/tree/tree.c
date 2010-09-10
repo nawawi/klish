@@ -60,6 +60,7 @@ konf_tree_init(konf_tree_t * this, const char *line, unsigned short priority)
 	/* set up defaults */
 	this->line = lub_string_dup(line);
 	this->priority = priority;
+	this->seq_num = 0;
 	this->splitter = BOOL_TRUE;
 
 	/* Be a good binary tree citizen */
@@ -159,13 +160,17 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 
 /*--------------------------------------------------------- */
 konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
-					const char *line, unsigned short priority)
+	const char *line, unsigned short priority,
+	bool_t seq, unsigned short seq_num, unsigned short seq_step)
 {
-	/* allocate the memory for a new child element */
+	/* Allocate the memory for a new child element */
 	konf_tree_t *conf = konf_tree_new(line, priority);
 	assert(conf);
 
-	/* ...insert it into the binary tree for this conf */
+	if (seq)
+		konf_tree__set_seq_num(conf, seq_num);
+
+	/* Insert it into the binary tree for this conf */
 	if (-1 == lub_bintree_insert(&this->tree, conf)) {
 		/* inserting a duplicate command is bad */
 		konf_tree_delete(conf);
@@ -257,4 +262,16 @@ bool_t konf_tree__get_splitter(const konf_tree_t * this)
 void konf_tree__set_splitter(konf_tree_t *this, bool_t splitter)
 {
 	this->splitter = splitter;
+}
+
+/*--------------------------------------------------------- */
+unsigned short konf_tree__get_seq_num(const konf_tree_t * this)
+{
+	return this->seq_num;
+}
+
+/*--------------------------------------------------------- */
+void konf_tree__set_seq_num(konf_tree_t * this, unsigned short seq_num)
+{
+	this->seq_num = seq_num;
 }

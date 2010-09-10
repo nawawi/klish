@@ -232,8 +232,9 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 			break;
 		}
 		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
-		tmpconf = konf_tree_new_conf(iconf, 
-			konf_query__get_line(query), konf_query__get_priority(query));
+		tmpconf = konf_tree_new_conf(iconf,
+			konf_query__get_line(query), konf_query__get_priority(query),
+			konf_query__get_seq(query), konf_query__get_seq_num(query), 1);
 		if (!tmpconf) {
 			ret = KONF_QUERY_OP_ERROR;
 			break;
