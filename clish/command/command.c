@@ -37,11 +37,15 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->escape_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
+	
+	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
 	this->priority = 0x7f00; /* medium priority by default */
 	this->pattern = NULL;
 	this->file = NULL;
 	this->splitter = BOOL_TRUE;
+	this->seq = BOOL_FALSE;
+	this->seq_num = 0;
 }
 
 /*--------------------------------------------------------- */
@@ -472,4 +476,27 @@ void clish_command__set_splitter(clish_command_t * this, bool_t splitter)
 	this->splitter = splitter;
 }
 
+/*--------------------------------------------------------- */
+bool_t clish_command__get_seq(const clish_command_t * this)
+{
+	return this->seq;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_seq(clish_command_t * this, bool_t seq)
+{
+	this->seq = seq;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_seq_num(clish_command_t * this, unsigned short seq_num)
+{
+	this->seq_num = seq_num;
+}
+
+/*--------------------------------------------------------- */
+unsigned short clish_command__get_seq_num(const clish_command_t * this)
+{
+	return this->seq_num;
+}
 

@@ -487,6 +487,8 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *pattern = element->Attribute("pattern");
 	const char *file = element->Attribute("file");
 	const char *splitter = element->Attribute("splitter");
+	const char *seq = element->Attribute("sequence");
+	const char *seq_num = element->Attribute("sequence_num");
 
 	if (operation && !lub_string_nocasecmp(operation, "unset"))
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_UNSET);
@@ -528,6 +530,31 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_splitter(cmd, BOOL_FALSE);
 	else
 		clish_command__set_splitter(cmd, BOOL_TRUE);
+
+	if (seq && (lub_string_nocasecmp(seq, "true") == 0))
+		clish_command__set_seq(cmd, BOOL_TRUE);
+	else
+		clish_command__set_seq(cmd, BOOL_FALSE);
+
+	if ((seq_num != NULL) && (*seq_num != '\0')) {
+		long val = 0;
+		char *endptr;
+		unsigned short pri;
+
+		val = strtol(seq_num, &endptr, 0);
+		if (endptr == seq_num)
+			pri = 0;
+		else if (val > 0xffff)
+			pri = 0xffff;
+		else if (val < 0)
+			pri = 0;
+		else
+			pri = (unsigned short)val;
+		if (0 != pri) {
+			clish_command__set_seq(cmd, BOOL_TRUE);
+			clish_command__set_seq_num(cmd, pri);
+		}
+	}
 
 }
 

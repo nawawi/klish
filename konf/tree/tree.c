@@ -23,23 +23,31 @@ int konf_tree_bt_compare(const void *clientnode, const void *clientkey)
 {
 	const konf_tree_t *this = clientnode;
 	unsigned short *pri = (unsigned short *)clientkey;
+	unsigned short *seq = (unsigned short *)clientkey + 1;
 	char *line = ((char *)clientkey + sizeof(unsigned short));
 
-	if (konf_tree__get_priority(this) == *pri)
-		return lub_string_nocasecmp(this->line, line);
-
-	return (konf_tree__get_priority(this) - *pri);
+	/* Priority check */
+	if (this->priority != *pri)
+		return (this->priority - *pri);
+	/* Sequence check */
+	if (this->seq_num != *seq)
+		return (this->seq_num - *seq);
+	/* Line check */
+	return lub_string_nocasecmp(this->line, line);
 }
 
 /*-------------------------------------------------------- */
 static void konf_tree_key(lub_bintree_key_t * key,
-	unsigned short priority, const char *text)
+	unsigned short priority, unsigned short sequence,
+	const char *text)
 {
 	unsigned short *pri = (unsigned short *)key;
-	char *line = ((char *)key + sizeof(unsigned short));
+	unsigned short *seq = (unsigned short *)key + 1;
+	char *line = ((char *)key + (2 * sizeof(unsigned short)));
 
 	/* fill out the opaque key */
 	*pri = priority;
+	*seq = sequence;
 	strcpy(line, text);
 }
 
@@ -48,7 +56,7 @@ void konf_tree_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 {
 	const konf_tree_t *this = clientnode;
 
-	konf_tree_key(key, konf_tree__get_priority(this), this->line);
+	konf_tree_key(key, this->priority, this->seq_num, this->line);
 }
 
 /*---------------------------------------------------------
@@ -163,33 +171,49 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 	const char *line, unsigned short priority,
 	bool_t seq, unsigned short seq_num, unsigned short seq_step)
 {
+	konf_tree_t *conf;
 	/* Allocate the memory for a new child element */
-	konf_tree_t *conf = konf_tree_new(line, priority);
-	assert(conf);
+	konf_tree_t *newconf = konf_tree_new(line, priority);
+	assert(newconf);
 
-	if (seq)
-		konf_tree__set_seq_num(conf, seq_num);
-
-	/* Insert it into the binary tree for this conf */
-	if (-1 == lub_bintree_insert(&this->tree, conf)) {
-		/* inserting a duplicate command is bad */
-		konf_tree_delete(conf);
-		conf = NULL;
+	/* Sequence */
+	if (seq) {
+		konf_tree__set_seq_num(newconf, seq_num);
+		/* If tree is empty */
+/*		conf = lub_bintree_findfirst(&this->tree);
+			konf_tree__set_seq_num(newconf, seq_num);
+			return NULL;
+		else {
+		
+		}
+*/
 	}
 
-	return conf;
+	/* Non empty tree */
+	if (seq && conf) {
+
+	}
+
+	/* Insert it into the binary tree for this conf */
+	if (-1 == lub_bintree_insert(&this->tree, newconf)) {
+		/* inserting a duplicate command is bad */
+		konf_tree_delete(newconf);
+		newconf = NULL;
+	}
+
+	return newconf;
 }
 
 /*--------------------------------------------------------- */
 konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
-	const char *line, unsigned short priority)
+	const char *line, unsigned short priority, unsigned short sequence)
 {
 	konf_tree_t *conf;
 	lub_bintree_key_t key;
 	lub_bintree_iterator_t iter;
 
-	if (0 != priority) {
-		konf_tree_key(&key, priority, line);
+	if ((0 != priority) && (0 != sequence)) {
+		konf_tree_key(&key, priority, sequence, line);
 		return lub_bintree_find(&this->tree, &key);
 	}
 

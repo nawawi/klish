@@ -93,5 +93,9 @@ char *clish_command__get_file(const clish_command_t * instance,
 			      clish_pargv_t * pargv);
 void clish_command__set_splitter(clish_command_t * instance, bool_t splitter);
 bool_t clish_command__get_splitter(const clish_command_t * instance);
+bool_t clish_command__get_seq(const clish_command_t * instance);
+void clish_command__set_seq(clish_command_t * instance, bool_t seq);
+void clish_command__set_seq_num(clish_command_t * instance, unsigned short seq_num);
+unsigned short clish_command__get_seq_num(const clish_command_t * instance);
 
 #endif				/* _clish_command_h */

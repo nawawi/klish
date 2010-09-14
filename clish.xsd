@@ -382,6 +382,8 @@
         <xs:attribute name="pattern" type="xs:string" use="optional" default="^${cmd}"/>
         <xs:attribute name="file" type="xs:string" use="optional" default="startup-config"/>
         <xs:attribute name="splitter" type="bool_t" use="optional" default="true"/>
+        <xs:attribute name="sequence" type="bool_t" use="optional" default="false"/>
+        <xs:attribute name="sequence_num" type="xs:string" use="optional" default="0"/>
     </xs:complexType>
 
 

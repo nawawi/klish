@@ -37,15 +37,13 @@ size_t konf_tree_bt_offset(void);
  *----------------- */
 void konf_tree_delete(konf_tree_t * instance);
 void konf_tree_fprintf(konf_tree_t * instance, FILE * stream,
-		const char *pattern,
-		int depth, unsigned char prev_pri_hi);
+	const char *pattern, int depth, unsigned char prev_pri_hi);
 konf_tree_t *konf_tree_new_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority,
 	bool_t seq, unsigned short seq_num, unsigned short seq_step);
 konf_tree_t *konf_tree_find_conf(konf_tree_t * instance,
-				const char *line, unsigned short priority);
-void konf_tree_del_pattern(konf_tree_t *this,
-				const char *pattern);
+	const char *line, unsigned short priority, unsigned short sequence);
+void konf_tree_del_pattern(konf_tree_t *this, const char *pattern);
 
 /*-----------------
  * attributes 

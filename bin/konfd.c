@@ -212,7 +212,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	for (i = 0; i < konf_query__get_pwdc(query); i++) {
 		if (!
 		    (iconf =
-		     konf_tree_find_conf(iconf, konf_query__get_pwd(query, i), 0))) {
+		     konf_tree_find_conf(iconf, konf_query__get_pwd(query, i), 0, 0))) {
 			iconf = NULL;
 			break;
 		}
@@ -227,7 +227,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	switch (konf_query__get_op(query)) {
 
 	case KONF_QUERY_OP_SET:
-		if (konf_tree_find_conf(iconf, konf_query__get_line(query), 0)) {
+		if (konf_tree_find_conf(iconf, konf_query__get_line(query), 0, 0)) {
 			ret = KONF_QUERY_OP_OK;
 			break;
 		}

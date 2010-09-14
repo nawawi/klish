@@ -20,9 +20,15 @@ struct clish_command_s {
 	clish_param_t *args;
 	bool_t link;
 	clish_view_t *pview;
+
+	/* CONFIG params:
+	 * TODO: create special structure for CONFIG params.
+	 */
 	clish_config_operation_t cfg_op;
 	unsigned short priority;
 	char *pattern;
 	char *file;
 	bool_t splitter;
+	bool_t seq;
+	unsigned short seq_num;
 };
