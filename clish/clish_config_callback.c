@@ -63,6 +63,7 @@ clish_config_callback(const clish_shell_t * shell,
 			lub_string_free(pattern);
 
 			if (clish_command__get_splitter(cmd) == BOOL_FALSE)
+				lub_string_cat(&command, " -i");
 
 			snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
 				clish_command__get_priority(cmd));
