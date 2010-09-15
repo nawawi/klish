@@ -15,6 +15,7 @@ struct clish_paramv_s {
 struct clish_param_s {
 	char *name;
 	char *text;
+	char *value;
 	clish_ptype_t *ptype;	/* The type of this parameter */
 	char *defval;		/* default value to use for this parameter */
 	clish_paramv_t *paramv;

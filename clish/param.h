@@ -75,6 +75,8 @@ const unsigned clish_param__get_param_count(const clish_param_t * instance);
 clish_paramv_t *clish_param__get_paramv(clish_param_t * instance);
 void clish_param__set_optional(clish_param_t * instance, bool_t optional);
 bool_t clish_param__get_optional(const clish_param_t * instance);
+void clish_param__set_value(clish_param_t * instance, const char * value);
+char *clish_param__get_value(const clish_param_t * instance);
 
 /* paramv methods */
 clish_paramv_t *clish_paramv_new(void);
@@ -83,7 +85,6 @@ void clish_paramv_insert(clish_paramv_t * instance, clish_param_t * param);
 clish_param_t *clish_paramv__get_param(const clish_paramv_t * instance,
 				unsigned index);
 const unsigned clish_paramv__get_count(const clish_paramv_t * instance);
-
 
 #endif				/* _clish_param_h */
 /** @} clish_param */

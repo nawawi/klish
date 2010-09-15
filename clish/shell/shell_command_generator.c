@@ -97,8 +97,8 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 				result = lub_string_dup(text);
 			} else if (CLISH_PARAM_SUBCOMMAND ==
 				clish_param__get_mode(param)) {
-				/* The subcommand is identified by it's name */
-				result = lub_string_dup(clish_param__get_name(param));
+				/* The subcommand is identified by it's value */
+				result = lub_string_dup(clish_param__get_value(param));
 			} else if (CLISH_PARAM_SWITCH ==
 				   clish_param__get_mode(param)) {
 				/* The switch has no completion string */

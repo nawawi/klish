@@ -223,8 +223,8 @@
 *           simply controls the conditional variable expansion for this 
 *           parameter.
 *
-* mode      - Define parameter mode. It can be common, switch or
-*           subcommand.
+* [mode]    - Parameter mode. It can be "common", "switch" or
+*           "subcommand".
 *
 * [prefix]  - defines the prefix for an optional parameter. A prefix
 *           with this value on the command line will signify the presence
@@ -237,6 +237,13 @@
 * [default] - defines a default value for a parameter. Any parameters
 *           at the end of command line which have default values need 
 *           not explicitly be entered.
+*
+* [value]   - defines the user's value for subcommand. If this option
+*           is defined the entered parameter will be compared to this
+*           value instead the "name" field. If this field is defined
+*           the mode of PARAM will be forced to "subcommand". The
+*           feature is implemented to support subcommands with the
+*           same names.
 ********************************************************
     -->
     <xs:simpleType name="bool_t">
@@ -264,6 +271,7 @@
         <xs:attribute name="prefix" type="xs:string" use="optional"/>
         <xs:attribute name="mode" type="param_mode_t" use="optional" default="common"/>
         <xs:attribute name="optional" type="bool_t" use="optional" default="false"/>
+        <xs:attribute name="value" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 ********************************************************

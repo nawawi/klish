@@ -306,6 +306,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *defval = element->Attribute("default");
 		const char *mode = element->Attribute("mode");
 		const char *optional = element->Attribute("optional");
+		const char *value = element->Attribute("value");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -376,12 +377,21 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			clish_param__set_optional(param, BOOL_TRUE);
 		else
 			clish_param__set_optional(param, BOOL_FALSE);
+
+		if (NULL != value) {
+			clish_param__set_value(param, value);
+			/* Force mode to subcommand */
+			clish_param__set_mode(param,
+				CLISH_PARAM_SUBCOMMAND);
+		}
+
 		if (cmd)
 			// add the parameter to the command
 			clish_command_insert_param(cmd, param);
 		if (p_param)
 			// add the parameter to the param
 			clish_param_insert_param(p_param, param);
+
 		process_children(shell, element, param);
 
 	}

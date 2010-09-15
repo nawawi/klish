@@ -132,11 +132,11 @@ clish_pargv_parse(clish_pargv_t * this,
 					if (CLISH_PARAM_SUBCOMMAND ==
 						clish_param__get_mode(cparam)) {
 						const char *pname =
-							clish_param__get_name(cparam);
+							clish_param__get_value(cparam);
 						if (!arg || (arg && 
 							(pname == lub_string_nocasestr(pname,
 							arg))))
-							clish_pargv_insert(last, 
+							clish_pargv_insert(last,
 								cparam, arg);
 					} else {
 						clish_pargv_insert(last,
@@ -147,7 +147,7 @@ clish_pargv_parse(clish_pargv_t * this,
 				if (CLISH_PARAM_SUBCOMMAND ==
 					clish_param__get_mode(param)) {
 					const char *pname =
-					    clish_param__get_name(param);
+					    clish_param__get_value(param);
 					if (!arg || (arg &&
 						(pname == lub_string_nocasestr(pname, arg))))
 						clish_pargv_insert(last, param, arg);

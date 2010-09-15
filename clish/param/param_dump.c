@@ -14,6 +14,7 @@ void clish_param_dump(const clish_param_t * this)
 	lub_dump_indent();
 	lub_dump_printf("name   : %s\n", this->name);
 	lub_dump_printf("text   : %s\n", this->text);
+	lub_dump_printf("value  : %s\n", this->value);
 	lub_dump_printf("ptype  : %s\n", clish_ptype__get_name(this->ptype));
 	lub_dump_printf("default: %s\n",
 			this->defval ? this->defval : "(null)");

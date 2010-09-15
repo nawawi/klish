@@ -28,6 +28,7 @@ clish_param_init(clish_param_t * this,
 	this->defval = NULL;
 	this->mode = CLISH_PARAM_COMMON;
 	this->optional = BOOL_FALSE;
+	this->value = NULL;
 
 	this->paramv = clish_paramv_new();
 }
@@ -44,6 +45,8 @@ static void clish_param_fini(clish_param_t * this)
 	this->name = NULL;
 	lub_string_free(this->text);
 	this->text = NULL;
+	lub_string_free(this->value);
+	this->value = NULL;
 
 	clish_paramv_delete(this->paramv);
 }
@@ -135,7 +138,7 @@ clish_param_mode_e clish_param__get_mode(const clish_param_t * this)
 char *clish_param_validate(const clish_param_t * this, const char *text)
 {
 	if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(this)) {
-		if (lub_string_nocasecmp(clish_param__get_name(this), text))
+		if (lub_string_nocasecmp(clish_param__get_value(this), text))
 			return NULL;
 	}
 	return clish_ptype_translate(this->ptype, text);
@@ -162,7 +165,7 @@ void clish_param_help(const clish_param_t * this, size_t offset)
 	}
 
 	if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(this))
-		name = this->name;
+		name = clish_param__get_value(this);
 	else
 		name = clish_ptype__get_text(this->ptype);
 
@@ -287,4 +290,18 @@ const unsigned clish_paramv__get_count(const clish_paramv_t * this)
 	return this->paramc;
 }
 
+/*--------------------------------------------------------- */
+void clish_param__set_value(clish_param_t * this, const char * value)
+{
+	assert(NULL == this->value);
+	this->value = lub_string_dup(value);
+}
+
+/*--------------------------------------------------------- */
+char *clish_param__get_value(const clish_param_t * this)
+{
+	if (this->value)
+		return this->value;
+	return this->name;
+}
 

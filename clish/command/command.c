@@ -37,7 +37,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->escape_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
-	
+
 	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
 	this->priority = 0x7f00; /* medium priority by default */
@@ -206,7 +206,7 @@ void clish_command_help(const clish_command_t * this, const char *line)
 
 		param = clish_pargv__get_param(last, i);
 		if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(param))
-			name = clish_param__get_name(param);
+			name = clish_param__get_value(param);
 		else
 			name = clish_ptype__get_text(clish_param__get_ptype(param));
 		if (name)
@@ -499,4 +499,3 @@ unsigned short clish_command__get_seq_num(const clish_command_t * this)
 {
 	return this->seq_num;
 }
-
