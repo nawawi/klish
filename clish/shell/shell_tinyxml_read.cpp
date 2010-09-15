@@ -327,6 +327,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		 * It will create nested PARAM.
 		 */
 		if (NULL != prefix) {
+			const char *ptype_name = "internal_SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
 
 			/* Create a ptype for prefix-named subcommand that
@@ -334,12 +335,12 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			 * name of ptype is hardcoded. It's not good but
 			 * it's only the service ptype.
 			 */
-			tmp =
-			    clish_shell_find_create_ptype(shell,
-							  "internal_SUBCOMMAND",
-							  "Option", "[^\\]+",
-							  CLISH_PTYPE_REGEXP,
-							  CLISH_PTYPE_NONE);
+			tmp = (clish_ptype_t *)lub_bintree_find(
+				&shell->ptype_tree, ptype_name);
+			if (!tmp)
+				tmp = clish_shell_find_create_ptype(shell,
+					ptype_name, "Option", "[^\\]+",
+					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 			assert(tmp);
 			opt_param = clish_param_new(prefix, help, tmp);
 			clish_param__set_mode(opt_param,
