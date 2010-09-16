@@ -14,10 +14,10 @@
 #define _clish_pargv_h
 
 typedef enum {
-	clish_LINE_OK,
-	clish_BAD_CMD,
-	clish_BAD_PARAM,
-	clish_BAD_HISTORY
+	CLISH_LINE_OK,
+	CLISH_BAD_CMD,
+	CLISH_BAD_PARAM,
+	CLISH_BAD_HISTORY
 } clish_pargv_status_t;
 
 typedef struct clish_pargv_s clish_pargv_t;

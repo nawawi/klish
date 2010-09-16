@@ -11,7 +11,7 @@ clish_shell_parse(const clish_shell_t * this,
 		  const char *line,
 		  const clish_command_t ** cmd, clish_pargv_t ** pargv)
 {
-	clish_pargv_status_t result = clish_BAD_CMD;
+	clish_pargv_status_t result = CLISH_BAD_CMD;
 	size_t offset;
 	char *prompt = clish_view__get_prompt(this->view, this->viewid);
 

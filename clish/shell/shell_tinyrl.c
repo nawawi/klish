@@ -69,7 +69,7 @@ static char *clish_shell_tinyrl_word_generator(tinyrl_t * this,
  */
 static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 {
-	clish_pargv_status_t status = clish_LINE_OK;
+	clish_pargv_status_t status = CLISH_LINE_OK;
 	int rtn;
 	char *buffer;
 
@@ -80,7 +80,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 	switch (rtn) {
 	case -1:
 		/* error in expansion */
-		status = clish_BAD_HISTORY;
+		status = CLISH_BAD_HISTORY;
 		break;
 	case 0:
 		/*no expansion */
@@ -253,13 +253,13 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 						       &context->command,
 						       &context->pargv);
 			switch (arg_status) {
-			case clish_LINE_OK:
+			case CLISH_LINE_OK:
 				tinyrl_done(this);
 				result = BOOL_TRUE;
 				break;
-			case clish_BAD_HISTORY:
-			case clish_BAD_CMD:
-			case clish_BAD_PARAM:
+			case CLISH_BAD_HISTORY:
+			case CLISH_BAD_CMD:
+			case CLISH_BAD_PARAM:
 				tinyrl_crlf(this);
 				fprintf(stderr, "Error. Illegal command line.\n");
 				tinyrl_crlf(this);

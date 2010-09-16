@@ -223,7 +223,7 @@ clish_pargv_parse(clish_pargv_t * this,
 				if (rec_paramc) {
 					retval = clish_pargv_parse(this, NULL, rec_paramv,
 						argv, idx, last, need_index);
-					if (clish_LINE_OK != retval)
+					if (CLISH_LINE_OK != retval)
 						return retval;
 				}
 
@@ -245,10 +245,10 @@ clish_pargv_parse(clish_pargv_t * this,
 					clish_param__get_optional(param))
 					index++;
 				else
-					return clish_BAD_PARAM;
+					return CLISH_BAD_PARAM;
 			}
 		} else {
-			return clish_BAD_PARAM;
+			return CLISH_BAD_PARAM;
 		}
 	}
 
@@ -259,7 +259,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		while (j < paramc) {
 			param = clish_paramv__get_param(paramv, j++);
 			if (BOOL_TRUE != clish_param__get_optional(param))
-				return clish_BAD_PARAM;
+				return CLISH_BAD_PARAM;
 		}
 	}
 
@@ -284,7 +284,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		char *args = NULL;
 
 		if (!param)
-			return clish_BAD_PARAM;
+			return CLISH_BAD_PARAM;
 
 		/*
 		 * put all the argument into a single string
@@ -311,7 +311,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		lub_string_free(args);
 	}
 
-	return clish_LINE_OK;
+	return CLISH_LINE_OK;
 }
 
 /*--------------------------------------------------------- */
@@ -352,11 +352,11 @@ clish_pargv_t *clish_pargv_new(const clish_command_t * cmd,
 	if (NULL != this) {
 		*status = clish_pargv_init(this, cmd, argv);
 		switch (*status) {
-		case clish_LINE_OK:
+		case CLISH_LINE_OK:
 			break;
-		case clish_BAD_CMD:
-		case clish_BAD_PARAM:
-		case clish_BAD_HISTORY:
+		case CLISH_BAD_CMD:
+		case CLISH_BAD_PARAM:
+		case CLISH_BAD_HISTORY:
 			/* commit suicide */
 			clish_pargv_delete(this);
 			this = NULL;
