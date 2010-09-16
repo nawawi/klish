@@ -26,6 +26,7 @@ typedef enum {
 
 typedef enum {
 	CLISH_RESTORE_NONE,
+	CLISH_RESTORE_ALREADY,
 	CLISH_RESTORE_DEPTH,
 	CLISH_RESTORE_VIEW
 } clish_nspace_restore_t;
