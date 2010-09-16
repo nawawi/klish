@@ -24,7 +24,7 @@ int konf_tree_bt_compare(const void *clientnode, const void *clientkey)
 	const konf_tree_t *this = clientnode;
 	unsigned short *pri = (unsigned short *)clientkey;
 	unsigned short *seq = (unsigned short *)clientkey + 1;
-	char *line = ((char *)clientkey + sizeof(unsigned short));
+	char *line = ((char *)clientkey + (2 * sizeof(unsigned short)));
 
 	/* Priority check */
 	if (this->priority != *pri)
