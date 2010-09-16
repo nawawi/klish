@@ -278,14 +278,16 @@ clish_pargv_parse(clish_pargv_t * this,
 	 * if we've satisfied all the parameters we can now construct
 	 * an 'args' parameter if one exists
 	 */
-	if (cmd && clish_command__get_args(cmd) &&
-			(*idx < argc) && (index >= paramc)) {
+	if (cmd && (*idx < argc) && (index >= paramc)) {
 		const char *arg = lub_argv__get_arg(argv, *idx);
 		const clish_param_t *param = clish_command__get_args(cmd);
 		char *args = NULL;
 
-		/* 
-		 * put all the argument into a single string 
+		if (!param)
+			return clish_BAD_PARAM;
+
+		/*
+		 * put all the argument into a single string
 		 */
 		while (NULL != arg) {
 			bool_t quoted = lub_argv__get_quoted(argv, *idx);
