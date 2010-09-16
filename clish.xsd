@@ -356,8 +356,19 @@
 *
 * [inherit]      - a boolean flag to inherit nested
 *                namespace commands recursively
+*
+* [restore]      - restore the depth or view of commands
+*                included by this namespace
 ********************************************************
 -->
+    <xs:simpleType name="restore_t">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="none"/>
+            <xs:enumeration value="depth"/>
+            <xs:enumeration value="view"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="namespace_t">
         <xs:attribute name="ref" type="xs:string" use="required"/>
         <xs:attribute name="prefix" type="xs:string" use="required"/>
@@ -365,6 +376,7 @@
         <xs:attribute name="completion" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="context_help" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="inherit" type="bool_t" use="optional" default="true"/>
+        <xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
     </xs:complexType>
     <!--
 *******************************************************

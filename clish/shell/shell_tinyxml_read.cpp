@@ -449,6 +449,7 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *completion = element->Attribute("completion");
 	const char *context_help = element->Attribute("context_help");
 	const char *inherit = element->Attribute("inherit");
+	const char *restore = element->Attribute("restore");
 
 	assert(view);
 	clish_view_t *ref_view =
@@ -481,6 +482,14 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_nspace__set_inherit(nspace, BOOL_FALSE);
 	else
 		clish_nspace__set_inherit(nspace, BOOL_TRUE);
+
+	if (restore && !lub_string_nocasecmp(restore, "depth"))
+		clish_nspace__set_restore(nspace, CLISH_RESTORE_DEPTH);
+	else if (restore && !lub_string_nocasecmp(restore, "view"))
+		clish_nspace__set_restore(nspace, CLISH_RESTORE_VIEW);
+	else
+		clish_nspace__set_restore(nspace, CLISH_RESTORE_NONE);
+
 }
 
 ////////////////////////////////////////

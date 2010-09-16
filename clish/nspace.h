@@ -24,6 +24,12 @@ typedef enum {
 	CLISH_NSPACE_CHELP
 } clish_nspace_visibility_t;
 
+typedef enum {
+	CLISH_RESTORE_NONE,
+	CLISH_RESTORE_DEPTH,
+	CLISH_RESTORE_VIEW
+} clish_nspace_restore_t;
+
 #include "clish/view.h"
 
 /*=====================================
@@ -59,6 +65,9 @@ void clish_nspace__set_help(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_completion(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_context_help(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_inherit(clish_nspace_t * instance, bool_t inherit);
+void clish_nspace__set_restore(clish_nspace_t * instance,
+	clish_nspace_restore_t restore);
+clish_nspace_restore_t clish_nspace__get_restore(const clish_nspace_t * instance);
 
 #endif				/* _clish_nspace_h */
 /** @} clish_nspace */

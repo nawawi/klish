@@ -271,3 +271,16 @@ clish_nspace__get_visibility(const clish_nspace_t * instance,
 }
 
 /*--------------------------------------------------------- */
+void clish_nspace__set_restore(clish_nspace_t * this,
+	clish_nspace_restore_t restore)
+{
+	this->restore = restore;
+}
+
+/*--------------------------------------------------------- */
+clish_nspace_restore_t clish_nspace__get_restore(const clish_nspace_t * this)
+{
+	return this->restore;
+}
+
+/*--------------------------------------------------------- */

@@ -14,4 +14,5 @@ struct clish_nspace_s {
 	bool_t completion;
 	bool_t context_help;
 	bool_t inherit;
+	clish_nspace_restore_t restore;
 };
