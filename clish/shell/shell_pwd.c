@@ -9,34 +9,63 @@
 
 /*--------------------------------------------------------- */
 void
-clish_shell__set_pwd(clish_shell_t * this, unsigned index, const char *element)
+clish_shell__set_pwd(clish_shell_t * this, unsigned index,
+	const char * line, clish_view_t * view, char * viewid)
 {
-	char **tmp;
+	clish_shell_pwd_t **tmp;
 	size_t new_size = 0;
 	unsigned i;
 
+	/* Create new element */
 	if (index >= this->cfg_pwdc) {
-		/* create new element */
-		new_size = (index + 1) * sizeof(char *);
+		new_size = (index + 1) * sizeof(clish_shell_pwd_t *);
 		/* resize the pwd vector */
 		tmp = realloc(this->cfg_pwdv, new_size);
 		assert(tmp);
 		this->cfg_pwdv = tmp;
-		for (i = this->cfg_pwdc; i <= index; i++)
-			this->cfg_pwdv[i] = NULL;
+		/* Initialize new elements */
+		for (i = this->cfg_pwdc; i <= index; i++) {
+			clish_shell_pwd_t *pwd;
+
+			pwd = malloc(sizeof(*pwd));
+			assert(pwd);
+			pwd->line = NULL;
+			pwd->view = NULL;
+			pwd->viewid = NULL;
+			this->cfg_pwdv[i] = pwd;
+		}
 		this->cfg_pwdc = index + 1;
 	}
 
-	lub_string_free(this->cfg_pwdv[index]);
-	this->cfg_pwdv[index] = lub_string_dup(element);
+	lub_string_free(this->cfg_pwdv[index]->line);
+	this->cfg_pwdv[index]->line = line ? lub_string_dup(line) : NULL;
+	this->cfg_pwdv[index]->view = view;
+	lub_string_free(this->cfg_pwdv[index]->viewid);
+	this->cfg_pwdv[index]->viewid = viewid ? lub_string_dup(viewid) : NULL;
 }
 
-const char *clish_shell__get_pwd(const clish_shell_t * this, unsigned index)
+char *clish_shell__get_pwd_line(const clish_shell_t * this, unsigned index)
 {
 	if (index >= this->cfg_pwdc)
 		return NULL;
 
-	return this->cfg_pwdv[index];
+	return this->cfg_pwdv[index]->line;
+}
+
+clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned index)
+{
+	if (index >= this->cfg_pwdc)
+		return NULL;
+
+	return this->cfg_pwdv[index]->view;
+}
+
+char *clish_shell__get_pwd_viewid(const clish_shell_t * this, unsigned index)
+{
+	if (index >= this->cfg_pwdc)
+		return NULL;
+
+	return this->cfg_pwdv[index]->viewid;
 }
 
 konf_client_t *clish_shell__get_client(const clish_shell_t * this)

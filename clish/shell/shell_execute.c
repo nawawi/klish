@@ -196,6 +196,33 @@ clish_shell_execute(clish_shell_t * this,
 
 	assert(NULL != cmd);
 
+	/* Pre-change view if the command is from another depth/view */
+        {
+		clish_view_t *view = NULL;
+		char *viewid = NULL;
+		clish_view_restore_t restore = clish_command__get_restore(cmd);
+
+		if ((CLISH_RESTORE_VIEW == restore) &&
+			(clish_command__get_pview(cmd) != this->view))
+			view = clish_command__get_pview(cmd);
+		else if ((CLISH_RESTORE_DEPTH == restore) &&
+			(clish_command__get_depth(cmd) <
+			clish_view__get_depth(this->view))) {
+			view = clish_shell__get_pwd_view(this,
+				clish_command__get_depth(cmd));
+			viewid = clish_shell__get_pwd_viewid(this,
+				clish_command__get_depth(cmd));
+		}
+
+		if (NULL != view) {
+			this->view = view;
+			/* cleanup */
+			lub_string_free(this->viewid);
+			this->viewid = viewid;
+		}
+	}
+
+	/* Execute action */
 	builtin = clish_command__get_builtin(cmd);
 	script = clish_command__get_action(cmd, this->viewid, *pargv);
 	/* account for thread cancellation whilst running a script */
@@ -229,27 +256,30 @@ clish_shell_execute(clish_shell_t * this,
 
 	}
 	pthread_cleanup_pop(1);
-	if (BOOL_TRUE == result) {
-		/* move into the new view */
-		clish_view_t *view = clish_command__get_view(cmd);
-		char *viewid =
-		    clish_command__get_viewid(cmd, this->viewid, *pargv);
 
-		/* now get the client to config operations */
+	if (BOOL_TRUE == result) {
+		clish_view_t *view = NULL;
+		char *viewid = NULL;
+
+		/* Now get the client to config operations */
 		if (this->client_hooks->config_fn)
 			this->client_hooks->config_fn(this, cmd, *pargv);
+
+		/* Move into the new view */
+		view = clish_command__get_view(cmd);
+		viewid = clish_command__get_viewid(cmd, this->viewid, *pargv);
 
 		if (NULL != view) {
 			/* Save the current config PWD */
 			char *line = clish_variable__get_line(cmd, *pargv);
 			clish_shell__set_pwd(this,
-					     clish_command__get_depth(cmd),
-					     line);
+				clish_command__get_depth(cmd),
+				line, this->view, this->viewid);
 			lub_string_free(line);
 			/* Change view */
 			this->view = view;
 		}
-		if (viewid) {
+		if (viewid || view) {
 			/* cleanup */
 			lub_string_free(this->viewid);
 			this->viewid = viewid;

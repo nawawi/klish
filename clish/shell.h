@@ -317,8 +317,12 @@ tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
 void *clish_shell__get_client_cookie(const clish_shell_t * instance);
 void
 clish_shell__set_pwd(clish_shell_t * instance, unsigned index,
-		     const char *element);
-const char *clish_shell__get_pwd(const clish_shell_t * instance,
+	const char * line, clish_view_t * view, char * viewid);
+char *clish_shell__get_pwd_line(const clish_shell_t * instance,
+				 unsigned index);
+clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
+				 unsigned index);
+char *clish_shell__get_pwd_viewid(const clish_shell_t * instance,
 				 unsigned index);
 char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);

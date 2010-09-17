@@ -51,6 +51,12 @@ struct clish_shell_file_s {
 	bool_t stop_on_error;	/* stop on error for file input  */
 };
 
+typedef struct {
+	char *line;
+	clish_view_t *view;
+	char *viewid;
+} clish_shell_pwd_t;
+
 struct clish_shell_s {
 	lub_bintree_t view_tree;	/* Maintain a tree of views      */
 	lub_bintree_t ptype_tree;	/* Maintain a tree of ptypes     */
@@ -65,7 +71,7 @@ struct clish_shell_s {
 	char *viewid;		/* The current view ID string     */
 	tinyrl_t *tinyrl;	/* Tiny readline instance          */
 	clish_shell_file_t *current_file;	/* file currently in use for input */
-	char **cfg_pwdv;	/* Levels for the config file structure */
+	clish_shell_pwd_t **cfg_pwdv;	/* Levels for the config file structure */
 	unsigned cfg_pwdc;
 	konf_client_t *client;
 	clish_pargv_t *completion_pargv;

@@ -499,3 +499,12 @@ unsigned short clish_command__get_seq_num(const clish_command_t * this)
 {
 	return this->seq_num;
 }
+
+/*--------------------------------------------------------- */
+clish_view_restore_t clish_command__get_restore(const clish_command_t * this)
+{
+	if (!this->pview)
+		return CLISH_RESTORE_NONE;
+	return clish_view__get_restore(this->pview);
+}
+

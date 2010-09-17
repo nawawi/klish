@@ -97,5 +97,6 @@ bool_t clish_command__get_seq(const clish_command_t * instance);
 void clish_command__set_seq(clish_command_t * instance, bool_t seq);
 void clish_command__set_seq_num(clish_command_t * instance, unsigned short seq_num);
 unsigned short clish_command__get_seq_num(const clish_command_t * instance);
+clish_view_restore_t clish_command__get_restore(const clish_command_t * instance);
 
 #endif				/* _clish_command_h */

@@ -82,7 +82,7 @@ clish_config_callback(const clish_shell_t * shell,
 
 			for (i = 0; i < clish_command__get_depth(cmd); i++) {
 				const char *str =
-				    clish_shell__get_pwd(shell, i);
+				    clish_shell__get_pwd_line(shell, i);
 				if (!str)
 					return BOOL_FALSE;
 				lub_string_cat(&command, " \"");
@@ -121,7 +121,7 @@ clish_config_callback(const clish_shell_t * shell,
 
 			for (i = 0; i < clish_command__get_depth(cmd); i++) {
 				const char *str =
-				    clish_shell__get_pwd(shell, i);
+				    clish_shell__get_pwd_line(shell, i);
 				if (!str)
 					return BOOL_FALSE;
 				lub_string_cat(&command, " \"");

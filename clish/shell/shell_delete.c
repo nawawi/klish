@@ -46,7 +46,9 @@ static void clish_shell_fini(clish_shell_t * this)
 
 	/* finalize each of the pwd strings */
 	for (i = 0; i < this->cfg_pwdc; i++) {
-		lub_string_free(this->cfg_pwdv[i]);
+		lub_string_free(this->cfg_pwdv[i]->line);
+		lub_string_free(this->cfg_pwdv[i]->viewid);
+		free(this->cfg_pwdv[i]);
 	}
 	/* free the pwd vector */
 	free(this->cfg_pwdv);
