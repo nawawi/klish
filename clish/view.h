@@ -18,6 +18,12 @@ a global scope.
 
 typedef struct clish_view_s clish_view_t;
 
+typedef enum {
+	CLISH_RESTORE_NONE,
+	CLISH_RESTORE_DEPTH,
+	CLISH_RESTORE_VIEW
+} clish_view_restore_t;
+
 #include "clish/command.h"
 #include "clish/nspace.h"
 
@@ -59,6 +65,9 @@ clish_nspace_t *clish_view__get_nspace(const clish_view_t * instance,
 				       unsigned index);
 void clish_view__set_depth(clish_view_t * instance, unsigned depth);
 unsigned clish_view__get_depth(const clish_view_t * instance);
+void clish_view__set_restore(clish_view_t * instance,
+	clish_view_restore_t restore);
+clish_view_restore_t clish_view__get_restore(const clish_view_t * instance);
 
 #endif				/* _clish_view_h */
 /** @} clish_view */

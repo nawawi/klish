@@ -25,7 +25,6 @@ static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
 	this->completion = BOOL_TRUE;
 	this->context_help = BOOL_FALSE;
 	this->inherit = BOOL_TRUE;
-	this->restore = CLISH_RESTORE_NONE;
 
 	/* initialise the tree of commands links for this nspace */
 	lub_bintree_init(&this->tree,
@@ -269,19 +268,6 @@ clish_nspace__get_visibility(const clish_nspace_t * instance,
 	}
 
 	return result;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_restore(clish_nspace_t * this,
-	clish_nspace_restore_t restore)
-{
-	this->restore = restore;
-}
-
-/*--------------------------------------------------------- */
-clish_nspace_restore_t clish_nspace__get_restore(const clish_nspace_t * this)
-{
-	return this->restore;
 }
 
 /*--------------------------------------------------------- */

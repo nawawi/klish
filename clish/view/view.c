@@ -46,6 +46,7 @@ clish_view_init(clish_view_t * this, const char *name, const char *prompt)
 	this->nspacec = 0;
 	this->nspacev = NULL;
 	this->depth = 0;
+	this->restore = CLISH_RESTORE_NONE;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -360,6 +361,19 @@ void clish_view__set_depth(clish_view_t * this, unsigned depth)
 unsigned clish_view__get_depth(const clish_view_t * this)
 {
 	return this->depth;
+}
+
+/*--------------------------------------------------------- */
+void clish_view__set_restore(clish_view_t * this,
+	clish_view_restore_t restore)
+{
+	this->restore = restore;
+}
+
+/*--------------------------------------------------------- */
+clish_view_restore_t clish_view__get_restore(const clish_view_t * this)
+{
+	return this->restore;
 }
 
 /*--------------------------------------------------------- */

@@ -15,4 +15,5 @@ struct clish_view_s {
 	unsigned nspacec;
 	clish_nspace_t **nspacev;
 	unsigned depth;
+	clish_view_restore_t restore;
 };
