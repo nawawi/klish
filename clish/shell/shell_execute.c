@@ -218,7 +218,7 @@ clish_shell_execute(clish_shell_t * this,
 			this->view = view;
 			/* cleanup */
 			lub_string_free(this->viewid);
-			this->viewid = viewid;
+			this->viewid = lub_string_dup(viewid);
 		}
 	}
 
