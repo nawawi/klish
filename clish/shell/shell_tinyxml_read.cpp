@@ -124,12 +124,14 @@ static void process_view(clish_shell_t * shell, TiXmlElement * element, void *)
 		clish_view__set_depth(view, res);
 	}
 
-	if (restore && !lub_string_nocasecmp(restore, "depth"))
-		clish_view__set_restore(view, CLISH_RESTORE_DEPTH);
-	else if (restore && !lub_string_nocasecmp(restore, "view"))
-		clish_view__set_restore(view, CLISH_RESTORE_VIEW);
-	else
-		clish_view__set_restore(view, CLISH_RESTORE_NONE);
+	if (restore) {
+		if (!lub_string_nocasecmp(restore, "depth"))
+			clish_view__set_restore(view, CLISH_RESTORE_DEPTH);
+		else if (!lub_string_nocasecmp(restore, "view"))
+			clish_view__set_restore(view, CLISH_RESTORE_VIEW);
+		else
+			clish_view__set_restore(view, CLISH_RESTORE_NONE);
+	}
 
 	process_children(shell, element, view);
 }
