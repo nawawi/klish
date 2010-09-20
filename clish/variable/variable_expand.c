@@ -74,8 +74,7 @@ static char *find_context_var(const context_t * this, const char *name)
 
 	if (!lub_string_nocasecmp(name, "__cmd")) {
 		if (this->cmd)
-			result =
-			    lub_string_dup(clish_command__get_name(this->cmd));
+			result = lub_string_dup(clish_command__get_name(this->cmd));
 	} else if (!lub_string_nocasecmp(name, "__line")) {
 		if (this->cmd && this->pargv)
 			result = clish_variable__get_line(this->cmd, this->pargv);
@@ -287,14 +286,13 @@ char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pa
 		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
-		if (0 != i)
+		if (NULL != line)
 			lub_string_cat(&line, " ");
 		lub_string_cat(&line, clish_parg__get_value(parg));
 	}
 
 	return line;
 }
-
 
 /*--------------------------------------------------------- */
 char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * pargv)
