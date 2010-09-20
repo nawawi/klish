@@ -308,8 +308,10 @@ char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * parg
 		return line;
 
 	params = clish_variable__get_params(cmd, pargv);
-	if (params)
+	if (params) {
+		lub_string_cat(&line, " ");
 		lub_string_cat(&line, params);
+	}
 	lub_string_free(params);
 
 	return line;
