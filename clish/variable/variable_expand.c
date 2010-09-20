@@ -72,13 +72,16 @@ static char *find_context_var(const context_t * this, const char *name)
 	char *pattern = NULL;
 	regmatch_t pmatches[2];
 
-	if (!lub_string_nocasecmp(name, "cmd")) {
+	if (!lub_string_nocasecmp(name, "__cmd")) {
 		if (this->cmd)
 			result =
 			    lub_string_dup(clish_command__get_name(this->cmd));
-	} else if (!lub_string_nocasecmp(name, "line")) {
+	} else if (!lub_string_nocasecmp(name, "__line")) {
 		if (this->cmd && this->pargv)
 			result = clish_variable__get_line(this->cmd, this->pargv);
+	} else if (!lub_string_nocasecmp(name, "__params")) {
+		if (this->cmd && this->pargv)
+			result = clish_variable__get_params(this->cmd, this->pargv);
 	}
 
 	return result;
@@ -268,17 +271,15 @@ char *clish_variable_expand(const char *string,
 }
 
 /*--------------------------------------------------------- */
-char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * pargv)
+char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pargv)
 {
 	char *line = NULL;
 	unsigned i, cnt;
 	const clish_param_t *param;
 	const clish_parg_t *parg;
 
-	lub_string_cat(&line, clish_command__get_name(cmd));
-
 	if (!pargv)
-		return line;
+		return NULL;
 
 	cnt = clish_pargv__get_count(pargv);
 	for (i = 0; i < cnt; i++) {
@@ -286,9 +287,30 @@ char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * parg
 		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
-		lub_string_cat(&line, " ");
+		if (0 != i)
+			lub_string_cat(&line, " ");
 		lub_string_cat(&line, clish_parg__get_value(parg));
 	}
+
+	return line;
+}
+
+
+/*--------------------------------------------------------- */
+char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * pargv)
+{
+	char *line = NULL;
+	char *params = NULL;
+
+	lub_string_cat(&line, clish_command__get_name(cmd));
+
+	if (!pargv)
+		return line;
+
+	params = clish_variable__get_params(cmd, pargv);
+	if (params)
+		lub_string_cat(&line, params);
+	lub_string_free(params);
 
 	return line;
 }

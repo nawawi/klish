@@ -29,6 +29,7 @@ char *clish_variable_expand(const char *string,
  * methods
  *----------------- */
 char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
+char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pargv);
 
 /*-----------------
  * attributes
