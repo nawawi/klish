@@ -19,7 +19,8 @@ static clish_shell_builtin_fn_t
     clish_overview,
     clish_source,
     clish_source_nostop,
-    clish_history;
+    clish_history,
+    clish_nested_up;
 
 static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_close", clish_close},
@@ -27,6 +28,7 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_source", clish_source},
 	{"clish_source_nostop", clish_source_nostop},
 	{"clish_history", clish_history},
+	{"clish_nested_up", clish_nested_up},
 	{NULL, NULL}
 };
 
@@ -290,6 +292,41 @@ clish_shell_execute(clish_shell_t * this,
 		*pargv = NULL;
 	}
 	return result;
+}
+
+/*----------------------------------------------------------- */
+/*
+ Find out the previous view in the stack and go to it
+*/
+static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * argv)
+{
+	clish_shell_t *this = (clish_shell_t *) shell;
+	clish_view_t *view = NULL;
+	char *viewid = NULL;
+	int depth = 0;
+
+	if (!shell)
+		return BOOL_FALSE;
+
+	argv = argv; /* not used */
+	depth = clish_view__get_depth(this->view);
+
+	/* If depth=0 than exit */
+	if (0 == depth) {
+		this->state = SHELL_STATE_CLOSING;
+		return BOOL_TRUE;
+	}
+
+	depth--;
+	view = clish_shell__get_pwd_view(this, depth);
+	viewid = clish_shell__get_pwd_viewid(this, depth);
+	if (!view)
+		return BOOL_FALSE;
+	this->view = view;
+	lub_string_free(this->viewid);
+	this->viewid = viewid ? lub_string_dup(viewid) : NULL;
+
+	return BOOL_TRUE;
 }
 
 /*----------------------------------------------------------- */
