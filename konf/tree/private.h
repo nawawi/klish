@@ -17,6 +17,7 @@ struct konf_tree_s {
 	char *line;
 	unsigned short priority;
 	unsigned short seq_num;
+	unsigned short sub_num;
 	bool_t splitter;
 };
 

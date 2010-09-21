@@ -21,6 +21,9 @@ Use it to implement config in memory.
 
 typedef struct konf_tree_s konf_tree_t;
 
+#define KONF_ENTRY_OK 0xffff
+#define KONF_ENTRY_DIRTY 0xfffe
+
 /*=====================================
  * CONF INTERFACE
  *===================================== */
@@ -37,10 +40,10 @@ size_t konf_tree_bt_offset(void);
  *----------------- */
 void konf_tree_delete(konf_tree_t * instance);
 void konf_tree_fprintf(konf_tree_t * instance, FILE * stream,
-	const char *pattern, int depth, unsigned char prev_pri_hi);
+	const char *pattern, int depth, bool_t seq, unsigned char prev_pri_hi);
 konf_tree_t *konf_tree_new_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority,
-	bool_t seq, unsigned short seq_num, unsigned short seq_step);
+	bool_t seq, unsigned short seq_num);
 konf_tree_t *konf_tree_find_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority, unsigned short sequence);
 void konf_tree_del_pattern(konf_tree_t *this, const char *pattern);
@@ -56,6 +59,8 @@ bool_t konf_tree__get_splitter(const konf_tree_t * instance);
 void konf_tree__set_splitter(konf_tree_t *instance, bool_t splitter);
 unsigned short konf_tree__get_seq_num(const konf_tree_t * instance);
 void konf_tree__set_seq_num(konf_tree_t * instance, unsigned short seq_num);
+unsigned short konf_tree__get_sub_num(const konf_tree_t * instance);
+void konf_tree__set_sub_num(konf_tree_t * instance, unsigned short sub_num);
 
 #endif				/* _konf_tree_h */
 /** @} clish_conf */

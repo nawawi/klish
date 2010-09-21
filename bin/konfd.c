@@ -234,7 +234,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		konf_tree_del_pattern(iconf, konf_query__get_pattern(query));
 		tmpconf = konf_tree_new_conf(iconf,
 			konf_query__get_line(query), konf_query__get_priority(query),
-			konf_query__get_seq(query), konf_query__get_seq_num(query), 1);
+			konf_query__get_seq(query), konf_query__get_seq_num(query));
 		if (!tmpconf) {
 			ret = KONF_QUERY_OP_ERROR;
 			break;
@@ -262,7 +262,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 #ifdef DEBUG
 	/* Print whole tree */
-	konf_tree_fprintf(conf, stderr, NULL, -1, 0);
+	konf_tree_fprintf(conf, stderr, NULL, -1, BOOL_FALSE, 0);
 #endif
 
 	/* Free resources */
@@ -316,8 +316,12 @@ static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 		fprintf(stderr, "ANSWER: -t\n");
 #endif
 	}
-	konf_tree_fprintf(conf, fd, konf_query__get_pattern(query),
-		konf_query__get_pwdc(query) - 1, 0);
+	konf_tree_fprintf(conf,
+		fd,
+		konf_query__get_pattern(query),
+		konf_query__get_pwdc(query) - 1,
+		konf_query__get_seq(query),
+		0);
 	if (!filename) {
 		fprintf(fd, "\n");
 #ifdef DEBUG
