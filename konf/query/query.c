@@ -61,6 +61,7 @@ void konf_query_dump(konf_query_t *query)
 	printf("pattern=%s\n", query->pattern);
 	printf("priority=%u\n", query->priority);
 	printf("sequence=%u\n", query->seq);
+	printf("seq_num=%u\n", query->seq_num);
 	printf("line=%s\n", query->line);
 	printf("path=%s\n", query->path);
 	printf("pwdc=%u\n", query->pwdc);

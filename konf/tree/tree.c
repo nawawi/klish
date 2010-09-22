@@ -203,6 +203,7 @@ static int normalize_seq(konf_tree_t * this, unsigned short priority)
 			continue;
 		konf_tree__set_seq_num(conf, seq_cnt++);
 		konf_tree__set_sub_num(conf, KONF_ENTRY_OK);
+		lub_bintree_iterator_init(&iter, &this->tree, conf);
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 
 	return 0;
@@ -345,3 +346,10 @@ void konf_tree__set_sub_num(konf_tree_t * this, unsigned short sub_num)
 {
 	this->sub_num = sub_num;
 }
+
+/*--------------------------------------------------------- */
+const char * konf_tree__get_line(const konf_tree_t * this)
+{
+	return this->line;
+}
+
