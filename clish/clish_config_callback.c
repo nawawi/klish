@@ -49,7 +49,7 @@ clish_config_callback(const clish_shell_t * shell,
 			char *pattern;
 
 			lub_string_cat(&command, "-s");
-			pattern = clish_command__get_pattern(cmd, pargv);
+			pattern = clish_command__get_pattern(cmd, viewid, pargv);
 			if (!pattern) {
 				lub_string_free(command);
 				return BOOL_FALSE;
@@ -104,7 +104,7 @@ clish_config_callback(const clish_shell_t * shell,
 			char *pattern;
 
 			lub_string_cat(&command, "-u");
-			pattern = clish_command__get_pattern(cmd, pargv);
+			pattern = clish_command__get_pattern(cmd, viewid, pargv);
 			if (!pattern) {
 				lub_string_free(command);
 				return BOOL_FALSE;
@@ -146,7 +146,7 @@ clish_config_callback(const clish_shell_t * shell,
 
 			lub_string_cat(&command, "-d");
 
-			file = clish_command__get_file(cmd, pargv);
+			file = clish_command__get_file(cmd, viewid, pargv);
 			if (file) {
 				lub_string_cat(&command, " -f \"");
 				if (file[0] != '\0')
@@ -175,7 +175,7 @@ clish_config_callback(const clish_shell_t * shell,
 		{
 			char *file;
 			lub_string_cat(&command, "-d -f ");
-			file = clish_command__get_file(cmd, pargv);
+			file = clish_command__get_file(cmd, viewid, pargv);
 			lub_string_cat(&command, file);
 			lub_string_free(file);
 			break;
@@ -207,7 +207,7 @@ clish_config_callback(const clish_shell_t * shell,
 		{
 			char *filename;
 
-			filename = clish_command__get_file(cmd, pargv);
+			filename = clish_command__get_file(cmd, viewid, pargv);
 			if (filename) {
 				FILE *fd;
 				char str[1024];

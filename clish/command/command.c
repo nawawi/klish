@@ -447,9 +447,9 @@ void clish_command__set_pattern(clish_command_t * this, const char *pattern)
 
 /*--------------------------------------------------------- */
 char *clish_command__get_pattern(const clish_command_t * this,
-				 clish_pargv_t * pargv)
+	const char *viewid, clish_pargv_t * pargv)
 {
-	return clish_variable_expand(this->pattern, this->viewid, this, pargv);
+	return clish_variable_expand(this->pattern, viewid, this, pargv);
 }
 
 /*--------------------------------------------------------- */
@@ -461,9 +461,9 @@ void clish_command__set_file(clish_command_t * this, const char *file)
 
 /*--------------------------------------------------------- */
 char *clish_command__get_file(const clish_command_t * this,
-			      clish_pargv_t * pargv)
+	const char *viewid, clish_pargv_t * pargv)
 {
-	return clish_variable_expand(this->file, this->viewid, this, pargv);
+	return clish_variable_expand(this->file, viewid, this, pargv);
 }
 
 /*--------------------------------------------------------- */
