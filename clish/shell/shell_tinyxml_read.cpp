@@ -317,6 +317,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *mode = element->Attribute("mode");
 		const char *optional = element->Attribute("optional");
 		const char *value = element->Attribute("value");
+		const char *visibility = element->Attribute("visibility");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -393,6 +394,15 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			/* Force mode to subcommand */
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
+		}
+
+		if (NULL != visibility) {
+			if (!lub_string_nocasecmp(visibility, "hidden"))
+				clish_param__set_visibility(param,
+					CLISH_PARAM_HIDDEN);
+			else
+				clish_param__set_visibility(param,
+					CLISH_PARAM_NORMAL);
 		}
 
 		if (cmd)
@@ -562,7 +572,6 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_seq(cmd, BOOL_TRUE);
 		clish_command__set_seq_num(cmd, seq_num);
 	}
-
 }
 
 ///////////////////////////////////////
