@@ -184,16 +184,44 @@ static int normalize_seq(konf_tree_t * this, unsigned short priority)
 	konf_tree_t *conf = NULL;
 	lub_bintree_iterator_t iter;
 
+
+
+
+
+	/* If tree is empty */
+	if (!(conf = lub_bintree_findfirst(&this->tree)))
+		return 0;
+
+	/* Set all entries to clean state */
+	lub_bintree_iterator_init(&iter, &this->tree, conf);
+printf("PRE:\n");
+	do {
+printf("%u %u %s\n",
+	konf_tree__get_seq_num(conf),
+	konf_tree__get_sub_num(conf),
+	konf_tree__get_line(conf)
+	);
+	} while ((conf = lub_bintree_iterator_next(&iter)));
+
+
+
+
 	/* If tree is empty */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
 		return 0;
 
 	/* Iterate non-empty tree */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
+printf("MID:\n");
 	do {
 		unsigned short seq_cur = 0;
 		unsigned short cur_pri = konf_tree__get_priority(conf);
 
+printf("%u %u %s\n",
+	konf_tree__get_seq_num(conf),
+	konf_tree__get_sub_num(conf),
+	konf_tree__get_line(conf)
+	);
 		if (cur_pri < priority)
 			continue;
 		if (cur_pri > priority)
@@ -202,8 +230,23 @@ static int normalize_seq(konf_tree_t * this, unsigned short priority)
 		if (0 == seq_cur)
 			continue;
 		konf_tree__set_seq_num(conf, seq_cnt++);
-		konf_tree__set_sub_num(conf, KONF_ENTRY_OK);
 		lub_bintree_iterator_init(&iter, &this->tree, conf);
+	} while ((conf = lub_bintree_iterator_next(&iter)));
+
+	/* Set all entries to clean state */
+	conf = lub_bintree_findfirst(&this->tree);
+	lub_bintree_iterator_init(&iter, &this->tree, conf);
+printf("POST:\n");
+	do {
+printf("%u %u %s\n",
+	konf_tree__get_seq_num(conf),
+	konf_tree__get_sub_num(conf),
+	konf_tree__get_line(conf)
+	);
+		if (konf_tree__get_priority(conf) == priority) {
+			konf_tree__set_sub_num(conf, KONF_ENTRY_OK);
+			lub_bintree_iterator_init(&iter, &this->tree, conf);
+		}
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 
 	return 0;
