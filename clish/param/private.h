@@ -21,4 +21,5 @@ struct clish_param_s {
 	clish_paramv_t *paramv;
 	clish_param_mode_e mode;
 	bool_t optional;
+	clish_param_visibility_t visibility;
 };

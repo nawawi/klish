@@ -29,6 +29,7 @@ clish_param_init(clish_param_t * this,
 	this->mode = CLISH_PARAM_COMMON;
 	this->optional = BOOL_FALSE;
 	this->value = NULL;
+	this->visibility = CLISH_PARAM_NORMAL;
 
 	this->paramv = clish_paramv_new();
 }
@@ -305,3 +306,16 @@ char *clish_param__get_value(const clish_param_t * this)
 	return this->name;
 }
 
+/*--------------------------------------------------------- */
+void clish_param__set_visibility(clish_param_t * this,
+	clish_param_visibility_t visibility)
+{
+	this->visibility = visibility;
+}
+
+/*--------------------------------------------------------- */
+clish_param_visibility_t clish_param__get_visibility(
+	const clish_param_t * this)
+{
+	return this->visibility;
+}

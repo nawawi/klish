@@ -285,6 +285,8 @@ char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pa
 		param = clish_pargv__get_param(pargv, i);
 		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
 			continue;
+		if (CLISH_PARAM_NORMAL != clish_param__get_visibility(param))
+			continue;
 		parg = clish_pargv__get_parg(pargv, i);
 		if (NULL != line)
 			lub_string_cat(&line, " ");
