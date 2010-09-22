@@ -33,6 +33,10 @@ clish_config_callback(const clish_shell_t * shell,
 	char *command = NULL;
 	konf_client_t *client;
 	konf_buf_t *buf = NULL;
+	const char *viewid = NULL;
+
+	if (shell)
+		viewid = clish_shell__get_viewid(shell);
 
 	switch (clish_command__get_cfg_op(cmd)) {
 
@@ -72,9 +76,11 @@ clish_config_callback(const clish_shell_t * shell,
 
 			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
 				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd) != 0) {
+				if (clish_command__get_seq_num(cmd,
+					viewid, pargv) != 0) {
 					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd));
+						clish_command__get_seq_num(cmd,
+							viewid, pargv));
 					tmp[sizeof(tmp) - 1] = '\0';
 					lub_string_cat(&command, tmp);
 				}
@@ -111,9 +117,11 @@ clish_config_callback(const clish_shell_t * shell,
 
 			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
 				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd) != 0) {
+				if (clish_command__get_seq_num(cmd,
+					viewid, pargv) != 0) {
 					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd));
+						clish_command__get_seq_num(cmd,
+							viewid, pargv));
 					tmp[sizeof(tmp) - 1] = '\0';
 					lub_string_cat(&command, tmp);
 				}
@@ -150,9 +158,11 @@ clish_config_callback(const clish_shell_t * shell,
 
 			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
 				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd) != 0) {
+				if (clish_command__get_seq_num(cmd,
+					viewid, pargv) != 0) {
 					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd));
+						clish_command__get_seq_num(cmd,
+							viewid, pargv));
 					tmp[sizeof(tmp) - 1] = '\0';
 					lub_string_cat(&command, tmp);
 				}

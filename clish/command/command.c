@@ -45,7 +45,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->file = NULL;
 	this->splitter = BOOL_TRUE;
 	this->seq = BOOL_FALSE;
-	this->seq_num = 0;
+	this->seq_num = NULL;
 }
 
 /*--------------------------------------------------------- */
@@ -86,6 +86,8 @@ static void clish_command_fini(clish_command_t * this)
 	this->pattern = NULL;
 	lub_string_free(this->file);
 	this->file = NULL;
+	lub_string_free(this->seq_num);
+	this->seq_num = NULL;
 }
 
 /*---------------------------------------------------------
@@ -489,15 +491,40 @@ void clish_command__set_seq(clish_command_t * this, bool_t seq)
 }
 
 /*--------------------------------------------------------- */
-void clish_command__set_seq_num(clish_command_t * this, unsigned short seq_num)
+void clish_command__set_seq_num(clish_command_t * this, const char * seq_num)
 {
-	this->seq_num = seq_num;
+	assert(NULL == this->file);
+	this->seq_num = lub_string_dup(seq_num);
 }
 
 /*--------------------------------------------------------- */
-unsigned short clish_command__get_seq_num(const clish_command_t * this)
+unsigned short clish_command__get_seq_num(const clish_command_t * this,
+	const char *viewid, clish_pargv_t * pargv)
 {
-	return this->seq_num;
+	unsigned short num = 0;
+	char *str;
+
+	if (!this->seq_num)
+		return 0;
+
+	str = clish_variable_expand(this->seq_num, viewid, this, pargv);
+	if ((str != NULL) && (*str != '\0')) {
+		long val = 0;
+		char *endptr;
+
+		val = strtol(str, &endptr, 0);
+		if (endptr == str)
+			num = 0;
+		else if (val > 0xffff)
+			num = 0xffff;
+		else if (val < 0)
+			num = 0;
+		else
+			num = (unsigned short)val;
+	}
+	lub_string_free(str);
+
+	return num;
 }
 
 /*--------------------------------------------------------- */

@@ -30,5 +30,5 @@ struct clish_command_s {
 	char *file;
 	bool_t splitter;
 	bool_t seq;
-	unsigned short seq_num;
+	char *seq_num;
 };

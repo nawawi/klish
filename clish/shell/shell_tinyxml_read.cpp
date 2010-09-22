@@ -558,24 +558,9 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	else
 		clish_command__set_seq(cmd, BOOL_FALSE);
 
-	if ((seq_num != NULL) && (*seq_num != '\0')) {
-		long val = 0;
-		char *endptr;
-		unsigned short pri;
-
-		val = strtol(seq_num, &endptr, 0);
-		if (endptr == seq_num)
-			pri = 0;
-		else if (val > 0xffff)
-			pri = 0xffff;
-		else if (val < 0)
-			pri = 0;
-		else
-			pri = (unsigned short)val;
-		if (0 != pri) {
-			clish_command__set_seq(cmd, BOOL_TRUE);
-			clish_command__set_seq_num(cmd, pri);
-		}
+	if (seq_num && (*seq_num != '\0')) {
+		clish_command__set_seq(cmd, BOOL_TRUE);
+		clish_command__set_seq_num(cmd, seq_num);
 	}
 
 }
