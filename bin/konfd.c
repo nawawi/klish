@@ -262,7 +262,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 #ifdef DEBUG
 	/* Print whole tree */
-	konf_tree_fprintf(conf, stderr, NULL, -1, BOOL_FALSE, 0);
+	konf_tree_fprintf(conf, stderr, NULL, -1, BOOL_TRUE, 0);
 #endif
 
 	/* Free resources */

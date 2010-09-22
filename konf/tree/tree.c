@@ -177,76 +177,47 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 	}
 }
 
-
 static int normalize_seq(konf_tree_t * this, unsigned short priority)
 {
-	unsigned short seq_cnt = 1;
+	unsigned short cnt = 1;
 	konf_tree_t *conf = NULL;
 	lub_bintree_iterator_t iter;
 
-
-
-
-
 	/* If tree is empty */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
 		return 0;
 
-	/* Set all entries to clean state */
+	/* Iterate and set dirty */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
-printf("PRE:\n");
 	do {
-printf("%u %u %s\n",
-	konf_tree__get_seq_num(conf),
-	konf_tree__get_sub_num(conf),
-	konf_tree__get_line(conf)
-	);
-	} while ((conf = lub_bintree_iterator_next(&iter)));
-
-
-
-
-	/* If tree is empty */
-	if (!(conf = lub_bintree_findfirst(&this->tree)))
-		return 0;
-
-	/* Iterate non-empty tree */
-	lub_bintree_iterator_init(&iter, &this->tree, conf);
-printf("MID:\n");
-	do {
-		unsigned short seq_cur = 0;
 		unsigned short cur_pri = konf_tree__get_priority(conf);
-
-printf("%u %u %s\n",
-	konf_tree__get_seq_num(conf),
-	konf_tree__get_sub_num(conf),
-	konf_tree__get_line(conf)
-	);
 		if (cur_pri < priority)
+			continue;
+		if (konf_tree__get_seq_num(conf) == 0)
 			continue;
 		if (cur_pri > priority)
 			break;
-		seq_cur = konf_tree__get_seq_num(conf);
-		if (0 == seq_cur)
-			continue;
-		konf_tree__set_seq_num(conf, seq_cnt++);
-		lub_bintree_iterator_init(&iter, &this->tree, conf);
+		if (konf_tree__get_sub_num(conf) == KONF_ENTRY_OK)
+			konf_tree__set_sub_num(conf, KONF_ENTRY_DIRTY);
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 
-	/* Set all entries to clean state */
+	/* Iterate and renum */
 	conf = lub_bintree_findfirst(&this->tree);
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
-printf("POST:\n");
 	do {
-printf("%u %u %s\n",
-	konf_tree__get_seq_num(conf),
-	konf_tree__get_sub_num(conf),
-	konf_tree__get_line(conf)
-	);
-		if (konf_tree__get_priority(conf) == priority) {
-			konf_tree__set_sub_num(conf, KONF_ENTRY_OK);
-			lub_bintree_iterator_init(&iter, &this->tree, conf);
-		}
+		unsigned short cur_pri = konf_tree__get_priority(conf);
+		if (cur_pri < priority)
+			continue;
+		if (konf_tree__get_seq_num(conf) == 0)
+			continue;
+		if (cur_pri > priority)
+			break;
+		if (konf_tree__get_sub_num(conf) == KONF_ENTRY_OK)
+			continue;
+		lub_bintree_remove(&this->tree, conf);
+		konf_tree__set_sub_num(conf, KONF_ENTRY_OK);
+		konf_tree__set_seq_num(conf, cnt++);
+		lub_bintree_insert(&this->tree, conf);
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 
 	return 0;
@@ -265,7 +236,7 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 	if (seq) {
 		konf_tree__set_seq_num(newconf,
 			seq_num ? seq_num : 0xffff);
-		konf_tree__set_sub_num(newconf, KONF_ENTRY_DIRTY);
+		konf_tree__set_sub_num(newconf, KONF_ENTRY_NEW);
 	}
 
 	/* Insert it into the binary tree for this conf */

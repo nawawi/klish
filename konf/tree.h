@@ -23,6 +23,7 @@ typedef struct konf_tree_s konf_tree_t;
 
 #define KONF_ENTRY_OK 0xffff
 #define KONF_ENTRY_DIRTY 0xfffe
+#define KONF_ENTRY_NEW 0xfffd
 
 /*=====================================
  * CONF INTERFACE
