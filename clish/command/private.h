@@ -29,6 +29,5 @@ struct clish_command_s {
 	char *pattern;
 	char *file;
 	bool_t splitter;
-	bool_t seq;
-	char *seq_num;
+	char *seq;
 };

@@ -76,16 +76,12 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, tmp);
 			}
 
-			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
-				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd,
-					viewid, pargv) != 0) {
-					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd,
-							viewid, pargv));
-					tmp[sizeof(tmp) - 1] = '\0';
-					lub_string_cat(&command, tmp);
-				}
+			if (clish_command__is_seq(cmd)) {
+				snprintf(tmp, sizeof(tmp) - 1, " -q %u",
+					clish_command__get_seq(cmd,
+						viewid, pargv));
+				tmp[sizeof(tmp) - 1] = '\0';
+				lub_string_cat(&command, tmp);
 			}
 
 			for (i = 0; i < clish_command__get_depth(cmd); i++) {
@@ -124,16 +120,12 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, tmp);
 			}
 
-			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
-				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd,
-					viewid, pargv) != 0) {
-					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd,
-							viewid, pargv));
-					tmp[sizeof(tmp) - 1] = '\0';
-					lub_string_cat(&command, tmp);
-				}
+			if (clish_command__is_seq(cmd)) {
+				snprintf(tmp, sizeof(tmp) - 1, " -q %u",
+					clish_command__get_seq(cmd,
+						viewid, pargv));
+				tmp[sizeof(tmp) - 1] = '\0';
+				lub_string_cat(&command, tmp);
 			}
 
 			for (i = 0; i < clish_command__get_depth(cmd); i++) {
@@ -165,16 +157,12 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, "\"");
 			}
 
-			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
-				lub_string_cat(&command, " -q");
-				if (clish_command__get_seq_num(cmd,
-					viewid, pargv) != 0) {
-					snprintf(tmp, sizeof(tmp) - 1, " -n %u",
-						clish_command__get_seq_num(cmd,
-							viewid, pargv));
-					tmp[sizeof(tmp) - 1] = '\0';
-					lub_string_cat(&command, tmp);
-				}
+			if (clish_command__is_seq(cmd)) {
+				snprintf(tmp, sizeof(tmp) - 1, " -q %u",
+					clish_command__get_seq(cmd,
+						viewid, pargv));
+				tmp[sizeof(tmp) - 1] = '\0';
+				lub_string_cat(&command, tmp);
 			}
 
 			break;

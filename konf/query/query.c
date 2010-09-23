@@ -108,7 +108,7 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 	unsigned i = 0;
 	int pwdc = 0;
 
-	static const char *shortopts = "suoedtp:qn:r:l:f:i";
+	static const char *shortopts = "suoedtp:q:r:l:f:i";
 /*	static const struct option longopts[] = {
 		{"set",		0, NULL, 's'},
 		{"unset",	0, NULL, 'u'},
@@ -117,8 +117,7 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 		{"dump",	0, NULL, 'd'},
 		{"stream",	0, NULL, 't'},
 		{"priority",	1, NULL, 'p'},
-		{"seq",		0, NULL, 'q'},
-		{"seq_num",	1, NULL, 'n'},
+		{"seq",		1, NULL, 'q'},
 		{"pattern",	1, NULL, 'r'},
 		{"line",	1, NULL, 'l'},
 		{"file",	1, NULL, 'f'},
@@ -167,13 +166,11 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 			break;
 			}
 		case 'q':
-			query->seq = BOOL_TRUE;
-			break;
-		case 'n':
 			{
 			long val = 0;
 			char *endptr;
 
+			query->seq = BOOL_TRUE;
 			val = strtol(optarg, &endptr, 0);
 			if (endptr == optarg)
 				break;

@@ -44,8 +44,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->pattern = NULL;
 	this->file = NULL;
 	this->splitter = BOOL_TRUE;
-	this->seq = BOOL_FALSE;
-	this->seq_num = NULL;
+	this->seq = NULL;
 }
 
 /*--------------------------------------------------------- */
@@ -86,8 +85,8 @@ static void clish_command_fini(clish_command_t * this)
 	this->pattern = NULL;
 	lub_string_free(this->file);
 	this->file = NULL;
-	lub_string_free(this->seq_num);
-	this->seq_num = NULL;
+	lub_string_free(this->seq);
+	this->seq = NULL;
 }
 
 /*---------------------------------------------------------
@@ -479,35 +478,23 @@ void clish_command__set_splitter(clish_command_t * this, bool_t splitter)
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_command__get_seq(const clish_command_t * this)
-{
-	return this->seq;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_seq(clish_command_t * this, bool_t seq)
-{
-	this->seq = seq;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_seq_num(clish_command_t * this, const char * seq_num)
+void clish_command__set_seq(clish_command_t * this, const char * seq)
 {
 	assert(NULL == this->file);
-	this->seq_num = lub_string_dup(seq_num);
+	this->seq = lub_string_dup(seq);
 }
 
 /*--------------------------------------------------------- */
-unsigned short clish_command__get_seq_num(const clish_command_t * this,
+unsigned short clish_command__get_seq(const clish_command_t * this,
 	const char *viewid, clish_pargv_t * pargv)
 {
 	unsigned short num = 0;
 	char *str;
 
-	if (!this->seq_num)
+	if (!this->seq)
 		return 0;
 
-	str = clish_variable_expand(this->seq_num, viewid, this, pargv);
+	str = clish_variable_expand(this->seq, viewid, this, pargv);
 	if ((str != NULL) && (*str != '\0')) {
 		long val = 0;
 		char *endptr;
@@ -525,6 +512,12 @@ unsigned short clish_command__get_seq_num(const clish_command_t * this,
 	lub_string_free(str);
 
 	return num;
+}
+
+/*--------------------------------------------------------- */
+const char * clish_command__is_seq(const clish_command_t * this)
+{
+	return this->seq;
 }
 
 /*--------------------------------------------------------- */
