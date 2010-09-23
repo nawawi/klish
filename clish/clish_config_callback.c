@@ -69,6 +69,9 @@ clish_config_callback(const clish_shell_t * shell,
 			if (clish_command__get_splitter(cmd) == BOOL_FALSE)
 				lub_string_cat(&command, " -i");
 
+			if (clish_command__get_unique(cmd) == BOOL_FALSE)
+				lub_string_cat(&command, " -n");
+
 			if (clish_command__get_priority(cmd) != 0) {
 				snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
 					clish_command__get_priority(cmd));

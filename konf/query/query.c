@@ -29,6 +29,7 @@ konf_query_t *konf_query_new(void)
 	query->line = NULL;
 	query->path = NULL;
 	query->splitter = BOOL_TRUE;
+	query->unique = BOOL_TRUE;
 
 	return query;
 }
@@ -65,6 +66,8 @@ void konf_query_dump(konf_query_t *query)
 	printf("line=%s\n", query->line);
 	printf("path=%s\n", query->path);
 	printf("pwdc=%u\n", query->pwdc);
+	printf("splitter : %s\n", query->splitter ? "true" : "false");
+	printf("unique   : %s\n", query->unique ? "true" : "false");
 }
 
 void konf_query_add_pwd(konf_query_t *query, char *str)
@@ -108,7 +111,7 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 	unsigned i = 0;
 	int pwdc = 0;
 
-	static const char *shortopts = "suoedtp:q:r:l:f:i";
+	static const char *shortopts = "suoedtp:q:r:l:f:in";
 /*	static const struct option longopts[] = {
 		{"set",		0, NULL, 's'},
 		{"unset",	0, NULL, 'u'},
@@ -122,6 +125,7 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 		{"line",	1, NULL, 'l'},
 		{"file",	1, NULL, 'f'},
 		{"splitter",	0, NULL, 'i'},
+		{"non-unique",	0, NULL, 'n'},
 		{NULL,		0, NULL, 0}
 	};
 */
@@ -190,6 +194,9 @@ int konf_query_parse(konf_query_t *query, int argc, char **argv)
 			break;
 		case 'i':
 			query->splitter = BOOL_FALSE;
+			break;
+		case 'n':
+			query->unique = BOOL_FALSE;
 			break;
 		default:
 			break;
@@ -290,4 +297,9 @@ bool_t konf_query__get_seq(konf_query_t *this)
 unsigned short konf_query__get_seq_num(konf_query_t *this)
 {
 	return this->seq_num;
+}
+
+bool_t konf_query__get_unique(konf_query_t *this)
+{
+	return this->unique;
 }

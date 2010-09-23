@@ -520,6 +520,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *file = element->Attribute("file");
 	const char *splitter = element->Attribute("splitter");
 	const char *seq = element->Attribute("sequence");
+	const char *unique = element->Attribute("unique");
 
 	if (operation && !lub_string_nocasecmp(operation, "unset"))
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_UNSET);
@@ -565,8 +566,17 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	else
 		clish_command__set_splitter(cmd, BOOL_TRUE);
 
+	if (unique && (lub_string_nocasecmp(unique, "false") == 0))
+		clish_command__set_unique(cmd, BOOL_FALSE);
+	else
+		clish_command__set_unique(cmd, BOOL_TRUE);
+
 	if (seq != NULL)
 		clish_command__set_seq(cmd, seq);
+	else
+		/* The entries without sequence cannot be non-unique */
+		clish_command__set_unique(cmd, BOOL_TRUE);
+
 }
 
 ///////////////////////////////////////

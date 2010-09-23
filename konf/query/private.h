@@ -15,6 +15,7 @@ struct konf_query_s {
 	char *line;
 	char *path;
 	bool_t splitter;
+	bool_t unique;
 };
 
 #endif

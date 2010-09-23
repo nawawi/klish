@@ -30,4 +30,5 @@ struct clish_command_s {
 	char *file;
 	bool_t splitter;
 	char *seq;
+	bool_t unique;
 };

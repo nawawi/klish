@@ -45,6 +45,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->file = NULL;
 	this->splitter = BOOL_TRUE;
 	this->seq = NULL;
+	this->unique = BOOL_TRUE;
 }
 
 /*--------------------------------------------------------- */
@@ -528,3 +529,14 @@ clish_view_restore_t clish_command__get_restore(const clish_command_t * this)
 	return clish_view__get_restore(this->pview);
 }
 
+/*--------------------------------------------------------- */
+bool_t clish_command__get_unique(const clish_command_t * this)
+{
+	return this->unique;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_unique(clish_command_t * this, bool_t unique)
+{
+	this->unique = unique;
+}

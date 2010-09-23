@@ -227,13 +227,18 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	switch (konf_query__get_op(query)) {
 
 	case KONF_QUERY_OP_SET:
-		if (konf_tree_find_conf(iconf, konf_query__get_line(query), 0, 0)) {
-			ret = KONF_QUERY_OP_OK;
-			break;
+		if (konf_query__get_unique(query)) {
+			if (konf_tree_find_conf(iconf,
+				konf_query__get_line(query), 0, 0)) {
+				ret = KONF_QUERY_OP_OK;
+				break;
+			}
+			konf_tree_del_pattern(iconf,
+				konf_query__get_pattern(query),
+				konf_query__get_priority(query),
+				konf_query__get_seq(query),
+				konf_query__get_seq_num(query));
 		}
-		konf_tree_del_pattern(iconf,
-			konf_query__get_pattern(query), konf_query__get_priority(query),
-			konf_query__get_seq(query), konf_query__get_seq_num(query));
 		tmpconf = konf_tree_new_conf(iconf,
 			konf_query__get_line(query), konf_query__get_priority(query),
 			konf_query__get_seq(query), konf_query__get_seq_num(query));
