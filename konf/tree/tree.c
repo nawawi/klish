@@ -254,14 +254,14 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 
 /*--------------------------------------------------------- */
 konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
-	const char *line, unsigned short priority, unsigned short sequence)
+	const char *line, unsigned short priority, unsigned short seq_num)
 {
 	konf_tree_t *conf;
 	lub_bintree_key_t key;
 	lub_bintree_iterator_t iter;
 
-	if ((0 != priority) && (0 != sequence)) {
-		konf_tree_key(&key, priority, sequence,
+	if ((0 != priority) && (0 != seq_num)) {
+		konf_tree_key(&key, priority, seq_num,
 			KONF_ENTRY_OK, line);
 		return lub_bintree_find(&this->tree, &key);
 	}
@@ -281,16 +281,21 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 }
 
 /*--------------------------------------------------------- */
-void konf_tree_del_pattern(konf_tree_t *this,
-	const char *pattern)
+int konf_tree_del_pattern(konf_tree_t *this,
+	const char *pattern, unsigned short priority,
+	bool_t seq, unsigned short seq_num)
 {
 	konf_tree_t *conf;
 	lub_bintree_iterator_t iter;
 	regex_t regexp;
+	int del_cnt = 0; /* how many strings were deleted */
+
+	if (seq && (0 == priority))
+		return -1;
 
 	/* Is tree empty? */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
-		return;
+		return 0;
 
 	/* Compile regular expression */
 	regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
@@ -298,13 +303,25 @@ void konf_tree_del_pattern(konf_tree_t *this,
 	/* Iterate configuration tree */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
 	do {
-		if (0 == regexec(&regexp, conf->line, 0, NULL, 0)) {
-			lub_bintree_remove(&this->tree, conf);
-			konf_tree_delete(conf);
-		}
+		if (0 != regexec(&regexp, conf->line, 0, NULL, 0))
+			continue;
+		if ((0 != priority) &&
+			(priority != conf->priority))
+			continue;
+		if (seq && (seq_num != 0) &&
+			(seq_num != conf->seq_num))
+			continue;
+		lub_bintree_remove(&this->tree, conf);
+		konf_tree_delete(conf);
+		del_cnt++;
 	} while ((conf = lub_bintree_iterator_next(&iter)));
 
 	regfree(&regexp);
+
+	if (seq && (del_cnt != 0))
+		normalize_seq(this, priority);
+
+	return 0;
 }
 
 /*--------------------------------------------------------- */

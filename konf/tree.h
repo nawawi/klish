@@ -47,7 +47,9 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * instance,
 	bool_t seq, unsigned short seq_num);
 konf_tree_t *konf_tree_find_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority, unsigned short sequence);
-void konf_tree_del_pattern(konf_tree_t *this, const char *pattern);
+int konf_tree_del_pattern(konf_tree_t * instance,
+	const char *pattern, unsigned short priority,
+	bool_t seq, unsigned short seq_num);
 
 /*-----------------
  * attributes 

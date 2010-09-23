@@ -116,6 +116,12 @@ clish_config_callback(const clish_shell_t * shell,
 			lub_string_free(pattern);
 
 			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
+	                        /* Send priority too */
+				snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
+					clish_command__get_priority(cmd));
+				tmp[sizeof(tmp) - 1] = '\0';
+				lub_string_cat(&command, tmp);
+
 				lub_string_cat(&command, " -q");
 				if (clish_command__get_seq_num(cmd,
 					viewid, pargv) != 0) {
