@@ -264,13 +264,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="param_visibility_t">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="normal"/>
-            <xs:enumeration value="hidden"/>
-        </xs:restriction>
-    </xs:simpleType>
-
     <xs:complexType name="param_t">
         <xs:sequence>
             <xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
@@ -282,7 +275,7 @@
         <xs:attribute name="mode" type="param_mode_t" use="optional" default="common"/>
         <xs:attribute name="optional" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="value" type="xs:string" use="optional"/>
-        <xs:attribute name="visibility" type="param_visibility_t" use="optional" default="normal"/>
+        <xs:attribute name="hidden" type="bool_t" use="optional" default="false"/>
     </xs:complexType>
     <!--
 ********************************************************

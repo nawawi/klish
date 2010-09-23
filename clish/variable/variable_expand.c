@@ -283,9 +283,7 @@ char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pa
 	cnt = clish_pargv__get_count(pargv);
 	for (i = 0; i < cnt; i++) {
 		param = clish_pargv__get_param(pargv, i);
-		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
-			continue;
-		if (CLISH_PARAM_NORMAL != clish_param__get_visibility(param))
+		if (clish_param__get_hidden(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
 		if (NULL != line)

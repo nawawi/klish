@@ -18,12 +18,6 @@ the arguments which a user is inputing for a command.
 typedef struct clish_paramv_s clish_paramv_t;
 typedef struct clish_param_s clish_param_t;
 
-typedef enum {
-	CLISH_PARAM_NORMAL,
-	CLISH_PARAM_HIDDEN,
-	CLISH_PARAM_INTERNAL
-} clish_param_visibility_t;
-
 #include "clish/ptype.h"
 
 /**
@@ -83,10 +77,8 @@ void clish_param__set_optional(clish_param_t * instance, bool_t optional);
 bool_t clish_param__get_optional(const clish_param_t * instance);
 void clish_param__set_value(clish_param_t * instance, const char * value);
 char *clish_param__get_value(const clish_param_t * instance);
-void clish_param__set_visibility(clish_param_t * instance,
-	clish_param_visibility_t visibility);
-clish_param_visibility_t clish_param__get_visibility(
-	const clish_param_t * instance);
+void clish_param__set_hidden(clish_param_t * instance, bool_t hidden);
+bool_t clish_param__get_hidden(const clish_param_t * instance);
 
 /* paramv methods */
 clish_paramv_t *clish_paramv_new(void);

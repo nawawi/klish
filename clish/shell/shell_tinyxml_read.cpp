@@ -317,7 +317,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *mode = element->Attribute("mode");
 		const char *optional = element->Attribute("optional");
 		const char *value = element->Attribute("value");
-		const char *visibility = element->Attribute("visibility");
+		const char *hidden = element->Attribute("hidden");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -373,17 +373,26 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		if (NULL != defval) {
 			clish_param__set_default(param, defval);
 		}
+
+		if (hidden && (lub_string_nocasecmp(hidden, "true") == 0))
+			clish_param__set_hidden(param, BOOL_TRUE);
+		else
+			clish_param__set_hidden(param, BOOL_FALSE);
+
 		if (NULL != mode) {
-			if (!lub_string_nocasecmp(mode, "switch"))
+			if (!lub_string_nocasecmp(mode, "switch")) {
 				clish_param__set_mode(param,
-						      CLISH_PARAM_SWITCH);
-			else if (!lub_string_nocasecmp(mode, "subcommand"))
+					CLISH_PARAM_SWITCH);
+				/* Force hidden attribute */
+				clish_param__set_hidden(param, BOOL_TRUE);
+			} else if (!lub_string_nocasecmp(mode, "subcommand"))
 				clish_param__set_mode(param,
-						      CLISH_PARAM_SUBCOMMAND);
+					CLISH_PARAM_SUBCOMMAND);
 			else
 				clish_param__set_mode(param,
-						      CLISH_PARAM_COMMON);
+					CLISH_PARAM_COMMON);
 		}
+
 		if (optional && (lub_string_nocasecmp(optional, "true") == 0))
 			clish_param__set_optional(param, BOOL_TRUE);
 		else
@@ -394,15 +403,6 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			/* Force mode to subcommand */
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
-		}
-
-		if (NULL != visibility) {
-			if (!lub_string_nocasecmp(visibility, "hidden"))
-				clish_param__set_visibility(param,
-					CLISH_PARAM_HIDDEN);
-			else
-				clish_param__set_visibility(param,
-					CLISH_PARAM_NORMAL);
 		}
 
 		if (cmd)
