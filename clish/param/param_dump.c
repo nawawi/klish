@@ -36,6 +36,8 @@ void clish_param_dump(const clish_param_t * this)
 	lub_dump_printf("paramc : %d\n", clish_paramv__get_count(this->paramv));
 	lub_dump_printf("optional : %s\n",
 			this->optional ? "true" : "false");
+	lub_dump_printf("hidden : %s\n",
+			this->hidden ? "true" : "false");
 
 	/* Get each parameter to dump their details */
 	for (i = 0; i < clish_paramv__get_count(this->paramv); i++) {
