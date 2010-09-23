@@ -530,8 +530,11 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_DUMP);
 	else if (operation && !lub_string_nocasecmp(operation, "copy"))
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_COPY);
-	else
+	else {
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_SET);
+		/* The priority if no clearly specified */
+		clish_command__set_priority(cmd, 0x7f00);
+	}
 
 	if ((priority != NULL) && (*priority != '\0')) {
 		long val = 0;

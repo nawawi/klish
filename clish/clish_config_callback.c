@@ -69,10 +69,12 @@ clish_config_callback(const clish_shell_t * shell,
 			if (clish_command__get_splitter(cmd) == BOOL_FALSE)
 				lub_string_cat(&command, " -i");
 
-			snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
-				clish_command__get_priority(cmd));
-			tmp[sizeof(tmp) - 1] = '\0';
-			lub_string_cat(&command, tmp);
+			if (clish_command__get_priority(cmd) != 0) {
+				snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
+					clish_command__get_priority(cmd));
+				tmp[sizeof(tmp) - 1] = '\0';
+				lub_string_cat(&command, tmp);
+			}
 
 			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
 				lub_string_cat(&command, " -q");
@@ -115,13 +117,14 @@ clish_config_callback(const clish_shell_t * shell,
 			lub_string_cat(&command, "\"");
 			lub_string_free(pattern);
 
-			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
-	                        /* Send priority too */
+			if (clish_command__get_priority(cmd) != 0) {
 				snprintf(tmp, sizeof(tmp) - 1, " -p 0x%x",
 					clish_command__get_priority(cmd));
 				tmp[sizeof(tmp) - 1] = '\0';
 				lub_string_cat(&command, tmp);
+			}
 
+			if (clish_command__get_seq(cmd) == BOOL_TRUE) {
 				lub_string_cat(&command, " -q");
 				if (clish_command__get_seq_num(cmd,
 					viewid, pargv) != 0) {

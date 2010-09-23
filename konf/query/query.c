@@ -21,7 +21,7 @@ konf_query_t *konf_query_new(void)
 
 	query->op = KONF_QUERY_OP_NONE;
 	query->pattern = NULL;
-	query->priority = 0x7f00;
+	query->priority = 0;
 	query->seq = BOOL_FALSE;
 	query->seq_num = 0;
 	query->pwdc = 0;

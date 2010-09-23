@@ -40,7 +40,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 
 	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
-	this->priority = 0x7f00; /* medium priority by default */
+	this->priority = 0; /* medium priority by default */
 	this->pattern = NULL;
 	this->file = NULL;
 	this->splitter = BOOL_TRUE;
