@@ -11,23 +11,13 @@ clish_shell_parse(const clish_shell_t * this,
 		  const char *line,
 		  const clish_command_t ** cmd, clish_pargv_t ** pargv)
 {
-	clish_pargv_status_t result = CLISH_BAD_CMD;
-	size_t offset;
-	char *prompt = clish_view__get_prompt(this->view, this->viewid);
-
-	/* track the offset of each parameter on the command line */
-	offset = strlen(prompt) + 1;
-
-	/* cleanup */
-	lub_string_free(prompt);
+ 	clish_pargv_status_t result = CLISH_BAD_CMD;
 
 	*cmd = clish_shell_resolve_command(this, line);
-	if (NULL != *cmd) {
-		/*
-		 * Now construct the parameters for the command
-		 */
-		*pargv = clish_pargv_new(*cmd, line, offset, &result);
-	}
+	/* Now construct the parameters for the command */
+	if (NULL != *cmd)
+		*pargv = clish_pargv_new(*cmd, line, 0, &result);
+
 	return result;
 }
 
