@@ -311,7 +311,7 @@ int konf_tree_del_pattern(konf_tree_t *this,
 		if (seq && (seq_num != 0) &&
 			(seq_num != conf->seq_num))
 			continue;
-		if (seq && (seq_num == 0))
+		if (seq && (0 == seq_num) && (0 == conf->seq_num))
 			continue;
 		lub_bintree_remove(&this->tree, conf);
 		konf_tree_delete(conf);
