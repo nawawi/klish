@@ -276,8 +276,10 @@ static int receive_answer(konf_client_t * client, konf_buf_t **data)
 			konf_buf_t *tmpdata = NULL;
 			retval = process_answer(client, str, buf, &tmpdata);
 			lub_string_free(str);
-			if (retval < 0)
+			if (retval < 0) {
+				konf_buf_delete(buf);
 				return retval;
+			}
 			if (retval == 0)
 				processed = 1;
 			if (tmpdata) {
