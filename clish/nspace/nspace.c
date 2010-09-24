@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <regex.h>
 
 /*---------------------------------------------------------
  * PRIVATE METHODS
@@ -111,20 +113,26 @@ static const char *clish_nspace_after_prefix(const char *prefix,
 					     const char *line)
 {
 	const char *in_line = NULL;
+	regex_t regexp;
+	regmatch_t pmatch[1];
+	int res;
 
 	if (!line)
 		return NULL;
 
-	/* If entered line contain nspace prefix */
-	if (lub_string_nocasestr(line, prefix) != line)
+	/* Compile regular expression */
+	regcomp(&regexp, prefix, REG_EXTENDED | REG_ICASE);
+	res = regexec(&regexp, line, 1, pmatch, 0);
+	regfree(&regexp);
+	if (res || (-1 == pmatch[0].rm_so))
 		return NULL;
+	in_line = line + pmatch[0].rm_eo;
 
 	/* If entered line contain only the prefix */
-	if (!lub_string_nocasecmp(line, prefix))
+	if (in_line[0] == '\0')
 		return NULL;
 
 	/* If prefix is not followed by space */
-	in_line = line + strlen(prefix);
 	if (in_line[0] != ' ')
 		return NULL;
 
