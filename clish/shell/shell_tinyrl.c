@@ -162,7 +162,6 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 	} else {
 		/* perform word completion */
 		status = clish_shell_tinyrl_complete(this);
-
 		switch (status) {
 		case TINYRL_NO_MATCH:
 		case TINYRL_AMBIGUOUS:

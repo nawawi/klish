@@ -92,7 +92,6 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 
 		first_cmd = clish_shell_find_next_completion(this, line, &iter);
 		next_cmd = clish_shell_find_next_completion(this, line, &iter);
-		clish_shell_iterator_fini(&iter);
 	} else {
 		first_cmd = next_cmd = NULL;
 	}

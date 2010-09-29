@@ -59,9 +59,6 @@ static void clish_shell_fini(clish_shell_t * this)
 		clish_pargv_delete(this->completion_pargv);
 		this->completion_pargv = NULL;
 	}
-
-	/* free iterator */
-	clish_shell_iterator_fini(&this->iter);
 }
 
 /*--------------------------------------------------------- */
