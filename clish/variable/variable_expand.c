@@ -72,9 +72,13 @@ static char *find_context_var(const context_t * this, const char *name)
 	char *pattern = NULL;
 	regmatch_t pmatches[2];
 
-	if (!lub_string_nocasecmp(name, "__cmd")) {
+	if (!lub_string_nocasecmp(name, "__full_cmd")) {
 		if (this->cmd)
 			result = lub_string_dup(clish_command__get_name(this->cmd));
+	} else if (!lub_string_nocasecmp(name, "__cmd")) {
+		if (this->cmd)
+			result = lub_string_dup(clish_command__get_name(
+				clish_command__get_orig(this->cmd)));
 	} else if (!lub_string_nocasecmp(name, "__line")) {
 		if (this->cmd && this->pargv)
 			result = clish_variable__get_line(this->cmd, this->pargv);
