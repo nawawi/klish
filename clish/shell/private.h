@@ -39,7 +39,7 @@ typedef enum {
  * iterate around commands
  */
 typedef struct {
-	const char *last_cmd;
+	char *last_cmd;
 	clish_nspace_visibility_t field;
 } clish_shell_iterator_t;
 
@@ -82,9 +82,10 @@ struct clish_shell_s {
 /**
  * Initialise a command iterator structure
  */
-void
-clish_shell_iterator_init(clish_shell_iterator_t * iter,
-			  clish_nspace_visibility_t field);
+void clish_shell_iterator_init(clish_shell_iterator_t * iter,
+	clish_nspace_visibility_t field);
+void clish_shell_iterator_fini(clish_shell_iterator_t * iter);
+
 
 /**
  * get the next command which is an extension of the specified line 

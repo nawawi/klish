@@ -465,6 +465,7 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	const char *view = element->Attribute("ref");
 	const char *prefix = element->Attribute("prefix");
+	const char *prefix_help = element->Attribute("prefix_help");
 	const char *help = element->Attribute("help");
 	const char *completion = element->Attribute("completion");
 	const char *context_help = element->Attribute("context_help");
@@ -480,6 +481,14 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	if (NULL != prefix) {
 		clish_nspace__set_prefix(nspace, prefix);
+		if (prefix_help)
+			clish_nspace_create_prefix_cmd(nspace,
+				"prefix",
+				prefix_help);
+		else
+			clish_nspace_create_prefix_cmd(nspace,
+				"prefix",
+				"Prefix for the imported commands.");
 	}
 
 	if (help && (lub_string_nocasecmp(help, "true") == 0))

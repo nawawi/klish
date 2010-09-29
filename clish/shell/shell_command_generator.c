@@ -9,10 +9,18 @@
 /*-------------------------------------------------------- */
 void
 clish_shell_iterator_init(clish_shell_iterator_t * iter,
-			  clish_nspace_visibility_t field)
+	clish_nspace_visibility_t field)
 {
 	iter->last_cmd = NULL;
 	iter->field = field;
+}
+
+/*-------------------------------------------------------- */
+void
+clish_shell_iterator_fini(clish_shell_iterator_t * iter)
+{
+	lub_string_free(iter->last_cmd);
+	iter->last_cmd = NULL;
 }
 
 /*-------------------------------------------------------- */
@@ -38,10 +46,12 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 	if (clish_command_diff(result, cmd) > 0)
 		result = cmd;
 
+	lub_string_free(iter->last_cmd);
 	if (!result)
 		iter->last_cmd = NULL;
 	else
-		iter->last_cmd = clish_command__get_name(result);
+		iter->last_cmd = lub_string_dup(
+			clish_command__get_name(result));
 
 	return result;
 }
@@ -177,6 +187,7 @@ char *clish_shell_word_generator(clish_shell_t * this,
 		/* see whether there is an extended extension */
 		clish_shell_iterator_init(&iter, CLISH_NSPACE_COMPLETION);
 		next = clish_shell_find_next_completion(this, line, &iter);
+		clish_shell_iterator_fini(&iter);
 	}
 	if ((NULL != cmd) && (NULL == next)) {
 		/* this needs to be completed as a parameter */

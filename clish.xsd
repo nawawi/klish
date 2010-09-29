@@ -349,6 +349,8 @@
 *
 * [prefix]       - the prefix for imported commands
 *
+* [prefix_help]  - the help for namespace prefix
+*
 * [help]         - a boolean flag to use imported
 *                commands while help
 *
@@ -375,14 +377,16 @@
 
     <xs:complexType name="namespace_t">
         <xs:attribute name="ref" type="xs:string" use="required"/>
-        <xs:attribute name="prefix" type="xs:string" use="required"/>
+        <xs:attribute name="prefix" type="xs:string" use="optional"/>
+        <xs:attribute name="prefix_help" type="xs:string" use="optional"/>
         <xs:attribute name="help" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="completion" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="context_help" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="inherit" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
     </xs:complexType>
-    <!--
+
+<!--
 *******************************************************
 * <CONFIG> Specify the config operation.
 *

@@ -42,6 +42,8 @@ const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t *
 	clish_nspace_visibility_t field);
 clish_command_t *clish_nspace_find_command(clish_nspace_t * instance, const char *name);
 void clish_nspace_dump(const clish_nspace_t * instance);
+clish_command_t * clish_nspace_create_prefix_cmd(clish_nspace_t * instance,
+	const char * name, const char * help);
 /*-----------------
  * attributes
  *----------------- */
