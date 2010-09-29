@@ -72,19 +72,32 @@ static char *find_context_var(const context_t * this, const char *name)
 	char *pattern = NULL;
 	regmatch_t pmatches[2];
 
+	if (!this->cmd)
+		return NULL;
 	if (!lub_string_nocasecmp(name, "__full_cmd")) {
-		if (this->cmd)
-			result = lub_string_dup(clish_command__get_name(this->cmd));
+		result = lub_string_dup(clish_command__get_name(this->cmd));
 	} else if (!lub_string_nocasecmp(name, "__cmd")) {
-		if (this->cmd)
-			result = lub_string_dup(clish_command__get_name(
-				clish_command__get_orig(this->cmd)));
+		result = lub_string_dup(clish_command__get_name(
+			clish_command__get_orig(this->cmd)));
 	} else if (!lub_string_nocasecmp(name, "__line")) {
-		if (this->cmd && this->pargv)
+		if (this->pargv)
 			result = clish_variable__get_line(this->cmd, this->pargv);
 	} else if (!lub_string_nocasecmp(name, "__params")) {
-		if (this->cmd && this->pargv)
+		if (this->pargv)
 			result = clish_variable__get_params(this->cmd, this->pargv);
+	} else if (lub_string_nocasestr(name, "__prefix") == name) {
+		int idx = 0;
+		int pnum = 0;
+		pnum = lub_argv_wordcount(clish_command__get_name(this->cmd)) -
+			lub_argv_wordcount(clish_command__get_name(
+			clish_command__get_orig(this->cmd)));
+		idx = atoi(name + strlen("__prefix"));
+		if (idx < pnum) {
+			lub_argv_t *argv = lub_argv_new(
+				clish_command__get_name(this->cmd), 0);
+			result = lub_string_dup(lub_argv__get_arg(argv, idx));
+			lub_argv_delete(argv);
+		}
 	}
 
 	return result;
