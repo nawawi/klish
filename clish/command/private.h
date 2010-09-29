@@ -18,7 +18,7 @@ struct clish_command_s {
 	char *builtin;
 	char *escape_chars;
 	clish_param_t *args;
-	bool_t link;
+	const struct clish_command_s * link;
 	clish_view_t *pview;
 
 	/* CONFIG params:

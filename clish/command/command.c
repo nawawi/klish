@@ -27,7 +27,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	lub_bintree_node_init(&this->bt_node);
 
 	/* set up defaults */
-	this->link = BOOL_FALSE;
+	this->link = NULL;
 	this->paramv = clish_paramv_new();
 	this->viewid = NULL;
 	this->view = NULL;
@@ -129,7 +129,7 @@ clish_command_t *clish_command_new(const char *name, const char *text)
 
 /*--------------------------------------------------------- */
 clish_command_t *clish_command_new_link(const char *name,
-					const clish_command_t * ref)
+	const clish_command_t * ref)
 {
 	if (!ref)
 		return NULL;
@@ -144,7 +144,7 @@ clish_command_t *clish_command_new_link(const char *name,
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
 	/* It a link to command so set the link flag */
-	this->link = BOOL_TRUE;
+	this->link = ref;
 
 	return this;
 }
@@ -539,4 +539,12 @@ bool_t clish_command__get_unique(const clish_command_t * this)
 void clish_command__set_unique(clish_command_t * this, bool_t unique)
 {
 	this->unique = unique;
+}
+
+/*--------------------------------------------------------- */
+const clish_command_t * clish_command__get_orig(const clish_command_t * this)
+{
+	if (this->link)
+		return clish_command__get_orig(this->link);
+	return this;
 }
