@@ -157,15 +157,14 @@ static const char *clish_nspace_after_prefix(const char *prefix,
 	regcomp(&regexp, prefix, REG_EXTENDED | REG_ICASE);
 	res = regexec(&regexp, line, 1, pmatch, 0);
 	regfree(&regexp);
-	if (res || (-1 == pmatch[0].rm_so))
+	if (res || (0 != pmatch[0].rm_so))
 		return NULL;
 	/* Empty match */
-	if (pmatch[0].rm_so == pmatch[0].rm_eo)
+	if (0 == pmatch[0].rm_eo)
 		return NULL;
 	in_line = line + pmatch[0].rm_eo;
 
-	lub_string_catn(real_prefix, line + pmatch[0].rm_so,
-		pmatch[0].rm_eo - pmatch[0].rm_so);
+	lub_string_catn(real_prefix, line, pmatch[0].rm_eo);
 
 	return in_line;
 }
