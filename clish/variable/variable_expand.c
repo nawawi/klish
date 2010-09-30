@@ -317,7 +317,8 @@ char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * parg
 	char *line = NULL;
 	char *params = NULL;
 
-	lub_string_cat(&line, clish_command__get_name(cmd));
+	lub_string_cat(&line, clish_command__get_name(
+		clish_command__get_orig(cmd)));
 
 	if (!pargv)
 		return line;

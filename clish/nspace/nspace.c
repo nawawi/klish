@@ -131,7 +131,7 @@ void clish_nspace_delete(clish_nspace_t * this)
 
 /*--------------------------------------------------------- */
 static const char *clish_nspace_after_prefix(const char *prefix,
-					     const char *line)
+	const char *line, char **real_prefix)
 {
 	const char *in_line = NULL;
 	regex_t regexp;
@@ -147,7 +147,13 @@ static const char *clish_nspace_after_prefix(const char *prefix,
 	regfree(&regexp);
 	if (res || (-1 == pmatch[0].rm_so))
 		return NULL;
+	/* Empty match */
+	if (pmatch[0].rm_so == pmatch[0].rm_eo)
+		return NULL;
 	in_line = line + pmatch[0].rm_eo;
+
+	lub_string_catn(real_prefix, line + pmatch[0].rm_so,
+		pmatch[0].rm_eo - pmatch[0].rm_so);
 
 	return in_line;
 }
@@ -155,16 +161,16 @@ static const char *clish_nspace_after_prefix(const char *prefix,
 /*--------------------------------------------------------- */
 clish_command_t *clish_nspace_find_command(clish_nspace_t * this, const char *name)
 {
-	clish_command_t *cmd = NULL, *cmd_link = NULL;
+	clish_command_t *cmd = NULL, *retval = NULL;
 	clish_view_t *view = clish_nspace__get_view(this);
 	const char *prefix = clish_nspace__get_prefix(this);
 	const char *in_line;
+	char *real_prefix = NULL;
 
 	if (!prefix)
 		return clish_view_find_command(view, name, this->inherit);
 
-//printf("FIND: %s\n", name);
-	if (!(in_line = clish_nspace_after_prefix(prefix, name)))
+	if (!(in_line = clish_nspace_after_prefix(prefix, name, &real_prefix)))
 		return NULL;
 
 	/* If prefix is followed by space */
@@ -173,47 +179,63 @@ clish_command_t *clish_nspace_find_command(clish_nspace_t * this, const char *na
 
 	if (in_line[0] != '\0') {
 		cmd = clish_view_find_command(view, in_line, this->inherit);
-		if (!cmd)
+		if (!cmd) {
+			lub_string_free(real_prefix);
 			return NULL;
+		}
 	}
 
-	return clish_nspace_find_create_command(this, prefix, cmd);
+	retval = clish_nspace_find_create_command(this, real_prefix, cmd);
+	lub_string_free(real_prefix);
+
+	return retval;
 }
 
 /*--------------------------------------------------------- */
 const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t * this,
-	const char *iter_cmd, const char *line, clish_nspace_visibility_t field)
+	const char *iter_cmd, const char *line,
+	clish_nspace_visibility_t field)
 {
-	const clish_command_t *cmd = NULL, *cmd_link = NULL;
+	const clish_command_t *cmd = NULL, *retval = NULL;
 	clish_view_t *view = clish_nspace__get_view(this);
 	const char *prefix = clish_nspace__get_prefix(this);
 	const char *in_iter = "";
 	const char *in_line;
+	char *real_prefix = NULL;
 
 	if (!prefix)
-		return clish_view_find_next_completion(view, iter_cmd, line, field, this->inherit);
+		return clish_view_find_next_completion(view, iter_cmd,
+			line, field, this->inherit);
 
-//printf("COMPLETION: %s, %s\n", line, iter_cmd);
-	if (!(in_line = clish_nspace_after_prefix(prefix, line)))
+	if (!(in_line = clish_nspace_after_prefix(prefix, line, &real_prefix)))
 		return NULL;
 
 	if (in_line[0] != '\0') {
-	/* If prefix is followed by space */
-	if (in_line[0] == ' ')
-		in_line++;
-	if (iter_cmd &&
-	    (lub_string_nocasestr(iter_cmd, prefix) == iter_cmd) &&
-	    (lub_string_nocasecmp(iter_cmd, prefix)))
-		in_iter = iter_cmd + strlen(prefix) + 1;
-	cmd = clish_view_find_next_completion(view, in_iter, in_line, field, this->inherit);
-	if (!cmd)
+		/* If prefix is followed by space */
+		if (in_line[0] == ' ')
+			in_line++;
+		if (iter_cmd &&
+			(lub_string_nocasestr(iter_cmd, real_prefix) == iter_cmd) &&
+			(lub_string_nocasecmp(iter_cmd, real_prefix)))
+			in_iter = iter_cmd + strlen(real_prefix) + 1;
+		cmd = clish_view_find_next_completion(view,
+			in_iter, in_line, field, this->inherit);
+		if (!cmd) {
+			lub_string_free(real_prefix);
+			return NULL;
+		}
+	}
+
+	/* If prefix was already returned. */
+	if (!cmd && iter_cmd && !lub_string_nocasecmp(iter_cmd, real_prefix)) {
+		lub_string_free(real_prefix);
 		return NULL;
 	}
 
-	if (!cmd && iter_cmd && !lub_string_nocasecmp(iter_cmd, prefix))
-		return NULL;
+	retval = clish_nspace_find_create_command(this, real_prefix, cmd);
+	lub_string_free(real_prefix);
 
-	return clish_nspace_find_create_command(this, prefix, cmd);
+	return retval;
 }
 
 /*---------------------------------------------------------
