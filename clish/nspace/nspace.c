@@ -47,7 +47,6 @@ static void clish_nspace_fini(clish_nspace_t * this)
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
 		/* remove the command from the tree */
 		lub_bintree_remove(&this->tree, cmd);
-
 		/* release the instance */
 		clish_command_delete(cmd);
 	}
@@ -76,6 +75,8 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 {
 	clish_command_t *cmd;
 	char *name = NULL;
+	clish_command_t *tmp = NULL;
+	lub_bintree_iterator_t iter;
 
 	assert(prefix);
 	if (!ref) {
@@ -97,6 +98,17 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	cmd = clish_command_new_link(name, ref);
 	free(name);
 	assert(cmd);
+
+	/* Delete proxy commands with another prefixes */
+	tmp = lub_bintree_findfirst(&this->tree);
+	for(lub_bintree_iterator_init(&iter, &this->tree, tmp);
+		tmp; tmp = lub_bintree_iterator_next(&iter)) {
+		const char *str = clish_command__get_name(tmp);
+		if (lub_string_nocasestr(str, prefix) == str)
+			continue;
+		lub_bintree_remove(&this->tree, tmp);
+		clish_command_delete(tmp);
+	}
 
 	/* Insert command link into the tree */
 	if (-1 == lub_bintree_insert(&this->tree, cmd)) {
