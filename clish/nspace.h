@@ -44,6 +44,7 @@ clish_command_t *clish_nspace_find_command(clish_nspace_t * instance, const char
 void clish_nspace_dump(const clish_nspace_t * instance);
 clish_command_t * clish_nspace_create_prefix_cmd(clish_nspace_t * instance,
 	const char * name, const char * help);
+void clish_nspace_clean_proxy(clish_nspace_t * instance);
 /*-----------------
  * attributes
  *----------------- */

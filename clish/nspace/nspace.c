@@ -238,6 +238,22 @@ const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t * this,
 	return retval;
 }
 
+/*--------------------------------------------------------- */
+void clish_nspace_clean_proxy(clish_nspace_t * this)
+{
+	clish_command_t *cmd = NULL;
+
+	/* Recursive proxy clean */
+	clish_view_clean_proxy(this->view);
+	/* Delete each command proxy held by this nspace */
+	while ((cmd = lub_bintree_findfirst(&this->tree))) {
+		/* remove the command from the tree */
+		lub_bintree_remove(&this->tree, cmd);
+		/* release the instance */
+		clish_command_delete(cmd);
+	}
+}
+
 /*---------------------------------------------------------
  * PUBLIC ATTRIBUTES
  *--------------------------------------------------------- */

@@ -312,6 +312,17 @@ void clish_view_insert_nspace(clish_view_t * this, clish_nspace_t * nspace)
 	this->nspacev[this->nspacec++] = nspace;
 }
 
+/*--------------------------------------------------------- */
+void clish_view_clean_proxy(clish_view_t * this)
+{
+	int i;
+
+	/* Iterate namespace instances */
+	for (i = 0; i < this->nspacec; i++) {
+		clish_nspace_clean_proxy(this->nspacev[i]);
+	}
+}
+
 /*---------------------------------------------------------
  * PUBLIC ATTRIBUTES
  *--------------------------------------------------------- */
