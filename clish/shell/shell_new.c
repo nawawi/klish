@@ -39,6 +39,19 @@ clish_shell_init(clish_shell_t * this,
 	this->cfg_pwdc = 0;
 	this->client = konf_client_new(KONFD_SOCKET_PATH);
 	this->completion_pargv = NULL;
+
+	/* Create internal ptypes */
+/*	const char *ptype_name = "__SUBCOMMAND";
+			clish_param_t *opt_param = NULL;
+	tmp = clish_shell_find_create_ptype(this,
+		ptype_name, "Depth", "[^\\]+",
+		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
+			assert(tmp);
+			opt_param = clish_param_new(prefix, help, tmp);
+			clish_param__set_mode(opt_param,
+					      CLISH_PARAM_SUBCOMMAND);
+			clish_param__set_optional(opt_param, BOOL_TRUE);
+*/
 }
 
 /*-------------------------------------------------------- */

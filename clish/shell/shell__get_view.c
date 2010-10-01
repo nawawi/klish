@@ -10,3 +10,9 @@ const clish_view_t *clish_shell__get_view(const clish_shell_t * this)
 }
 
 /*--------------------------------------------------------- */
+unsigned clish_shell__get_depth(const clish_shell_t * this)
+{
+	return clish_view__get_depth(this->view);
+}
+
+/*--------------------------------------------------------- */

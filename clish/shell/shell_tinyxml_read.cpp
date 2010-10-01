@@ -339,7 +339,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		 * It will create nested PARAM.
 		 */
 		if (NULL != prefix) {
-			const char *ptype_name = "internal_SUBCOMMAND";
+			const char *ptype_name = "__SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
 
 			/* Create a ptype for prefix-named subcommand that
@@ -530,6 +530,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *splitter = element->Attribute("splitter");
 	const char *seq = element->Attribute("sequence");
 	const char *unique = element->Attribute("unique");
+	const char *cfg_depth = element->Attribute("depth");
 
 	if (operation && !lub_string_nocasecmp(operation, "unset"))
 		clish_command__set_cfg_op(cmd, CLISH_CONFIG_UNSET);
@@ -585,6 +586,9 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	else
 		/* The entries without sequence cannot be non-unique */
 		clish_command__set_unique(cmd, BOOL_TRUE);
+
+	if (cfg_depth != NULL)
+		clish_command__set_cfg_depth(cmd, cfg_depth);
 
 }
 

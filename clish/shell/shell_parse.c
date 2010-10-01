@@ -6,10 +6,9 @@
 
 #include <string.h>
 /*----------------------------------------------------------- */
-clish_pargv_status_t
-clish_shell_parse(const clish_shell_t * this,
-		  const char *line,
-		  const clish_command_t ** cmd, clish_pargv_t ** pargv)
+clish_pargv_status_t clish_shell_parse(
+	const clish_shell_t * this, const char *line,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv)
 {
  	clish_pargv_status_t result = CLISH_BAD_CMD;
 

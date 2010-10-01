@@ -46,6 +46,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->splitter = BOOL_TRUE;
 	this->seq = NULL;
 	this->unique = BOOL_TRUE;
+	this->cfg_depth = NULL;
 }
 
 /*--------------------------------------------------------- */
@@ -88,6 +89,8 @@ static void clish_command_fini(clish_command_t * this)
 	this->file = NULL;
 	lub_string_free(this->seq);
 	this->seq = NULL;
+	lub_string_free(this->cfg_depth);
+	this->cfg_depth = NULL;
 }
 
 /*---------------------------------------------------------
@@ -481,7 +484,7 @@ void clish_command__set_splitter(clish_command_t * this, bool_t splitter)
 /*--------------------------------------------------------- */
 void clish_command__set_seq(clish_command_t * this, const char * seq)
 {
-	assert(NULL == this->file);
+	assert(NULL == this->seq);
 	this->seq = lub_string_dup(seq);
 }
 
@@ -547,4 +550,41 @@ const clish_command_t * clish_command__get_orig(const clish_command_t * this)
 	if (this->link)
 		return clish_command__get_orig(this->link);
 	return this;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_cfg_depth(clish_command_t * this, const char * cfg_depth)
+{
+	assert(NULL == this->cfg_depth);
+	this->cfg_depth = lub_string_dup(cfg_depth);
+}
+
+/*--------------------------------------------------------- */
+unsigned clish_command__get_cfg_depth(const clish_command_t * this,
+	const char *viewid, clish_pargv_t * pargv)
+{
+	unsigned num = 0;
+	char *str;
+
+	if (!this->cfg_depth)
+		return clish_command__get_depth(this);
+
+	str = clish_variable_expand(this->cfg_depth, viewid, this, pargv);
+	if ((str != NULL) && (*str != '\0')) {
+		long val = 0;
+		char *endptr;
+
+		val = strtol(str, &endptr, 0);
+		if (endptr == str)
+			num = 0;
+		else if (val > 0xffff)
+			num = 0xffff;
+		else if (val < 0)
+			num = 0;
+		else
+			num = (unsigned)val;
+	}
+	lub_string_free(str);
+
+	return num;
 }

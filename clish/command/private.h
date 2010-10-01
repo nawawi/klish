@@ -31,4 +31,5 @@ struct clish_command_s {
 	bool_t splitter;
 	char *seq;
 	bool_t unique;
+	char *cfg_depth;
 };

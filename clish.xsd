@@ -412,6 +412,7 @@
         <xs:attribute name="splitter" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="sequence" type="xs:string" use="optional" default="0"/>
         <xs:attribute name="unique" type="bool_t" use="optional" default="true"/>
+        <xs:attribute name="depth" type="xs:string" use="optional"/>
     </xs:complexType>
 
 

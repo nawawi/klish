@@ -52,6 +52,30 @@ char *clish_shell__get_pwd_line(const clish_shell_t * this, unsigned index)
 	return this->cfg_pwdv[index]->line;
 }
 
+char *clish_shell__get_pwd_full(const clish_shell_t * this, unsigned depth)
+{
+	char *pwd = NULL;
+	unsigned i;
+
+	for (i = 0; i < depth; i++) {
+		const char *str =
+			clish_shell__get_pwd_line(this, i);
+		/* Cannot get full path */
+		if (!str) {
+			lub_string_free(pwd);
+			return NULL;
+		}
+		if (pwd)
+			lub_string_cat(&pwd, " ");
+		lub_string_cat(&pwd, "\"");
+		lub_string_cat(&pwd, str);
+		lub_string_cat(&pwd, "\"");
+	}
+
+	return pwd;
+}
+
+
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned index)
 {
 	if (index >= this->cfg_pwdc)

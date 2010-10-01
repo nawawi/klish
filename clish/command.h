@@ -101,5 +101,8 @@ clish_view_restore_t clish_command__get_restore(const clish_command_t * instance
 bool_t clish_command__get_unique(const clish_command_t * instance);
 void clish_command__set_unique(clish_command_t * instance, bool_t unique);
 const clish_command_t * clish_command__get_orig(const clish_command_t * instance);
+void clish_command__set_cfg_depth(clish_command_t * instance, const char * cfg_depth);
+unsigned clish_command__get_cfg_depth(const clish_command_t * instance,
+	const char *viewid, clish_pargv_t * pargv);
 
 #endif				/* _clish_command_h */

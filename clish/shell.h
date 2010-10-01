@@ -311,6 +311,7 @@ void clish_shell_close(clish_shell_t * instance);
  * attributes 
  *----------------- */
 const clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
+unsigned clish_shell__get_depth(const clish_shell_t * instance);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
 const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
@@ -320,6 +321,7 @@ clish_shell__set_pwd(clish_shell_t * instance, unsigned index,
 	const char * line, clish_view_t * view, char * viewid);
 char *clish_shell__get_pwd_line(const clish_shell_t * instance,
 				 unsigned index);
+char *clish_shell__get_pwd_full(const clish_shell_t * instance, unsigned depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
 				 unsigned index);
 char *clish_shell__get_pwd_viewid(const clish_shell_t * instance,
