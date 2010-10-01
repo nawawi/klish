@@ -77,6 +77,7 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	char *name = NULL;
 	clish_command_t *tmp = NULL;
 	lub_bintree_iterator_t iter;
+	const char *str = NULL;
 
 	assert(prefix);
 	if (!ref) {
@@ -101,13 +102,13 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 
 	/* Delete proxy commands with another prefixes */
 	tmp = lub_bintree_findfirst(&this->tree);
-	for(lub_bintree_iterator_init(&iter, &this->tree, tmp);
-		tmp; tmp = lub_bintree_iterator_next(&iter)) {
-		const char *str = clish_command__get_name(tmp);
-		if (lub_string_nocasestr(str, prefix) == str)
-			continue;
-		lub_bintree_remove(&this->tree, tmp);
-		clish_command_delete(tmp);
+	if (tmp)
+		str = clish_command__get_name(tmp);
+	if (str && (lub_string_nocasestr(str, prefix) != str)) {
+		do {
+			lub_bintree_remove(&this->tree, tmp);
+			clish_command_delete(tmp);
+		} while ((tmp = lub_bintree_findfirst(&this->tree)));
 	}
 
 	/* Insert command link into the tree */
