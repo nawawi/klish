@@ -138,6 +138,13 @@ extern char *
     tinyrl_readline(tinyrl_t   *instance,
                     const char *prompt,
                     void       *context);
+
+extern char *
+    tinyrl_forceline(tinyrl_t   *instance,
+                     const char *prompt,
+                     void       *context,
+                     const char *line);
+
 extern bool_t
     tinyrl_bind_key(tinyrl_t          *instance,
                     int                key,

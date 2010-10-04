@@ -357,11 +357,11 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-
 bool_t
 clish_shell_readline(clish_shell_t * this,
-		     const char *prompt,
-		     const clish_command_t ** cmd, clish_pargv_t ** pargv)
+	const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv,
+	const char *str)
 {
 	char *line = NULL;
 	bool_t result = BOOL_FALSE;
@@ -375,7 +375,10 @@ clish_shell_readline(clish_shell_t * this,
 	if (SHELL_STATE_CLOSING != this->state) {
 		this->state = SHELL_STATE_READY;
 
-		line = tinyrl_readline(this->tinyrl, prompt, &context);
+		if (str)
+			line = tinyrl_forceline(this->tinyrl, prompt, &context, str);
+		else
+			line = tinyrl_readline(this->tinyrl, prompt, &context);
 		if (NULL != line) {
 			tinyrl_history_t *history =
 			    tinyrl__get_history(this->tinyrl);

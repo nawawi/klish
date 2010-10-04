@@ -211,8 +211,8 @@ static void *clish_shell_thread(void *arg)
 
 				/* get input from the user */
 				running =
-				    clish_shell_readline(this, context->prompt,
-							 &cmd, &context->pargv);
+					clish_shell_readline(this, context->prompt,
+						&cmd, &context->pargv, NULL);
 				lub_string_free(context->prompt);
 
 				context->prompt = NULL;
@@ -379,6 +379,87 @@ clish_shell_spawn_from_file(const clish_shell_hooks_t * hooks,
 		}
 	}
 	return result;
+}
+
+/*-------------------------------------------------------- */
+clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
+	void *cookie, FILE * istream, FILE * ostream)
+{
+	bool_t running;
+	clish_context_t *this = malloc(sizeof(clish_context_t));
+	if (!this)
+		return NULL;
+
+	this->hooks = hooks;
+	this->cookie = cookie;
+	this->istream = istream;
+	this->ostream = ostream;
+	this->shell = NULL;
+	this->prompt = NULL;
+	this->pargv = NULL;
+
+	/* Create a shell */
+	this->shell = clish_shell_new(this->hooks, this->cookie,
+		this->istream, this->ostream);
+	/* Load the XML files */
+	clish_shell_load_files(this->shell);
+	/* Execute startup */
+	running = clish_shell_startup(this->shell);
+	if (!running) {
+		clish_context_del(this);
+		return NULL;
+	}
+
+	return this;
+}
+
+/*-------------------------------------------------------- */
+void clish_context_del(clish_context_t *this)
+{
+	if (this->shell) {
+		/* Clean shell */
+		clish_shell_delete(this->shell);
+		this->shell = NULL;
+	}
+	if (this->pargv) {
+		clish_pargv_delete(this->pargv);
+		this->pargv = NULL;
+	}
+	if (this->prompt) {
+		lub_string_free(this->prompt);
+		this->prompt = NULL;
+	}
+
+	free(this);
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_context_exec(clish_context_t *context, const char *line)
+{
+	const clish_command_t *cmd;
+	const clish_view_t *view;
+	bool_t running = BOOL_TRUE;
+	clish_shell_t *this = context->shell;
+
+	/* obtain the prompt */
+	view = clish_shell__get_view(this);
+	assert(view);
+
+	context->prompt = clish_view__get_prompt(view,
+		clish_shell__get_viewid(this));
+	assert(context->prompt);
+
+	/* get input from the user */
+	running = clish_shell_readline(this, context->prompt,
+		&cmd, &context->pargv, line);
+	lub_string_free(context->prompt);
+	context->prompt = NULL;
+
+	if (running && cmd && context->pargv)
+	/* execute the provided command */
+		return clish_shell_execute(this, cmd, &context->pargv);
+
+	return running;
 }
 
 /*-------------------------------------------------------- */

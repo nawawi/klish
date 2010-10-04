@@ -802,6 +802,90 @@ tinyrl_readline(tinyrl_t   *this,
         return result;
     }
 }
+
+/*----------------------------------------------------------------------- */
+char *
+tinyrl_forceline(tinyrl_t   *this,
+                const char *prompt,
+                void       *context,
+                const char *line)
+{
+    char *s = 0, *buffer = NULL;
+    char *p;
+
+    /* initialise for reading a line */
+    this->done             = BOOL_FALSE;
+    this->point            = 0;
+    this->end              = 0;
+    this->buffer           = lub_string_dup("");
+    this->buffer_size      = strlen(this->buffer);
+    this->line             = this->buffer;
+    this->prompt           = prompt;
+    this->prompt_size      = strlen(prompt);
+    this->context          = context;
+
+    /* manually reset the line state without redisplaying */
+    lub_string_free(this->last_buffer);
+    this->last_buffer = NULL;
+
+    buffer = lub_string_dup(line);
+    s = buffer;
+    /* strip any spurious '\r' or '\n' */
+    p = strchr(buffer,'\r');
+    if(NULL == p)
+    {
+        p = strchr(buffer,'\n');
+    }
+    if (NULL != p)
+    {
+        *p = '\0';
+    }
+    /* skip any whitespace at the beginning of the line */
+    if(0 == this->point)
+    {
+        while(*s && isspace(*s))
+        {
+            s++;
+        }
+    }
+    if(*s)
+    {
+        /* append this string to the input buffer */
+        (void) tinyrl_insert_text(this,s);
+        /* echo the command to the output stream */
+        tinyrl_redisplay(this);
+    }
+    lub_string_free(buffer);
+
+    /* call the handler for the newline key */
+    if(BOOL_FALSE == this->handlers[KEY_LF](this,KEY_LF))
+    {
+        /* an issue has occured */
+        this->line = NULL;
+    }
+
+    /*
+     * duplicate the string for return to the client 
+     * we have to duplicate as we may be referencing a
+     * history entry or our internal buffer
+     */
+    {
+        char *result = this->line ? lub_string_dup(this->line) : NULL;
+
+        /* free our internal buffer */
+        free(this->buffer);
+        this->buffer = NULL;
+
+        if((NULL == result) || '\0' == *result)
+        {
+            /* make sure we're not left on a prompt line */
+            tinyrl_crlf(this);
+        }
+        return result;
+    }
+}
+
+
 /*----------------------------------------------------------------------- */
 /*
  * Ensure that buffer has enough space to hold len characters,

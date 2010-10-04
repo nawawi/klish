@@ -302,8 +302,9 @@ clish_shell_execute(clish_shell_t * instance,
 		    const clish_command_t * cmd, clish_pargv_t ** pargv);
 bool_t
 clish_shell_readline(clish_shell_t * shell,
-		     const char *prompt,
-		     const clish_command_t ** cmd, clish_pargv_t ** pargv);
+	const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv,
+	const char * str);
 void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
@@ -333,6 +334,11 @@ FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 
 /* Context */
 typedef struct clish_context_s clish_context_t;
+
+clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
+	void *cookie, FILE * istream, FILE * ostream);
+void clish_context_del(clish_context_t *instance);
+bool_t clish_context_exec(clish_context_t *instance, const char *line);
 
 int clish_shell_wait(clish_context_t * instance);
 clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
