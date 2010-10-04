@@ -87,7 +87,7 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, tmp);
 			}
 
-			for (i = 0; i < clish_command__get_depth(cmd); i++) {
+			for (i = 0; i < clish_command__get_cfg_depth(cmd, viewid, pargv); i++) {
 				const char *str =
 				    clish_shell__get_pwd_line(shell, i);
 				if (!str)
@@ -131,7 +131,7 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, tmp);
 			}
 
-			for (i = 0; i < clish_command__get_depth(cmd); i++) {
+			for (i = 0; i < clish_command__get_cfg_depth(cmd, viewid, pargv); i++) {
 				const char *str =
 				    clish_shell__get_pwd_line(shell, i);
 				if (!str)
@@ -168,6 +168,15 @@ clish_config_callback(const clish_shell_t * shell,
 				lub_string_cat(&command, tmp);
 			}
 
+			for (i = 0; i < clish_command__get_cfg_depth(cmd, viewid, pargv); i++) {
+				const char *str =
+				    clish_shell__get_pwd_line(shell, i);
+				if (!str)
+					return BOOL_FALSE;
+				lub_string_cat(&command, " \"");
+				lub_string_cat(&command, str);
+				lub_string_cat(&command, "\"");
+			}
 			break;
 		}
 

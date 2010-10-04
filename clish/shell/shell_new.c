@@ -11,6 +11,8 @@ clish_shell_init(clish_shell_t * this,
 		 const clish_shell_hooks_t * hooks,
 		 void *cookie, FILE * istream, FILE * ostream)
 {
+	clish_ptype_t *tmp_ptype = NULL;
+
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
 			 clish_view_bt_offset(),
@@ -40,18 +42,23 @@ clish_shell_init(clish_shell_t * this,
 	this->client = konf_client_new(KONFD_SOCKET_PATH);
 	this->completion_pargv = NULL;
 
-	/* Create internal ptypes */
-/*	const char *ptype_name = "__SUBCOMMAND";
-			clish_param_t *opt_param = NULL;
-	tmp = clish_shell_find_create_ptype(this,
-		ptype_name, "Depth", "[^\\]+",
+	/* Create internal ptypes and params */
+	/* Current depth */
+	tmp_ptype = clish_shell_find_create_ptype(this,
+		"__DEPTH", "Depth", "[0-9]+",
 		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
-			assert(tmp);
-			opt_param = clish_param_new(prefix, help, tmp);
-			clish_param__set_mode(opt_param,
-					      CLISH_PARAM_SUBCOMMAND);
-			clish_param__set_optional(opt_param, BOOL_TRUE);
-*/
+	assert(tmp_ptype);
+	this->param_depth = clish_param_new("__cur_depth",
+		"Current depth", tmp_ptype);
+	clish_param__set_hidden(this->param_depth, BOOL_TRUE);
+	/* Current pwd */
+	tmp_ptype = clish_shell_find_create_ptype(this,
+		"__PWD", "Path", ".+",
+		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
+	assert(tmp_ptype);
+	this->param_pwd = clish_param_new("__cur_pwd",
+		"Current path", tmp_ptype);
+	clish_param__set_hidden(this->param_pwd, BOOL_TRUE);
 }
 
 /*-------------------------------------------------------- */

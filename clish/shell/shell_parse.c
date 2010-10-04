@@ -16,6 +16,18 @@ clish_pargv_status_t clish_shell_parse(
 	/* Now construct the parameters for the command */
 	if (NULL != *cmd)
 		*pargv = clish_pargv_new(*cmd, line, 0, &result);
+	if (*pargv) {
+		char str[100];
+		char * tmp;
+		int depth = clish_shell__get_depth(this);
+		snprintf(str, sizeof(str) - 1, "%u", depth);
+		clish_pargv_insert(*pargv, this->param_depth, str);
+		tmp = clish_shell__get_pwd_full(this, depth);
+		if (tmp) {
+			clish_pargv_insert(*pargv, this->param_pwd, tmp);
+			lub_string_free(tmp);
+		}
+	}
 
 	return result;
 }

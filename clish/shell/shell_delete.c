@@ -59,6 +59,10 @@ static void clish_shell_fini(clish_shell_t * this)
 		clish_pargv_delete(this->completion_pargv);
 		this->completion_pargv = NULL;
 	}
+
+	/* Free internal params */
+	clish_param_delete(this->param_depth);
+	clish_param_delete(this->param_pwd);
 }
 
 /*--------------------------------------------------------- */

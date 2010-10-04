@@ -77,6 +77,8 @@ struct clish_shell_s {
 	clish_pargv_t *completion_pargv;
 	unsigned completion_index;
 	unsigned completion_pindex;
+	clish_param_t *param_depth;
+	clish_param_t *param_pwd;
 };
 
 /**
