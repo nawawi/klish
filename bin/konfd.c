@@ -203,8 +203,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 #ifdef DEBUG
 	fprintf(stderr, "----------------------\n");
 	fprintf(stderr, "REQUEST: %s\n", str);
-/*	konf_query_dump(query);
-*/
+	konf_query_dump(query);
 #endif
 
 	/* Go through the pwd */

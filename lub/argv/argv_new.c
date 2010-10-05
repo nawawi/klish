@@ -5,6 +5,23 @@
 #include "lub/string.h"
 
 #include <stdlib.h>
+#include <string.h>
+
+/*--------------------------------------------------------- */
+static char * unescape_special_chars(const char *str)
+{
+    char *res = NULL;
+    char *s = NULL;
+
+    for (s = strchr(str, '\\'); s; s = strchr(str, '\\')) {
+        lub_string_catn(&res, str, s - str);
+        str = s + 1;
+    }
+    lub_string_cat(&res, str);
+
+    return res;
+}
+
 /*--------------------------------------------------------- */
 static void
 lub_argv_init(lub_argv_t *this,
@@ -29,7 +46,9 @@ lub_argv_init(lub_argv_t *this,
             *word;
             word = lub_argv_nextword(word+len,&len,&offset,&quoted))
         {
-            (*arg).arg    = lub_string_dupn(word,len);
+            char * tmp = lub_string_dupn(word,len);
+            (*arg).arg = unescape_special_chars(tmp);
+            lub_string_free(tmp);
             (*arg).offset = offset;
             (*arg).quoted = quoted;
 

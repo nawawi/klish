@@ -24,6 +24,12 @@ lub_argv_nextword(const char *string,
         string++;
         (*offset)++;
     }
+    if(*string == '\\')
+    {
+        string++;
+        if (*string)
+            string++;
+    }
     /* is this the start of a quoted string ? */
     if(*string == '"')
     {
@@ -36,6 +42,16 @@ lub_argv_nextword(const char *string,
     /* find the end of the word */
     while(*string)
     {
+        if(*string == '\\')
+        {
+            string++;
+            (*len)++;
+            if (*string) {
+                (*len)++;
+                string++;
+            }
+            continue;
+        }
         if((BOOL_FALSE == quote) && lub_ctype_isspace(*string))
         {
             /* end of word */

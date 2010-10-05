@@ -299,13 +299,21 @@ char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pa
 
 	cnt = clish_pargv__get_count(pargv);
 	for (i = 0; i < cnt; i++) {
+		const char *tmp;
+		char *space = NULL;
 		param = clish_pargv__get_param(pargv, i);
 		if (clish_param__get_hidden(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
+		tmp = clish_parg__get_value(parg);
+		space = strchr(tmp, ' ');
 		if (NULL != line)
 			lub_string_cat(&line, " ");
-		lub_string_cat(&line, clish_parg__get_value(parg));
+		if (space)
+			lub_string_cat(&line, "\\\"");
+		lub_string_cat(&line, tmp);
+		if (space)
+			lub_string_cat(&line, "\\\"");
 	}
 
 	return line;
