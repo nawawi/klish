@@ -651,11 +651,50 @@ tinyrl_new(FILE                     *instream,
     
     return this;
 }
+
 /*----------------------------------------------------------------------- */
-char *
-tinyrl_readline(tinyrl_t   *this,
+static char *
+internal_insertline(tinyrl_t   *this,
+                   char *buffer)
+{
+    char *p;
+    char *s = buffer;
+
+    /* strip any spurious '\r' or '\n' */
+    p = strchr(buffer,'\r');
+    if(NULL == p)
+    {
+        p = strchr(buffer,'\n');
+    }
+    if (NULL != p)
+    {
+        *p = '\0';
+    }
+    /* skip any whitespace at the beginning of the line */
+    if(0 == this->point)
+    {
+        while(*s && isspace(*s))
+        {
+            s++;
+        }
+    }
+    if(*s)
+    {
+        /* append this string to the input buffer */
+        (void) tinyrl_insert_text(this,s);
+        /* echo the command to the output stream */
+        tinyrl_redisplay(this);
+    }
+
+    return s;
+}
+
+/*----------------------------------------------------------------------- */
+static char *
+internal_readline(tinyrl_t   *this,
                 const char *prompt,
-                void       *context)
+                void       *context,
+                const char *str)
 {
     FILE *istream = tinyrl_vt100__get_istream(this->term);
 
@@ -671,7 +710,7 @@ tinyrl_readline(tinyrl_t   *this,
     this->context          = context;
 
 
-    if(BOOL_TRUE == this->isatty)
+    if((BOOL_TRUE == this->isatty) && (!str))
     {        
         /* set the terminal into raw input mode */
         tty_set_raw_mode(this);
@@ -724,41 +763,22 @@ tinyrl_readline(tinyrl_t   *this,
         /* This is a non-interactive set of commands */
         char  *s = 0, buffer[80];
         size_t len = sizeof(buffer);
-        
+        char *tmp = NULL;
+
         /* manually reset the line state without redisplaying */
         lub_string_free(this->last_buffer);
         this->last_buffer = NULL;
 
-        while((sizeof(buffer) == len) && 
-                (s = fgets(buffer,sizeof(buffer),istream)))
-        {
-            char *p;
-            /* strip any spurious '\r' or '\n' */
-            p = strchr(buffer,'\r');
-            if(NULL == p)
+        if (str) {
+            tmp = lub_string_dup(str);
+            s = internal_insertline(this, tmp);
+        } else {
+            while((sizeof(buffer) == len) &&
+                    (s = fgets(buffer,sizeof(buffer),istream)))
             {
-                p = strchr(buffer,'\n');
+                s = internal_insertline(this, buffer);
+                len = strlen(buffer) + 1; /* account for the '\0' */
             }
-            if (NULL != p)
-            {
-                *p = '\0';
-            }
-            /* skip any whitespace at the beginning of the line */
-            if(0 == this->point)
-            {
-                while(*s && isspace(*s))
-                {
-                    s++;
-                }
-            }
-            if(*s)
-            {
-                /* append this string to the input buffer */
-                (void) tinyrl_insert_text(this,s);
-                /* echo the command to the output stream */
-                tinyrl_redisplay(this);
-            }
-            len = strlen(buffer) + 1; /* account for the '\0' */
         }
 
         /*
@@ -781,6 +801,8 @@ tinyrl_readline(tinyrl_t   *this,
                 this->line = NULL;
             }
         }
+        if (str)
+            lub_string_free(tmp);
     }
     /*
      * duplicate the string for return to the client 
@@ -805,86 +827,22 @@ tinyrl_readline(tinyrl_t   *this,
 
 /*----------------------------------------------------------------------- */
 char *
+tinyrl_readline(tinyrl_t   *this,
+                const char *prompt,
+                void       *context)
+{
+    return internal_readline(this, prompt, context, NULL);
+}
+
+/*----------------------------------------------------------------------- */
+char *
 tinyrl_forceline(tinyrl_t   *this,
                 const char *prompt,
                 void       *context,
                 const char *line)
 {
-    char *s = 0, *buffer = NULL;
-    char *p;
-
-    /* initialise for reading a line */
-    this->done             = BOOL_FALSE;
-    this->point            = 0;
-    this->end              = 0;
-    this->buffer           = lub_string_dup("");
-    this->buffer_size      = strlen(this->buffer);
-    this->line             = this->buffer;
-    this->prompt           = prompt;
-    this->prompt_size      = strlen(prompt);
-    this->context          = context;
-
-    /* manually reset the line state without redisplaying */
-    lub_string_free(this->last_buffer);
-    this->last_buffer = NULL;
-
-    buffer = lub_string_dup(line);
-    s = buffer;
-    /* strip any spurious '\r' or '\n' */
-    p = strchr(buffer,'\r');
-    if(NULL == p)
-    {
-        p = strchr(buffer,'\n');
-    }
-    if (NULL != p)
-    {
-        *p = '\0';
-    }
-    /* skip any whitespace at the beginning of the line */
-    if(0 == this->point)
-    {
-        while(*s && isspace(*s))
-        {
-            s++;
-        }
-    }
-    if(*s)
-    {
-        /* append this string to the input buffer */
-        (void) tinyrl_insert_text(this,s);
-        /* echo the command to the output stream */
-        tinyrl_redisplay(this);
-    }
-    lub_string_free(buffer);
-
-    /* call the handler for the newline key */
-    if(BOOL_FALSE == this->handlers[KEY_LF](this,KEY_LF))
-    {
-        /* an issue has occured */
-        this->line = NULL;
-    }
-
-    /*
-     * duplicate the string for return to the client 
-     * we have to duplicate as we may be referencing a
-     * history entry or our internal buffer
-     */
-    {
-        char *result = this->line ? lub_string_dup(this->line) : NULL;
-
-        /* free our internal buffer */
-        free(this->buffer);
-        this->buffer = NULL;
-
-        if((NULL == result) || '\0' == *result)
-        {
-            /* make sure we're not left on a prompt line */
-            tinyrl_crlf(this);
-        }
-        return result;
-    }
+    return internal_readline(this, prompt, context, line);
 }
-
 
 /*----------------------------------------------------------------------- */
 /*
