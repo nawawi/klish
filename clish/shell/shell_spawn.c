@@ -212,7 +212,7 @@ static void *clish_shell_thread(void *arg)
 				/* get input from the user */
 				running =
 					clish_shell_readline(this, context->prompt,
-						&cmd, &context->pargv, NULL);
+						&cmd, &context->pargv);
 				lub_string_free(context->prompt);
 
 				context->prompt = NULL;
@@ -450,7 +450,7 @@ bool_t clish_context_exec(clish_context_t *context, const char *line)
 	assert(context->prompt);
 
 	/* get input from the user */
-	running = clish_shell_readline(this, context->prompt,
+	running = clish_shell_forceline(this, context->prompt,
 		&cmd, &context->pargv, line);
 	lub_string_free(context->prompt);
 	context->prompt = NULL;

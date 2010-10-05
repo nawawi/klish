@@ -357,11 +357,8 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-bool_t
-clish_shell_readline(clish_shell_t * this,
-	const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv,
-	const char *str)
+static bool_t shell_readline(clish_shell_t * this, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str)
 {
 	char *line = NULL;
 	bool_t result = BOOL_FALSE;
@@ -398,6 +395,20 @@ clish_shell_readline(clish_shell_t * this,
 		}
 	}
 	return result;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_readline(clish_shell_t * this, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv)
+{
+	return shell_readline(this, prompt, cmd, pargv, NULL);
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_forceline(clish_shell_t * this, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str)
+{
+	return shell_readline(this, prompt, cmd, pargv, str);
 }
 
 /*-------------------------------------------------------- */

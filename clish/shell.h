@@ -300,11 +300,10 @@ void clish_shell_help(clish_shell_t * instance, const char *line);
 bool_t
 clish_shell_execute(clish_shell_t * instance,
 		    const clish_command_t * cmd, clish_pargv_t ** pargv);
-bool_t
-clish_shell_readline(clish_shell_t * shell,
-	const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv,
-	const char * str);
+bool_t clish_shell_readline(clish_shell_t * instance, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv);
+bool_t clish_shell_forceline(clish_shell_t * instance, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char * str);
 void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
