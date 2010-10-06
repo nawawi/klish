@@ -151,17 +151,6 @@ clish_config_callback(const clish_shell_t * this,
 	switch (op) {
 
 	case CLISH_CONFIG_DUMP:
-		str = clish_command__get_file(cmd, viewid, pargv);
-		if (str) {
-			FILE *fd = fopen(str, "r");
-			lub_string_free(str);
-			if (!fd)
-				break;
-			while (fgets(tmp, sizeof(tmp), fd))
-				fprintf(clish_shell__get_ostream(this),
-					"%s", tmp);
-			fclose(fd);
-		}
 		if (buf) {
 			konf_buf_lseek(buf, 0);
 			while ((str = konf_buf_preparse(buf))) {

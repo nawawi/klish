@@ -120,12 +120,6 @@ int main(int argc, char **argv)
 		if (0 == num)
 			continue;
 
-		/* Get string from stdout */
-/*		if (!fgets(str, sizeof(str), stdin)) {
-			enough = 1;
-			continue;
-		}
-*/
 		/* Service all the sockets with input pending. */
 		for (i = 0; i < FD_SETSIZE; ++i) {
 			if (FD_ISSET(i, &read_fd_set)) {
