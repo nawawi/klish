@@ -16,8 +16,7 @@ typedef enum {
 	CLISH_CONFIG_NONE,
 	CLISH_CONFIG_SET,
 	CLISH_CONFIG_UNSET,
-	CLISH_CONFIG_DUMP,
-	CLISH_CONFIG_COPY
+	CLISH_CONFIG_DUMP
 } clish_config_operation_t;
 
 /*=====================================

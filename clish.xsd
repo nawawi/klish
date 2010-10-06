@@ -400,7 +400,6 @@
             <xs:enumeration value="set"/>
             <xs:enumeration value="unset"/>
             <xs:enumeration value="dump"/>
-            <xs:enumeration value="copy"/>
         </xs:restriction>
     </xs:simpleType>
 
