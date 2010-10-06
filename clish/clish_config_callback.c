@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <limits.h>
 
 #include "private.h"
 #include "konf/net.h"
@@ -26,7 +27,7 @@ static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **da
 /*--------------------------------------------------------- */
 bool_t
 clish_config_callback(const clish_shell_t * this,
-		      const clish_command_t * cmd, clish_pargv_t * pargv)
+	const clish_command_t * cmd, clish_pargv_t * pargv)
 {
 	unsigned i;
 	char *command = NULL;
@@ -34,7 +35,7 @@ clish_config_callback(const clish_shell_t * this,
 	konf_buf_t *buf = NULL;
 	const char *viewid = NULL;
 	char *str = NULL;
-	char tmp[100];
+	char tmp[PATH_MAX + 100];
 	clish_config_operation_t op;
 
 	if (!this)
@@ -87,6 +88,7 @@ clish_config_callback(const clish_shell_t * this,
 			else
 				lub_string_cat(&command, "/tmp/running-config");
 			lub_string_cat(&command, "\"");
+			lub_string_free(str);
 		}
 		break;
 
@@ -151,17 +153,16 @@ clish_config_callback(const clish_shell_t * this,
 	case CLISH_CONFIG_DUMP:
 		str = clish_command__get_file(cmd, viewid, pargv);
 		if (str) {
-			FILE *fd;
-			char str[1024];
-			if (!(fd = fopen(str, "r")))
+			FILE *fd = fopen(str, "r");
+			lub_string_free(str);
+			if (!fd)
 				break;
-			while (fgets(str, sizeof(str), fd))
+			while (fgets(tmp, sizeof(tmp), fd))
 				fprintf(clish_shell__get_ostream(this),
-					"%s", str);
+					"%s", tmp);
 			fclose(fd);
 		}
 		if (buf) {
-			char *str;
 			konf_buf_lseek(buf, 0);
 			while ((str = konf_buf_preparse(buf))) {
 				if (strlen(str) == 0) {
