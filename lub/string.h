@@ -236,6 +236,22 @@ void
         char *string
     );
 
+/**
+ * This operation decode the escaped string.
+ *
+ * \pre 
+ * - none
+ * 
+ * \return
+ * - The allocated string without escapes.
+ *
+ * \post 
+ * - The result string must be freed after using.
+ */
+char *
+    lub_string_decode(const char *string);
+
+
  _END_C_DECL
 
 #endif /* _lub_string_h */

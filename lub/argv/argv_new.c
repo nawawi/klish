@@ -8,21 +8,6 @@
 #include <string.h>
 
 /*--------------------------------------------------------- */
-static char * unescape_special_chars(const char *str)
-{
-    char *res = NULL;
-    char *s = NULL;
-
-    for (s = strchr(str, '\\'); s; s = strchr(str, '\\')) {
-        lub_string_catn(&res, str, s - str);
-        str = s + 1;
-    }
-    lub_string_cat(&res, str);
-
-    return res;
-}
-
-/*--------------------------------------------------------- */
 static void
 lub_argv_init(lub_argv_t *this,
               const char *line,
@@ -47,7 +32,7 @@ lub_argv_init(lub_argv_t *this,
             word = lub_argv_nextword(word+len,&len,&offset,&quoted))
         {
             char * tmp = lub_string_dupn(word,len);
-            (*arg).arg = unescape_special_chars(tmp);
+            (*arg).arg = lub_string_decode(tmp);
             lub_string_free(tmp);
             (*arg).offset = offset;
             (*arg).quoted = quoted;

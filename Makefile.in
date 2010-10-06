@@ -319,8 +319,8 @@ am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
 	lub/string/string_catn.c lub/string/string_dup.c \
 	lub/string/string_dupn.c lub/string/string_free.c \
 	lub/string/string_nocasecmp.c lub/string/string_nocasestr.c \
-	lub/string/string_suffix.c lub/string/private.h \
-	lub/test/test.c
+	lub/string/string_suffix.c lub/string/string_escape.c \
+	lub/string/private.h lub/test/test.c
 @LUBHEAP_TRUE@am__objects_1 = lub/heap/cache.lo \
 @LUBHEAP_TRUE@	lub/heap/cache_bucket.lo lub/heap/context.lo \
 @LUBHEAP_TRUE@	lub/heap/heap__get_max_free.lo \
@@ -409,7 +409,8 @@ am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/string/string_catn.lo lub/string/string_dup.lo \
 	lub/string/string_dupn.lo lub/string/string_free.lo \
 	lub/string/string_nocasecmp.lo lub/string/string_nocasestr.lo \
-	lub/string/string_suffix.lo lub/test/test.lo
+	lub/string/string_suffix.lo lub/string/string_escape.lo \
+	lub/test/test.lo
 liblub_la_OBJECTS = $(am_liblub_la_OBJECTS)
 liblubheap_la_LIBADD =
 am__liblubheap_la_SOURCES_DIST = lubheap/posix/sysheap.c
@@ -817,7 +818,8 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/string/string_dup.c lub/string/string_dupn.c \
 	lub/string/string_free.c lub/string/string_nocasecmp.c \
 	lub/string/string_nocasestr.c lub/string/string_suffix.c \
-	lub/string/private.h lub/test/test.c
+	lub/string/string_escape.c lub/string/private.h \
+	lub/test/test.c
 liblub_la_LIBADD = -lpthread
 @LUBHEAP_TRUE@liblubheap_la_SOURCES = lubheap/posix/sysheap.c
 libtinyrl_la_SOURCES = tinyrl/tinyrl.c tinyrl/private.h \
@@ -1494,6 +1496,8 @@ lub/string/string_nocasestr.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
 lub/string/string_suffix.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
+lub/string/string_escape.lo: lub/string/$(am__dirstamp) \
+	lub/string/$(DEPDIR)/$(am__dirstamp)
 lub/test/$(am__dirstamp):
 	@$(MKDIR_P) lub/test
 	@: > lub/test/$(am__dirstamp)
@@ -1988,6 +1992,8 @@ mostlyclean-compile:
 	-rm -f lub/string/string_dup.lo
 	-rm -f lub/string/string_dupn.$(OBJEXT)
 	-rm -f lub/string/string_dupn.lo
+	-rm -f lub/string/string_escape.$(OBJEXT)
+	-rm -f lub/string/string_escape.lo
 	-rm -f lub/string/string_free.$(OBJEXT)
 	-rm -f lub/string/string_free.lo
 	-rm -f lub/string/string_nocasecmp.$(OBJEXT)
@@ -2187,6 +2193,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_catn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_dup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_dupn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_escape.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_free.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_nocasecmp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_nocasestr.Plo@am__quote@
