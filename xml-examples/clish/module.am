@@ -1,0 +1,13 @@
+EXTRA_DIST  +=                                  	\
+                xml-examples/clock.xml 	\
+                xml-examples/debug-commands.xml 	\
+                xml-examples/debug-view.xml       	\
+                xml-examples/global-commands.xml	\
+                xml-examples/named-view.xml		\
+                xml-examples/network-commands.xml	\
+                xml-examples/root-view.xml	    	\
+                xml-examples/script-view.xml	    	\
+                xml-examples/script.txt		    	\
+                xml-examples/startup.xml	    	\
+                xml-examples/types.xml	    		\
+                xml-examples/README
