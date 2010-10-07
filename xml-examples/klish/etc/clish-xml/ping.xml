@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+                     http://clish.sourceforge.net/XMLSchema/clish.xsd">
+	<!--=======================================================-->
+
+<VIEW name="ping-view"
+	prompt="${SYSTEM_NAME}# ">
+
+	<COMMAND name="ping"
+		help="Send echo messages">
+		<PARAM name="ip"
+			help="IP echo"
+			ptype="STRING"
+			mode="subcommand"
+			optional="true"/>
+		<PARAM name="addr"
+			help="Ping destination address or hostname"
+			ptype="STRING"/>
+		<ACTION>
+		ping ${addr}
+		</ACTION>
+	</COMMAND>
+
+	<COMMAND name="traceroute"
+		help="Trace route to destination">
+		<PARAM name="ip"
+			help="IP trace"
+			ptype="STRING"
+			mode="subcommand"
+			optional="true"/>
+		<PARAM name="addr"
+			help="Trace route to destination address or hostname"
+			ptype="STRING"/>
+		<ACTION>
+		traceroute ${addr}
+		</ACTION>
+	</COMMAND>
+
+</VIEW>
+
+</CLISH_MODULE>

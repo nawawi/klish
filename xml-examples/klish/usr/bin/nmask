@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Convert netmask in dot notation to CIDR
+
+mask2cidr() {
+    nbits=0
+    IFS=.
+    for dec in $1 ; do
+        case $dec in
+            255) nbits=$(expr $nbits + 8);;
+            254) nbits=$(expr $nbits + 7);;
+            252) nbits=$(expr $nbits + 6);;
+            248) nbits=$(expr $nbits + 5);;
+            240) nbits=$(expr $nbits + 4);;
+            224) nbits=$(expr $nbits + 3);;
+            192) nbits=$(expr $nbits + 2);;
+            128) nbits=$(expr $nbits + 1);;
+            0);;
+            *) return 1;;
+        esac
+    done
+    echo "$nbits"
+    return 0
+}
+
+#cidr2mask() {
+#  local i mask=""
+#  local full_octets=$(($1/8))
+#  local partial_octet=$(($1%8))
+#
+#  for ((i=0;i<4;i+=1)); do
+#    if [ $i -lt $full_octets ]; then
+#      mask+=255
+#    elif [ $i -eq $full_octets ]; then
+#      mask+=$((256 - 2**(8-$partial_octet)))
+#    else
+#      mask+=0
+#    fi  
+#    test $i -lt 3 && mask+=.
+#  done
+#
+#  echo $mask
+#}
+
+## main ##
+
+if [ $# -lt 2 ]; then
+	return 1
+fi
+
+# if dot notation
+if [ "$1" = "-d" ]; then
+	mask=$2
+	numbits=$(mask2cidr $mask)
+	if [ "x$numbits" != "x" ]; then
+		echo "$numbits"
+	fi
+	exit 0
+
+elif [ "$1" = "-c" ]; then
+	echo "Under construction"
+fi
