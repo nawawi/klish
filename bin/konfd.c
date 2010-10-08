@@ -239,6 +239,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 			break;
 		}
 		konf_tree__set_splitter(tmpconf, konf_query__get_splitter(query));
+		konf_tree__set_depth(tmpconf, konf_query__get_pwdc(query));
 		ret = KONF_QUERY_OP_OK;
 		break;
 

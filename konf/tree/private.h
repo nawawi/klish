@@ -19,6 +19,7 @@ struct konf_tree_s {
 	unsigned short seq_num;
 	unsigned short sub_num;
 	bool_t splitter;
+	int depth;
 };
 
 #endif

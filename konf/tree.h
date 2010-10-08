@@ -54,7 +54,6 @@ int konf_tree_del_pattern(konf_tree_t * instance,
 /*-----------------
  * attributes 
  *----------------- */
-unsigned konf_tree__get_depth(const konf_tree_t * instance);
 unsigned short konf_tree__get_priority(const konf_tree_t * instance);
 unsigned char konf_tree__get_priority_hi(const konf_tree_t * instance);
 unsigned char konf_tree__get_priority_lo(const konf_tree_t * instance);
@@ -65,6 +64,8 @@ void konf_tree__set_seq_num(konf_tree_t * instance, unsigned short seq_num);
 unsigned short konf_tree__get_sub_num(const konf_tree_t * instance);
 void konf_tree__set_sub_num(konf_tree_t * instance, unsigned short sub_num);
 const char * konf_tree__get_line(const konf_tree_t * instance);
+void konf_tree__set_depth(konf_tree_t * instance, int depth);
+int konf_tree__get_depth(const konf_tree_t * instance);
 
 #endif				/* _konf_tree_h */
 /** @} clish_conf */

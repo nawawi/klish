@@ -78,6 +78,7 @@ konf_tree_init(konf_tree_t * this, const char *line, unsigned short priority)
 	this->seq_num = 0;
 	this->sub_num = KONF_ENTRY_OK;
 	this->splitter = BOOL_TRUE;
+	this->depth = -1;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -137,7 +138,7 @@ void konf_tree_delete(konf_tree_t * this)
 
 /*--------------------------------------------------------- */
 void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
-		const char *pattern, int depth,
+		const char *pattern, int top_depth,
 		bool_t seq, unsigned char prev_pri_hi)
 {
 	konf_tree_t *conf;
@@ -145,15 +146,16 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 	unsigned char pri = 0;
 	regex_t regexp;
 
-	if (this->line && *(this->line) != '\0') {
+	if (this->line && (*(this->line) != '\0') &&
+		(this->depth > top_depth)) {
 		char *space = NULL;
-
-		if (depth > 0) {
-			space = malloc(depth + 1);
-			memset(space, ' ', depth);
-			space[depth] = '\0';
+		unsigned space_num = this->depth - top_depth - 1;
+		if (space_num > 0) {
+			space = malloc(space_num + 1);
+			memset(space, ' ', space_num);
+			space[space_num] = '\0';
 		}
-		if ((0 == depth) &&
+		if ((0 == this->depth) &&
 			(this->splitter ||
 			(konf_tree__get_priority_hi(this) != prev_pri_hi)))
 			fprintf(stream, "!\n");
@@ -176,7 +178,7 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		conf; conf = lub_bintree_iterator_next(&iter)) {
 		if (pattern && (0 != regexec(&regexp, conf->line, 0, NULL, 0)))
 			continue;
-		konf_tree_fprintf(conf, stream, NULL, depth + 1, seq, pri);
+		konf_tree_fprintf(conf, stream, NULL, top_depth, seq, pri);
 		pri = konf_tree__get_priority_hi(conf);
 	}
 	if (pattern)
@@ -392,3 +394,14 @@ const char * konf_tree__get_line(const konf_tree_t * this)
 	return this->line;
 }
 
+/*--------------------------------------------------------- */
+void konf_tree__set_depth(konf_tree_t * this, int depth)
+{
+	this->depth = depth;
+}
+
+/*--------------------------------------------------------- */
+int konf_tree__get_depth(const konf_tree_t * this)
+{
+	return this->depth;
+}
