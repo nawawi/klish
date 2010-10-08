@@ -143,6 +143,7 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 	konf_tree_t *conf;
 	lub_bintree_iterator_t iter;
 	unsigned char pri = 0;
+	regex_t regexp;
 
 	if (this->line && *(this->line) != '\0') {
 		char *space = NULL;
@@ -163,18 +164,23 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		free(space);
 	}
 
+	/* regexp compilation */
+	if (pattern)
+		regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
+
 	/* iterate child elements */
 	if (!(conf = lub_bintree_findfirst(&this->tree)))
 		return;
 
 	for(lub_bintree_iterator_init(&iter, &this->tree, conf);
 		conf; conf = lub_bintree_iterator_next(&iter)) {
-		if (pattern &&
-			(lub_string_nocasestr(conf->line, pattern) != conf->line))
+		if (pattern && (0 != regexec(&regexp, conf->line, 0, NULL, 0)))
 			continue;
 		konf_tree_fprintf(conf, stream, NULL, depth + 1, seq, pri);
 		pri = konf_tree__get_priority_hi(conf);
 	}
+	if (pattern)
+		regfree(&regexp);
 }
 
 static int normalize_seq(konf_tree_t * this, unsigned short priority)
