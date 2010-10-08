@@ -1,8 +1,8 @@
 /*
- * clish_config_callback.c
+ * konfd.c
  *
+ * The konfd daemon to store user configuration commands.
  *
- * Callback hook to execute config operations.
  */
 
 #include <stdio.h>
@@ -25,7 +25,6 @@
 #include "lub/argv.h"
 #include "lub/string.h"
 
-#define KONFD_SOCKET_PATH "/tmp/konfd.socket"
 #define KONFD_CONFIG_PATH "/tmp/running-config"
 
 #ifndef UNIX_PATH_MAX

@@ -37,7 +37,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = bin/clish$(EXEEXT) bin/konfd$(EXEEXT) \
+bin_PROGRAMS = bin/clish$(EXEEXT) bin/konfd$(EXEEXT) bin/konf$(EXEEXT) \
 	bin/tclish@TCL_VERSION@$(EXEEXT) $(am__EXEEXT_1)
 DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -440,6 +440,9 @@ PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_bin_clish_OBJECTS = bin/clish.$(OBJEXT)
 bin_clish_OBJECTS = $(am_bin_clish_OBJECTS)
 bin_clish_DEPENDENCIES = libclish.la
+am_bin_konf_OBJECTS = bin/konf.$(OBJEXT)
+bin_konf_OBJECTS = $(am_bin_konf_OBJECTS)
+bin_konf_DEPENDENCIES =
 am_bin_konfd_OBJECTS = bin/konfd.$(OBJEXT)
 bin_konfd_OBJECTS = $(am_bin_konfd_OBJECTS)
 bin_konfd_DEPENDENCIES =
@@ -504,7 +507,7 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(liblub_la_SOURCES) $(liblubheap_la_SOURCES) \
 	$(libtinyrl_la_SOURCES) $(libtinyxml_la_SOURCES) \
-	$(bin_clish_SOURCES) $(bin_konfd_SOURCES) \
+	$(bin_clish_SOURCES) $(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
 	$(bin_lubheap_SOURCES) $(bin_tclish@TCL_VERSION@_SOURCES) \
 	$(test_bintree_SOURCES) $(test_heap_SOURCES) \
 	$(test_lubMallocTest_SOURCES) $(test_mallocTest_SOURCES) \
@@ -513,7 +516,8 @@ DIST_SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(am__liblub_la_SOURCES_DIST) \
 	$(am__liblubheap_la_SOURCES_DIST) $(libtinyrl_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
-	$(bin_konfd_SOURCES) $(am__bin_lubheap_SOURCES_DIST) \
+	$(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
+	$(am__bin_lubheap_SOURCES_DIST) \
 	$(bin_tclish@TCL_VERSION@_SOURCES) $(test_bintree_SOURCES) \
 	$(am__test_heap_SOURCES_DIST) \
 	$(am__test_lubMallocTest_SOURCES_DIST) \
@@ -719,7 +723,7 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	xml-examples/script.txt xml-examples/startup.xml \
 	xml-examples/types.xml xml-examples/README konf/tree/module.am \
 	konf/query/module.am konf/buf/module.am konf/net/module.am
-bin_clish_SOURCES = bin/clish.cpp	
+bin_clish_SOURCES = bin/clish.cpp
 bin_clish_LDADD = \
     libclish.la    \
     @KONF_LIBS@ \
@@ -732,6 +736,11 @@ bin_clish_LDADD = \
 
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD = \
+    @KONF_LIBS@ \
+    @LUB_LIBS@
+
+bin_konf_SOURCES = bin/konf.c
+bin_konf_LDADD = \
     @KONF_LIBS@ \
     @LUB_LIBS@
 
@@ -1627,6 +1636,10 @@ bin/clish.$(OBJEXT): bin/$(am__dirstamp) bin/$(DEPDIR)/$(am__dirstamp)
 bin/clish$(EXEEXT): $(bin_clish_OBJECTS) $(bin_clish_DEPENDENCIES) bin/$(am__dirstamp)
 	@rm -f bin/clish$(EXEEXT)
 	$(CXXLINK) $(bin_clish_OBJECTS) $(bin_clish_LDADD) $(LIBS)
+bin/konf.$(OBJEXT): bin/$(am__dirstamp) bin/$(DEPDIR)/$(am__dirstamp)
+bin/konf$(EXEEXT): $(bin_konf_OBJECTS) $(bin_konf_DEPENDENCIES) bin/$(am__dirstamp)
+	@rm -f bin/konf$(EXEEXT)
+	$(LINK) $(bin_konf_OBJECTS) $(bin_konf_LDADD) $(LIBS)
 bin/konfd.$(OBJEXT): bin/$(am__dirstamp) bin/$(DEPDIR)/$(am__dirstamp)
 bin/konfd$(EXEEXT): $(bin_konfd_OBJECTS) $(bin_konfd_DEPENDENCIES) bin/$(am__dirstamp)
 	@rm -f bin/konfd$(EXEEXT)
@@ -1676,6 +1689,7 @@ test/string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) test/$(
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f bin/clish.$(OBJEXT)
+	-rm -f bin/konf.$(OBJEXT)
 	-rm -f bin/konfd.$(OBJEXT)
 	-rm -f bin/lubheap.$(OBJEXT)
 	-rm -f bin/tclish.$(OBJEXT)
@@ -2035,6 +2049,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/clish.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/konf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/konfd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/lubheap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish.Po@am__quote@

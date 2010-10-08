@@ -17,7 +17,7 @@
 #define UNIX_PATH_MAX 108
 #endif
 
-konf_client_t *konf_client_new(char *path)
+konf_client_t *konf_client_new(const char *path)
 {
 	konf_client_t *client;
 
@@ -35,6 +35,8 @@ konf_client_t *konf_client_new(char *path)
 
 void konf_client_free(konf_client_t *client)
 {
+	if (!client)
+		return;
 	if (client->sock != -1)
 		konf_client_disconnect(client);
 	lub_string_free(client->path);
