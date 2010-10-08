@@ -245,8 +245,9 @@
 *           feature is implemented to support subcommands with the
 *           same names.
 *
-* [visibility] - define the visibility of the parameter while ${__line}
-*           and ${__params} auto variables expanding.
+* [hidden]  - define the visibility of the parameter while ${__line}
+*           and ${__params} auto variables expanding. The allowed values
+*           is "true" and "false".
 ********************************************************
     -->
     <xs:simpleType name="bool_t">
