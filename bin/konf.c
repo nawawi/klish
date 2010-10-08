@@ -25,6 +25,8 @@ static int receive_answer(konf_client_t * client, konf_buf_t **data);
 static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data);
 static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
 
+static const char *escape_chars = "\"\\'";
+
 /*--------------------------------------------------------- */
 int main(int argc, char **argv)
 {
@@ -44,7 +46,9 @@ int main(int argc, char **argv)
 		space = strchr(argv[i], ' ');
 		if (space)
 			lub_string_cat(&line, "\"");
-		lub_string_cat(&line, argv[i]);
+		str = lub_string_encode(argv[i], escape_chars);
+		lub_string_cat(&line, str);
+		lub_string_free(str);
 		if (space)
 			lub_string_cat(&line, "\"");
 	}
