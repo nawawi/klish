@@ -239,17 +239,32 @@ void
 /**
  * This operation decode the escaped string.
  *
- * \pre 
+ * \pre
  * - none
- * 
+ *
  * \return
  * - The allocated string without escapes.
  *
- * \post 
+ * \post
  * - The result string must be freed after using.
  */
 char *
     lub_string_decode(const char *string);
+
+/**
+ * This operation encode the string using escape.
+ *
+ * \pre
+ * - none
+ *
+ * \return
+ * - The allocated string with escapes.
+ *
+ * \post
+ * - The result string must be freed after using.
+ */
+char *
+    lub_string_encode(const char *string, const char *escape_chars);
 
 
  _END_C_DECL

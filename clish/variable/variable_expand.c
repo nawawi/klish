@@ -10,15 +10,6 @@
 
 #include <sys/types.h>
 #include <regex.h>
-/*
- * These are the escape characters which are used by default when 
- * expanding variables. These characters will be backslash escaped
- * to prevent them from being interpreted in a script.
- *
- * This is a security feature to prevent users from arbitarily setting
- * parameters to contain special sequences.
- */
-static const char *default_escape_chars = "`|$<>&()#";
 
 /*----------------------------------------------------------- */
 /*
@@ -103,35 +94,6 @@ static char *find_context_var(const context_t * this, const char *name)
 	return result;
 }
 
-/*----------------------------------------------------------- */
-/*
- * This needs to escape any dangerous characters within the command line
- * to prevent gaining access to the underlying system shell.
- */
-static char *escape_special_chars(const char *string, const char *escape_chars)
-{
-	char *result = NULL;
-	const char *p;
-
-	if (NULL == escape_chars) {
-		escape_chars = default_escape_chars;
-	}
-	for (p = string; p && *p; p++)
-	{
-		/* find any special characters and prefix them with '\' */
-		size_t len = strcspn(p, escape_chars);
-		lub_string_catn(&result, p, len);
-		p += len;
-		if (*p) {
-			lub_string_catn(&result, "\\", 1);
-			lub_string_catn(&result, p, 1);
-		} else {
-			break;
-		}
-	}
-	return result;
-}
-
 /*--------------------------------------------------------- */
 static char *context_retrieve(const context_t * this, const char *name)
 {
@@ -171,7 +133,7 @@ static char *context_retrieve(const context_t * this, const char *name)
 		/* override the escape characters */
 		escape_chars = clish_command__get_escape_chars(this->cmd);
 	}
-	result = escape_special_chars(tmp, escape_chars);
+	result = lub_string_encode(tmp, escape_chars);
 	if (NULL != string) {
 		/* free the dynamic memory */
 		lub_string_free(string);
