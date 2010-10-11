@@ -11,10 +11,8 @@
 #include <getopt.h>
 
 #include "konf/net.h"
-#include "konf/tree.h"
 #include "konf/query.h"
 #include "konf/buf.h"
-#include "lub/argv.h"
 #include "lub/string.h"
 
 #ifndef UNIX_PATH_MAX
@@ -94,7 +92,7 @@ int main(int argc, char **argv)
 			lub_string_cat(&line, "\"");
 	}
 	if (!line) {
-		fprintf(stderr, "Not enough arguments.\n");
+		help(-1, argv[0]);
 		goto err;
 	}
 #ifdef DEBUG
@@ -284,14 +282,14 @@ static void help(int status, const char *argv0)
 		fprintf(stderr, "Try `%s -h' for more information.\n",
 			name);
 	} else {
-		printf("Usage: %s [options] -- [command]\n", name);
+		printf("Usage: %s [options] -- <command for konfd daemon>\n", name);
 		printf("Utility for communication to the konfd "
 			"configuration daemon.\n");
 		printf("Options:\n");
-		printf("\t-v --version\tPrint utility version.\n");
-		printf("\t-h --help\tPrint this help.\n");
-		printf("\t-s --socket\tSpecify listen socket "
-			"of konfd daemon.\n");
+		printf("\t-v --version\t\tPrint utility version.\n");
+		printf("\t-h --help\t\tPrint this help.\n");
+		printf("\t-s --socket <path>\tSpecify listen socket "
+			"of the konfd daemon.\n");
 	}
 }
 

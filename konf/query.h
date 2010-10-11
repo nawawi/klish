@@ -1,6 +1,8 @@
 #ifndef _konf_query_h
 #define _konf_query_h
 
+#include <lub/types.h>
+
 typedef enum
 {
   KONF_QUERY_OP_NONE,
