@@ -24,11 +24,10 @@
 #define VER_MIN 2
 #define VER_BUG 2
 
-static int receive_answer(konf_client_t * client, konf_buf_t **data);
-static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data);
-static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
-static void help(int status, const char *argv0);
 static void version(void);
+static void help(int status, const char *argv0);
+static int receive_answer(konf_client_t * client, konf_buf_t **data);
+static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
 
 static const char *escape_chars = "\"\\'";
 
@@ -176,42 +175,6 @@ static int receive_answer(konf_client_t * client, konf_buf_t **data)
 }
 
 /*--------------------------------------------------------- */
-static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data)
-{
-	konf_buf_t *tmpdata;
-	char *str;
-	int processed = 0;
-
-	if ((konf_client_connect(client) < 0))
-		return -1;
-
-	tmpdata = konf_buf_new(konf_client__get_sock(client));
-	do {
-		while ((str = konf_buf_parse(buf))) {
-#ifdef DEBUG
-			fprintf(stderr, "RECV DATA: [%s]\n", str);
-#endif
-			konf_buf_add(tmpdata, str, strlen(str) + 1);
-			if (strlen(str) == 0) {
-				processed = 1;
-				lub_string_free(str);
-				break;
-			}
-			lub_string_free(str);
-		}
-	} while ((!processed) && (konf_buf_read(buf)) > 0);
-	if (!processed) {
-		konf_buf_delete(tmpdata);
-		*data = NULL;
-		return -1;
-	}
-
-	*data = tmpdata;
-
-	return 0;
-}
-
-/*--------------------------------------------------------- */
 static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data)
 {
 	int res;
@@ -245,7 +208,7 @@ static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, ko
 		break;
 
 	case KONF_QUERY_OP_STREAM:
-		if (receive_data(client, buf, data) < 0)
+		if (!(*data = konf_client_recv_data(client, buf)))
 			res = -1;
 		else
 			res = 1; /* wait for another answer */

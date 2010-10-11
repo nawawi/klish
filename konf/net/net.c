@@ -17,6 +17,7 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+/*--------------------------------------------------------- */
 konf_client_t *konf_client_new(const char *path)
 {
 	konf_client_t *client;
@@ -33,6 +34,7 @@ konf_client_t *konf_client_new(const char *path)
 	return client;
 }
 
+/*--------------------------------------------------------- */
 void konf_client_free(konf_client_t *client)
 {
 	if (!client)
@@ -44,6 +46,7 @@ void konf_client_free(konf_client_t *client)
 	free(client);
 }
 
+/*--------------------------------------------------------- */
 int konf_client_connect(konf_client_t *client)
 {
 	struct sockaddr_un raddr;
@@ -65,6 +68,7 @@ int konf_client_connect(konf_client_t *client)
 	return client->sock;
 }
 
+/*--------------------------------------------------------- */
 void konf_client_disconnect(konf_client_t *client)
 {
 	if (client->sock >= 0) {
@@ -73,12 +77,14 @@ void konf_client_disconnect(konf_client_t *client)
 	}
 }
 
+/*--------------------------------------------------------- */
 int konf_client_reconnect(konf_client_t *client)
 {
 	konf_client_disconnect(client);
 	return konf_client_connect(client);
 }
 
+/*--------------------------------------------------------- */
 int konf_client_send(konf_client_t *client, char *command)
 {
 	if (client->sock < 0)
@@ -87,7 +93,39 @@ int konf_client_send(konf_client_t *client, char *command)
 	return send(client->sock, command, strlen(command) + 1, MSG_NOSIGNAL);
 }
 
+/*--------------------------------------------------------- */
 int konf_client__get_sock(konf_client_t *client)
 {
 	return client->sock;
+}
+
+/*--------------------------------------------------------- */
+konf_buf_t * konf_client_recv_data(konf_client_t * this, konf_buf_t *buf)
+{
+	int processed = 0;
+	konf_buf_t *data;
+	char *str;
+
+	/* Check if socked is connected */
+	if ((konf_client_connect(this) < 0))
+		return NULL;
+
+	data = konf_buf_new(konf_client__get_sock(this));
+	do {
+		while ((str = konf_buf_parse(buf))) {
+			konf_buf_add(data, str, strlen(str) + 1);
+			if (strlen(str) == 0) {
+				processed = 1;
+				lub_string_free(str);
+				break;
+			}
+			lub_string_free(str);
+		}
+	} while ((!processed) && (konf_buf_read(buf)) > 0);
+	if (!processed) {
+		konf_buf_delete(data);
+		return NULL;
+	}
+
+	return data;
 }

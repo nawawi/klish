@@ -1,6 +1,8 @@
 #ifndef _konf_net_h
 #define _konf_net_h
 
+#include <konf/buf.h>
+
 typedef struct konf_client_s konf_client_t;
 
 #define KONFD_SOCKET_PATH "/tmp/konfd.socket"
@@ -12,5 +14,6 @@ void konf_client_disconnect(konf_client_t *client);
 int konf_client_reconnect(konf_client_t *client);
 int konf_client_send(konf_client_t *client, char *command);
 int konf_client__get_sock(konf_client_t *client);
+konf_buf_t * konf_client_recv_data(konf_client_t * instance, konf_buf_t *buf);
 
 #endif
