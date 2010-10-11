@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "konf/net.h"
 #include "konf/tree.h"
@@ -21,9 +22,15 @@
 #endif
 #define MAXMSG 1024
 
+#define VER_MAJ 1
+#define VER_MIN 2
+#define VER_BUG 2
+
 static int receive_answer(konf_client_t * client, konf_buf_t **data);
 static int receive_data(konf_client_t * client, konf_buf_t *buf, konf_buf_t **data);
 static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
+static void help(int status, const char *argv0);
+static void version(void);
 
 static const char *escape_chars = "\"\\'";
 
@@ -31,15 +38,49 @@ static const char *escape_chars = "\"\\'";
 int main(int argc, char **argv)
 {
 	int res = -1;
-	unsigned i;
 	konf_client_t *client = NULL;
 	konf_buf_t *buf = NULL;
 	char *line = NULL;
 	char *str = NULL;
 	const char *socket_path = KONFD_SOCKET_PATH;
+	unsigned i = 0;
+
+	static const char *shortopts = "hvs:";
+/*	static const struct option longopts[] = {
+		{"help",	0, NULL, 'h'},
+		{"socket",	1, NULL, 's'},
+		{NULL,		0, NULL, 0}
+	};
+*/
+	/* Parse command line options */
+	optind = 0;
+	while(1) {
+		int opt;
+/*		opt = getopt_long(argc, argv, shortopts, longopts, NULL); */
+		opt = getopt(argc, argv, shortopts);
+		if (-1 == opt)
+			break;
+		switch (opt) {
+		case 's':
+			socket_path = optarg;
+			break;
+		case 'h':
+			help(0, argv[0]);
+			exit(0);
+			break;
+		case 'v':
+			version();
+			exit(0);
+			break;
+		default:
+			help(-1, argv[0]);
+			exit(-1);
+			break;
+		}
+	}
 
 	/* Get request line from the args */
-	for (i = 1; i < argc; i++) {
+	for (i = optind; i < argc; i++) {
 		char *space = NULL;
 		if (NULL != line)
 			lub_string_cat(&line, " ");
@@ -221,4 +262,42 @@ static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, ko
 	konf_query_free(query);
 
 	return res;
+}
+
+/*--------------------------------------------------------- */
+/* Print help message */
+static void help(int status, const char *argv0)
+{
+	const char *name = NULL;
+
+	if (!argv0)
+		return;
+
+	/* Find the basename */
+	name = strrchr(argv0, '/');
+	if (name)
+		name++;
+	else
+		name = argv0;
+
+	if (status != 0) {
+		fprintf(stderr, "Try `%s -h' for more information.\n",
+			name);
+	} else {
+		printf("Usage: %s [options] -- [command]\n", name);
+		printf("Utility for communication to the konfd "
+			"configuration daemon.\n");
+		printf("Options:\n");
+		printf("\t-v --version\tPrint utility version.\n");
+		printf("\t-h --help\tPrint this help.\n");
+		printf("\t-s --socket\tSpecify listen socket "
+			"of konfd daemon.\n");
+	}
+}
+
+/*--------------------------------------------------------- */
+/* Print version */
+static void version(void)
+{
+	printf("%u.%u.%u\n", VER_MAJ, VER_MIN, VER_BUG);
 }
