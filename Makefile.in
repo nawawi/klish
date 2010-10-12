@@ -246,7 +246,8 @@ am_libclish_la_OBJECTS = clish/libclish_la-clish_access_callback.lo \
 libclish_la_OBJECTS = $(am_libclish_la_OBJECTS)
 libkonf_la_DEPENDENCIES =
 am_libkonf_la_OBJECTS = konf/tree/tree.lo konf/tree/tree_dump.lo \
-	konf/query/query.lo konf/buf/buf.lo konf/net/net.lo
+	konf/query/query.lo konf/query/query_dump.lo konf/buf/buf.lo \
+	konf/net/net.lo
 libkonf_la_OBJECTS = $(am_libkonf_la_OBJECTS)
 liblub_la_DEPENDENCIES =
 am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
@@ -886,9 +887,9 @@ test_string_LDADD = \
     @BFD_LIBS@
 
 libkonf_la_SOURCES = konf/tree/tree.c konf/tree/tree_dump.c \
-	konf/tree/private.h konf/query/query.c konf/query/private.h \
-	konf/buf/buf.c konf/buf/private.h konf/net/net.c \
-	konf/net/private.h
+	konf/tree/private.h konf/query/query.c konf/query/query_dump.c \
+	konf/query/private.h konf/buf/buf.c konf/buf/private.h \
+	konf/net/net.c konf/net/private.h
 libkonf_la_LIBADD = 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -1201,6 +1202,8 @@ konf/query/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) konf/query/$(DEPDIR)
 	@: > konf/query/$(DEPDIR)/$(am__dirstamp)
 konf/query/query.lo: konf/query/$(am__dirstamp) \
+	konf/query/$(DEPDIR)/$(am__dirstamp)
+konf/query/query_dump.lo: konf/query/$(am__dirstamp) \
 	konf/query/$(DEPDIR)/$(am__dirstamp)
 konf/buf/$(am__dirstamp):
 	@$(MKDIR_P) konf/buf
@@ -1799,6 +1802,8 @@ mostlyclean-compile:
 	-rm -f konf/net/net.lo
 	-rm -f konf/query/query.$(OBJEXT)
 	-rm -f konf/query/query.lo
+	-rm -f konf/query/query_dump.$(OBJEXT)
+	-rm -f konf/query/query_dump.lo
 	-rm -f konf/tree/tree.$(OBJEXT)
 	-rm -f konf/tree/tree.lo
 	-rm -f konf/tree/tree_dump.$(OBJEXT)
@@ -2106,6 +2111,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@konf/buf/$(DEPDIR)/buf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@konf/net/$(DEPDIR)/net.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@konf/query/$(DEPDIR)/query.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@konf/query/$(DEPDIR)/query_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@konf/tree/$(DEPDIR)/tree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@konf/tree/$(DEPDIR)/tree_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv__get_arg.Plo@am__quote@

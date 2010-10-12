@@ -232,6 +232,7 @@ char * konf_buf_parse(konf_buf_t *buf)
 	return str;
 }
 
+/*--------------------------------------------------------- */
 char * konf_buf_preparse(konf_buf_t *buf)
 {
 	char * str = NULL;
@@ -243,6 +244,7 @@ char * konf_buf_preparse(konf_buf_t *buf)
 	return str;
 }
 
+/*--------------------------------------------------------- */
 int konf_buf_lseek(konf_buf_t *buf, int newpos)
 {
 	if (newpos > buf->pos)
