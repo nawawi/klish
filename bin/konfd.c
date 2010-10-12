@@ -25,17 +25,25 @@
 #include "lub/argv.h"
 #include "lub/string.h"
 
+#define VER_MAJ 1
+#define VER_MIN 2
+#define VER_BUG 2
+
 #define KONFD_CONFIG_PATH "/tmp/running-config"
 
+/* UNIX socket path */
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX 108
 #endif
+
 #define MAXMSG 1024
 
 /* Global signal vars */
 static volatile int sigterm = 0;
 static void sighandler(int signo);
 
+static void version(void);
+static void help(int status, const char *argv0);
 static char * process_query(int sock, konf_tree_t * conf, char *str);
 int answer_send(int sock, char *command);
 static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query);
@@ -55,10 +63,47 @@ int main(int argc, char **argv)
 	struct sockaddr_un laddr;
 	struct sockaddr_un raddr;
 	fd_set active_fd_set, read_fd_set;
+	const char *socket_path = KONFD_SOCKET_PATH;
 
 	/* Signal vars */
 	struct sigaction sig_act;
 	sigset_t sig_set;
+
+	/* Command line options */
+	static const char *shortopts = "hvs:";
+/*	static const struct option longopts[] = {
+		{"help",	0, NULL, 'h'},
+		{"version",	0, NULL, 'v'},
+		{"socket",	1, NULL, 's'},
+		{NULL,		0, NULL, 0}
+	};
+*/
+	/* Parse command line options */
+	optind = 0;
+	while(1) {
+		int opt;
+/*		opt = getopt_long(argc, argv, shortopts, longopts, NULL); */
+		opt = getopt(argc, argv, shortopts);
+		if (-1 == opt)
+			break;
+		switch (opt) {
+		case 's':
+			socket_path = optarg;
+			break;
+		case 'h':
+			help(0, argv[0]);
+			exit(0);
+			break;
+		case 'v':
+			version();
+			exit(0);
+			break;
+		default:
+			help(-1, argv[0]);
+			exit(-1);
+			break;
+		}
+	}
 
 	/* Set signal handler */
 	sigemptyset(&sig_set);
@@ -88,9 +133,9 @@ int main(int argc, char **argv)
 */		return -1;
 	}
 
-	unlink(KONFD_SOCKET_PATH);
+	unlink(socket_path);
 	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, KONFD_SOCKET_PATH, UNIX_PATH_MAX);
+	strncpy(laddr.sun_path, socket_path, UNIX_PATH_MAX);
 	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
 	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
 		fprintf(stderr, "Can't bind()\n");
@@ -176,6 +221,7 @@ int main(int argc, char **argv)
 	return retval;
 }
 
+/*--------------------------------------------------------- */
 static char * process_query(int sock, konf_tree_t * conf, char *str)
 {
 	unsigned i;
@@ -186,6 +232,10 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	char *retval = NULL;
 	konf_query_op_t ret;
 
+#ifdef DEBUG
+	fprintf(stderr, "----------------------\n");
+	fprintf(stderr, "REQUEST: %s\n", str);
+#endif
 	/* Parse query */
 	query = konf_query_new();
 	res = konf_query_parse_str(query, str);
@@ -194,8 +244,6 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		return NULL;
 	}
 #ifdef DEBUG
-	fprintf(stderr, "----------------------\n");
-	fprintf(stderr, "REQUEST: %s\n", str);
 	konf_query_dump(query);
 #endif
 
@@ -285,6 +333,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	return retval;
 }
 
+/*--------------------------------------------------------- */
 /*
  * Signal handler for temination signals (like SIGTERM, SIGINT, ...)
  */
@@ -293,11 +342,13 @@ static void sighandler(int signo)
 	sigterm = 1;
 }
 
+/*--------------------------------------------------------- */
 int answer_send(int sock, char *command)
 {
 	return send(sock, command, strlen(command) + 1, MSG_NOSIGNAL);
 }
 
+/*--------------------------------------------------------- */
 static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 {
 	FILE *fd;
@@ -336,4 +387,40 @@ static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 	return 0;
 }
 
+/*--------------------------------------------------------- */
+/* Print help message */
+static void help(int status, const char *argv0)
+{
+	const char *name = NULL;
 
+	if (!argv0)
+		return;
+
+	/* Find the basename */
+	name = strrchr(argv0, '/');
+	if (name)
+		name++;
+	else
+		name = argv0;
+
+	if (status != 0) {
+		fprintf(stderr, "Try `%s -h' for more information.\n",
+			name);
+	} else {
+		printf("Usage: %s [options]\n", name);
+		printf("Daemon to store user configuration (i.e. commands). "
+			"The part of the klish project.\n");
+		printf("Options:\n");
+		printf("\t-v --version\t\tPrint version.\n");
+		printf("\t-h --help\t\tPrint this help.\n");
+		printf("\t-s --socket <path>\tSpecify the UNIX socket "
+			"filesystem path to listen on.\n");
+	}
+}
+
+/*--------------------------------------------------------- */
+/* Print version */
+static void version(void)
+{
+	printf("%u.%u.%u\n", VER_MAJ, VER_MIN, VER_BUG);
+}

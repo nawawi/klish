@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 	static const char *shortopts = "hvs:";
 /*	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
+		{"version",	0, NULL, 'v'},
 		{"socket",	1, NULL, 's'},
 		{NULL,		0, NULL, 0}
 	};
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
 	}
 
 	if (konf_client_recv_answer(client, &buf) < 0) {
-		fprintf(stderr, "Can't get answer from the config daemon.\n");
+		fprintf(stderr, "The error while request to the konfd daemon.\n");
 	}
 
 	if (buf) {

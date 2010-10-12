@@ -139,7 +139,7 @@ bool_t clish_config_callback(const clish_shell_t * this,
 		fprintf(stderr, "Cannot write to the running-config.\n");
 	}
 	if (konf_client_recv_answer(client, &buf) < 0) {
-		fprintf(stderr, "Cannot get answer from config daemon.\n");
+		fprintf(stderr, "The error while request to the config daemon.\n");
 	}
 	lub_string_free(command);
 
