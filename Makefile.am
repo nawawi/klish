@@ -8,7 +8,7 @@ if DEBUG
   DEBUG_CFLAGS = -DDEBUG
 endif
 
-AM_CFLAGS               = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 $(DEBUG_CFLAGS)
+AM_CFLAGS               = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 -DVERSION=$(VERSION) $(DEBUG_CFLAGS)
 
 bin_PROGRAMS            =
 lib_LTLIBRARIES         =

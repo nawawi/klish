@@ -25,9 +25,11 @@
 #include "lub/argv.h"
 #include "lub/string.h"
 
-#define VER_MAJ 1
-#define VER_MIN 2
-#define VER_BUG 2
+#ifndef VERSION
+#define VERSION 1.2.2
+#endif
+#define QUOTE(t) #t
+#define version(v) printf("%s\n", QUOTE(v))
 
 #define KONFD_CONFIG_PATH "/tmp/running-config"
 
@@ -42,7 +44,6 @@
 static volatile int sigterm = 0;
 static void sighandler(int signo);
 
-static void version(void);
 static void help(int status, const char *argv0);
 static char * process_query(int sock, konf_tree_t * conf, char *str);
 int answer_send(int sock, char *command);
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
 			exit(0);
 			break;
 		case 'v':
-			version();
+			version(VERSION);
 			exit(0);
 			break;
 		default:
@@ -416,11 +417,4 @@ static void help(int status, const char *argv0)
 		printf("\t-s --socket <path>\tSpecify the UNIX socket "
 			"filesystem path to listen on.\n");
 	}
-}
-
-/*--------------------------------------------------------- */
-/* Print version */
-static void version(void)
-{
-	printf("%u.%u.%u\n", VER_MAJ, VER_MIN, VER_BUG);
 }

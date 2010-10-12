@@ -20,11 +20,12 @@
 #endif
 #define MAXMSG 1024
 
-#define VER_MAJ 1
-#define VER_MIN 2
-#define VER_BUG 2
+#ifndef VERSION
+#define VERSION 1.2.2
+#endif
+#define QUOTE(t) #t
+#define version(v) printf("%s\n", QUOTE(v))
 
-static void version(void);
 static void help(int status, const char *argv0);
 
 static const char *escape_chars = "\"\\'";
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
 			exit(0);
 			break;
 		case 'v':
-			version();
+			version(VERSION);
 			exit(0);
 			break;
 		default:
@@ -166,11 +167,4 @@ static void help(int status, const char *argv0)
 		printf("\t-s --socket <path>\tSpecify listen socket "
 			"of the konfd daemon.\n");
 	}
-}
-
-/*--------------------------------------------------------- */
-/* Print version */
-static void version(void)
-{
-	printf("%u.%u.%u\n", VER_MAJ, VER_MIN, VER_BUG);
 }

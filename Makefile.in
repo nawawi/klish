@@ -677,7 +677,7 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 AM_CPPFLAGS = -I. -I$(top_srcdir)
 AM_LD = $(CXX)
 @DEBUG_TRUE@DEBUG_CFLAGS = -DDEBUG
-AM_CFLAGS = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 $(DEBUG_CFLAGS)
+AM_CFLAGS = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 -DVERSION=$(VERSION) $(DEBUG_CFLAGS)
 lib_LTLIBRARIES = libclish.la liblub.la $(am__append_3) libtinyrl.la \
 	libtinyxml.la libkonf.la
 lib_LIBRARIES = 
