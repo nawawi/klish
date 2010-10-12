@@ -1,5 +1,5 @@
 /*
- * conf.h
+ * konf/tree/private.h
  */
 #ifndef _konf_tree_private_h
 #define _konf_tree_private_h

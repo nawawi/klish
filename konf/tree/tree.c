@@ -185,6 +185,7 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		regfree(&regexp);
 }
 
+/*-------------------------------------------------------- */
 static int normalize_seq(konf_tree_t * this, unsigned short priority)
 {
 	unsigned short cnt = 1;

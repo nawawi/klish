@@ -96,89 +96,51 @@ void konf_buf_delete(konf_buf_t * this)
 }
 
 /*--------------------------------------------------------- */
-konf_buf_t *konf_buftree_find(lub_bintree_t * this,
-	int sock)
-{
-	lub_bintree_key_t key;
-
-	konf_buf_key(&key, sock);
-
-	return lub_bintree_find(this, &key);
-}
-
-/*--------------------------------------------------------- */
-void konf_buftree_remove(lub_bintree_t * this,
-	int sock)
-{
-	konf_buf_t *tbuf;
-
-	if ((tbuf = konf_buftree_find(this, sock)) == NULL)
-		return;
-
-	lub_bintree_remove(this, tbuf);
-	konf_buf_delete(tbuf);
-}
-
-
-/*--------------------------------------------------------- */
-static int konf_buf_realloc(konf_buf_t *buf, int addsize)
+static int konf_buf_realloc(konf_buf_t *this, int addsize)
 {
 	int chunk = KONF_BUF_CHUNK;
 	char *tmpbuf;
 
 	if (addsize > chunk)
 		chunk = addsize;
-	if ((buf->size - buf->pos) < chunk) {
-		tmpbuf = realloc(buf->buf, buf->size + chunk);
-		buf->buf = tmpbuf;
-		buf->size += chunk;
+	if ((this->size - this->pos) < chunk) {
+		tmpbuf = realloc(this->buf, this->size + chunk);
+		this->buf = tmpbuf;
+		this->size += chunk;
 	}
 
-	return buf->size;
+	return this->size;
 }
 
 /*--------------------------------------------------------- */
-int konf_buf_add(konf_buf_t *buf, void *str, size_t len)
+int konf_buf_add(konf_buf_t *this, void *str, size_t len)
 {
 	char *buffer;
 
-	konf_buf_realloc(buf, len);
-	buffer = buf->buf + buf->pos;
+	konf_buf_realloc(this, len);
+	buffer = this->buf + this->pos;
 	memcpy(buffer, str, len);
-	buf->pos += len;
+	this->pos += len;
 
 	return len;
 }
 
 /*--------------------------------------------------------- */
-int konf_buf_read(konf_buf_t *buf)
+int konf_buf_read(konf_buf_t *this)
 {
 	char *buffer;
 	int buffer_size;
 	int nbytes;
 
-	konf_buf_realloc(buf, 0);
-	buffer_size = buf->size - buf->pos;
-	buffer = buf->buf + buf->pos;
+	konf_buf_realloc(this, 0);
+	buffer_size = this->size - this->pos;
+	buffer = this->buf + this->pos;
 
-	nbytes = read(buf->sock, buffer, buffer_size);
+	nbytes = read(this->sock, buffer, buffer_size);
 	if (nbytes > 0)
-		buf->pos += nbytes;
+		this->pos += nbytes;
 
 	return nbytes;
-}
-
-/*--------------------------------------------------------- */
-int konf_buftree_read(lub_bintree_t * this,
-	int sock)
-{
-	konf_buf_t *buf;
-
-	buf = konf_buftree_find(this, sock);
-	if (!buf)
-		return -1;
-
-	return konf_buf_read(buf);
 }
 
 /*--------------------------------------------------------- */
@@ -203,56 +165,109 @@ char * konf_buf_string(char *buf, int len)
 }
 
 /*--------------------------------------------------------- */
-char * konf_buf_parse(konf_buf_t *buf)
+char * konf_buf_parse(konf_buf_t *this)
 {
 	char * str = NULL;
 
 	/* Search the buffer for the string */
-	str = konf_buf_string(buf->buf, buf->pos);
+	str = konf_buf_string(this->buf, this->pos);
 
 	/* Remove parsed string from the buffer */
 	if (str) {
 		int len = strlen(str) + 1;
-		memmove(buf->buf, &buf->buf[len], buf->pos - len);
-		buf->pos -= len;
-		if (buf->rpos >= len)
-			buf->rpos -= len;
+		memmove(this->buf, &this->buf[len], this->pos - len);
+		this->pos -= len;
+		if (this->rpos >= len)
+			this->rpos -= len;
 		else
-			buf->rpos = 0;
+			this->rpos = 0;
 	}
 
 	/* Make buffer shorter */
-	if ((buf->size - buf->pos) > (2 * KONF_BUF_CHUNK)) {
+	if ((this->size - this->pos) > (2 * KONF_BUF_CHUNK)) {
 		char *tmpbuf;
-		tmpbuf = realloc(buf->buf, buf->size - KONF_BUF_CHUNK);
-		buf->buf = tmpbuf;
-		buf->size -= KONF_BUF_CHUNK;
+		tmpbuf = realloc(this->buf, this->size - KONF_BUF_CHUNK);
+		this->buf = tmpbuf;
+		this->size -= KONF_BUF_CHUNK;
 	}
 
 	return str;
 }
 
 /*--------------------------------------------------------- */
-char * konf_buf_preparse(konf_buf_t *buf)
+char * konf_buf_preparse(konf_buf_t *this)
 {
 	char * str = NULL;
 
-	str = konf_buf_string(buf->buf + buf->rpos, buf->pos - buf->rpos);
+	str = konf_buf_string(this->buf + this->rpos, this->pos - this->rpos);
 	if (str)
-		buf->rpos += (strlen(str) + 1);
+		this->rpos += (strlen(str) + 1);
 
 	return str;
 }
 
 /*--------------------------------------------------------- */
-int konf_buf_lseek(konf_buf_t *buf, int newpos)
+int konf_buf_lseek(konf_buf_t *this, int newpos)
 {
-	if (newpos > buf->pos)
+	if (newpos > this->pos)
 		return -1;
-	buf->rpos = newpos;
+	this->rpos = newpos;
 
 	return newpos;
 }
+
+/*--------------------------------------------------------- */
+int konf_buf__get_sock(const konf_buf_t * this)
+{
+	return this->sock;
+}
+
+/*--------------------------------------------------------- */
+int konf_buf__get_len(const konf_buf_t *this)
+{
+	return this->pos;
+}
+
+/*---------------------------------------------------------
+ * buftree functions
+ *--------------------------------------------------------- */
+
+/*--------------------------------------------------------- */
+konf_buf_t *konf_buftree_find(lub_bintree_t * this,
+	int sock)
+{
+	lub_bintree_key_t key;
+
+	konf_buf_key(&key, sock);
+
+	return lub_bintree_find(this, &key);
+}
+
+/*--------------------------------------------------------- */
+void konf_buftree_remove(lub_bintree_t * this,
+	int sock)
+{
+	konf_buf_t *tbuf;
+
+	if ((tbuf = konf_buftree_find(this, sock)) == NULL)
+		return;
+
+	lub_bintree_remove(this, tbuf);
+	konf_buf_delete(tbuf);
+}
+
+/*--------------------------------------------------------- */
+int konf_buftree_read(lub_bintree_t * this, int sock)
+{
+	konf_buf_t *buf;
+
+	buf = konf_buftree_find(this, sock);
+	if (!buf)
+		return -1;
+
+	return konf_buf_read(buf);
+}
+
 
 /*--------------------------------------------------------- */
 char * konf_buftree_parse(lub_bintree_t * this,
@@ -266,15 +281,3 @@ char * konf_buftree_parse(lub_bintree_t * this,
 
 	return konf_buf_parse(buf);
 }
-
-/*--------------------------------------------------------- */
-int konf_buf__get_sock(const konf_buf_t * this)
-{
-	return this->sock;
-}
-
-int konf_buf__get_len(const konf_buf_t *this)
-{
-	return this->pos;
-}
-
