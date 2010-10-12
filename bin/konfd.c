@@ -412,9 +412,9 @@ static void help(int status, const char *argv0)
 		printf("Daemon to store user configuration (i.e. commands). "
 			"The part of the klish project.\n");
 		printf("Options:\n");
-		printf("\t-v --version\t\tPrint version.\n");
-		printf("\t-h --help\t\tPrint this help.\n");
-		printf("\t-s --socket <path>\tSpecify the UNIX socket "
+		printf("\t-v, --version\tPrint version.\n");
+		printf("\t-h, --help\tPrint this help.\n");
+		printf("\t-s <path>, --socket=<path>\tSpecify the UNIX socket "
 			"filesystem path to listen on.\n");
 	}
 }

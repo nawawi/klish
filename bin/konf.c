@@ -162,9 +162,9 @@ static void help(int status, const char *argv0)
 		printf("Utility for communication to the konfd "
 			"configuration daemon.\n");
 		printf("Options:\n");
-		printf("\t-v --version\t\tPrint utility version.\n");
-		printf("\t-h --help\t\tPrint this help.\n");
-		printf("\t-s --socket <path>\tSpecify listen socket "
+		printf("\t-v, --version\tPrint utility version.\n");
+		printf("\t-h, --help\tPrint this help.\n");
+		printf("\t-s <path>, --socket=<path>\tSpecify listen socket "
 			"of the konfd daemon.\n");
 	}
 }
