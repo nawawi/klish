@@ -26,8 +26,6 @@
 
 static void version(void);
 static void help(int status, const char *argv0);
-static int receive_answer(konf_client_t * client, konf_buf_t **data);
-static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data);
 
 static const char *escape_chars = "\"\\'";
 
@@ -113,7 +111,7 @@ int main(int argc, char **argv)
 		goto err;
 	}
 
-	if (receive_answer(client, &buf) < 0) {
+	if (konf_client_recv_answer(client, &buf) < 0) {
 		fprintf(stderr, "Can't get answer from the config daemon.\n");
 	}
 
@@ -134,93 +132,6 @@ int main(int argc, char **argv)
 err:
 	lub_string_free(line);
 	konf_client_free(client);
-
-	return res;
-}
-
-/*--------------------------------------------------------- */
-static int receive_answer(konf_client_t * client, konf_buf_t **data)
-{
-	konf_buf_t *buf;
-	int nbytes;
-	char *str;
-	int retval = 0;
-	int processed = 0;
-
-	if ((konf_client_connect(client) < 0))
-		return -1;
-
-	buf = konf_buf_new(konf_client__get_sock(client));
-	while ((!processed) && (nbytes = konf_buf_read(buf)) > 0) {
-		while ((str = konf_buf_parse(buf))) {
-			konf_buf_t *tmpdata = NULL;
-			retval = process_answer(client, str, buf, &tmpdata);
-			lub_string_free(str);
-			if (retval < 0) {
-				konf_buf_delete(buf);
-				return retval;
-			}
-			if (retval == 0)
-				processed = 1;
-			if (tmpdata) {
-				if (*data)
-					konf_buf_delete(*data);
-				*data = tmpdata;
-			}
-		}
-	}
-	konf_buf_delete(buf);
-
-	return retval;
-}
-
-/*--------------------------------------------------------- */
-static int process_answer(konf_client_t * client, char *str, konf_buf_t *buf, konf_buf_t **data)
-{
-	int res;
-	konf_query_t *query;
-
-	/* Parse query */
-	query = konf_query_new();
-	res = konf_query_parse_str(query, str);
-	if (res < 0) {
-		konf_query_free(query);
-#ifdef DEBUG
-		fprintf(stderr, "CONFIG error: Cannot parse answer string.\n");
-#endif
-		return -1;
-	}
-
-#ifdef DEBUG
-	fprintf(stderr, "ANSWER: %s\n", str);
-/*	konf_query_dump(query);
-*/
-#endif
-
-	switch (konf_query__get_op(query)) {
-
-	case KONF_QUERY_OP_OK:
-		res = 0;
-		break;
-
-	case KONF_QUERY_OP_ERROR:
-		res = -1;
-		break;
-
-	case KONF_QUERY_OP_STREAM:
-		if (!(*data = konf_client_recv_data(client, buf)))
-			res = -1;
-		else
-			res = 1; /* wait for another answer */
-		break;
-
-	default:
-		res = -1;
-		break;
-	}
-
-	/* Free resources */
-	konf_query_free(query);
 
 	return res;
 }
