@@ -16,6 +16,20 @@
     <xs:element name="PARAM" type="param_t"/>
     <xs:element name="NAMESPACE" type="namespace_t"/>
     <xs:element name="CONFIG" type="config_t"/>
+
+
+    <!--
+*********************************************************** 
+* The common simple types
+*********************************************************** 
+-->
+    <xs:simpleType name="bool_t">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="true"/>
+            <xs:enumeration value="false"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <!--
 *********************************************************** 
 * <CLISH_MODULE> is the top level container.
@@ -189,6 +203,8 @@
 *                parameter. If the "args" attribute is given then this MUST be
 *                given also.
 *
+* [lock]         - the boolean field that specify to lock lockfile while
+*                command execution or not. Default is true.
 *
 ********************************************************
 -->
@@ -206,6 +222,7 @@
         <xs:attribute name="args" type="xs:string" use="optional"/>
         <xs:attribute name="args_help" type="xs:string" use="optional"/>
         <xs:attribute name="escape_chars" type="xs:string" use="optional"/>
+        <xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
     </xs:complexType>
     <!--
 *******************************************************
@@ -250,12 +267,6 @@
 *           is "true" and "false".
 ********************************************************
     -->
-    <xs:simpleType name="bool_t">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="true"/>
-            <xs:enumeration value="false"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:simpleType name="param_mode_t">
         <xs:restriction base="xs:string">

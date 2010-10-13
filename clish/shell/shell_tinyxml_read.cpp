@@ -203,6 +203,7 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *escape_chars = element->Attribute("escape_chars");
 		const char *args_name = element->Attribute("args");
 		const char *args_help = element->Attribute("args_help");
+		const char *lock = element->Attribute("lock");
 
 		clish_command_t *old = clish_view_find_command(v, name, BOOL_FALSE);
 
@@ -253,6 +254,12 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			if (NULL != viewid) {
 				clish_command__set_viewid(cmd, viewid);
 			}
+			/* lock field */
+			if (lock && (lub_string_nocasecmp(lock, "false") == 0))
+				clish_command__set_lock(cmd, BOOL_FALSE);
+			else
+				clish_command__set_lock(cmd, BOOL_TRUE);
+
 			process_children(shell, element, cmd);
 		}
 	}
@@ -280,6 +287,7 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "startup", NULL);
+	clish_command__set_lock(cmd, BOOL_FALSE);
 
 	// define the view which this command changes to
 	clish_view_t *next = clish_shell_find_create_view(shell, view, NULL);

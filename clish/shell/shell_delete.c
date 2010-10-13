@@ -63,6 +63,8 @@ static void clish_shell_fini(clish_shell_t * this)
 	/* Free internal params */
 	clish_param_delete(this->param_depth);
 	clish_param_delete(this->param_pwd);
+
+	lub_string_free(this->lockfile);
 }
 
 /*--------------------------------------------------------- */

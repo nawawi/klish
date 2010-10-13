@@ -161,7 +161,7 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 			fprintf(stream, "!\n");
 		fprintf(stream, "%s", space ? space : "");
 		if (seq && (konf_tree__get_seq_num(this) != 0))
-			fprintf(stream, "%02u ", konf_tree__get_seq_num(this));
+			fprintf(stream, "%u ", konf_tree__get_seq_num(this));
 		fprintf(stream, "%s\n", this->line);
 		free(space);
 	}

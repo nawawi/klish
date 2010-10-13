@@ -7,9 +7,12 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 
 /*
  * These are the internal commands for this framework.
@@ -195,6 +198,8 @@ clish_shell_execute(clish_shell_t * this,
 	bool_t result = BOOL_TRUE;
 	const char *builtin;
 	char *script;
+	char *lock_path = clish_shell__get_lockfile(this);
+	int lock_fd = -1;
 
 	assert(NULL != cmd);
 
@@ -224,12 +229,43 @@ clish_shell_execute(clish_shell_t * this,
 		}
 	}
 
-	/* Execute action */
+	/* Lock the lockfile */
+	if (lock_path && clish_command__get_lock(cmd)) {
+		int i;
+		int res;
+		lock_fd = open(lock_path, O_RDONLY | O_CREAT, 00644);
+		if (-1 == lock_fd) {
+			fprintf(stderr, "Can't open lockfile %s.\n",
+				lock_path);
+			return BOOL_FALSE; /* can't open file */
+		}
+		for (i = 0; i < CLISH_LOCK_WAIT; i++) {
+			res = flock(lock_fd, LOCK_EX | LOCK_NB);
+			if (!res)
+				break;
+			if ((EBADF == errno) ||
+				(EINVAL == errno) ||
+				(ENOLCK == errno))
+				break;
+			if (EINTR == errno)
+				continue;
+			if (0 == i)
+				fprintf(stderr,
+					"Try to get lock. Please wait...\n");
+			sleep(1);
+		}
+		if (res) {
+			fprintf(stderr, "Can't get lock.\n");
+			return BOOL_FALSE; /* can't get the lock */
+		}
+	}
+
+	/* Execute ACTION */
 	builtin = clish_command__get_builtin(cmd);
 	script = clish_command__get_action(cmd, this->viewid, *pargv);
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
-			     script);
+		script);
 	if (NULL != builtin) {
 		clish_shell_builtin_fn_t *callback;
 		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
@@ -259,18 +295,21 @@ clish_shell_execute(clish_shell_t * this,
 	}
 	pthread_cleanup_pop(1);
 
+	/* Call config callback */
+	if ((BOOL_TRUE == result) && this->client_hooks->config_fn)
+		this->client_hooks->config_fn(this, cmd, *pargv);
+
+	/* Unlock the lockfile */
+	if (lock_fd != -1) {
+		flock(lock_fd, LOCK_UN);
+		close(lock_fd);
+	}
+
+	/* Move into the new view */
 	if (BOOL_TRUE == result) {
-		clish_view_t *view = NULL;
-		char *viewid = NULL;
-
-		/* Now get the client to config operations */
-		if (this->client_hooks->config_fn)
-			this->client_hooks->config_fn(this, cmd, *pargv);
-
-		/* Move into the new view */
-		view = clish_command__get_view(cmd);
-		viewid = clish_command__get_viewid(cmd, this->viewid, *pargv);
-
+		clish_view_t *view = clish_command__get_view(cmd);
+		char *viewid = clish_command__get_viewid(cmd,
+			this->viewid, *pargv);
 		if (NULL != view) {
 			/* Save the current config PWD */
 			char *line = clish_variable__get_line(cmd, *pargv);
@@ -287,10 +326,12 @@ clish_shell_execute(clish_shell_t * this,
 			this->viewid = viewid;
 		}
 	}
+
 	if (NULL != *pargv) {
 		clish_pargv_delete(*pargv);
 		*pargv = NULL;
 	}
+
 	return result;
 }
 

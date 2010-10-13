@@ -20,6 +20,7 @@ struct clish_command_s {
 	clish_param_t *args;
 	const struct clish_command_s * link;
 	clish_view_t *pview;
+	bool_t lock;
 
 	/* CONFIG params:
 	 * TODO: create special structure for CONFIG params.

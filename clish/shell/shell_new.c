@@ -5,6 +5,9 @@
 
 #include <assert.h>
 #include <stdlib.h>
+
+#include "lub/string.h"
+
 /*-------------------------------------------------------- */
 static void
 clish_shell_init(clish_shell_t * this,
@@ -41,6 +44,7 @@ clish_shell_init(clish_shell_t * this,
 	this->cfg_pwdc = 0;
 	this->client = konf_client_new(KONFD_SOCKET_PATH);
 	this->completion_pargv = NULL;
+	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 
 	/* Create internal ptypes and params */
 	/* Current depth */

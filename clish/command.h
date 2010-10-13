@@ -103,5 +103,7 @@ const clish_command_t * clish_command__get_orig(const clish_command_t * instance
 void clish_command__set_cfg_depth(clish_command_t * instance, const char * cfg_depth);
 unsigned clish_command__get_cfg_depth(const clish_command_t * instance,
 	const char *viewid, clish_pargv_t * pargv);
+bool_t clish_command__get_lock(const clish_command_t * instance);
+void clish_command__set_lock(clish_command_t * instance, bool_t lock);
 
 #endif				/* _clish_command_h */

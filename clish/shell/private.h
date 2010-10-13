@@ -79,6 +79,7 @@ struct clish_shell_s {
 	unsigned completion_pindex;
 	clish_param_t *param_depth;
 	clish_param_t *param_pwd;
+	char * lockfile;
 };
 
 /**

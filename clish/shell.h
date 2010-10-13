@@ -24,6 +24,9 @@
 #include "view.h"
 #include "konf/net.h"
 
+#define CLISH_LOCK_PATH "/tmp/clish.lock"
+#define CLISH_LOCK_WAIT 20
+
 _BEGIN_C_DECL typedef struct clish_shell_s clish_shell_t;
 
 /*=====================================
@@ -330,6 +333,8 @@ char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 FILE *clish_shell__get_istream(const clish_shell_t * instance);
 FILE *clish_shell__get_ostream(const clish_shell_t * instance);
+void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
+char * clish_shell__get_lockfile(clish_shell_t * instance);
 
 /* Context */
 typedef struct clish_context_s clish_context_t;

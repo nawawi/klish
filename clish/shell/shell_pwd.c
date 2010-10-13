@@ -44,6 +44,7 @@ clish_shell__set_pwd(clish_shell_t * this, unsigned index,
 	this->cfg_pwdv[index]->viewid = viewid ? lub_string_dup(viewid) : NULL;
 }
 
+/*--------------------------------------------------------- */
 char *clish_shell__get_pwd_line(const clish_shell_t * this, unsigned index)
 {
 	if (index >= this->cfg_pwdc)
@@ -52,6 +53,7 @@ char *clish_shell__get_pwd_line(const clish_shell_t * this, unsigned index)
 	return this->cfg_pwdv[index]->line;
 }
 
+/*--------------------------------------------------------- */
 char *clish_shell__get_pwd_full(const clish_shell_t * this, unsigned depth)
 {
 	char *pwd = NULL;
@@ -75,7 +77,7 @@ char *clish_shell__get_pwd_full(const clish_shell_t * this, unsigned depth)
 	return pwd;
 }
 
-
+/*--------------------------------------------------------- */
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned index)
 {
 	if (index >= this->cfg_pwdc)
@@ -84,6 +86,7 @@ clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned ind
 	return this->cfg_pwdv[index]->view;
 }
 
+/*--------------------------------------------------------- */
 char *clish_shell__get_pwd_viewid(const clish_shell_t * this, unsigned index)
 {
 	if (index >= this->cfg_pwdc)
@@ -92,7 +95,29 @@ char *clish_shell__get_pwd_viewid(const clish_shell_t * this, unsigned index)
 	return this->cfg_pwdv[index]->viewid;
 }
 
+/*--------------------------------------------------------- */
 konf_client_t *clish_shell__get_client(const clish_shell_t * this)
 {
 	return this->client;
+}
+
+/*--------------------------------------------------------- */
+void clish_shell__set_lockfile(clish_shell_t * this, const char * path)
+{
+	if (!this)
+		return;
+
+	lub_string_free(this->lockfile);
+	this->lockfile = NULL;
+	if (path)
+		this->lockfile = lub_string_dup(path);
+}
+
+/*--------------------------------------------------------- */
+char * clish_shell__get_lockfile(clish_shell_t * this)
+{
+	if (!this)
+		return NULL;
+
+	return this->lockfile;
 }

@@ -37,6 +37,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->escape_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
+	this->lock = BOOL_TRUE;
 
 	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
@@ -587,4 +588,16 @@ unsigned clish_command__get_cfg_depth(const clish_command_t * this,
 	lub_string_free(str);
 
 	return num;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_command__get_lock(const clish_command_t * this)
+{
+	return this->lock;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_lock(clish_command_t * this, bool_t lock)
+{
+	this->lock = lock;
 }
