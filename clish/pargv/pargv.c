@@ -19,6 +19,9 @@ static clish_parg_t *find_parg(clish_pargv_t * this, const char *name)
 	unsigned i;
 	clish_parg_t *result = NULL;
 
+	if (!this || !name)
+		return NULL;
+
 	/* scan the parameters in this instance */
 	for (i = 0; i < this->pargc; i++) {
 		clish_parg_t *parg = this->pargv[i];
@@ -33,10 +36,12 @@ static clish_parg_t *find_parg(clish_pargv_t * this, const char *name)
 }
 
 /*--------------------------------------------------------- */
-void
-clish_pargv_insert(clish_pargv_t * this,
-		   const clish_param_t * param, const char *value)
+int clish_pargv_insert(clish_pargv_t * this,
+	const clish_param_t * param, const char *value)
 {
+	if (!this || !value || !param)
+		return -1;
+
 	clish_parg_t *parg = find_parg(this, clish_param__get_name(param));
 
 	if (NULL != parg) {
@@ -79,7 +84,6 @@ static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 				/* insert the empty default */
 				clish_pargv_insert(this, param, defval);
 			}
-
 		}
 	}
 }
@@ -331,41 +335,43 @@ clish_pargv_init(clish_pargv_t * this,
 /*--------------------------------------------------------- */
 clish_pargv_t *clish_pargv_create(void)
 {
-	clish_pargv_t *tmp;
+	clish_pargv_t *this;
 
-	tmp = malloc(sizeof(clish_pargv_t));
-	tmp->pargc = 0;
-	tmp->pargv = NULL;
+	this = malloc(sizeof(clish_pargv_t));
+	this->pargc = 0;
+	this->pargv = NULL;
 
-	return tmp;
+	return this;
 }
 
 /*--------------------------------------------------------- */
 clish_pargv_t *clish_pargv_new(const clish_command_t * cmd,
-			       const char *line,
-			       size_t offset, clish_pargv_status_t * status)
+	const char *line, size_t offset, clish_pargv_status_t * status)
 {
-	clish_pargv_t *this;
-	lub_argv_t *argv = lub_argv_new(line, offset);
+	clish_pargv_t *this = NULL;
+	lub_argv_t *argv = NULL;
+
+	if (!cmd || !line)
+		return NULL;
 
 	this = clish_pargv_create();
-	if (NULL != this) {
-		*status = clish_pargv_init(this, cmd, argv);
-		switch (*status) {
-		case CLISH_LINE_OK:
-			break;
-		case CLISH_BAD_CMD:
-		case CLISH_BAD_PARAM:
-		case CLISH_BAD_HISTORY:
-			/* commit suicide */
-			clish_pargv_delete(this);
-			this = NULL;
-			break;
-		}
-	}
+	if (!this)
+		return NULL;
 
-	/* cleanup */
+	argv = lub_argv_new(line, offset);
+	*status = clish_pargv_init(this, cmd, argv);
 	lub_argv_delete(argv);
+	switch (*status) {
+	case CLISH_LINE_OK:
+		break;
+	case CLISH_BAD_CMD:
+	case CLISH_BAD_PARAM:
+	case CLISH_BAD_HISTORY:
+		/* commit suicide */
+		clish_pargv_delete(this);
+		this = NULL;
+		break;
+	}
 
 	return this;
 }
@@ -387,6 +393,9 @@ static void clish_pargv_fini(clish_pargv_t * this)
 /*--------------------------------------------------------- */
 void clish_pargv_delete(clish_pargv_t * this)
 {
+	if (!this)
+		return;
+
 	clish_pargv_fini(this);
 	free(this);
 }
@@ -394,12 +403,16 @@ void clish_pargv_delete(clish_pargv_t * this)
 /*--------------------------------------------------------- */
 unsigned clish_pargv__get_count(clish_pargv_t * this)
 {
+	if (!this)
+		return 0;
 	return this->pargc;
 }
 
 /*--------------------------------------------------------- */
 clish_parg_t *clish_pargv__get_parg(clish_pargv_t * this, unsigned index)
 {
+	if (!this)
+		return NULL;
 	if (index > this->pargc)
 		return NULL;
 	return this->pargv[index];
@@ -407,10 +420,12 @@ clish_parg_t *clish_pargv__get_parg(clish_pargv_t * this, unsigned index)
 
 /*--------------------------------------------------------- */
 const clish_param_t *clish_pargv__get_param(clish_pargv_t * this,
-					    unsigned index)
+	unsigned index)
 {
 	clish_parg_t *tmp;
 
+	if (!this)
+		return NULL;
 	if (index >= this->pargc)
 		return NULL;
 	tmp = this->pargv[index];
@@ -420,24 +435,32 @@ const clish_param_t *clish_pargv__get_param(clish_pargv_t * this,
 /*--------------------------------------------------------- */
 const char *clish_parg__get_value(const clish_parg_t * this)
 {
+	if (!this)
+		return NULL;
 	return this->value;
 }
 
 /*--------------------------------------------------------- */
 const char *clish_parg__get_name(const clish_parg_t * this)
 {
+	if (!this)
+		return NULL;
 	return clish_param__get_name(this->param);
 }
 
 /*--------------------------------------------------------- */
 const clish_ptype_t *clish_parg__get_ptype(const clish_parg_t * this)
 {
+	if (!this)
+		return NULL;
 	return clish_param__get_ptype(this->param);
 }
 
 /*--------------------------------------------------------- */
 const clish_parg_t *clish_pargv_find_arg(clish_pargv_t * this, const char *name)
 {
+	if (!this)
+		return NULL;
 	return find_parg(this, name);
 }
 
