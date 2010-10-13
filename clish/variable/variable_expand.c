@@ -304,3 +304,17 @@ char *clish_variable__get_line(const clish_command_t * cmd, clish_pargv_t * parg
 }
 
 /*--------------------------------------------------------- */
+char *clish_variable__get_value(const char *name, const char *viewid,
+	const clish_command_t * cmd, clish_pargv_t * pargv)
+{
+	context_t context;
+
+	/* setup the context */
+	context.viewid = viewid;
+	context.cmd = cmd;
+	context.pargv = pargv;
+
+	return context_retrieve(&context, name);
+}
+
+/*--------------------------------------------------------- */
