@@ -14,7 +14,7 @@
  * This is a security feature to prevent users from arbitarily setting
  * parameters to contain special sequences.
  */
-static const char *default_escape_chars = "`|$<>&()#";
+static const char *default_escape_chars = "`|$<>&()#;";
 
 /*--------------------------------------------------------- */
 char *
