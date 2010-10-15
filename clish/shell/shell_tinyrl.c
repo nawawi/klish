@@ -357,7 +357,7 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-static bool_t shell_readline(clish_shell_t * this, const char *prompt,
+bool_t clish_shell_line(clish_shell_t * this, const char *prompt,
 	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str)
 {
 	char *line = NULL;
@@ -398,17 +398,55 @@ static bool_t shell_readline(clish_shell_t * this, const char *prompt,
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_readline(clish_shell_t * this, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv)
+bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 {
-	return shell_readline(this, prompt, cmd, pargv, NULL);
+	const clish_command_t *cmd;
+	char *prompt = NULL;
+	clish_pargv_t *pargv = NULL;
+	const clish_view_t *view;
+	bool_t running = BOOL_TRUE;
+
+	if (!this)
+		return BOOL_FALSE;
+
+	/* obtain the prompt */
+	view = clish_shell__get_view(this);
+	assert(view);
+
+	prompt = clish_view__get_prompt(view,
+		clish_shell__get_viewid(this));
+	assert(prompt);
+
+	if (line) {
+		/* push the specified line */
+		running = clish_shell_line(this, prompt,
+			&cmd, &pargv, line);
+	} else {
+		running = clish_shell_line(this, prompt,
+			&cmd, &pargv, NULL);
+	}
+	lub_string_free(prompt);
+
+	/* execute the provided command */
+	if (running && cmd && pargv)
+		running = clish_shell_execute(this, cmd, pargv);
+
+	if (NULL != pargv)
+		clish_pargv_delete(pargv);
+
+	return running;
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_forceline(clish_shell_t * this, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str)
+bool_t clish_shell_forceline(clish_shell_t *this, const char *line)
 {
-	return shell_readline(this, prompt, cmd, pargv, str);
+	return clish_shell_execline(this, line);
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_readline(clish_shell_t *this)
+{
+	return clish_shell_execline(this, NULL);
 }
 
 /*-------------------------------------------------------- */

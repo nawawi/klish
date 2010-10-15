@@ -74,22 +74,22 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 			}
 			argv = lub_argv_new(line, 0);
 			idx = lub_argv_wordcount(name);
-			if (this->completion_pargv) {
-				clish_pargv_delete(this->completion_pargv);
-				this->completion_pargv = NULL;
+			if (this->context.completion_pargv) {
+				clish_pargv_delete(this->context.completion_pargv);
+				this->context.completion_pargv = NULL;
 			}
-			this->completion_pargv = clish_pargv_create();
+			this->context.completion_pargv = clish_pargv_create();
 			pargv = clish_pargv_create();
 			clish_pargv_parse(pargv, cmd, clish_command__get_paramv(cmd),
-				argv, &idx, this->completion_pargv, index + idx);
+				argv, &idx, this->context.completion_pargv, index + idx);
 			clish_pargv_delete(pargv);
 			lub_argv_delete(argv);
-			this->completion_index = 0;
-			this->completion_pindex = 0;
+			this->context.completion_index = 0;
+			this->context.completion_pindex = 0;
 		}
 
-		while ((param = clish_pargv__get_param(this->completion_pargv,
-			this->completion_index++))) {
+		while ((param = clish_pargv__get_param(this->context.completion_pargv,
+			this->context.completion_index++))) {
 
 			if (param == clish_command__get_args(cmd)) {
 				/* The param is args so it has no format */
@@ -106,11 +106,11 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 				/* The common param. Let ptype do the work */
 				if (ptype = clish_param__get_ptype(param)) {
 					result = clish_ptype_word_generator(ptype, text, 
-						this->completion_pindex++);
+						this->context.completion_pindex++);
 					if (!result)
-						this->completion_pindex = 0;
+						this->context.completion_pindex = 0;
 					else
-						this->completion_index--;
+						this->context.completion_index--;
 				} else {
 					result = NULL;
 				}
@@ -126,8 +126,8 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 	}
 
 	if (!result) {
-		clish_pargv_delete(this->completion_pargv);
-		this->completion_pargv = NULL;
+		clish_pargv_delete(this->context.completion_pargv);
+		this->context.completion_pargv = NULL;
 		/* make sure we reset the line state */
 //		tinyrl_crlf(this->tinyrl);
 //		tinyrl_reset_line_state(this->tinyrl);

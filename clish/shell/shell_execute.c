@@ -193,7 +193,7 @@ void clish_shell_cleanup_script(void *script)
 /*----------------------------------------------------------- */
 bool_t
 clish_shell_execute(clish_shell_t * this,
-		    const clish_command_t * cmd, clish_pargv_t ** pargv)
+	const clish_command_t * cmd, clish_pargv_t * pargv)
 {
 	bool_t result = BOOL_TRUE;
 	const char *builtin;
@@ -262,7 +262,7 @@ clish_shell_execute(clish_shell_t * this,
 
 	/* Execute ACTION */
 	builtin = clish_command__get_builtin(cmd);
-	script = clish_command__get_action(cmd, this->viewid, *pargv);
+	script = clish_command__get_action(cmd, this->viewid, pargv);
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
 		script);
@@ -297,7 +297,7 @@ clish_shell_execute(clish_shell_t * this,
 
 	/* Call config callback */
 	if ((BOOL_TRUE == result) && this->client_hooks->config_fn)
-		this->client_hooks->config_fn(this, cmd, *pargv);
+		this->client_hooks->config_fn(this, cmd, pargv);
 
 	/* Unlock the lockfile */
 	if (lock_fd != -1) {
@@ -309,10 +309,10 @@ clish_shell_execute(clish_shell_t * this,
 	if (BOOL_TRUE == result) {
 		clish_view_t *view = clish_command__get_view(cmd);
 		char *viewid = clish_command__get_viewid(cmd,
-			this->viewid, *pargv);
+			this->viewid, pargv);
 		if (NULL != view) {
 			/* Save the current config PWD */
-			char *line = clish_variable__get_line(cmd, *pargv);
+			char *line = clish_variable__get_line(cmd, pargv);
 			clish_shell__set_pwd(this,
 				clish_command__get_depth(cmd),
 				line, this->view, this->viewid);
@@ -327,18 +327,13 @@ clish_shell_execute(clish_shell_t * this,
 		}
 	}
 
-	if (NULL != *pargv) {
-		clish_pargv_delete(*pargv);
-		*pargv = NULL;
-	}
-
 	return result;
 }
 
 /*----------------------------------------------------------- */
 /*
- Find out the previous view in the stack and go to it
-*/
+ * Find out the previous view in the stack and go to it
+ */
 static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * argv)
 {
 	clish_shell_t *this = (clish_shell_t *) shell;

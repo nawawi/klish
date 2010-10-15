@@ -27,7 +27,10 @@
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
 #define CLISH_LOCK_WAIT 20
 
-_BEGIN_C_DECL typedef struct clish_shell_s clish_shell_t;
+typedef struct clish_context_s clish_context_t;
+typedef struct clish_shell_s clish_shell_t;
+
+_BEGIN_C_DECL 
 
 /*=====================================
  * SHELL INTERFACE
@@ -235,6 +238,8 @@ typedef struct {
 /*-----------------
  * meta functions
  *----------------- */
+
+#if 0
 int clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks, void *cookie);
  /**
   * This operation causes a separate (POSIX) thread of execution to 
@@ -274,9 +279,10 @@ bool_t clish_shell_spawn(
          * a callback by invoking clish_shell__get_client_cookie()
          */
 				void *cookie);
+#endif
 
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-			       void *cookie, FILE * istream, FILE * ostream);
+	void *cookie, FILE * istream, FILE * ostream);
 /*-----------------
  * methods
  *----------------- */
@@ -286,24 +292,22 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 bool_t clish_shell_startup(clish_shell_t * instance);
 void clish_shell_delete(clish_shell_t * instance);
 clish_view_t *clish_shell_find_create_view(clish_shell_t * instance,
-					   const char *name,
-					   const char *prompt);
+	const char *name,
+	const char *prompt);
 clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
-					     const char *name,
-					     const char *text,
-					     const char *pattern,
-					     clish_ptype_method_e method,
-					     clish_ptype_preprocess_e
-					     preprocess);
+	const char *name,
+	const char *text,
+	const char *pattern,
+	clish_ptype_method_e method,
+	clish_ptype_preprocess_e preprocess);
 int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
-bool_t
-clish_shell_execute(clish_shell_t * instance,
-		    const clish_command_t * cmd, clish_pargv_t ** pargv);
-bool_t clish_shell_readline(clish_shell_t * instance, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv);
-bool_t clish_shell_forceline(clish_shell_t * instance, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char * str);
+bool_t clish_shell_execute(clish_shell_t * instance,
+	const clish_command_t * cmd, clish_pargv_t * pargv);
+bool_t clish_shell_line(clish_shell_t * instance, const char *prompt,
+	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str);
+bool_t clish_shell_forceline(clish_shell_t *instance, const char *line);
+bool_t clish_shell_readline(clish_shell_t *instance);
 void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
@@ -333,23 +337,14 @@ FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
 char * clish_shell__get_lockfile(clish_shell_t * instance);
 
-/* Context */
-typedef struct clish_context_s clish_context_t;
-
-clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
-	void *cookie, FILE * istream, FILE * ostream);
-void clish_context_free(clish_context_t *instance);
-bool_t clish_context_forceline(clish_context_t *instance, const char *line);
-bool_t clish_context_readline(clish_context_t *instance);
-
-int clish_context_spawn(clish_context_t * context,
+int clish_shell_spawn(clish_shell_t * instance,
 	const pthread_attr_t * attr);
-int clish_context_wait(clish_context_t * context);
-int clish_context_spawn_and_wait(clish_context_t * context,
+int clish_shell_wait(clish_shell_t * instance);
+int clish_shell_spawn_and_wait(clish_shell_t * instance,
 	const pthread_attr_t * attr);
-bool_t clish_context_spawn_from_file(clish_context_t * context,
+bool_t clish_shell_spawn_from_file(clish_shell_t * instance,
 	const pthread_attr_t * attr, const char *filename);
-
+void clish_shell_load_files(clish_shell_t * instance);
 
 _END_C_DECL
 #endif				/* _clish_shell_h */

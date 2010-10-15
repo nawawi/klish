@@ -8,22 +8,10 @@
 #include "tinyrl/tinyrl.h"
 
 /*-------------------------------------
- * PRIVATE TYPES 
+ * PRIVATE TYPES
  *------------------------------------- */
 
 /*-------------------------------------------------------- */
-/* 
- * The context structure is used to simplify the cleanup of 
- * a CLI session when a thread is cancelled.
- */
-struct clish_context_s {
-	pthread_t pthread;
-	const clish_shell_hooks_t *hooks;
-	void *cookie;
-	clish_shell_t *shell;
-	clish_pargv_t *pargv;
-	char *prompt;
-};
 
 typedef enum {
 	SHELL_STATE_INITIALISING,
@@ -55,6 +43,16 @@ typedef struct {
 	char *viewid;
 } clish_shell_pwd_t;
 
+/* 
+ * The context structure
+ */
+struct clish_context_s {
+	clish_pargv_t *completion_pargv;
+	unsigned completion_index;
+	unsigned completion_pindex;
+	clish_shell_iterator_t iter; /* used for iterating commands */
+};
+
 struct clish_shell_s {
 	lub_bintree_t view_tree;	/* Maintain a tree of views      */
 	lub_bintree_t ptype_tree;	/* Maintain a tree of ptypes     */
@@ -63,7 +61,6 @@ struct clish_shell_s {
 	clish_view_t *global;	/* Reference to the global view. */
 	clish_view_t *view;	/* Reference to the current view. */
 	clish_command_t *startup;	/* This is the startup command   */
-	clish_shell_iterator_t iter;	/* used for iterating commands */
 	shell_state_t state;	/* The current state               */
 	char *overview;		/* Overview text for this shell.  */
 	char *viewid;		/* The current view ID string     */
@@ -72,12 +69,11 @@ struct clish_shell_s {
 	clish_shell_pwd_t **cfg_pwdv;	/* Levels for the config file structure */
 	unsigned cfg_pwdc;
 	konf_client_t *client;
-	clish_pargv_t *completion_pargv;
-	unsigned completion_index;
-	unsigned completion_pindex;
 	clish_param_t *param_depth;
 	clish_param_t *param_pwd;
 	char * lockfile;
+	pthread_t pthread;
+	clish_context_t context;
 };
 
 /**

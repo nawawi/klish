@@ -37,13 +37,11 @@ clish_shell_init(clish_shell_t * this,
 	this->startup = NULL;
 	this->state = SHELL_STATE_INITIALISING;
 	this->overview = NULL;
-	clish_shell_iterator_init(&this->iter, CLISH_NSPACE_NONE);
 	this->tinyrl = clish_shell_tinyrl_new(istream, ostream, 0);
 	this->current_file = NULL;
 	this->cfg_pwdv = NULL;
 	this->cfg_pwdc = 0;
 	this->client = konf_client_new(KONFD_SOCKET_PATH);
-	this->completion_pargv = NULL;
 	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 
 	/* Create internal ptypes and params */
@@ -63,6 +61,10 @@ clish_shell_init(clish_shell_t * this,
 	this->param_pwd = clish_param_new("__cur_pwd",
 		"Current path", tmp_ptype);
 	clish_param__set_hidden(this->param_pwd, BOOL_TRUE);
+
+	/* Initialize context */
+	this->context.completion_pargv = NULL;
+	clish_shell_iterator_init(&this->context.iter, CLISH_NSPACE_NONE);
 }
 
 /*-------------------------------------------------------- */

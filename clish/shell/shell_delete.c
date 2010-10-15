@@ -55,16 +55,18 @@ static void clish_shell_fini(clish_shell_t * this)
 	this->cfg_pwdc = 0;
 	this->cfg_pwdv = NULL;
 	konf_client_free(this->client);
-	if (this->completion_pargv) {
-		clish_pargv_delete(this->completion_pargv);
-		this->completion_pargv = NULL;
-	}
 
 	/* Free internal params */
 	clish_param_delete(this->param_depth);
 	clish_param_delete(this->param_pwd);
 
 	lub_string_free(this->lockfile);
+
+	/* Clear the context */
+	if (this->context.completion_pargv) {
+		clish_pargv_delete(this->context.completion_pargv);
+		this->context.completion_pargv = NULL;
+	}
 }
 
 /*--------------------------------------------------------- */
