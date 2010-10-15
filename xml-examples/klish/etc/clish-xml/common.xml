@@ -6,7 +6,8 @@
 	<!--=======================================================-->
 
 <COMMAND name="exit"
-	help="Exit from the CLI">
+	help="Exit from the CLI"
+	lock="false">
 	<ACTION builtin="clish_close"/>
 </COMMAND>
 

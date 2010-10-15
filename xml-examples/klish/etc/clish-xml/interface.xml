@@ -49,7 +49,8 @@
 <!------ Simple configure-if mode commands ------>
 
 	<COMMAND name="exit"
-		help="Exit from interface configuration mode">
+		help="Exit from interface configuration mode"
+		lock="false">
 		<ACTION builtin="clish_nested_up"/>
 	</COMMAND>
 

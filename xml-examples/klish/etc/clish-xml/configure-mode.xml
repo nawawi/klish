@@ -34,7 +34,8 @@
 
 	<COMMAND name="exit"
 		help="Exit from configure mode"
-		view="enable-view">
+		view="enable-view"
+		lock="false">
 	</COMMAND>
 
 	<COMMAND name="hostname"

@@ -9,7 +9,8 @@
 	prompt="${SYSTEM_NAME}# ">
 
 	<COMMAND name="ping"
-		help="Send echo messages">
+		help="Send echo messages"
+		lock="false">
 		<PARAM name="ip"
 			help="IP echo"
 			ptype="STRING"
@@ -24,7 +25,8 @@
 	</COMMAND>
 
 	<COMMAND name="traceroute"
-		help="Trace route to destination">
+		help="Trace route to destination"
+		lock="false">
 		<PARAM name="ip"
 			help="IP trace"
 			ptype="STRING"

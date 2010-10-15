@@ -17,9 +17,8 @@
 <!------ Simple non-priveledged mode commands ------>
 
 	<COMMAND name="enable"
-		help="Turn on privileged commands">
-		<DETAIL>
-		</DETAIL>
+		help="Turn on privileged commands"
+		lock="false">
 		<ACTION>su -c klish-enable</ACTION>
 	</COMMAND>
 
