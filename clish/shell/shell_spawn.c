@@ -122,21 +122,7 @@ static void clish_shell_cleanup(clish_context_t * context)
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &last_state);
 #endif				/* __vxworks */
 
-	if (context->shell) {
-		/*
-		 * Time to kill off the instance and terminate the thread 
-		 */
-		clish_shell_delete(context->shell);
-		context->shell = NULL;
-	}
-	if (context->pargv) {
-		clish_pargv_delete(context->pargv);
-		context->pargv = NULL;
-	}
-	if (context->prompt) {
-		lub_string_free(context->prompt);
-		context->prompt = NULL;
-	}
+/* Nothing to do now. The context will be free later. */
 
 #ifdef __vxworks
 	pthread_setcancelstate(last_state, &last_state);
@@ -151,7 +137,7 @@ static void *clish_shell_thread(void *arg)
 {
 	clish_context_t *context = arg;
 	bool_t running = BOOL_TRUE;
-	clish_shell_t *this;
+	clish_shell_t *this = context->shell;
 	int last_type;
 
 	/* make sure we can only be cancelled at controlled points */
@@ -159,31 +145,13 @@ static void *clish_shell_thread(void *arg)
 	/* register a cancellation handler */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup, context);
 
-	/* create a shell object... */
-	this = context->shell = clish_shell_new(context->hooks,
-						context->cookie,
-						context->istream,
-						context->ostream);
-	assert(this);
-
 	/*
 	 * Check the shell isn't closing down
 	 */
 	if (this && (SHELL_STATE_CLOSING != this->state)) {
-		/*
-		 * load the XML files found in the current CLISH path 
-		 */
-		clish_shell_load_files(this);
-
 		/* start off with the default inputs stream */
 		(void)clish_shell_push_file(this,
-					    fdopen(fileno(context->istream),
-						   "r"), BOOL_TRUE);
-
-		/* This is the starting point for a shell, if this fails then 
-		 * we cannot start the shell...
-		 */
-		running = clish_shell_startup(this);
+			fdopen(fileno(tinyrl__get_istream(this->tinyrl)),"r"), BOOL_TRUE);
 
 		pthread_testcancel();
 
@@ -199,48 +167,17 @@ static void *clish_shell_thread(void *arg)
 			}
 			/* only bother to read the next line if there hasn't been a script error */
 			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
-				/* obtain the prompt */
-				view = clish_shell__get_view(this);
-				assert(view);
-
-				context->prompt =
-				    clish_view__get_prompt(view,
-							   clish_shell__get_viewid
-							   (this));
-				assert(context->prompt);
-
 				/* get input from the user */
-				running =
-					clish_shell_readline(this, context->prompt,
-						&cmd, &context->pargv);
-				lub_string_free(context->prompt);
-
-				context->prompt = NULL;
-
-				if (running && cmd && context->pargv) {
-					/* execute the provided command */
-					if (BOOL_FALSE ==
-					    clish_shell_execute(this, cmd,
-								&context->
-								pargv)) {
-						/* there was an error */
-						tinyrl_ding(this->tinyrl);
-
-						/* 
-						 * what we do now depends on whether we are set up to
-						 * stop on error on not.
-						 */
-						if ((BOOL_TRUE ==
-						     this->current_file->
-						     stop_on_error)
-						    && (BOOL_FALSE ==
-							tinyrl__get_isatty
-							(this->tinyrl))) {
-							this->state =
-							    SHELL_STATE_SCRIPT_ERROR;
-						}
-					}
-				}
+				running = clish_context_readline(context);
+				/*
+				 * what we do now depends on whether we are set up to
+				 * stop on error on not.
+				 */
+				if (!running && (BOOL_TRUE ==
+					this->current_file->stop_on_error) &&
+					(BOOL_FALSE ==
+					tinyrl__get_isatty(this->tinyrl)))
+					this->state = SHELL_STATE_SCRIPT_ERROR;
 			}
 			if ((BOOL_FALSE == running) ||
 			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {
@@ -261,123 +198,57 @@ static void *clish_shell_thread(void *arg)
 }
 
 /*-------------------------------------------------------- */
-static clish_context_t *_clish_shell_spawn(const pthread_attr_t * attr,
-				     const clish_shell_hooks_t * hooks,
-				     void *cookie, FILE * istream,
-				     FILE * ostream)
+int clish_context_spawn(clish_context_t * context,
+	const pthread_attr_t * attr)
 {
-	int rtn;
-	clish_context_t *context = malloc(sizeof(clish_context_t));
-	assert(context);
+	if (!context)
+		return -1;
 
-	if (context) {
-		context->hooks = hooks;
-		context->cookie = cookie;
-		context->istream = istream;
-		context->ostream = ostream;
-		context->shell = NULL;
-		context->prompt = NULL;
-		context->pargv = NULL;
-
-		/* and set it free */
-		rtn = pthread_create(&context->pthread,
-				     attr, clish_shell_thread, context);
-		if (0 != rtn) {
-			free(context);
-			context = NULL;
-		}
-	}
-	return context;
+	return pthread_create(&context->pthread,
+		attr, clish_shell_thread, context);
 }
 
 /*-------------------------------------------------------- */
-static int
-_clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks,
-			    void *cookie, FILE * file)
-{
-	void *result = NULL;
-	clish_context_t *context = _clish_shell_spawn(NULL, hooks, cookie, 
-		file, stdout);
-
-	if (context) {
-		/* join the shell's thread and wait for it to exit */
-		(void)pthread_join(context->pthread, &result);
-		/* finished with this */
-		free(context);
-	}
-	return result ? BOOL_TRUE : BOOL_FALSE;
-}
-
-/*-------------------------------------------------------- */
-int clish_shell_wait(clish_context_t * this)
+int clish_context_wait(clish_context_t * context)
 {
 	void *result = NULL;
 
-	if (!this || !this->pthread)
+	if (!context)
 		return BOOL_FALSE;
-
-	/* join the shell's thread and wait for it to exit */
-	(void)pthread_join(this->pthread, &result);
-	/* finished with this */
-	free(this);
+	(void)pthread_join(context->pthread, &result);
 
 	return result ? BOOL_TRUE : BOOL_FALSE;
 }
 
 /*-------------------------------------------------------- */
-clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
-				     const clish_shell_hooks_t * hooks,
-				     void *cookie, FILE * istream,
-				     FILE * ostream)
+int clish_context_spawn_and_wait(clish_context_t * context,
+	const pthread_attr_t * attr)
 {
-	return _clish_shell_spawn(attr, hooks, cookie, istream, ostream);
+	if (clish_context_spawn(context, attr) < 0)
+		return -1;
+	return clish_context_wait(context);
 }
 
 /*-------------------------------------------------------- */
-int clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks, void *cookie)
-{
-	return _clish_shell_spawn_and_wait(hooks, cookie, stdin);
-}
-
-/*-------------------------------------------------------- */
-bool_t
-clish_shell_spawn(pthread_t * pthread,
-		  const pthread_attr_t * attr,
-		  const clish_shell_hooks_t * hooks, void *cookie)
-{
-	clish_context_t *context;
-	bool_t result = BOOL_FALSE;
-
-	/* spawn the thread... */
-	context = _clish_shell_spawn(attr, hooks, cookie, stdin, stdout);
-
-	if (NULL != context) {
-		result = BOOL_TRUE;
-		if (NULL != pthread) {
-			*pthread = context->pthread;
-		}
-	}
-	return result;
-}
-
-/*-------------------------------------------------------- */
-bool_t
-clish_shell_spawn_from_file(const clish_shell_hooks_t * hooks,
-			    void *cookie, const char *filename)
+bool_t clish_context_spawn_from_file(clish_context_t * context,
+	const pthread_attr_t * attr, const char *filename)
 {
 	bool_t result = BOOL_FALSE;
-	if (NULL != filename) {
-		FILE *file = fopen(filename, "r");
-		if (NULL != file) {
-			/* spawn the thread and wait for it to exit */
-			result =
-			    _clish_shell_spawn_and_wait(hooks, cookie,
-							file) ? BOOL_TRUE :
-			    BOOL_FALSE;
+	FILE *file;
+	clish_shell_t *this;
 
-			fclose(file);
-		}
-	}
+	if (!context || !filename)
+		return result;
+	this = context->shell;
+	file = fopen(filename, "r");
+	if (NULL == file)
+		return result;
+	tinyrl__set_istream(this->tinyrl, file);
+	/* spawn the thread and wait for it to exit */
+	result = clish_context_spawn_and_wait(context, attr) ?
+		BOOL_TRUE : BOOL_FALSE;
+	fclose(file);
+
 	return result;
 }
 
@@ -392,21 +263,19 @@ clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
 
 	this->hooks = hooks;
 	this->cookie = cookie;
-	this->istream = istream;
-	this->ostream = ostream;
 	this->shell = NULL;
 	this->prompt = NULL;
 	this->pargv = NULL;
 
 	/* Create a shell */
 	this->shell = clish_shell_new(this->hooks, this->cookie,
-		this->istream, this->ostream);
+		istream, ostream);
 	/* Load the XML files */
 	clish_shell_load_files(this->shell);
 	/* Execute startup */
 	running = clish_shell_startup(this->shell);
 	if (!running) {
-		clish_context_del(this);
+		clish_context_free(this);
 		return NULL;
 	}
 
@@ -414,7 +283,7 @@ clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
 }
 
 /*-------------------------------------------------------- */
-void clish_context_del(clish_context_t *this)
+void clish_context_free(clish_context_t *this)
 {
 	if (this->shell) {
 		/* Clean shell */
@@ -434,12 +303,16 @@ void clish_context_del(clish_context_t *this)
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_context_exec(clish_context_t *context, const char *line)
+static bool_t _clish_context_line(clish_context_t *context, const char *line)
 {
 	const clish_command_t *cmd;
 	const clish_view_t *view;
 	bool_t running = BOOL_TRUE;
-	clish_shell_t *this = context->shell;
+	clish_shell_t *this;
+
+	if (!context)
+		return BOOL_FALSE;
+	this = context->shell;
 
 	/* obtain the prompt */
 	view = clish_shell__get_view(this);
@@ -449,9 +322,14 @@ bool_t clish_context_exec(clish_context_t *context, const char *line)
 		clish_shell__get_viewid(this));
 	assert(context->prompt);
 
-	/* get input from the user */
-	running = clish_shell_forceline(this, context->prompt,
-		&cmd, &context->pargv, line);
+	if (line) {
+		/* push the specified line */
+		running = clish_shell_forceline(this, context->prompt,
+			&cmd, &context->pargv, line);
+	} else {
+		running = clish_shell_readline(this, context->prompt,
+			&cmd, &context->pargv);
+	}
 	lub_string_free(context->prompt);
 	context->prompt = NULL;
 
@@ -460,6 +338,18 @@ bool_t clish_context_exec(clish_context_t *context, const char *line)
 		return clish_shell_execute(this, cmd, &context->pargv);
 
 	return running;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_context_forceline(clish_context_t *context, const char *line)
+{
+	return _clish_context_line(context, line);
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_context_readline(clish_context_t *context)
+{
+	return _clish_context_line(context, NULL);
 }
 
 /*-------------------------------------------------------- */

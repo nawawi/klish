@@ -274,9 +274,6 @@ bool_t clish_shell_spawn(
          * a callback by invoking clish_shell__get_client_cookie()
          */
 				void *cookie);
-bool_t
-clish_shell_spawn_from_file(const clish_shell_hooks_t * hooks,
-			    void *cookie, const char *filename);
 
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 			       void *cookie, FILE * istream, FILE * ostream);
@@ -341,13 +338,18 @@ typedef struct clish_context_s clish_context_t;
 
 clish_context_t * clish_context_new(const clish_shell_hooks_t * hooks,
 	void *cookie, FILE * istream, FILE * ostream);
-void clish_context_del(clish_context_t *instance);
-bool_t clish_context_exec(clish_context_t *instance, const char *line);
+void clish_context_free(clish_context_t *instance);
+bool_t clish_context_forceline(clish_context_t *instance, const char *line);
+bool_t clish_context_readline(clish_context_t *instance);
 
-int clish_shell_wait(clish_context_t * instance);
-clish_context_t *clish_shell_spawn_stream(const pthread_attr_t * attr,
-	const clish_shell_hooks_t * hooks, void *cookie, 
-	FILE * istream, FILE * ostream);
+int clish_context_spawn(clish_context_t * context,
+	const pthread_attr_t * attr);
+int clish_context_wait(clish_context_t * context);
+int clish_context_spawn_and_wait(clish_context_t * context,
+	const pthread_attr_t * attr);
+bool_t clish_context_spawn_from_file(clish_context_t * context,
+	const pthread_attr_t * attr, const char *filename);
+
 
 _END_C_DECL
 #endif				/* _clish_shell_h */

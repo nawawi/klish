@@ -20,8 +20,6 @@ struct clish_context_s {
 	pthread_t pthread;
 	const clish_shell_hooks_t *hooks;
 	void *cookie;
-	FILE *istream;
-	FILE *ostream;
 	clish_shell_t *shell;
 	clish_pargv_t *pargv;
 	char *prompt;

@@ -16,31 +16,34 @@ clish_shell_hooks_t my_hooks =
     clish_config_callback,
     NULL  /* don't register any builtin functions */
 };
+
 //---------------------------------------------------------
-int 
-main(int argc, const char **argv)
+int main(int argc, const char **argv)
 {
-	int            result      = -1;
-	
-    clish_startup(argc,argv);
-    
-    if(argc > 1)
-    {
-        int i = 1;
-        while(argc--)
-        {
-            /* run the commands in the file */
-            result = clish_shell_spawn_from_file(&my_hooks,NULL,argv[i++]);
-        }
-    }
-    else
-    {
-        /* spawn the shell */
-        result = clish_shell_spawn_and_wait(&my_hooks,NULL);
-    }
+	int result = -1;
+	clish_context_t * context;
 
-    clish_shutdown();
+	context = clish_context_new(&my_hooks, NULL, stdin, stdout);
+	if (!context) {
+		fprintf(stderr, "Cannot run clish.\n");
+		return -1;
+	}
 
- 	return result ? 0 : -1;
+	if(argc > 1) {
+		int i = 1;
+		while(argc--) {
+			/* run the commands in the file */
+			result = clish_context_spawn_from_file(context,
+				NULL, argv[i++]);
+		}
+	} else {
+		/* spawn the shell */
+		result = clish_context_spawn_and_wait(context, NULL);
+	}
+
+	/* Cleanup */
+	clish_context_free(context);
+
+	return result ? 0 : -1;
  }
 //---------------------------------------------------------
