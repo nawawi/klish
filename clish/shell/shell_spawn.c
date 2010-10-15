@@ -168,15 +168,6 @@ static void *clish_shell_thread(void *arg)
 			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
 				/* get input from the user */
 				running = clish_shell_readline(this);
-				/*
-				 * what we do now depends on whether we are set up to
-				 * stop on error on not.
-				 */
-				if (!running && (BOOL_TRUE ==
-					this->current_file->stop_on_error) &&
-					(BOOL_FALSE ==
-					tinyrl__get_isatty(this->tinyrl)))
-					this->state = SHELL_STATE_SCRIPT_ERROR;
 			}
 			if ((BOOL_FALSE == running) ||
 			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {

@@ -428,8 +428,14 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 	lub_string_free(prompt);
 
 	/* execute the provided command */
-	if (running && cmd && pargv)
-		running = clish_shell_execute(this, cmd, pargv);
+	if (running && cmd && pargv) {
+		if (BOOL_FALSE == clish_shell_execute(this, cmd, pargv)) {
+			if((BOOL_TRUE == this->current_file->stop_on_error) &&
+				(BOOL_FALSE == tinyrl__get_isatty(this->tinyrl))) {
+				this->state = SHELL_STATE_SCRIPT_ERROR;
+			}
+		}
+	}
 
 	if (NULL != pargv)
 		clish_pargv_delete(pargv);
