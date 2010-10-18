@@ -37,6 +37,10 @@ bool_t clish_config_callback(const clish_shell_t * this,
 	if (!this)
 		return BOOL_TRUE;
 
+	client = clish_shell__get_client(this);
+	if (!client)
+		return BOOL_TRUE;
+
 	viewid = clish_shell__get_viewid(this);
 	op = clish_command__get_cfg_op(cmd);
 
@@ -131,7 +135,6 @@ bool_t clish_config_callback(const clish_shell_t * this,
 		lub_string_free(str);
 	}
 
-	client = clish_shell__get_client(this);
 #ifdef DEBUG
 	fprintf(stderr, "CONFIG request: %s\n", command);
 #endif
