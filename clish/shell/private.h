@@ -81,16 +81,13 @@ struct clish_shell_s {
  */
 void
 clish_shell_iterator_init(clish_shell_iterator_t * iter,
-			  clish_nspace_visibility_t field);
+	clish_nspace_visibility_t field);
 
 /**
  * get the next command which is an extension of the specified line 
  */
 const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
-							instance,
-							const char *line,
-							clish_shell_iterator_t *
-							iter);
+	instance, const char *line, clish_shell_iterator_t * iter);
 /** 
  * Push the specified file handle on to the stack of file handles
  * for this shell. The specified file will become the source of 

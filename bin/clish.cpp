@@ -42,18 +42,17 @@ int main(int argc, const char **argv)
 	if(argc > 1) {
 		int i = 1;
 		while(argc--) {
-			/* run the commands in the file */
-			result = clish_shell_spawn_from_file(shell,
-				NULL, argv[i++]);
+			/* Run the commands from the file */
+			result = clish_shell_from_file(shell, argv[i++]);
 		}
 	} else {
-		/* spawn the shell */
-		result = clish_shell_spawn_and_wait(shell, NULL);
+		/* The interactive shell */
+		result = clish_shell_loop(shell);
 	}
 
 	/* Cleanup */
 	clish_shell_delete(shell);
 
 	return result ? 0 : -1;
- }
+}
 //---------------------------------------------------------

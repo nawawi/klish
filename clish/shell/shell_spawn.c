@@ -111,6 +111,50 @@ void clish_shell_load_files(clish_shell_t * this)
 }
 
 /*-------------------------------------------------------- */
+static bool_t _loop(clish_shell_t * this, bool_t is_thread)
+{
+	bool_t running = BOOL_TRUE;
+	/*
+	 * Check the shell isn't closing down
+	 */
+	if (this && (SHELL_STATE_CLOSING != this->state)) {
+		/* start off with the default inputs stream */
+		(void)clish_shell_push_file(this,
+			fdopen(fileno(tinyrl__get_istream(this->tinyrl)),"r"), BOOL_TRUE);
+
+		if (is_thread)
+			pthread_testcancel();
+
+		/* Loop reading and executing lines until the user quits. */
+		while (running) {
+			if ((SHELL_STATE_SCRIPT_ERROR == this->state) &&
+			    (BOOL_TRUE == tinyrl__get_isatty(this->tinyrl))) {
+				/* interactive session doesn't automatically exit on error */
+				this->state = SHELL_STATE_READY;
+			}
+			/* only bother to read the next line if there hasn't been a script error */
+			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
+				/* get input from the user */
+				running = clish_shell_readline(this);
+			}
+			if ((BOOL_FALSE == running) ||
+			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {
+				/* we've reached the end of a file (or a script error has occured)
+				 * unwind the file stack to see whether 
+				 * we need to exit
+				 */
+				running = clish_shell_pop_file(this);
+			}
+			/* test for cancellation */
+			if (is_thread)
+				pthread_testcancel();
+		}
+	}
+
+	return BOOL_TRUE;
+}
+
+/*-------------------------------------------------------- */
 /*
  * This is invoked when the thread ends or is cancelled.
  */
@@ -135,7 +179,6 @@ static void clish_shell_thread_cleanup(clish_shell_t * this)
  */
 static void *clish_shell_thread(void *arg)
 {
-	bool_t running = BOOL_TRUE;
 	clish_shell_t *this = arg;
 	int last_type;
 
@@ -144,43 +187,9 @@ static void *clish_shell_thread(void *arg)
 	/* register a cancellation handler */
 	pthread_cleanup_push((void (*)(void *))clish_shell_thread_cleanup, this);
 
-	/*
-	 * Check the shell isn't closing down
-	 */
-	if (this && (SHELL_STATE_CLOSING != this->state)) {
-		/* start off with the default inputs stream */
-		(void)clish_shell_push_file(this,
-			fdopen(fileno(tinyrl__get_istream(this->tinyrl)),"r"), BOOL_TRUE);
+	if (this)
+		_loop(this, BOOL_TRUE);
 
-		pthread_testcancel();
-
-		/* Loop reading and executing lines until the user quits. */
-		while (running) {
-			const clish_command_t *cmd;
-			const clish_view_t *view;
-
-			if ((SHELL_STATE_SCRIPT_ERROR == this->state) &&
-			    (BOOL_TRUE == tinyrl__get_isatty(this->tinyrl))) {
-				/* interactive session doesn't automatically exit on error */
-				this->state = SHELL_STATE_READY;
-			}
-			/* only bother to read the next line if there hasn't been a script error */
-			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
-				/* get input from the user */
-				running = clish_shell_readline(this);
-			}
-			if ((BOOL_FALSE == running) ||
-			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {
-				/* we've reached the end of a file (or a script error has occured)
-				 * unwind the file stack to see whether 
-				 * we need to exit
-				 */
-				running = clish_shell_pop_file(this);
-			}
-			/* test for cancellation */
-			pthread_testcancel();
-		}
-	}
 	/* be a good pthread citizen */
 	pthread_cleanup_pop(1);
 
@@ -219,9 +228,11 @@ int clish_shell_spawn_and_wait(clish_shell_t * this,
 	return clish_shell_wait(this);
 }
 
+
 /*-------------------------------------------------------- */
-bool_t clish_shell_spawn_from_file(clish_shell_t * this,
-	const pthread_attr_t * attr, const char *filename)
+static bool_t _from_file(clish_shell_t * this,
+	bool_t is_thread, const pthread_attr_t * attr,
+	const char *filename)
 {
 	bool_t result = BOOL_FALSE;
 	FILE *file;
@@ -233,12 +244,38 @@ bool_t clish_shell_spawn_from_file(clish_shell_t * this,
 	if (NULL == file)
 		return result;
 	tinyrl__set_istream(this->tinyrl, file);
-	/* spawn the thread and wait for it to exit */
-	result = clish_shell_spawn_and_wait(this, attr) ?
-		BOOL_TRUE : BOOL_FALSE;
+	if (is_thread) {
+		/* spawn the thread and wait for it to exit */
+		result = clish_shell_spawn_and_wait(this, attr) ?
+			BOOL_TRUE : BOOL_FALSE;
+	} else {
+		/* Don't use thread */
+		result = clish_shell_loop(this);
+	}
 	fclose(file);
 
 	return result;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_spawn_from_file(clish_shell_t * this,
+	const pthread_attr_t * attr, const char *filename)
+{
+	return _from_file(this, BOOL_TRUE, attr, filename);
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_from_file(clish_shell_t * this,
+	const char *filename)
+{
+	return _from_file(this, BOOL_FALSE, NULL, filename);
+}
+
+
+/*-------------------------------------------------------- */
+bool_t clish_shell_loop(clish_shell_t * this)
+{
+	return _loop(this, BOOL_FALSE);
 }
 
 /*-------------------------------------------------------- */

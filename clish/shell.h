@@ -344,7 +344,9 @@ int clish_shell_spawn_and_wait(clish_shell_t * instance,
 	const pthread_attr_t * attr);
 bool_t clish_shell_spawn_from_file(clish_shell_t * instance,
 	const pthread_attr_t * attr, const char *filename);
+bool_t clish_shell_from_file(clish_shell_t * instance, const char *filename);
 void clish_shell_load_files(clish_shell_t * instance);
+bool_t clish_shell_loop(clish_shell_t * instance);
 
 _END_C_DECL
 #endif				/* _clish_shell_h */
