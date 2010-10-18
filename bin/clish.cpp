@@ -39,12 +39,14 @@ int main(int argc, char **argv)
 
 	/* Command line options */
 	const char *socket_path = KONFD_SOCKET_PATH;
+	bool_t lockless = BOOL_FALSE;
 
-	static const char *shortopts = "hvs:";
+	static const char *shortopts = "hvs:l";
 /*	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
 		{"socket",	1, NULL, 's'},
+		{"lockless",	0, NULL, 'l'},
 		{NULL,		0, NULL, 0}
 	};
 */
@@ -59,6 +61,9 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case 's':
 			socket_path = optarg;
+			break;
+		case 'l':
+			lockless = BOOL_TRUE;
 			break;
 		case 'h':
 			help(0, argv[0]);
@@ -84,6 +89,9 @@ int main(int argc, char **argv)
 	clish_shell_load_files(shell);
 	/* Set communication to the konfd */
 	clish_shell__set_socket(shell, socket_path);
+	/* Set lockless mode */
+	if (lockless)
+		clish_shell__set_lockfile(shell, NULL);
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (!running) {
@@ -137,6 +145,7 @@ static void help(int status, const char *argv0)
 		printf("\t-h, --help\tPrint this help.\n");
 		printf("\t-s <path>, --socket=<path>\tSpecify listen socket "
 			"of the konfd daemon.\n");
+		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 	}
 }
 
