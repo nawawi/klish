@@ -336,7 +336,7 @@ FILE *clish_shell__get_istream(const clish_shell_t * instance);
 FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
 char * clish_shell__get_lockfile(clish_shell_t * instance);
-
+int clish_shell__set_socket(clish_shell_t * instance, const char * path);
 int clish_shell_spawn(clish_shell_t * instance,
 	const pthread_attr_t * attr);
 int clish_shell_wait(clish_shell_t * instance);

@@ -271,7 +271,6 @@ bool_t clish_shell_from_file(clish_shell_t * this,
 	return _from_file(this, BOOL_FALSE, NULL, filename);
 }
 
-
 /*-------------------------------------------------------- */
 bool_t clish_shell_loop(clish_shell_t * this)
 {

@@ -121,3 +121,15 @@ char * clish_shell__get_lockfile(clish_shell_t * this)
 
 	return this->lockfile;
 }
+
+/*--------------------------------------------------------- */
+int clish_shell__set_socket(clish_shell_t * this, const char * path)
+{
+	if (!this || !path)
+		return -1;
+
+	konf_client_free(this->client);
+	this->client = konf_client_new(path);
+
+	return 0;
+}
