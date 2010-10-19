@@ -39,7 +39,7 @@ static clish_parg_t *find_parg(clish_pargv_t * this, const char *name)
 int clish_pargv_insert(clish_pargv_t * this,
 	const clish_param_t * param, const char *value)
 {
-	if (!this || !value || !param)
+	if (!this || !param)
 		return -1;
 
 	clish_parg_t *parg = find_parg(this, clish_param__get_name(param));
@@ -59,7 +59,11 @@ int clish_pargv_insert(clish_pargv_t * this,
 		this->pargv[this->pargc++] = parg;
 		parg->param = param;
 	}
-	parg->value = lub_string_dup(value);
+	parg->value = NULL;
+	if (value)
+		parg->value = lub_string_dup(value);
+
+	return 0;
 }
 
 /*--------------------------------------------------------- */
