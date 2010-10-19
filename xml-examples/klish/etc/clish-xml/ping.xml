@@ -9,18 +9,100 @@
 	prompt="${SYSTEM_NAME}# ">
 
 	<COMMAND name="ping"
-		help="Send echo messages"
-		lock="false">
+		help="Send echo messages">
 		<PARAM name="ip"
 			help="IP echo"
-			ptype="STRING"
+			ptype="SUBCOMMAND"
 			mode="subcommand"
 			optional="true"/>
-		<PARAM name="addr"
+		<PARAM name="dst"
 			help="Ping destination address or hostname"
 			ptype="STRING"/>
+		<PARAM name="resolve"
+			help="Resolve names"
+			ptype="SUBCOMMAND"
+			mode="subcommand"
+			optional="true"/>
+		<PARAM name="broadcast"
+			help="Ping broadcast address"
+			ptype="SUBCOMMAND"
+			mode="subcommand"
+			optional="true"/>
+		<PARAM name="repeat"
+			help="Specify repeat count"
+			optional="true"
+			mode="subcommand"
+			ptype="SUBCOMMAND">
+			<PARAM name="count"
+				help="Repeat count"
+				default="5"
+				ptype="UINT"/>
+		</PARAM>
+		<PARAM name="size"
+			help="Specify datagram size"
+			optional="true"
+			mode="subcommand"
+			ptype="SUBCOMMAND">
+			<PARAM name="psize"
+				help="Datagram size"
+				ptype="UINT"/>
+		</PARAM>
+		<PARAM name="source"
+			help="Specify source address or name"
+			optional="true"
+			mode="subcommand"
+			ptype="SUBCOMMAND">
+			<PARAM name="src"
+				help="Interface name or IP-address"
+				ptype="STRING"/>
+		</PARAM>
+		<PARAM name="packet_interval"
+			value="interval"
+			help="Specify interval between packets"
+			optional="true"
+			ptype="SUBCOMMAND">
+			<PARAM name="interval"
+				help="Interval beetween packets"
+				default="2"
+				ptype="UINT"/>
+		</PARAM>
+		<PARAM name="flood"
+			help="Flood ping"
+			ptype="SUBCOMMAND"
+			mode="subcommand"
+			optional="true"/>
 		<ACTION>
-		ping ${addr}
+		cmd="ping ${dst}"
+		# Resolve names
+		if [[ ! -n "${resolve}" ]]; then
+			cmd=$cmd" -n"
+		fi
+		# Ping broadcast
+		if [[ -n "${broadcast}" ]]; then
+			cmd=$cmd" -b"
+		fi
+		# Ping from interface or address
+		cmd=$cmd"${ -I :src}"
+		# Packets count
+		if [[ ! -n "${count}" ]]; then
+			cmd=$cmd" -c 5"
+		else
+			cmd=$cmd"${ -c :count}"
+		fi
+		# Packet size
+		cmd=$cmd"${ -s :psize}"
+		# Interval between packets
+		if [[ ! -n "${interval}" ]]; then
+			cmd=$cmd" -i 2"
+		else
+			cmd=$cmd"${ -i :interval}"
+		fi
+		# Flood ping
+		if [[ -n "${flood}" ]]; then
+			cmd=$cmd" -f"
+		fi
+		# Change it to exec or...
+		$cmd
 		</ACTION>
 	</COMMAND>
 
