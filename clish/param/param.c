@@ -5,6 +5,7 @@
  */
 #include "private.h"
 #include "lub/string.h"
+#include "clish/variable.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -16,9 +17,8 @@
  *--------------------------------------------------------- */
 static void
 clish_param_init(clish_param_t * this,
-		 const char *name, const char *text, clish_ptype_t * ptype)
+	const char *name, const char *text, clish_ptype_t * ptype)
 {
-
 	/* initialise the help part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
@@ -30,6 +30,7 @@ clish_param_init(clish_param_t * this,
 	this->optional = BOOL_FALSE;
 	this->value = NULL;
 	this->hidden = BOOL_FALSE;
+	this->test = NULL;
 
 	this->paramv = clish_paramv_new();
 }
@@ -48,6 +49,8 @@ static void clish_param_fini(clish_param_t * this)
 	this->text = NULL;
 	lub_string_free(this->value);
 	this->value = NULL;
+	lub_string_free(this->test);
+	this->test = NULL;
 
 	clish_paramv_delete(this->paramv);
 }
@@ -317,3 +320,21 @@ bool_t clish_param__get_hidden(const clish_param_t * this)
 {
 	return this->hidden;
 }
+
+/*--------------------------------------------------------- */
+void clish_param__set_test(clish_param_t * this, const char *test)
+{
+	assert(NULL == this->test);
+	this->test = lub_string_dup(test);
+}
+
+/*--------------------------------------------------------- */
+char *clish_param__get_test(const clish_param_t * this,
+	const char * viewid, const clish_command_t * cmd,
+	clish_pargv_t * pargv)
+{
+	if (!this->test)
+		return NULL;
+	return clish_variable_expand(this->test, viewid, cmd, pargv);
+}
+

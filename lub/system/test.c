@@ -156,7 +156,8 @@ static int getn(const char *s);
 static int newerf(const char *, const char *);
 static int olderf(const char *, const char *);
 static int equalf(const char *, const char *);
-static void syntax(const char *op, char *msg);
+
+#define syntax(op,msg) {return 2;}
 
 int
 main(int argc, char *argv[])
@@ -165,7 +166,7 @@ main(int argc, char *argv[])
 
 	if (strcmp(argv[0], "[") == 0) {
 		if (strcmp(argv[--argc], "]"))
-			errx(2, "missing ]");
+			syntax(NULL, "missing ]");
 		argv[argc] = NULL;
 	}
 
@@ -209,14 +210,6 @@ main(int argc, char *argv[])
 	return res;
 }
 
-static __dead void
-syntax(const char *op, char *msg)
-{
-	if (op && *op)
-		errx(2, "%s: %s", op, msg);
-	else
-		errx(2, "%s", msg);
-}
 
 static int
 oexpr(enum token n)
@@ -464,13 +457,13 @@ getn(const char *s)
 	r = strtol(s, &p, 10);
 
 	if (errno != 0)
-		errx(2, "%s: out of range", s);
+		syntax(NULL, "out of range");
 
 	while (isspace(*p))
 		p++;
 
 	if (*p)
-		errx(2, "%s: bad number", s);
+		syntax(NULL, "bad number");
 
 	return (int) r;
 }

@@ -326,6 +326,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *optional = element->Attribute("optional");
 		const char *value = element->Attribute("value");
 		const char *hidden = element->Attribute("hidden");
+		const char *test = element->Attribute("test");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -412,6 +413,9 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
 		}
+
+		if (NULL != test)
+			clish_param__set_test(param, test);
 
 		if (cmd)
 			// add the parameter to the command

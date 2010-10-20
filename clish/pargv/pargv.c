@@ -4,6 +4,7 @@
 #include "private.h"
 #include "lub/string.h"
 #include "lub/argv.h"
+#include "lub/system.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -95,10 +96,10 @@ static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 /*--------------------------------------------------------- */
 clish_pargv_status_t
 clish_pargv_parse(clish_pargv_t * this,
-		const clish_command_t * cmd,
-		clish_paramv_t * paramv,
-		const lub_argv_t * argv,
-		unsigned *idx, clish_pargv_t * last, unsigned need_index)
+	const clish_command_t * cmd,
+	clish_paramv_t * paramv,
+	const lub_argv_t * argv,
+	unsigned *idx, clish_pargv_t * last, unsigned need_index)
 {
 	unsigned start = *idx;
 	unsigned argc = lub_argv__get_count(argv);
@@ -116,6 +117,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		clish_param_t *param = clish_paramv__get_param(paramv,index);
 		clish_param_t *cparam = NULL;
 		int is_switch = 0;
+		int is_tested = 0;
 
 		/* Use real arg or PARAM's default value as argument */
 		if (*idx >= argc)
@@ -127,8 +129,23 @@ clish_pargv_parse(clish_pargv_t * this,
 		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
 			is_switch = 1;
 
+		/* Check the 'test' condition */
+		if (param) {
+			char *str = clish_param__get_test(param,
+				NULL, cmd, this);
+			if (!str)
+				is_tested = 1;
+			else {
+				if (lub_system_line_test(str))
+					is_tested = 1;
+				else
+					is_tested = 0;
+				lub_string_free(str);
+			}
+		}
+
 		/* Add param for help and completion */
-		if (last && (*idx == need_index) &&
+		if (last && (*idx == need_index) && is_tested &&
 			(NULL == clish_pargv_find_arg(this, clish_param__get_name(param)))) {
 			if (is_switch) {
 				clish_paramv_t *rec_paramv = clish_param__get_paramv(param);

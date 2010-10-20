@@ -265,6 +265,9 @@
 * [hidden]  - define the visibility of the parameter while ${__line}
 *           and ${__params} auto variables expanding. The allowed values
 *           is "true" and "false".
+*
+* [test]    - define the condition (see the description of 'test'
+*           utility) to process this parameter.
 ********************************************************
     -->
 
@@ -288,6 +291,7 @@
         <xs:attribute name="optional" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="value" type="xs:string" use="optional"/>
         <xs:attribute name="hidden" type="bool_t" use="optional" default="false"/>
+        <xs:attribute name="test" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 ********************************************************
