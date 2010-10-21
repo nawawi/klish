@@ -53,6 +53,7 @@ void clish_shell_load_files(clish_shell_t * this)
 	const char *path = getenv("CLISH_PATH");
 	char *buffer;
 	char *dirname;
+	char *saveptr;
 
 	if (NULL == path) {
 		/* use the default path */
@@ -62,8 +63,8 @@ void clish_shell_load_files(clish_shell_t * this)
 	buffer = clish_shell_tilde_expand(path);
 
 	/* now loop though each directory */
-	for (dirname = strtok(buffer, ";");
-	     dirname; dirname = strtok(NULL, ";")) {
+	for (dirname = strtok_r(buffer, ";", &saveptr);
+	     dirname; dirname = strtok_r(NULL, ";", &saveptr)) {
 		DIR *dir;
 		struct dirent *entry;
 

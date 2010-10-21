@@ -170,6 +170,7 @@ static char *context_nextsegment(const context_t * this, const char **string)
 			if (p[-1] == '}') {
 				bool_t valid = BOOL_FALSE;
 				char *text, *q;
+				char *saveptr;
 
 				/* get the variable text */
 				text = lub_string_dupn(tmp, len);
@@ -179,8 +180,8 @@ static char *context_nextsegment(const context_t * this, const char **string)
 				 * Only return a result if at least 
 				 * of the words is an expandable variable
 				 */
-				for (q = strtok(text, ":");
-				     q; q = strtok(NULL, ":")) {
+				for (q = strtok_r(text, ":", &saveptr);
+				     q; q = strtok_r(NULL, ":", &saveptr)) {
 					char *var = context_retrieve(this, q);
 
 					/* copy the expansion or the raw word */
