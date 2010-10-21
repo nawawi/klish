@@ -11,20 +11,22 @@
 /*-------------------------------------------------------- */
 static void
 clish_shell_init(clish_shell_t * this,
-		 const clish_shell_hooks_t * hooks,
-		 void *cookie, FILE * istream, FILE * ostream)
+	const clish_shell_hooks_t * hooks,
+	void *cookie, FILE * istream,
+	FILE * ostream,
+	bool_t stop_on_error)
 {
 	clish_ptype_t *tmp_ptype = NULL;
 
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
-			 clish_view_bt_offset(),
-			 clish_view_bt_compare, clish_view_bt_getkey);
+		clish_view_bt_offset(),
+		clish_view_bt_compare, clish_view_bt_getkey);
 
 	/* initialise the tree of ptypes */
 	lub_bintree_init(&this->ptype_tree,
-			 clish_ptype_bt_offset(),
-			 clish_ptype_bt_compare, clish_ptype_bt_getkey);
+		clish_ptype_bt_offset(),
+		clish_ptype_bt_compare, clish_ptype_bt_getkey);
 
 	assert((NULL != hooks) && (NULL != hooks->script_fn));
 
@@ -65,17 +67,24 @@ clish_shell_init(clish_shell_t * this,
 	/* Initialize context */
 	this->context.completion_pargv = NULL;
 	clish_shell_iterator_init(&this->context.iter, CLISH_NSPACE_NONE);
+
+	/* Push non-NULL istream */
+	if (istream)
+		clish_shell_push_fd(this, istream, stop_on_error);
 }
 
 /*-------------------------------------------------------- */
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-		void *cookie, FILE * istream, FILE * ostream)
+		void *cookie,
+		FILE * istream,
+		FILE * ostream,
+		bool_t stop_on_error)
 {
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 
 	if (this) {
-		clish_shell_init(this, hooks, cookie, 
-			istream, ostream);
+		clish_shell_init(this, hooks, cookie,
+			istream, ostream, stop_on_error);
 
 		if (hooks->init_fn) {
 			/* now call the client initialisation */

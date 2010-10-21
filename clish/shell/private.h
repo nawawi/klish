@@ -13,14 +13,6 @@
 
 /*-------------------------------------------------------- */
 
-typedef enum {
-	SHELL_STATE_INITIALISING,
-	SHELL_STATE_READY,
-	SHELL_STATE_HELPING,
-	SHELL_STATE_SCRIPT_ERROR,
-	SHELL_STATE_CLOSING
-} shell_state_t;
-
 /*
  * iterate around commands
  */
@@ -61,7 +53,7 @@ struct clish_shell_s {
 	clish_view_t *global;	/* Reference to the global view. */
 	clish_view_t *view;	/* Reference to the current view. */
 	clish_command_t *startup;	/* This is the startup command   */
-	shell_state_t state;	/* The current state               */
+	clish_shell_state_t state;	/* The current state               */
 	char *overview;		/* Overview text for this shell.  */
 	char *viewid;		/* The current view ID string     */
 	tinyrl_t *tinyrl;	/* Tiny readline instance          */
@@ -88,18 +80,6 @@ clish_shell_iterator_init(clish_shell_iterator_t * iter,
  */
 const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 	instance, const char *line, clish_shell_iterator_t * iter);
-/** 
- * Push the specified file handle on to the stack of file handles
- * for this shell. The specified file will become the source of 
- * commands, until it is exhausted.
- *
- * \return
- * BOOL_TRUE - the file was successfully associated with the shell.
- * BOOL_FALSE - there was insufficient resource to associate this file.
- */
-bool_t
-clish_shell_push_file(clish_shell_t * instance,
-		      FILE * file, bool_t stop_on_error);
 /** 
  * Pop the current file handle from the stack of file handles, shutting
  * the file down and freeing any associated memory. The next file handle

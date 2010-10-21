@@ -439,7 +439,10 @@ tinyrl_init(tinyrl_t                 *this,
     this->kill_string                   = NULL;
     this->echo_char                     = '\0';
     this->echo_enabled                  = BOOL_TRUE;
-    this->isatty                        = isatty(fileno(instream)) ? BOOL_TRUE : BOOL_FALSE;
+    if (instream)
+        this->isatty = isatty(fileno(instream)) ? BOOL_TRUE : BOOL_FALSE;
+    else
+        this->isatty = BOOL_FALSE;
     this->last_buffer                   = NULL;
     this->last_point                    = 0;
     

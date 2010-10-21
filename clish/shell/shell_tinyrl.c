@@ -406,7 +406,8 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 	const clish_view_t *view;
 	bool_t running = BOOL_TRUE;
 
-	if (!this)
+	assert(this);
+	if (!line && !tinyrl__get_istream(this->tinyrl))
 		return BOOL_FALSE;
 
 	/* obtain the prompt */
@@ -430,8 +431,9 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 	/* execute the provided command */
 	if (running && cmd && pargv) {
 		if (BOOL_FALSE == clish_shell_execute(this, cmd, pargv)) {
-			if((BOOL_TRUE == this->current_file->stop_on_error) &&
-				(BOOL_FALSE == tinyrl__get_isatty(this->tinyrl))) {
+			if((!this->current_file && line) ||
+				(this->current_file &&
+				this->current_file->stop_on_error)) {
 				this->state = SHELL_STATE_SCRIPT_ERROR;
 			}
 		}

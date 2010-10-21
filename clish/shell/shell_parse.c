@@ -5,6 +5,8 @@
 #include "lub/string.h"
 
 #include <string.h>
+#include <assert.h>
+
 /*----------------------------------------------------------- */
 clish_pargv_status_t clish_shell_parse(
 	const clish_shell_t * this, const char *line,
@@ -30,6 +32,20 @@ clish_pargv_status_t clish_shell_parse(
 	}
 
 	return result;
+}
+
+/*----------------------------------------------------------- */
+clish_shell_state_t clish_shell__get_state(const clish_shell_t * this)
+{
+	return this->state;
+}
+
+/*----------------------------------------------------------- */
+void clish_shell__set_state(clish_shell_t * this,
+	clish_shell_state_t state)
+{
+	assert(this);
+	this->state = state;
 }
 
 /*----------------------------------------------------------- */

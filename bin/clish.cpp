@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "clish/shell.h"
 #include "clish/internal.h"
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
 	/* Command line options */
 	const char *socket_path = KONFD_SOCKET_PATH;
 	bool_t lockless = BOOL_FALSE;
+	bool_t stop_on_error = BOOL_FALSE;
 
 	static const char *shortopts = "hvs:l";
 /*	static const struct option longopts[] = {
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	shell = clish_shell_new(&my_hooks, NULL, stdin, stdout);
+	shell = clish_shell_new(&my_hooks, NULL, NULL, stdout, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Cannot run clish.\n");
 		return -1;
@@ -102,14 +104,14 @@ int main(int argc, char **argv)
 
 	if(optind < argc) {
 		int i;
-		for (i = optind; i < argc; i++) {
-			/* Run the commands from the file */
-			result = clish_shell_from_file(shell, argv[i]);
-		}
+		/* Run the commands from the files */
+		for (i = argc - 1; i >= optind; i--)
+			clish_shell_push_file(shell, argv[i], stop_on_error);
 	} else {
 		/* The interactive shell */
-		result = clish_shell_loop(shell);
+		clish_shell_push_fd(shell, fdopen(dup(fileno(stdin)), "r"), stop_on_error);
 	}
+	result = clish_shell_loop(shell);
 
 	/* Cleanup */
 	clish_shell_delete(shell);

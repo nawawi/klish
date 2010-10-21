@@ -71,26 +71,15 @@ clish_source_internal(const clish_shell_t * shell,
 	/*
 	 * Check file specified is not a directory 
 	 */
-	if (0 == stat((char *)filename, &fileStat)) {
-		if (!S_ISDIR(fileStat.st_mode)) {
-			file = fopen(filename, "r");
-			if (NULL != file) {
-
-				/* 
-				 * push this file onto the file stack associated with this
-				 * session. This will be closed by clish_shell_pop_file() 
-				 * when it is finished with. 
-				 */
-				result =
-				    clish_shell_push_file((clish_shell_t *)
-							  this, file,
-							  stop_on_error);
-				if (BOOL_FALSE == result) {
-					/* close the file here */
-					fclose(file);
-				}
-			}
-		}
+	if ((0 == stat((char *)filename, &fileStat)) &&
+		(!S_ISDIR(fileStat.st_mode))) {
+		/* 
+		 * push this file onto the file stack associated with this
+		 * session. This will be closed by clish_shell_pop_file() 
+		 * when it is finished with.
+		 */
+		result = clish_shell_push_file(this, filename,
+			stop_on_error);
 	}
 	return result;
 }

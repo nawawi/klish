@@ -115,14 +115,14 @@ void clish_shell_load_files(clish_shell_t * this)
 static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 {
 	bool_t running = BOOL_TRUE;
+
+	assert(this);
+	if (!tinyrl__get_istream(this->tinyrl))
+		return BOOL_FALSE;
 	/*
 	 * Check the shell isn't closing down
 	 */
 	if (this && (SHELL_STATE_CLOSING != this->state)) {
-		/* start off with the default inputs stream */
-		(void)clish_shell_push_file(this,
-			fdopen(fileno(tinyrl__get_istream(this->tinyrl)),"r"), BOOL_TRUE);
-
 		if (is_thread)
 			pthread_testcancel();
 
@@ -227,49 +227,6 @@ int clish_shell_spawn_and_wait(clish_shell_t * this,
 	if (clish_shell_spawn(this, attr) < 0)
 		return -1;
 	return clish_shell_wait(this);
-}
-
-
-/*-------------------------------------------------------- */
-static bool_t _from_file(clish_shell_t * this,
-	bool_t is_thread, const pthread_attr_t * attr,
-	const char *filename)
-{
-	bool_t result = BOOL_FALSE;
-	FILE *file;
-
-	if (!this || !filename)
-		return result;
-
-	file = fopen(filename, "r");
-	if (NULL == file)
-		return result;
-	tinyrl__set_istream(this->tinyrl, file);
-	if (is_thread) {
-		/* spawn the thread and wait for it to exit */
-		result = clish_shell_spawn_and_wait(this, attr) ?
-			BOOL_TRUE : BOOL_FALSE;
-	} else {
-		/* Don't use thread */
-		result = clish_shell_loop(this);
-	}
-	fclose(file);
-
-	return result;
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell_spawn_from_file(clish_shell_t * this,
-	const pthread_attr_t * attr, const char *filename)
-{
-	return _from_file(this, BOOL_TRUE, attr, filename);
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell_from_file(clish_shell_t * this,
-	const char *filename)
-{
-	return _from_file(this, BOOL_FALSE, NULL, filename);
 }
 
 /*-------------------------------------------------------- */

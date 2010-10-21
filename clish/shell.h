@@ -30,7 +30,15 @@
 typedef struct clish_context_s clish_context_t;
 typedef struct clish_shell_s clish_shell_t;
 
-_BEGIN_C_DECL 
+typedef enum {
+	SHELL_STATE_INITIALISING,
+	SHELL_STATE_READY,
+	SHELL_STATE_HELPING,
+	SHELL_STATE_SCRIPT_ERROR,
+	SHELL_STATE_CLOSING
+} clish_shell_state_t;
+
+_BEGIN_C_DECL
 
 /*=====================================
  * SHELL INTERFACE
@@ -282,7 +290,10 @@ bool_t clish_shell_spawn(
 #endif
 
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-	void *cookie, FILE * istream, FILE * ostream);
+	void *cookie,
+	FILE * istream,
+	FILE * ostream,
+	bool_t stop_on_error);
 /*-----------------
  * methods
  *----------------- */
@@ -311,8 +322,22 @@ bool_t clish_shell_readline(clish_shell_t *instance);
 void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
+/** 
+ * Push the specified file handle on to the stack of file handles
+ * for this shell. The specified file will become the source of 
+ * commands, until it is exhausted.
+ *
+ * \return
+ * BOOL_TRUE - the file was successfully associated with the shell.
+ * BOOL_FALSE - there was insufficient resource to associate this file.
+ */
+bool_t clish_shell_push_file(clish_shell_t * instance, const char * fname,
+	bool_t stop_on_error);
+bool_t clish_shell_push_fd(clish_shell_t * instance, FILE * file,
+	bool_t stop_on_error);
+
 /*-----------------
- * attributes 
+ * attributes
  *----------------- */
 const clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
 unsigned clish_shell__get_depth(const clish_shell_t * instance);
@@ -342,12 +367,13 @@ int clish_shell_spawn(clish_shell_t * instance,
 int clish_shell_wait(clish_shell_t * instance);
 int clish_shell_spawn_and_wait(clish_shell_t * instance,
 	const pthread_attr_t * attr);
-bool_t clish_shell_spawn_from_file(clish_shell_t * instance,
-	const pthread_attr_t * attr, const char *filename);
-bool_t clish_shell_from_file(clish_shell_t * instance, const char *filename);
 void clish_shell_load_files(clish_shell_t * instance);
 bool_t clish_shell_loop(clish_shell_t * instance);
+clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
+void clish_shell__set_state(clish_shell_t * instance,
+	clish_shell_state_t state);
 
 _END_C_DECL
+
 #endif				/* _clish_shell_h */
 /** @} clish_shell */
