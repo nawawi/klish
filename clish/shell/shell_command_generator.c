@@ -47,9 +47,10 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 
 /*--------------------------------------------------------- */
 static char *clish_shell_param_generator(clish_shell_t * this,
-					    const clish_command_t * cmd,
-					    const char *line,
-					    unsigned offset, unsigned state)
+	const clish_command_t * cmd,
+	const char *line,
+	unsigned offset,
+	unsigned state)
 {
 	char *result = NULL;
 	const char *name = clish_command__get_name(cmd);
@@ -80,7 +81,7 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 			}
 			this->context.completion_pargv = clish_pargv_create();
 			pargv = clish_pargv_create();
-			clish_pargv_parse(pargv, cmd, clish_command__get_paramv(cmd),
+			clish_pargv_parse(pargv, cmd, this->viewid, clish_command__get_paramv(cmd),
 				argv, &idx, this->context.completion_pargv, index + idx);
 			clish_pargv_delete(pargv);
 			lub_argv_delete(argv);

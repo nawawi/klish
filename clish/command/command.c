@@ -169,7 +169,8 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 }
 
 /*--------------------------------------------------------- */
-void clish_command_help(const clish_command_t * this, const char *line)
+void clish_command_help(const clish_command_t * this, const char * viewid,
+	const char * line)
 {
 	const char *name = clish_command__get_name(this);
 	unsigned index = lub_argv_wordcount(line);
@@ -199,7 +200,7 @@ void clish_command_help(const clish_command_t * this, const char *line)
 	/* get the parameter definition */
 	last = clish_pargv_create();
 	pargv = clish_pargv_create();
-	clish_pargv_parse(pargv, this, this->paramv,
+	clish_pargv_parse(pargv, this, viewid, this->paramv,
 		argv, &idx, last, index);
 	clish_pargv_delete(pargv);
 	cnt = clish_pargv__get_count(last);

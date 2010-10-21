@@ -97,6 +97,7 @@ static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 clish_pargv_status_t
 clish_pargv_parse(clish_pargv_t * this,
 	const clish_command_t * cmd,
+	const char *viewid,
 	clish_paramv_t * paramv,
 	const lub_argv_t * argv,
 	unsigned *idx, clish_pargv_t * last, unsigned need_index)
@@ -131,7 +132,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		/* Check the 'test' conditions */
 		if (param) {
 			char *str = clish_param__get_test(param,
-				NULL, cmd, this);
+				viewid, cmd, this);
 			if (str && !lub_system_line_test(str)) {
 				lub_string_free(str);
 				index++;
@@ -242,7 +243,8 @@ clish_pargv_parse(clish_pargv_t * this,
 
 				/* Walk through the nested parameters */
 				if (rec_paramc) {
-					retval = clish_pargv_parse(this, NULL, rec_paramv,
+					retval = clish_pargv_parse(this, NULL,
+						viewid, rec_paramv,
 						argv, idx, last, need_index);
 					if (CLISH_LINE_OK != retval)
 						return retval;
@@ -338,13 +340,15 @@ clish_pargv_parse(clish_pargv_t * this,
 /*--------------------------------------------------------- */
 static clish_pargv_status_t
 clish_pargv_init(clish_pargv_t * this,
-		 const clish_command_t * cmd, const lub_argv_t * argv)
+	const clish_command_t * cmd,
+	const char *viewid,
+	const lub_argv_t * argv)
 {
 	unsigned idx = lub_argv_wordcount(clish_command__get_name(cmd));
 
 	this->pargc = 0;
 
-	return clish_pargv_parse(this, cmd,
+	return clish_pargv_parse(this, cmd, viewid,
 		clish_command__get_paramv(cmd),
 		argv, &idx, NULL, 0);
 }
@@ -363,7 +367,10 @@ clish_pargv_t *clish_pargv_create(void)
 
 /*--------------------------------------------------------- */
 clish_pargv_t *clish_pargv_new(const clish_command_t * cmd,
-	const char *line, size_t offset, clish_pargv_status_t * status)
+	const char *viewid,
+	const char *line,
+	size_t offset,
+	clish_pargv_status_t * status)
 {
 	clish_pargv_t *this = NULL;
 	lub_argv_t *argv = NULL;
@@ -376,7 +383,7 @@ clish_pargv_t *clish_pargv_new(const clish_command_t * cmd,
 		return NULL;
 
 	argv = lub_argv_new(line, offset);
-	*status = clish_pargv_init(this, cmd, argv);
+	*status = clish_pargv_init(this, cmd, viewid, argv);
 	lub_argv_delete(argv);
 	switch (*status) {
 	case CLISH_LINE_OK:

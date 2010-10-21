@@ -107,14 +107,14 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 					fprintf(stderr, "%s\n", detail);
 				} else {
 					/* get the command to describe itself */
-					clish_command_help(cmd, line);
+					clish_command_help(cmd, this->viewid, line);
 				}
 				break;
 			}
 		case SHELL_STATE_READY:
 		case SHELL_STATE_SCRIPT_ERROR:
 			/* get the command to provide help */
-			clish_command_help(cmd, line);
+			clish_command_help(cmd, this->viewid, line);
 			break;
 		case SHELL_STATE_INITIALISING:
 		case SHELL_STATE_CLOSING:
