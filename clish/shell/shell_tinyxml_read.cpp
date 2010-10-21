@@ -368,6 +368,9 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 					      CLISH_PARAM_SUBCOMMAND);
 			clish_param__set_optional(opt_param, BOOL_TRUE);
 
+			if (NULL != test)
+				clish_param__set_test(opt_param, test);
+
 			if (cmd)
 				// add the parameter to the command
 				clish_command_insert_param(cmd, opt_param);
@@ -414,7 +417,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 				CLISH_PARAM_SUBCOMMAND);
 		}
 
-		if (NULL != test)
+		if ((NULL != test) && (NULL == prefix))
 			clish_param__set_test(param, test);
 
 		if (cmd)
