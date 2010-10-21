@@ -110,8 +110,14 @@ clish_pargv_parse(clish_pargv_t * this,
 	unsigned i;
 	clish_pargv_status_t retval;
 	unsigned paramc = clish_paramv__get_count(paramv);
+	int up_level = 0; /* Is it a first level of param nesting? */
 
 	assert(this);
+	assert(cmd);
+
+	/* Check is it a first level of PARAM nesting. */
+	if (paramv == clish_command__get_paramv(cmd))
+		up_level = 1;
 
 	while (index < paramc) {
 		const char *arg;
@@ -243,7 +249,7 @@ clish_pargv_parse(clish_pargv_t * this,
 
 				/* Walk through the nested parameters */
 				if (rec_paramc) {
-					retval = clish_pargv_parse(this, NULL,
+					retval = clish_pargv_parse(this, cmd,
 						viewid, rec_paramv,
 						argv, idx, last, need_index);
 					if (CLISH_LINE_OK != retval)
@@ -290,8 +296,8 @@ clish_pargv_parse(clish_pargv_t * this,
 	 * params than it's a args. So generate the args entry
 	 * in the list of completions.
 	 */
-	if (last &&
-			cmd && clish_command__get_args(cmd) &&
+	if (last && up_level &&
+			clish_command__get_args(cmd) &&
 			(clish_pargv__get_count(last) == 0) &&
 			(*idx <= argc) && (index >= paramc)) {
 		clish_pargv_insert(last, clish_command__get_args(cmd), "");
@@ -301,7 +307,7 @@ clish_pargv_parse(clish_pargv_t * this,
 	 * if we've satisfied all the parameters we can now construct
 	 * an 'args' parameter if one exists
 	 */
-	if (cmd && (*idx < argc) && (index >= paramc)) {
+	if (up_level && (*idx < argc) && (index >= paramc)) {
 		const char *arg = lub_argv__get_arg(argv, *idx);
 		const clish_param_t *param = clish_command__get_args(cmd);
 		char *args = NULL;
