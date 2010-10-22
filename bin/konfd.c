@@ -131,32 +131,31 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &sig_act, NULL);
 	sigaction(SIGQUIT, &sig_act, NULL);
 
-	/* Configuration tree */
+	/* Create listen socket */
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		fprintf(stderr, "Cannot create socket: %s\n", strerror(errno));
+/*		syslog(LOG_ERR, "Cannot create socket: %s\n", strerror(errno)); */
+		return -1;
+	}
+
+	laddr.sun_family = AF_UNIX;
+	strncpy(laddr.sun_path, socket_path, UNIX_PATH_MAX);
+	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
+	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
+		fprintf(stderr, "Can't bind()\n");
+/*		syslog(LOG_ERR, "Can't bind()\n"); */
+		close(sock);
+		return -1;
+	}
+	listen(sock, 5);
+
+	/* Create configuration tree */
 	conf = konf_tree_new("", 0);
 
 	/* Initialize the tree of buffers */
 	lub_bintree_init(&bufs,
 		konf_buf_bt_offset(),
 		konf_buf_bt_compare, konf_buf_bt_getkey);
-
-	/* Create listen socket */
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		fprintf(stderr, "Cannot create socket: %s\n", strerror(errno));
-/*		syslog(LOG_ERR, "Cannot create socket: %s\n", strerror(errno));
-*/		return -1;
-	}
-
-	unlink(socket_path);
-	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, socket_path, UNIX_PATH_MAX);
-	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
-	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
-		fprintf(stderr, "Can't bind()\n");
-/*		syslog(LOG_ERR, "Can't bind()\n");
-*/		return -1;
-	}
-
-	listen(sock, 5);
 
 	/* Initialize the set of active sockets. */
 	FD_ZERO(&active_fd_set);
@@ -230,6 +229,10 @@ int main(int argc, char **argv)
 		/* release the instance */
 		konf_buf_delete(tbuf);
 	}
+
+	/* Close listen socket */
+	close(sock);
+	unlink(socket_path);
 
 	return retval;
 }
