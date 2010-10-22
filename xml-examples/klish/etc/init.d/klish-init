@@ -4,5 +4,5 @@
 /usr/bin/konfd >/dev/null 2>/dev/null &
 
 # Initialize system with startup-config
-CLISH_VIEW=configure-view /bin/klish-enable /etc/startup-config
+/usr/bin/clish -x /etc/clish-enable -w configure-view /etc/startup-config
 

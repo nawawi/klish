@@ -19,7 +19,7 @@
 	<COMMAND name="enable"
 		help="Turn on privileged commands"
 		lock="false">
-		<ACTION>su -c klish-enable</ACTION>
+		<ACTION>su -l -c "clish -x /etc/clish-enable"</ACTION>
 	</COMMAND>
 
 </VIEW>
