@@ -4,8 +4,6 @@ libclish_la_SOURCES              = \
     clish/clish_access_callback.c  \
     clish/clish_script_callback.c  \
     clish/clish_config_callback.c  \
-    clish/clish_shutdown.c         \
-    clish/clish_startup.c          \
     clish/tclish_fini_callback.c   \
     clish/tclish_init_callback.c   \
     clish/tclish_script_callback.c \
