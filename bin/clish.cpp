@@ -4,6 +4,10 @@
 // A simple client for libclish
 //-------------------------------------
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +21,8 @@
 #define VERSION 1.2.2
 #endif
 #define QUOTE(t) #t
-#define version(v) printf("%s\n", QUOTE(v))
+/* #define version(v) printf("%s\n", QUOTE(v)) */
+#define version(v) printf("%s\n", v)
 
 static clish_shell_hooks_t my_hooks = {
     NULL, /* don't worry about init callback */
@@ -43,13 +48,14 @@ int main(int argc, char **argv)
 	bool_t lockless = BOOL_FALSE;
 	bool_t stop_on_error = BOOL_FALSE;
 
-	static const char *shortopts = "hvs:le";
+	static const char *shortopts = "hvs:led";
 /*	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
 		{"socket",	1, NULL, 's'},
 		{"lockless",	0, NULL, 'l'},
 		{"stop-on-error", 0, NULL, 'e'},
+		{"dry-run",	0, NULL, 'd'},
 		{NULL,		0, NULL, 0}
 	};
 */
@@ -70,6 +76,9 @@ int main(int argc, char **argv)
 			break;
 		case 'e':
 			stop_on_error = BOOL_TRUE;
+			break;
+		case 'd':
+			my_hooks.script_fn = clish_dryrun_callback;
 			break;
 		case 'h':
 			help(0, argv[0]);
@@ -153,6 +162,7 @@ static void help(int status, const char *argv0)
 			"of the konfd daemon.\n");
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 		printf("\t-e, --stop-on-error\tStop programm execution on error.\n");
+		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
 	}
 }
 

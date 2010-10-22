@@ -22,6 +22,7 @@ extern struct termios clish_default_tty_termios;
 /* clish callback functions */
 extern clish_shell_access_fn_t clish_access_callback;
 extern clish_shell_script_fn_t clish_script_callback;
+extern clish_shell_script_fn_t clish_dryrun_callback;
 extern clish_shell_config_fn_t clish_config_callback;
 
 /* tclish callback functions */

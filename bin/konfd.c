@@ -5,6 +5,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,7 +33,7 @@
 #define VERSION 1.2.2
 #endif
 #define QUOTE(t) #t
-#define version(v) printf("%s\n", QUOTE(v))
+#define version(v) printf("%s\n", v)
 
 #define KONFD_CONFIG_PATH "/tmp/running-config"
 

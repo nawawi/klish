@@ -5,6 +5,10 @@
  * The client to communicate to konfd configuration daemon.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +28,7 @@
 #define VERSION 1.2.2
 #endif
 #define QUOTE(t) #t
-#define version(v) printf("%s\n", QUOTE(v))
+#define version(v) printf("%s\n", v)
 
 static void help(int status, const char *argv0);
 
