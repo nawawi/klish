@@ -372,6 +372,8 @@ bool_t clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
 	clish_shell_state_t state);
+void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewname);
+void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
 
 _END_C_DECL
 

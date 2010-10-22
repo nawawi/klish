@@ -273,14 +273,6 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	clish_command_t *cmd = NULL;
 	const char *view = element->Attribute("view");
 	const char *viewid = element->Attribute("viewid");
-	const char *env_view = getenv("CLISH_VIEW");
-	const char *env_viewid = getenv("CLISH_VIEWID");
-
-	/* Redefine startup view if environment is set. */
-	if (env_view)
-		view = env_view;
-	if (env_viewid)
-		viewid = env_viewid;
 
 	assert(NULL == shell->startup);
 	assert(view);

@@ -20,3 +20,23 @@ bool_t clish_shell_startup(clish_shell_t * this)
 }
 
 /*----------------------------------------------------------- */
+void clish_shell__set_startup_view(clish_shell_t * this, const char * viewname)
+{
+	clish_view_t *view;
+
+	assert(this);
+	assert(this->startup);
+	/* Search for the view */
+	view = clish_shell_find_create_view(this, viewname, NULL);
+	clish_command__force_view(this->startup, view);
+}
+
+/*----------------------------------------------------------- */
+void clish_shell__set_startup_viewid(clish_shell_t * this, const char * viewid)
+{
+	assert(this);
+	assert(this->startup);
+	clish_command__force_viewid(this->startup, viewid);
+}
+
+/*----------------------------------------------------------- */

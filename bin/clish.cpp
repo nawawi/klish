@@ -48,8 +48,8 @@ int main(int argc, char **argv)
 	bool_t lockless = BOOL_FALSE;
 	bool_t stop_on_error = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
-	const char *view = NULL;
-	const char *viewid = NULL;
+	const char *view = getenv("CLISH_VIEW");
+	const char *viewid = getenv("CLISH_VIEWID");
 
 	static const char *shortopts = "hvs:ledx:w:i:";
 /*	static const struct option longopts[] = {
@@ -110,12 +110,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* Create shell instance */
 	shell = clish_shell_new(&my_hooks, NULL, NULL, stdout, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Cannot run clish.\n");
 		return -1;
 	}
-
 	/* Load the XML files */
 	clish_shell_load_scheme(shell, xml_path);
 	/* Set communication to the konfd */
@@ -123,6 +123,12 @@ int main(int argc, char **argv)
 	/* Set lockless mode */
 	if (lockless)
 		clish_shell__set_lockfile(shell, NULL);
+	/* Set startup view */
+	if (view)
+		clish_shell__set_startup_view(shell, view);
+	/* Set startup viewid */
+	if (viewid)
+		clish_shell__set_startup_viewid(shell, viewid);
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (!running) {
@@ -179,6 +185,9 @@ static void help(int status, const char *argv0)
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 		printf("\t-e, --stop-on-error\tStop programm execution on error.\n");
 		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
+		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
+		printf("\t-w, --view\tSet the startup view.\n");
+		printf("\t-i, --viewid\tSet the startup viewid.\n");
 	}
 }
 

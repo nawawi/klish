@@ -73,7 +73,9 @@ clish_command__set_escape_chars(clish_command_t * instance,
 void clish_command__set_args(clish_command_t * instance, clish_param_t * args);
 void clish_command__set_detail(clish_command_t * instance, const char *detail);
 void clish_command__set_view(clish_command_t * instance, clish_view_t * view);
+void clish_command__force_view(clish_command_t * instance, clish_view_t * view);
 void clish_command__set_viewid(clish_command_t * instance, const char *viewid);
+void clish_command__force_viewid(clish_command_t * instance, const char *viewid);
 void clish_command__set_pview(clish_command_t * instance, clish_view_t * view);
 clish_view_t *clish_command__get_pview(const clish_command_t * instance);
 unsigned clish_command__get_depth(const clish_command_t * instance);

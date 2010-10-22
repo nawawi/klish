@@ -308,6 +308,12 @@ char *clish_command__get_action(const clish_command_t * this,
 void clish_command__set_view(clish_command_t * this, clish_view_t * view)
 {
 	assert(NULL == this->view);
+	clish_command__force_view(this, view);
+}
+
+/*--------------------------------------------------------- */
+void clish_command__force_view(clish_command_t * this, clish_view_t * view)
+{
 	this->view = view;
 }
 
@@ -321,6 +327,12 @@ clish_view_t *clish_command__get_view(const clish_command_t * this)
 void clish_command__set_viewid(clish_command_t * this, const char *viewid)
 {
 	assert(NULL == this->viewid);
+	clish_command__force_viewid(this, viewid);
+}
+
+/*--------------------------------------------------------- */
+void clish_command__force_viewid(clish_command_t * this, const char *viewid)
+{
 	this->viewid = lub_string_dup(viewid);
 }
 
