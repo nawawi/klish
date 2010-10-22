@@ -234,5 +234,11 @@ else
     AC_MSG_WARN([Skipping BFD library checks because of GPL Licence])
 fi
 
+################################
+# Check for getopt_long()
+################################
+AC_CHECK_HEADERS(getopt.h, [],
+    AC_MSG_WARN([getopt.h not found: only short parameters can be used on command line]))
+
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

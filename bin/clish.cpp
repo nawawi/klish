@@ -11,8 +11,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
 #include <unistd.h>
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include "clish/shell.h"
 #include "clish/internal.h"
@@ -24,6 +26,7 @@
 /* #define version(v) printf("%s\n", QUOTE(v)) */
 #define version(v) printf("%s\n", v)
 
+/* Hooks */
 static clish_shell_hooks_t my_hooks = {
     NULL, /* don't worry about init callback */
     clish_access_callback,
@@ -52,7 +55,8 @@ int main(int argc, char **argv)
 	const char *viewid = getenv("CLISH_VIEWID");
 
 	static const char *shortopts = "hvs:ledx:w:i:";
-/*	static const struct option longopts[] = {
+#ifdef HAVE_GETOPT_H
+	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
 		{"socket",	1, NULL, 's'},
@@ -64,13 +68,17 @@ int main(int argc, char **argv)
 		{"viewid",	1, NULL, 'i'},
 		{NULL,		0, NULL, 0}
 	};
-*/
+#endif
+
 	/* Parse command line options */
 	optind = 0;
 	while(1) {
 		int opt;
-/*		opt = getopt_long(argc, argv, shortopts, longopts, NULL); */
+#ifdef HAVE_GETOPT_H
+		opt = getopt_long(argc, argv, shortopts, longopts, NULL);
+#else
 		opt = getopt(argc, argv, shortopts);
+#endif
 		if (-1 == opt)
 			break;
 		switch (opt) {
