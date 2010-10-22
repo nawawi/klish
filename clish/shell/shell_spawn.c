@@ -48,9 +48,9 @@ static char *clish_shell_tilde_expand(const char *path)
 }
 
 /*-------------------------------------------------------- */
-void clish_shell_load_files(clish_shell_t * this)
+void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 {
-	const char *path = getenv("CLISH_PATH");
+	const char *path = xml_path;
 	char *buffer;
 	char *dirname;
 	char *saveptr;

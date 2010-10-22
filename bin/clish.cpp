@@ -47,8 +47,11 @@ int main(int argc, char **argv)
 	const char *socket_path = KONFD_SOCKET_PATH;
 	bool_t lockless = BOOL_FALSE;
 	bool_t stop_on_error = BOOL_FALSE;
+	const char *xml_path = getenv("CLISH_PATH");
+	const char *view = NULL;
+	const char *viewid = NULL;
 
-	static const char *shortopts = "hvs:led";
+	static const char *shortopts = "hvs:ledx:w:i:";
 /*	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
@@ -56,6 +59,9 @@ int main(int argc, char **argv)
 		{"lockless",	0, NULL, 'l'},
 		{"stop-on-error", 0, NULL, 'e'},
 		{"dry-run",	0, NULL, 'd'},
+		{"xml-path",	1, NULL, 'x'},
+		{"view",	1, NULL, 'w'},
+		{"viewid",	1, NULL, 'i'},
 		{NULL,		0, NULL, 0}
 	};
 */
@@ -80,6 +86,15 @@ int main(int argc, char **argv)
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
 			break;
+		case 'x':
+			xml_path = optarg;
+			break;
+		case 'w':
+			view = optarg;
+			break;
+		case 'i':
+			viewid = optarg;
+			break;
 		case 'h':
 			help(0, argv[0]);
 			exit(0);
@@ -100,8 +115,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Cannot run clish.\n");
 		return -1;
 	}
+
 	/* Load the XML files */
-	clish_shell_load_files(shell);
+	clish_shell_load_scheme(shell, xml_path);
 	/* Set communication to the konfd */
 	clish_shell__set_socket(shell, socket_path);
 	/* Set lockless mode */

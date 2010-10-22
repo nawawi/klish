@@ -367,7 +367,7 @@ int clish_shell_spawn(clish_shell_t * instance,
 int clish_shell_wait(clish_shell_t * instance);
 int clish_shell_spawn_and_wait(clish_shell_t * instance,
 	const pthread_attr_t * attr);
-void clish_shell_load_files(clish_shell_t * instance);
+void clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
 bool_t clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
