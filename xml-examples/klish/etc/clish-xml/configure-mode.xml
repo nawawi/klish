@@ -9,7 +9,7 @@
 	prompt="${SYSTEM_NAME}(config)# "
 	restore="depth">
 
-<!------ Inheritance ------>
+<!-- Inheritance -->
 
 	<NAMESPACE ref="enable-view" 
 		prefix="do"
@@ -19,7 +19,7 @@
 	<COMMAND name="do"
 		help="To run exec commands in config mode"/>
 
-<!------ Virtual commands ------>
+<!-- Virtual commands -->
 
 	<COMMAND name="no"
 		help="Negate a command or set its defaults"/>
@@ -30,7 +30,7 @@
 	<COMMAND name="no ip"
 		help="Global IP configuration subcommands"/>
 
-<!------ Simple configuration mode commands ------>
+<!-- Simple configuration mode commands -->
 
 	<COMMAND name="exit"
 		help="Exit from configure mode"

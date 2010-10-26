@@ -123,24 +123,38 @@
 *******************************************************
 * <VIEW> defines the contents of a specific CLI view.
 *
-* name   - a textual name for the view
+* name      - a textual name for the view
 *
-* prompt - a textual definition of the prompt to be 
-*          used whilst in this view.
-*          NB. The prompt may contain environment
-*              or dynamic variables which are expanded
-*              before display. 
-* depth  - a depth of nested view (uses for config).
+* prompt    - a textual definition of the prompt to be
+*           used whilst in this view.
+*           NB. The prompt may contain environment
+*           or dynamic variables which are expanded
+*           before display.
+*
+* [depth]   - a depth of nested view (uses for config).
+*
+* [restore] - restore the depth or view of commands
+*           contained by this view
 ********************************************************
 -->
+
+    <xs:simpleType name="restore_t">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="none"/>
+            <xs:enumeration value="depth"/>
+            <xs:enumeration value="view"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="view_t">
         <xs:sequence>
-            <xs:element ref="COMMAND" maxOccurs="unbounded"/>
-            <xs:element ref="NAMESPACE" maxOccurs="unbounded"/>
+            <xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="prompt" type="xs:string" use="optional"/>
         <xs:attribute name="depth" type="xs:string" use="optional" default="0"/>
+        <xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
     </xs:complexType>
     <!--
 *******************************************************
@@ -212,8 +226,8 @@
         <xs:sequence>
             <xs:element ref="DETAIL" minOccurs="0"/>
             <xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element ref="ACTION" minOccurs="0"/>
             <xs:element ref="CONFIG" minOccurs="0"/>
+            <xs:element ref="ACTION" minOccurs="0"/>
         </xs:sequence>
         <xs:attributeGroup ref="menu_item_g"/>
         <xs:attribute name="view" type="xs:string" use="optional"/>
@@ -377,18 +391,8 @@
 *
 * [inherit]      - a boolean flag to inherit nested
 *                namespace commands recursively
-*
-* [restore]      - restore the depth or view of commands
-*                included by this namespace
 ********************************************************
 -->
-    <xs:simpleType name="restore_t">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="none"/>
-            <xs:enumeration value="depth"/>
-            <xs:enumeration value="view"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:complexType name="namespace_t">
         <xs:attribute name="ref" type="xs:string" use="required"/>
@@ -398,7 +402,6 @@
         <xs:attribute name="completion" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="context_help" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="inherit" type="bool_t" use="optional" default="true"/>
-        <xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
     </xs:complexType>
 
 <!--

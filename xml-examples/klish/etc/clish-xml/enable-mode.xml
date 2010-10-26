@@ -7,13 +7,13 @@
 <VIEW name="enable-view"
 	prompt="${SYSTEM_NAME}# ">
 
-<!------ Inheritance ------>
+<!-- Inheritance -->
 
 	<NAMESPACE ref="ping-view" 
 		help="true"
 		completion="true"/>
 
-<!------ Simple enable mode commands ------>
+<!-- Simple enable mode commands -->
 
 	<COMMAND name="disable"
 		help="Turn off privileged commands">
@@ -33,7 +33,7 @@
 		view="configure-view">
 	</COMMAND>
 
-<!------ Show commands ------>
+<!-- Show commands -->
 
 	<COMMAND name="show"
 		help="Show running system information"/>
@@ -56,7 +56,7 @@
 		<ACTION>cat /etc/startup-config</ACTION>
 	</COMMAND>
 
-<!------ Copy commands ------>
+<!-- Copy commands -->
 
 	<COMMAND name="copy"
 		help="Copy from one file to another"/>

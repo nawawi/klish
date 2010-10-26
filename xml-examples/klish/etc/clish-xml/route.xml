@@ -7,7 +7,7 @@
 
 <VIEW name="enable-view">
 
-<!------ Show routing information ------>
+<!-- Show routing information -->
 
 	<COMMAND name="show ip route"
 		help="IP routing table">
@@ -19,7 +19,7 @@
 
 <VIEW name="configure-view">
 
-<!------ Enable/Disable routing ------>
+<!-- Enable/Disable routing -->
 
 	<COMMAND name="ip routing"
 		help="Enable IP routing">
@@ -37,7 +37,7 @@
 		</ACTION>
 	</COMMAND>
 
-<!------ Default gateway ------>
+<!-- Default gateway -->
 
 	<COMMAND name="ip default-gateway"
 		help="Specify default gateway (if not routing IP)">
@@ -58,7 +58,7 @@
 		</ACTION>
 	</COMMAND>
 
-<!------ Set/Unset static route ------>
+<!-- Set/Unset static route -->
 
 	<COMMAND name="ip route"
 		help="Establish static routes">

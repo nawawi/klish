@@ -8,13 +8,13 @@
 <VIEW name="info-view"
 	prompt="${SYSTEM_NAME}&gt; ">
 
-<!------ Inheritance ------>
+<!-- Inheritance -->
 
 	<NAMESPACE ref="ping-view" 
 		help="true"
 		completion="true"/>
 
-<!------ Simple non-priveledged mode commands ------>
+<!-- Simple non-priveledged mode commands -->
 
 	<COMMAND name="enable"
 		help="Turn on privileged commands"

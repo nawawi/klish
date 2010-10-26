@@ -40,13 +40,13 @@
 	prompt="${SYSTEM_NAME}(config-if-${iface})# "
 	depth="1">
 
-<!------ Inheritance ------>
+<!-- Inheritance -->
 
 	<NAMESPACE ref="configure-view"
 		help="false"
 		completion="true"/>
 
-<!------ Simple configure-if mode commands ------>
+<!-- Simple configure-if mode commands -->
 
 	<COMMAND name="exit"
 		help="Exit from interface configuration mode"
@@ -63,7 +63,7 @@
 	<COMMAND name="no ip"
 		help="Interface Internet Protocol config commands"/>
 
-<!------ IP address ------>
+<!-- IP address -->
 
 	<COMMAND name="ip address"
 		help="Set the IP address of an interface">
@@ -98,7 +98,7 @@
 		</ACTION>
 	</COMMAND>
 
-<!------ Enable/Disable ------>
+<!-- Enable/Disable -->
 
 	<COMMAND name="disable"
 		help="Disable the selected interface">
