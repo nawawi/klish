@@ -356,7 +356,6 @@
             <xs:whiteSpace value="preserve"/>
         </xs:restriction>
     </xs:simpleType>
-</xs:schema>
     <!--
 *******************************************************
 * <NAMESPACE> import commands from specific view to current view.
@@ -430,4 +429,4 @@
         <xs:attribute name="depth" type="xs:string" use="optional"/>
     </xs:complexType>
 
-
+</xs:schema>
