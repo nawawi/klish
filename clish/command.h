@@ -108,5 +108,7 @@ unsigned clish_command__get_cfg_depth(const clish_command_t * instance,
 	const char *viewid, clish_pargv_t * pargv);
 bool_t clish_command__get_lock(const clish_command_t * instance);
 void clish_command__set_lock(clish_command_t * instance, bool_t lock);
+const char * clish_command__get_shebang(const clish_command_t * instance);
+void clish_command__set_shebang(clish_command_t * instance, const char * shebang);
 
 #endif				/* _clish_command_h */

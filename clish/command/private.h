@@ -15,12 +15,15 @@ struct clish_command_s {
 	clish_view_t *view;
 	char *viewid;
 	char *detail;
-	char *builtin;
 	char *escape_chars;
 	clish_param_t *args;
 	const struct clish_command_s * link;
 	clish_view_t *pview;
 	bool_t lock;
+
+	/* ACTION params: */
+	char *builtin;
+	char *shebang;
 
 	/* CONFIG params:
 	 * TODO: create special structure for CONFIG params.

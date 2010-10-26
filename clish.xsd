@@ -324,14 +324,18 @@
 * (e.g. $|<>`) are escaped before evaluation.
 *
 * [builtin] - specify the name of an internally registered
-*             function. The content of the ACTION tag is
-*             taken as the arguments to this builtin function.
+*           function. The content of the ACTION tag is
+*           taken as the arguments to this builtin function.
+*
+* [shebang] - specify the programm to execute the action
+*           script.
 ********************************************************
 -->
     <xs:complexType name="action_t">
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute name="builtin" type="xs:string" use="optional"/>
+                <xs:attribute name="shebang" type="xs:string" use="optional"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>

@@ -33,11 +33,14 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->view = NULL;
 	this->action = NULL;
 	this->detail = NULL;
-	this->builtin = NULL;
 	this->escape_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
 	this->lock = BOOL_TRUE;
+
+	/* ACTION params */
+	this->builtin = NULL;
+	this->shebang = NULL;
 
 	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
@@ -75,6 +78,8 @@ static void clish_command_fini(clish_command_t * this)
 	this->detail = NULL;
 	lub_string_free(this->builtin);
 	this->builtin = NULL;
+	lub_string_free(this->shebang);
+	this->shebang = NULL;
 	lub_string_free(this->escape_chars);
 	this->escape_chars = NULL;
 
@@ -613,4 +618,24 @@ bool_t clish_command__get_lock(const clish_command_t * this)
 void clish_command__set_lock(clish_command_t * this, bool_t lock)
 {
 	this->lock = lock;
+}
+
+/*--------------------------------------------------------- */
+const char * clish_command__get_shebang(const clish_command_t * this)
+{
+	return this->shebang;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_shebang(clish_command_t * this, const char * shebang)
+{
+	const char *prog = shebang;
+	const char *prefix = "#!";
+
+	assert(NULL == this->shebang);
+	if (lub_string_nocasestr(shebang, prefix) == shebang)
+		prog += strlen(prefix);
+	if (lub_string_nocasecmp(prog, "/bin/sh") == 0) /* the default */
+		return;
+	this->shebang = lub_string_dup(prog);
 }

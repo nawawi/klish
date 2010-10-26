@@ -434,6 +434,7 @@ process_action(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		// read the following text element
 		TiXmlNode *text = element->FirstChild();
 		const char *builtin = element->Attribute("builtin");
+		const char *shebang = element->Attribute("shebang");
 
 		if (NULL != text) {
 			assert(TiXmlNode::TEXT == text->Type());
@@ -444,6 +445,8 @@ process_action(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			// store the action
 			clish_command__set_builtin(cmd, builtin);
 		}
+		if (NULL != shebang)
+			clish_command__set_shebang(cmd, shebang);
 	}
 }
 
