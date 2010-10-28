@@ -635,7 +635,5 @@ void clish_command__set_shebang(clish_command_t * this, const char * shebang)
 	assert(NULL == this->shebang);
 	if (lub_string_nocasestr(shebang, prefix) == shebang)
 		prog += strlen(prefix);
-	if (lub_string_nocasecmp(prog, "/bin/sh") == 0) /* the default */
-		return;
 	this->shebang = lub_string_dup(prog);
 }

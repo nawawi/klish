@@ -378,6 +378,8 @@ void clish_shell__set_state(clish_shell_t * instance,
 	clish_shell_state_t state);
 void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewname);
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
+void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);
+const char * clish_shell__get_default_shebang(const clish_shell_t * instance);
 
 _END_C_DECL
 

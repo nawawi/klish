@@ -273,6 +273,7 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	clish_command_t *cmd = NULL;
 	const char *view = element->Attribute("view");
 	const char *viewid = element->Attribute("viewid");
+	const char *default_shebang = element->Attribute("default_shebang");
 
 	assert(NULL == shell->startup);
 	assert(view);
@@ -290,7 +291,11 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	if (NULL != viewid) {
 		clish_command__set_viewid(cmd, viewid);
 	}
-	// remember this command 
+
+	if (NULL != default_shebang)
+		clish_shell__set_default_shebang(shell, default_shebang);
+
+	// remember this command
 	shell->startup = cmd;
 
 	process_children(shell, element, cmd);

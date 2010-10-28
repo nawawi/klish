@@ -169,6 +169,8 @@
 *
 * [viewid] - defined the new value of the ${VIEWID} variable to
 *          be used if a transition to a new view occurs.
+*
+* [default_shebang] - The default shebang for all commands.
 ********************************************************
 -->
     <xs:complexType name="startup_t">
@@ -178,6 +180,7 @@
         </xs:sequence>
         <xs:attribute name="view" type="xs:string" use="required"/>
         <xs:attribute name="viewid" type="xs:string" use="optional"/>
+        <xs:attribute name="default_shebang" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 *******************************************************

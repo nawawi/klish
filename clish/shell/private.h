@@ -66,6 +66,7 @@ struct clish_shell_s {
 	char * lockfile;
 	pthread_t pthread;
 	clish_context_t context;
+	char * default_shebang;
 };
 
 /**
