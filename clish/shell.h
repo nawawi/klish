@@ -380,6 +380,10 @@ void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewna
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
 void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);
 const char * clish_shell__get_default_shebang(const clish_shell_t * instance);
+char * clish_shell__expand_text(const clish_shell_t *instance,
+	clish_command_t *cmd, clish_pargv_t *pargv, const char *text);
+char * clish_shell__expand_variable(const clish_shell_t *instance,
+	clish_command_t *cmd, clish_pargv_t *pargv, const char *var);
 
 _END_C_DECL
 

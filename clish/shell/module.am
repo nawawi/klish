@@ -27,4 +27,5 @@ libclish_la_SOURCES +=	\
             clish/shell/shell_pwd.c                 \
             clish/shell/shell_tinyrl.c              \
             clish/shell/shell_tinyxml_read.cpp      \
+            clish/shell/shell_expand.c              \
             clish/shell/private.h

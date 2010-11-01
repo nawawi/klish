@@ -68,10 +68,14 @@ bool_t clish_script_callback(const clish_shell_t * this,
 	if (cpid == 0) {
 		FILE *wpipe;
 		int retval;
+		int so; /* saved stdout */
 		close(pipefd[0]); /* Close unused read end */
+		so = dup(STDOUT_FILENO);
 		dup2(pipefd[1], STDOUT_FILENO);
-		wpipe = popen(shebang, "w");
 		close(pipefd[1]); /* Close write end */
+		wpipe = popen(shebang, "w");
+		dup2(so, STDOUT_FILENO);
+		close(so);
 		if (!wpipe)
 			_exit(-1);
 		fwrite(script, strlen(script) + 1, 1, wpipe);
