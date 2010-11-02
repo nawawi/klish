@@ -15,6 +15,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#include <signal.h>
 
 #include "konf/net.h"
 #include "konf/query.h"
@@ -47,6 +48,10 @@ int main(int argc, char **argv)
 	const char *socket_path = KONFD_SOCKET_PATH;
 	unsigned i = 0;
 
+	/* Signal vars */
+	struct sigaction sigpipe_act;
+	sigset_t sigpipe_set;
+
 	static const char *shortopts = "hvs:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
@@ -56,6 +61,14 @@ int main(int argc, char **argv)
 		{NULL,		0, NULL, 0}
 	};
 #endif
+
+	/* Ignore SIGPIPE */
+	sigemptyset(&sigpipe_set);
+	sigaddset(&sigpipe_set, SIGPIPE);
+	sigpipe_act.sa_flags = 0;
+	sigpipe_act.sa_mask = sigpipe_set;
+	sigpipe_act.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
 	/* Parse command line options */
 	optind = 0;

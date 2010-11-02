@@ -14,9 +14,16 @@
 #include "lub/string.h"
 #include "private.h"
 
-/* Socket name in filesystem */
+/* UNIX socket name in filesystem */
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX 108
+#endif
+
+/* OpenBSD has no MSG_NOSIGNAL flag.
+ * The SIGPIPE must be ignored in application.
+ */
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
 #endif
 
 /*--------------------------------------------------------- */

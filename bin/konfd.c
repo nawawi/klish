@@ -45,6 +45,11 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+/* OpenBSD has no MSG_NOSIGNAL flag */
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 #define MAXMSG 1024
 
 /* Global signal vars */
@@ -74,9 +79,8 @@ int main(int argc, char **argv)
 	const char *socket_path = KONFD_SOCKET_PATH;
 
 	/* Signal vars */
-	struct sigaction sig_act;
-	sigset_t sig_set;
-
+	struct sigaction sig_act, sigpipe_act;
+	sigset_t sig_set, sigpipe_set;
 	/* Command line options */
 	static const char *shortopts = "hvs:";
 #ifdef HAVE_GETOPT_H
@@ -130,6 +134,14 @@ int main(int argc, char **argv)
 	sigaction(SIGTERM, &sig_act, NULL);
 	sigaction(SIGINT, &sig_act, NULL);
 	sigaction(SIGQUIT, &sig_act, NULL);
+
+	/* Ignore SIGPIPE */
+	sigemptyset(&sigpipe_set);
+	sigaddset(&sigpipe_set, SIGPIPE);
+	sigpipe_act.sa_flags = 0;
+	sigpipe_act.sa_mask = sigpipe_set;
+	sigpipe_act.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
 	/* Create listen socket */
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
