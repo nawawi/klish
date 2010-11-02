@@ -355,3 +355,30 @@ static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * ar
 }
 
 /*----------------------------------------------------------- */
+const char * clish_shell__get_fifo(clish_shell_t * this)
+{
+	char *name;
+	int res;
+
+	if (this->fifo_name) {
+		if (0 == access(this->fifo_name, R_OK | W_OK))
+			return this->fifo_name;
+		unlink(this->fifo_name);
+		lub_string_free(this->fifo_name);
+		this->fifo_name = NULL;
+	}
+
+	do {
+		char template[] = "/tmp/klish.fifo.XXXXXX";
+		name = mktemp(template);
+		if (name[0] == '\0')
+			return NULL;
+		res = mkfifo(name, 0600);
+		if (res == 0)
+			this->fifo_name = lub_string_dup(name);
+	} while ((res < 0) && (EEXIST == errno));
+
+	return this->fifo_name;
+}
+
+/*----------------------------------------------------------- */

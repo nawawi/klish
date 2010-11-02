@@ -46,6 +46,7 @@ clish_shell_init(clish_shell_t * this,
 	this->client = NULL;
 	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 	this->default_shebang = lub_string_dup("/bin/sh");
+	this->fifo_name = NULL;
 
 	/* Create internal ptypes and params */
 	/* Current depth */

@@ -137,7 +137,7 @@ typedef bool_t clish_shell_script_fn_t(
 	/** 
          * The shell instance which invoked this call
          */
-					      const clish_shell_t * instance,
+					clish_shell_t * instance,
 	/** 
          * The command which invoked this call
          */
@@ -384,6 +384,7 @@ char * clish_shell__expand_text(const clish_shell_t *instance,
 	clish_command_t *cmd, clish_pargv_t *pargv, const char *text);
 char * clish_shell__expand_variable(const clish_shell_t *instance,
 	clish_command_t *cmd, clish_pargv_t *pargv, const char *var);
+const char * clish_shell__get_fifo(clish_shell_t * instance);
 
 _END_C_DECL
 

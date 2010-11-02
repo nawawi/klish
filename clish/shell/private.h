@@ -67,6 +67,7 @@ struct clish_shell_s {
 	pthread_t pthread;
 	clish_context_t context;
 	char * default_shebang;
+	char * fifo_name; /* The name of temporary fifo file */
 };
 
 /**

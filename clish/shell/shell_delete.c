@@ -62,6 +62,10 @@ static void clish_shell_fini(clish_shell_t * this)
 
 	lub_string_free(this->lockfile);
 	lub_string_free(this->default_shebang);
+	if (this->fifo_name) {
+		unlink(this->fifo_name);
+		lub_string_free(this->fifo_name);
+	}
 
 	/* Clear the context */
 	if (this->context.completion_pargv) {

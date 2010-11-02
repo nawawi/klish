@@ -21,15 +21,15 @@
 #define KLISH_FIFO "/tmp/klish.fifo"
 
 /*--------------------------------------------------------- */
-bool_t clish_script_callback(const clish_shell_t * this,
+bool_t clish_script_callback(clish_shell_t * this,
 	const clish_command_t * cmd, const char *script)
 {
 	const char * shebang = NULL;
 	pid_t cpid;
 	char buf;
 	int res;
-	const char *fifo_name = KLISH_FIFO;
-	FILE *rpipe;
+	const char *fifo_name;
+	FILE *rpipe, *wpipe;
 	char *command = NULL;
 
 	/* Signal vars */
@@ -43,35 +43,36 @@ bool_t clish_script_callback(const clish_shell_t * this,
 	if (!script) /* Nothing to do */
 		return BOOL_TRUE;
 
+	/* Find out shebang */
 	shebang = clish_command__get_shebang(cmd);
 	if (!shebang)
 		shebang = clish_shell__get_default_shebang(this);
 	assert(shebang);
+
 #ifdef DEBUG
 	fprintf(stderr, "SHEBANG: #!%s\n", shebang);
 	fprintf(stderr, "SCRIPT: %s\n", script);
 #endif /* DEBUG */
 
-	mkfifo(fifo_name, 0600);
-
-	/* Ignore SIGINT and SIGQUIT */
-	sigemptyset(&sig_set);
-	sig_new.sa_flags = 0;
-	sig_new.sa_mask = sig_set;
-	sig_new.sa_handler = SIG_IGN;
-	sigaction(SIGINT, &sig_new, &sig_old_int);
-	sigaction(SIGQUIT, &sig_new, &sig_old_quit);
+	/* Get FIFO */
+	fifo_name = clish_shell__get_fifo(this);
+	if (!fifo_name) {
+		fprintf(stderr, "System error. Can't create temporary FIFO.\n"
+			"The ACTION will be not executed.\n");
+		return BOOL_FALSE;
+	}
 
 	/* Create process to execute script */
 	cpid = fork();
 	if (cpid == -1) {
+		fprintf(stderr, "System error. Can't fork the write process.\n"
+			"The ACTION will be not executed.\n");
 		return BOOL_FALSE;
 	}
 
 	/* Child */
 	if (cpid == 0) {
 		int retval;
-		FILE *wpipe;
 		wpipe = fopen(fifo_name, "w");
 		if (!wpipe)
 			_exit(-1);
@@ -81,19 +82,41 @@ bool_t clish_script_callback(const clish_shell_t * this,
 	}
 
 	/* Parent */
+	/* Ignore SIGINT and SIGQUIT */
+	sigemptyset(&sig_set);
+	sig_new.sa_flags = 0;
+	sig_new.sa_mask = sig_set;
+	sig_new.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sig_new, &sig_old_int);
+	sigaction(SIGQUIT, &sig_new, &sig_old_quit);
+
+	/* Prepare command */
 	lub_string_cat(&command, shebang);
 	lub_string_cat(&command, " ");
 	lub_string_cat(&command, fifo_name);
 
+	/* Execute shebang with FIFO as argument */
 	rpipe = popen(command, "r");
 	lub_string_free(command);
+	if (!rpipe) {
+		fprintf(stderr, "System error. Can't fork the script.\n"
+			"The ACTION will be not executed.\n");
+		kill(cpid, SIGTERM);
+		waitpid(cpid, NULL, 0);
+
+		/* Restore SIGINT and SIGQUIT */
+		sigaction(SIGINT, &sig_old_int, NULL);
+		sigaction(SIGQUIT, &sig_old_quit, NULL);
+
+		return BOOL_FALSE;
+	}
 	/* Read the result of script execution */
 	while (read(fileno(rpipe), &buf, 1) > 0)
 		write(fileno(clish_shell__get_ostream(this)), &buf, 1);
-	/* Wait for script */
-	res = pclose(rpipe);
 	/* Wait for the writing process */
 	waitpid(cpid, NULL, 0);
+	/* Wait for script */
+	res = pclose(rpipe);
 
 	/* Restore SIGINT and SIGQUIT */
 	sigaction(SIGINT, &sig_old_int, NULL);
@@ -106,7 +129,7 @@ bool_t clish_script_callback(const clish_shell_t * this,
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_dryrun_callback(const clish_shell_t * this,
+bool_t clish_dryrun_callback(clish_shell_t * this,
 	const clish_command_t * cmd, const char *script)
 {
 #ifdef DEBUG
