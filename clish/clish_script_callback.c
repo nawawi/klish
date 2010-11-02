@@ -31,6 +31,8 @@ bool_t clish_script_callback(clish_shell_t * this,
 	const char *fifo_name;
 	FILE *rpipe, *wpipe;
 	char *command = NULL;
+	bool_t is_sh = BOOL_FALSE;
+	char **out = NULL;
 
 	/* Signal vars */
 	struct sigaction sig_old_int;
@@ -48,79 +50,99 @@ bool_t clish_script_callback(clish_shell_t * this,
 	if (!shebang)
 		shebang = clish_shell__get_default_shebang(this);
 	assert(shebang);
+	if (0 == lub_string_nocasecmp(shebang, "/bin/sh"))
+		is_sh = BOOL_TRUE;
 
 #ifdef DEBUG
 	fprintf(stderr, "SHEBANG: #!%s\n", shebang);
 	fprintf(stderr, "SCRIPT: %s\n", script);
 #endif /* DEBUG */
 
-	/* Get FIFO */
-	fifo_name = clish_shell__get_fifo(this);
-	if (!fifo_name) {
-		fprintf(stderr, "System error. Can't create temporary FIFO.\n"
-			"The ACTION will be not executed.\n");
-		return BOOL_FALSE;
-	}
+	/* If /bin/sh we don't need FIFO */
+	if (!is_sh) {
+		/* Get FIFO */
+		fifo_name = clish_shell__get_fifo(this);
+		if (!fifo_name) {
+			fprintf(stderr, "System error. Can't create temporary FIFO.\n"
+				"The ACTION will be not executed.\n");
+			return BOOL_FALSE;
+		}
 
-	/* Create process to execute script */
-	cpid = fork();
-	if (cpid == -1) {
-		fprintf(stderr, "System error. Can't fork the write process.\n"
-			"The ACTION will be not executed.\n");
-		return BOOL_FALSE;
-	}
+		/* Create process to write to FIFO */
+		cpid = fork();
+		if (cpid == -1) {
+			fprintf(stderr, "System error. Can't fork the write process.\n"
+				"The ACTION will be not executed.\n");
+			return BOOL_FALSE;
+		}
 
-	/* Child */
-	if (cpid == 0) {
-		int retval;
-		wpipe = fopen(fifo_name, "w");
-		if (!wpipe)
-			_exit(-1);
-		fwrite(script, strlen(script) + 1, 1, wpipe);
-		fclose(wpipe);
-		_exit(0);
+		/* Child: write to FIFO */
+		if (cpid == 0) {
+			int retval;
+			wpipe = fopen(fifo_name, "w");
+			if (!wpipe)
+				_exit(-1);
+			fwrite(script, strlen(script) + 1, 1, wpipe);
+			fclose(wpipe);
+			_exit(0);
+		}
 	}
 
 	/* Parent */
-	/* Ignore SIGINT and SIGQUIT */
-	sigemptyset(&sig_set);
-	sig_new.sa_flags = 0;
-	sig_new.sa_mask = sig_set;
-	sig_new.sa_handler = SIG_IGN;
-	sigaction(SIGINT, &sig_new, &sig_old_int);
-	sigaction(SIGQUIT, &sig_new, &sig_old_quit);
-
 	/* Prepare command */
-	lub_string_cat(&command, shebang);
-	lub_string_cat(&command, " ");
-	lub_string_cat(&command, fifo_name);
+	if (!is_sh) {
+		lub_string_cat(&command, shebang);
+		lub_string_cat(&command, " ");
+		lub_string_cat(&command, fifo_name);
+	} else {
+		lub_string_cat(&command, script);
+	}
+#ifdef DEBUG
+	fprintf(stderr, "COMMAND: %s\n", command);
+#endif /* DEBUG */
 
-	/* Execute shebang with FIFO as argument */
-	rpipe = popen(command, "r");
-	lub_string_free(command);
-	if (!rpipe) {
-		fprintf(stderr, "System error. Can't fork the script.\n"
-			"The ACTION will be not executed.\n");
-		kill(cpid, SIGTERM);
-		waitpid(cpid, NULL, 0);
+	/* If the stdout of script is needed */
+	if (out) {
+		/* Ignore SIGINT and SIGQUIT */
+		sigemptyset(&sig_set);
+		sig_new.sa_flags = 0;
+		sig_new.sa_mask = sig_set;
+		sig_new.sa_handler = SIG_IGN;
+		sigaction(SIGINT, &sig_new, &sig_old_int);
+		sigaction(SIGQUIT, &sig_new, &sig_old_quit);
+
+		/* Execute shebang with FIFO as argument */
+		rpipe = popen(command, "r");
+		if (!rpipe) {
+			fprintf(stderr, "System error. Can't fork the script.\n"
+				"The ACTION will be not executed.\n");
+			lub_string_free(command);
+			kill(cpid, SIGTERM);
+			if (!is_sh)
+				waitpid(cpid, NULL, 0);
+
+			/* Restore SIGINT and SIGQUIT */
+			sigaction(SIGINT, &sig_old_int, NULL);
+			sigaction(SIGQUIT, &sig_old_quit, NULL);
+
+			return BOOL_FALSE;
+		}
+		/* Read the result of script execution */
+		while (read(fileno(rpipe), &buf, 1) > 0)
+			write(fileno(clish_shell__get_ostream(this)), &buf, 1);
+		/* Wait for the writing process */
+		if (!is_sh)
+			waitpid(cpid, NULL, 0);
+		/* Wait for script */
+		res = pclose(rpipe);
 
 		/* Restore SIGINT and SIGQUIT */
 		sigaction(SIGINT, &sig_old_int, NULL);
 		sigaction(SIGQUIT, &sig_old_quit, NULL);
-
-		return BOOL_FALSE;
+	} else {
+		res = system(command);
 	}
-	/* Read the result of script execution */
-	while (read(fileno(rpipe), &buf, 1) > 0)
-		write(fileno(clish_shell__get_ostream(this)), &buf, 1);
-	/* Wait for the writing process */
-	waitpid(cpid, NULL, 0);
-	/* Wait for script */
-	res = pclose(rpipe);
-
-	/* Restore SIGINT and SIGQUIT */
-	sigaction(SIGINT, &sig_old_int, NULL);
-	sigaction(SIGQUIT, &sig_old_quit, NULL);
+	lub_string_free(command);
 
 #ifdef DEBUG
 	fprintf(stderr, "RETCODE: %d\n", WEXITSTATUS(res));
