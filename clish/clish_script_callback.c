@@ -12,18 +12,25 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "private.h"
+
+#define KLISH_FIFO "/tmp/klish.fifo"
 
 /*--------------------------------------------------------- */
 bool_t clish_script_callback(const clish_shell_t * this,
 	const clish_command_t * cmd, const char *script)
 {
 	const char * shebang = NULL;
-	int pipefd[2];
 	pid_t cpid;
 	char buf;
 	int res;
+	const char *fifo_name = KLISH_FIFO;
+	FILE *rpipe;
+	char *command = NULL;
 
 	/* Signal vars */
 	struct sigaction sig_old_int;
@@ -45,8 +52,7 @@ bool_t clish_script_callback(const clish_shell_t * this,
 	fprintf(stderr, "SCRIPT: %s\n", script);
 #endif /* DEBUG */
 
-	if (pipe(pipefd) < 0)
-		return BOOL_FALSE;
+	mkfifo(fifo_name, 0600);
 
 	/* Ignore SIGINT and SIGQUIT */
 	sigemptyset(&sig_set);
@@ -59,38 +65,35 @@ bool_t clish_script_callback(const clish_shell_t * this,
 	/* Create process to execute script */
 	cpid = fork();
 	if (cpid == -1) {
-		close(pipefd[0]);
-		close(pipefd[1]);
 		return BOOL_FALSE;
 	}
 
 	/* Child */
 	if (cpid == 0) {
-		FILE *wpipe;
 		int retval;
-		int so; /* saved stdout */
-		close(pipefd[0]); /* Close unused read end */
-		so = dup(STDOUT_FILENO);
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[1]); /* Close write end */
-		wpipe = popen(shebang, "w");
-		dup2(so, STDOUT_FILENO);
-		close(so);
+		FILE *wpipe;
+		wpipe = fopen(fifo_name, "w");
 		if (!wpipe)
 			_exit(-1);
 		fwrite(script, strlen(script) + 1, 1, wpipe);
-		retval = pclose(wpipe);
-		_exit(WEXITSTATUS(retval));
+		fclose(wpipe);
+		_exit(0);
 	}
 
 	/* Parent */
+	lub_string_cat(&command, shebang);
+	lub_string_cat(&command, " ");
+	lub_string_cat(&command, fifo_name);
 
+	rpipe = popen(command, "r");
+	lub_string_free(command);
 	/* Read the result of script execution */
-	close(pipefd[1]); /* Close unused write end */
-	while (read(pipefd[0], &buf, 1) > 0)
+	while (read(fileno(rpipe), &buf, 1) > 0)
 		write(fileno(clish_shell__get_ostream(this)), &buf, 1);
-	close(pipefd[0]);
-	waitpid(cpid, &res, 0);
+	/* Wait for script */
+	res = pclose(rpipe);
+	/* Wait for the writing process */
+	waitpid(cpid, NULL, 0);
 
 	/* Restore SIGINT and SIGQUIT */
 	sigaction(SIGINT, &sig_old_int, NULL);
