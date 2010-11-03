@@ -487,6 +487,24 @@ clish_ptype_t *clish_ptype_new(const char *name,
 /*--------------------------------------------------------- */
 static void clish_ptype_fini(clish_ptype_t * this)
 {
+	if (this->pattern) {
+		switch (this->method) {
+		/*------------------------------------------------- */
+		case CLISH_PTYPE_REGEXP:
+			regfree(&this->u.regexp);
+			break;
+		/*------------------------------------------------- */
+		case CLISH_PTYPE_INTEGER:
+		case CLISH_PTYPE_UNSIGNEDINTEGER:
+			break;
+		/*------------------------------------------------- */
+		case CLISH_PTYPE_SELECT:
+			lub_argv_delete(this->u.select.items);
+			break;
+		/*------------------------------------------------- */
+		}
+	}
+
 	lub_string_free(this->name);
 	this->name = NULL;
 	lub_string_free(this->text);
@@ -495,28 +513,6 @@ static void clish_ptype_fini(clish_ptype_t * this)
 	this->pattern = NULL;
 	lub_string_free(this->range);
 	this->range = NULL;
-
-	switch (this->method) {
-	/*------------------------------------------------- */
-	case CLISH_PTYPE_REGEXP:
-		{
-			regfree(&this->u.regexp);
-			break;
-		}
-	/*------------------------------------------------- */
-	case CLISH_PTYPE_INTEGER:
-	case CLISH_PTYPE_UNSIGNEDINTEGER:
-		{
-			break;
-		}
-	/*------------------------------------------------- */
-	case CLISH_PTYPE_SELECT:
-		{
-			lub_argv_delete(this->u.select.items);
-			break;
-		}
-	/*------------------------------------------------- */
-	}
 }
 
 /*--------------------------------------------------------- */

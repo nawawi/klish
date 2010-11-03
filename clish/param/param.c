@@ -170,8 +170,10 @@ void clish_param_help(const clish_param_t * this, size_t offset)
 
 	if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(this))
 		name = clish_param__get_value(this);
-	else
-		name = clish_ptype__get_text(this->ptype);
+	else {
+		if (!(name = clish_ptype__get_text(this->ptype)))
+			name = clish_ptype__get_name(this->ptype);
+	}
 
 	fprintf(stderr, "%s %*c%s",
 		name, (int)(offset - strlen(name)), ' ', this->text);
