@@ -279,8 +279,7 @@ clish_shell_execute(clish_shell_t * this,
 		}
 	} else if (NULL != script) {
 		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(this, cmd, script);
-
+		result = this->client_hooks->script_fn(this, cmd, script, NULL);
 	}
 	pthread_cleanup_pop(1);
 

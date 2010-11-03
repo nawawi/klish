@@ -137,15 +137,16 @@ typedef bool_t clish_shell_script_fn_t(
 	/** 
          * The shell instance which invoked this call
          */
-					clish_shell_t * instance,
+	clish_shell_t * instance,
 	/** 
          * The command which invoked this call
          */
-					      const clish_command_t * cmd,
+	const clish_command_t * cmd,
 	/** 
          * The script to be evaluated
          */
-					      const char *script);
+	const char *script,
+	char ** out);
 
 /**
   * A hook function used to control config file write

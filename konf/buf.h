@@ -26,7 +26,7 @@ typedef struct konf_buf_s konf_buf_t;
 /*-----------------
  * meta functions
  *----------------- */
-konf_buf_t *konf_buf_new(int sock);
+konf_buf_t *konf_buf_new(int fd);
 int konf_buf_bt_compare(const void *clientnode, const void *clientkey);
 void konf_buf_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t konf_buf_bt_offset(void);
@@ -40,12 +40,13 @@ char * konf_buf_string(char *instance, int len);
 char * konf_buf_parse(konf_buf_t *instance);
 char * konf_buf_preparse(konf_buf_t *instance);
 int konf_buf_lseek(konf_buf_t *instance, int newpos);
-int konf_buf__get_sock(const konf_buf_t *instance);
+int konf_buf__get_fd(const konf_buf_t *instance);
 int konf_buf__get_len(const konf_buf_t *instance);
+char * konf_buf__dup_line(const konf_buf_t *instance);
 
-int konf_buftree_read(lub_bintree_t *instance, int sock);
-char * konf_buftree_parse(lub_bintree_t *instance, int sock);
-void konf_buftree_remove(lub_bintree_t *instance, int sock);
+int konf_buftree_read(lub_bintree_t *instance, int fd);
+char * konf_buftree_parse(lub_bintree_t *instance, int fd);
+void konf_buftree_remove(lub_bintree_t *instance, int fd);
 
 #endif				/* _konf_buf_h */
 /** @} clish_conf */

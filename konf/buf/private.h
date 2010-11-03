@@ -12,7 +12,7 @@
  *--------------------------------------------------------- */
 struct konf_buf_s {
 	lub_bintree_node_t bt_node;
-	int sock;
+	int fd;
 	int size;
 	char *buf;
 	int pos;

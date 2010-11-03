@@ -22,18 +22,18 @@
 int konf_buf_bt_compare(const void *clientnode, const void *clientkey)
 {
 	const konf_buf_t *this = clientnode;
-	int keysock;
+	int keyfd;
 
-	memcpy(&keysock, clientkey, sizeof(keysock));
+	memcpy(&keyfd, clientkey, sizeof(keyfd));
 
-	return (this->sock - keysock);
+	return (this->fd - keyfd);
 }
 
 /*-------------------------------------------------------- */
 static void konf_buf_key(lub_bintree_key_t * key,
-	int sock)
+	int fd)
 {
-	memcpy(key, &sock, sizeof(sock));
+	memcpy(key, &fd, sizeof(fd));
 }
 
 /*-------------------------------------------------------- */
@@ -41,16 +41,16 @@ void konf_buf_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 {
 	const konf_buf_t *this = clientnode;
 
-	konf_buf_key(key, this->sock);
+	konf_buf_key(key, this->fd);
 }
 
 /*---------------------------------------------------------
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static void
-konf_buf_init(konf_buf_t * this, int sock)
+konf_buf_init(konf_buf_t * this, int fd)
 {
-	this->sock = sock;
+	this->fd = fd;
 	this->buf = malloc(KONF_BUF_CHUNK);
 	this->size = KONF_BUF_CHUNK;
 	this->pos = 0;
@@ -75,12 +75,12 @@ size_t konf_buf_bt_offset(void)
 }
 
 /*--------------------------------------------------------- */
-konf_buf_t *konf_buf_new(int sock)
+konf_buf_t *konf_buf_new(int fd)
 {
 	konf_buf_t *this = malloc(sizeof(konf_buf_t));
 
 	if (this) {
-		konf_buf_init(this, sock);
+		konf_buf_init(this, fd);
 	}
 
 	return this;
@@ -136,7 +136,7 @@ int konf_buf_read(konf_buf_t *this)
 	buffer_size = this->size - this->pos;
 	buffer = this->buf + this->pos;
 
-	nbytes = read(this->sock, buffer, buffer_size);
+	nbytes = read(this->fd, buffer, buffer_size);
 	if (nbytes > 0)
 		this->pos += nbytes;
 
@@ -217,9 +217,9 @@ int konf_buf_lseek(konf_buf_t *this, int newpos)
 }
 
 /*--------------------------------------------------------- */
-int konf_buf__get_sock(const konf_buf_t * this)
+int konf_buf__get_fd(const konf_buf_t * this)
 {
-	return this->sock;
+	return this->fd;
 }
 
 /*--------------------------------------------------------- */
@@ -228,28 +228,39 @@ int konf_buf__get_len(const konf_buf_t *this)
 	return this->pos;
 }
 
+/*--------------------------------------------------------- */
+char * konf_buf__dup_line(const konf_buf_t *this)
+{
+	char *str;
+
+	str = malloc(this->pos + 1);
+	memcpy(str, this->buf, this->pos);
+	str[this->pos] = '\0';
+	return str;
+}
+
 /*---------------------------------------------------------
  * buftree functions
  *--------------------------------------------------------- */
 
 /*--------------------------------------------------------- */
 konf_buf_t *konf_buftree_find(lub_bintree_t * this,
-	int sock)
+	int fd)
 {
 	lub_bintree_key_t key;
 
-	konf_buf_key(&key, sock);
+	konf_buf_key(&key, fd);
 
 	return lub_bintree_find(this, &key);
 }
 
 /*--------------------------------------------------------- */
 void konf_buftree_remove(lub_bintree_t * this,
-	int sock)
+	int fd)
 {
 	konf_buf_t *tbuf;
 
-	if ((tbuf = konf_buftree_find(this, sock)) == NULL)
+	if ((tbuf = konf_buftree_find(this, fd)) == NULL)
 		return;
 
 	lub_bintree_remove(this, tbuf);
@@ -257,11 +268,11 @@ void konf_buftree_remove(lub_bintree_t * this,
 }
 
 /*--------------------------------------------------------- */
-int konf_buftree_read(lub_bintree_t * this, int sock)
+int konf_buftree_read(lub_bintree_t * this, int fd)
 {
 	konf_buf_t *buf;
 
-	buf = konf_buftree_find(this, sock);
+	buf = konf_buftree_find(this, fd);
 	if (!buf)
 		return -1;
 
@@ -271,11 +282,11 @@ int konf_buftree_read(lub_bintree_t * this, int sock)
 
 /*--------------------------------------------------------- */
 char * konf_buftree_parse(lub_bintree_t * this,
-	int sock)
+	int fd)
 {
 	konf_buf_t *buf;
 
-	buf = konf_buftree_find(this, sock);
+	buf = konf_buftree_find(this, fd);
 	if (!buf)
 		return NULL;
 

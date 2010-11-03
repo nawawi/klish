@@ -16,23 +16,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "konf/buf.h"
 #include "private.h"
-
-#define KLISH_FIFO "/tmp/klish.fifo"
 
 /*--------------------------------------------------------- */
 bool_t clish_script_callback(clish_shell_t * this,
-	const clish_command_t * cmd, const char *script)
+	const clish_command_t * cmd, const char *script, char ** out)
 {
 	const char * shebang = NULL;
 	pid_t cpid;
-	char buf;
 	int res;
 	const char *fifo_name;
 	FILE *rpipe, *wpipe;
 	char *command = NULL;
 	bool_t is_sh = BOOL_FALSE;
-	char **out = NULL;
 
 	/* Signal vars */
 	struct sigaction sig_old_int;
@@ -97,12 +94,11 @@ bool_t clish_script_callback(clish_shell_t * this,
 	} else {
 		lub_string_cat(&command, script);
 	}
-#ifdef DEBUG
-	fprintf(stderr, "COMMAND: %s\n", command);
-#endif /* DEBUG */
 
 	/* If the stdout of script is needed */
 	if (out) {
+		konf_buf_t *buf;
+
 		/* Ignore SIGINT and SIGQUIT */
 		sigemptyset(&sig_set);
 		sig_new.sa_flags = 0;
@@ -128,8 +124,10 @@ bool_t clish_script_callback(clish_shell_t * this,
 			return BOOL_FALSE;
 		}
 		/* Read the result of script execution */
-		while (read(fileno(rpipe), &buf, 1) > 0)
-			write(fileno(clish_shell__get_ostream(this)), &buf, 1);
+		buf = konf_buf_new(fileno(rpipe));
+		while (konf_buf_read(buf) > 0);
+		*out = konf_buf__dup_line(buf);
+		konf_buf_delete(buf);
 		/* Wait for the writing process */
 		if (!is_sh)
 			waitpid(cpid, NULL, 0);
@@ -152,7 +150,7 @@ bool_t clish_script_callback(clish_shell_t * this,
 
 /*--------------------------------------------------------- */
 bool_t clish_dryrun_callback(clish_shell_t * this,
-	const clish_command_t * cmd, const char *script)
+	const clish_command_t * cmd, const char *script, char ** out)
 {
 #ifdef DEBUG
 	fprintf(stderr, "DRY-RUN: %s\n", script);
