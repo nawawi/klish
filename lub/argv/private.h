@@ -16,6 +16,7 @@ struct lub_arg_s
 
 struct lub_argv_s
 {
+    char *line;
     unsigned   argc;
     lub_arg_t *argv;
 };

@@ -102,6 +102,8 @@ void
                       const char *arg);
 char **
     lub_argv__get_argv(const lub_argv_t *instance, char *argv0);
+const char *
+    lub_argv__get_line(const lub_argv_t *instance);
 
 _END_C_DECL
 

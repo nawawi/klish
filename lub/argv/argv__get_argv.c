@@ -7,6 +7,13 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
+const char *
+lub_argv__get_line(const lub_argv_t *this)
+{
+	return this->line;
+}
+
+/*--------------------------------------------------------- */
 char **
 lub_argv__get_argv(const lub_argv_t *this, char *argv0)
 {

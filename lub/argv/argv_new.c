@@ -18,6 +18,9 @@ lub_argv_init(lub_argv_t *this,
     lub_arg_t  *arg;
     bool_t      quoted;
 
+    /* Save the whole line */
+    this->line = lub_string_dup(line);
+
     /* first of all count the words in the line */
     this->argc = lub_argv_wordcount(line);
 
