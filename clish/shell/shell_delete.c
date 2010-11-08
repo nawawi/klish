@@ -1,10 +1,13 @@
 /*
  * shell_delete.c
  */
+
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "private.h"
 #include "lub/string.h"
 
-#include <stdlib.h>
 /*--------------------------------------------------------- */
 static void clish_shell_fini(clish_shell_t * this)
 {

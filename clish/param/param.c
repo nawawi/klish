@@ -38,8 +38,6 @@ clish_param_init(clish_param_t * this,
 /*--------------------------------------------------------- */
 static void clish_param_fini(clish_param_t * this)
 {
-	unsigned i;
-
 	/* deallocate the memory for this instance */
 	lub_string_free(this->defval);
 	this->defval = NULL;

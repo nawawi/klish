@@ -76,7 +76,6 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	clish_command_t *cmd;
 	char *name = NULL;
 	clish_command_t *tmp = NULL;
-	lub_bintree_iterator_t iter;
 	const char *str = NULL;
 
 	assert(prefix);
@@ -92,7 +91,7 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	}
 
 	/* The command is cached already */
-	if (cmd = lub_bintree_find(&this->tree, name)) {
+	if ((cmd = lub_bintree_find(&this->tree, name))) {
 		free(name);
 		return cmd;
 	}
@@ -351,6 +350,8 @@ clish_nspace__get_visibility(const clish_nspace_t * instance,
 		break;
 	case CLISH_NSPACE_CHELP:
 		result = clish_nspace__get_context_help(instance);
+		break;
+	default:
 		break;
 	}
 

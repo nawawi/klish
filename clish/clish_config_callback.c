@@ -17,6 +17,7 @@
 #include "konf/net.h"
 #include "konf/buf.h"
 #include "konf/query.h"
+#include "lub/string.h"
 #include "clish/variable.h"
 
 static int send_request(konf_client_t * client, char *command);
@@ -25,7 +26,6 @@ static int send_request(konf_client_t * client, char *command);
 bool_t clish_config_callback(const clish_shell_t * this,
 	const clish_command_t * cmd, clish_pargv_t * pargv)
 {
-	unsigned i;
 	char *command = NULL;
 	konf_client_t *client;
 	konf_buf_t *buf = NULL;

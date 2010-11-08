@@ -211,7 +211,6 @@ clish_command_t *clish_view_find_command(clish_view_t * this, const char *name, 
 {
 	clish_command_t *cmd, *result;
 	clish_nspace_t *nspace;
-	clish_view_t *view;
 	unsigned cnt = clish_view__get_nspace_count(this);
 	int i;
 
@@ -274,7 +273,6 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 {
 	const clish_command_t *result, *cmd;
 	clish_nspace_t *nspace;
-	clish_view_t *view;
 	unsigned cnt = clish_view__get_nspace_count(this);
 	int i;
 

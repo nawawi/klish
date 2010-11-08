@@ -8,8 +8,8 @@ if DEBUG
   DEBUG_CFLAGS = -DDEBUG
 endif
 
-AM_CFLAGS               = -pedantic -Werror -Wall $(DEBUG_CFLAGS)
-AM_CXXFLAGS             = -Werror -Wall $(DEBUG_CFLAGS)
+AM_CFLAGS               = -pedantic -Wall $(DEBUG_CFLAGS)
+AM_CXXFLAGS             = -Wall $(DEBUG_CFLAGS)
 #AM_CFLAGS               = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 -DVERSION=$(VERSION) $(DEBUG_CFLAGS)
 
 bin_PROGRAMS            =

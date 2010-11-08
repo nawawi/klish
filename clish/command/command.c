@@ -56,8 +56,6 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 /*--------------------------------------------------------- */
 static void clish_command_fini(clish_command_t * this)
 {
-	unsigned i;
-
 	lub_string_free(this->name);
 	this->name = NULL;
 
@@ -179,7 +177,6 @@ void clish_command_help(const clish_command_t * this, const char * viewid,
 {
 	const char *name = clish_command__get_name(this);
 	unsigned index = lub_argv_wordcount(line);
-	const clish_param_t *param;
 	unsigned idx = lub_argv_wordcount(name);
 	lub_argv_t *argv;
 	clish_pargv_t *last, *pargv;

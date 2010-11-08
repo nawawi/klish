@@ -58,10 +58,6 @@ static char *find_viewid_var(const char *viewid, const char *name)
 static char *find_context_var(const context_t * this, const char *name)
 {
 	char *result = NULL;
-	regex_t regex;
-	int status;
-	char *pattern = NULL;
-	regmatch_t pmatches[2];
 
 	if (!this->cmd)
 		return NULL;

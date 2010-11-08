@@ -15186,7 +15186,7 @@ fi
 
 done
 
-    if test x$TCL_LIBS != x; then
+    if test "x$TCL_LIBS" != "x"; then
 
 $as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h
 

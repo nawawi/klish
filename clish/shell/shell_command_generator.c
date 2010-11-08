@@ -22,10 +22,6 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 							iter)
 {
 	const clish_command_t *result, *cmd;
-	clish_nspace_t *nspace;
-	clish_view_t *view;
-	unsigned view_cnt = clish_view__get_nspace_count(this->view);
-	int i;
 
 	/* ask the local view for next command */
 	result = clish_view_find_next_completion(this->view,
@@ -67,8 +63,7 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 		if (0 == state) {
 			lub_argv_t *argv;
 			clish_pargv_t *pargv;
-			unsigned i;
-			
+
 			if ((0 != index) && (text[0] != '\0')) {
 				/* if there is some text for the parameter then adjust the index */
 				index--;
@@ -105,7 +100,7 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 				result = NULL;
 			} else {
 				/* The common param. Let ptype do the work */
-				if (ptype = clish_param__get_ptype(param)) {
+				if ((ptype = clish_param__get_ptype(param))) {
 					result = clish_ptype_word_generator(ptype, text, 
 						this->context.completion_pindex++);
 					if (!result)

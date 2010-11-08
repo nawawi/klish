@@ -284,7 +284,7 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 	/*----------------------------------------- */
 	case CLISH_PTYPE_TOUPPER:
 		{
-			unsigned char *p = result;
+			char *p = result;
 			while (*p) {
 				/*lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
 				 * MACRO implementation uses braces to prevent multiple increments
@@ -298,7 +298,7 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 	/*----------------------------------------- */
 	case CLISH_PTYPE_TOLOWER:
 		{
-			unsigned char *p = result;
+			char *p = result;
 			while (*p) {
 				*p = lub_ctype_tolower(*p);
 				p++;
@@ -393,9 +393,9 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 			for (i = 0;
 			     i < lub_argv__get_count(this->u.select.items);
 			     i++) {
-				unsigned char *name =
+				char *name =
 				    clish_ptype_select__get_name(this, i);
-				unsigned char *value =
+				char *value =
 				    clish_ptype_select__get_value(this, i);
 				int tmp = lub_string_nocasecmp(result, name);
 				lub_string_free((BOOL_TRUE ==

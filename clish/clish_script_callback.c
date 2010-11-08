@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "lub/string.h"
 #include "konf/buf.h"
 #include "private.h"
 
@@ -75,7 +76,6 @@ bool_t clish_script_callback(clish_shell_t * this,
 
 		/* Child: write to FIFO */
 		if (cpid == 0) {
-			int retval;
 			wpipe = fopen(fifo_name, "w");
 			if (!wpipe)
 				_exit(-1);

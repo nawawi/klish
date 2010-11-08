@@ -7,8 +7,6 @@
 /*--------------------------------------------------------- */
 void clish_nspace_dump(const clish_nspace_t * this)
 {
-	unsigned i;
-
 	lub_dump_printf("nspace(%p)\n", this);
 
 	lub_dump_indent();

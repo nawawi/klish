@@ -63,7 +63,6 @@ clish_source_internal(const clish_shell_t * shell,
 	bool_t result = BOOL_FALSE;
 	const char *filename = lub_argv__get_arg(argv, 0);
 	struct stat fileStat;
-	FILE *file;
 
 	/* the exception proves the rule... */
 	clish_shell_t *this = (clish_shell_t *) shell;

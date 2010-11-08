@@ -113,7 +113,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
  */
 static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 {
-	context_t *context = tinyrl__get_context(this);
+//	context_t *context = tinyrl__get_context(this);
 	tinyrl_match_e status;
 
 	/* first of all perform any history expansion */

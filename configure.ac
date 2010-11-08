@@ -167,7 +167,7 @@ if test -e $TCL_CONFIG; then
                       fi
                      ])
         )
-    if test x$TCL_LIBS != x; then
+    if test "x$TCL_LIBS" != "x"; then
             AC_DEFINE([HAVE_LIBTCL], [], [Have TCL library])
             AC_SUBST(TCL_CFLAGS)
             AC_SUBST(TCL_LIBS)

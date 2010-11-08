@@ -67,6 +67,7 @@ int clish_pargv_insert(clish_pargv_t * this,
 	return 0;
 }
 
+#if 0
 /*--------------------------------------------------------- */
 static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 {
@@ -92,6 +93,7 @@ static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 		}
 	}
 }
+#endif
 
 /*--------------------------------------------------------- */
 clish_pargv_status_t
@@ -102,7 +104,6 @@ clish_pargv_parse(clish_pargv_t * this,
 	const lub_argv_t * argv,
 	unsigned *idx, clish_pargv_t * last, unsigned need_index)
 {
-	unsigned start = *idx;
 	unsigned argc = lub_argv__get_count(argv);
 	unsigned index = 0;
 	unsigned nopt_index = 0;
@@ -151,7 +152,6 @@ clish_pargv_parse(clish_pargv_t * this,
 		if (last && (*idx == need_index) &&
 			(NULL == clish_pargv_find_arg(this, clish_param__get_name(param)))) {
 			if (is_switch) {
-				clish_paramv_t *rec_paramv = clish_param__get_paramv(param);
 				unsigned rec_paramc = clish_param__get_param_count(param);
 				for (i = 0; i < rec_paramc; i++) {
 					cparam = clish_param__get_param(param, i);
@@ -212,10 +212,10 @@ clish_pargv_parse(clish_pargv_t * this,
 					    clish_param__get_param(param, i);
 					if (!cparam)
 						break;
-					if (validated =
+					if ((validated =
 					    arg ? clish_param_validate(cparam,
 								       arg) :
-					    NULL) {
+					    NULL)) {
 						rec_paramv =
 						    clish_param__get_paramv
 						    (cparam);
