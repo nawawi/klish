@@ -15141,13 +15141,14 @@ if test "x$ac_cv_header_tcl_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_TCL_H 1
 _ACEOF
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Tcl_CreateInterp in -ltcl" >&5
-$as_echo_n "checking for Tcl_CreateInterp in -ltcl... " >&6; }
-if test "${ac_cv_lib_tcl_Tcl_CreateInterp+set}" = set; then :
+ as_ac_Lib=`$as_echo "ac_cv_lib_tcl${TCL_VERSION}''_Tcl_CreateInterp" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Tcl_CreateInterp in -ltcl${TCL_VERSION}" >&5
+$as_echo_n "checking for Tcl_CreateInterp in -ltcl${TCL_VERSION}... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ltcl  $LIBS"
+LIBS="-ltcl${TCL_VERSION}  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15167,17 +15168,19 @@ return Tcl_CreateInterp ();
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_tcl_Tcl_CreateInterp=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_tcl_Tcl_CreateInterp=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tcl_Tcl_CreateInterp" >&5
-$as_echo "$ac_cv_lib_tcl_Tcl_CreateInterp" >&6; }
-if test "x$ac_cv_lib_tcl_Tcl_CreateInterp" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
 
 
 $as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h

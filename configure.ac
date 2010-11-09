@@ -164,7 +164,7 @@ if test -e $TCL_CONFIG; then
     fi
     CPPFLAGS="$CPPFLAGS $TCL_CFLAGS"
     AC_CHECK_HEADERS(tcl.h,
-        AC_CHECK_LIB(tcl, Tcl_CreateInterp, [
+        AC_CHECK_LIB(tcl${TCL_VERSION}, Tcl_CreateInterp, [
             AC_DEFINE([HAVE_LIBTCL], [], [Have TCL library])
             AC_SUBST(TCL_CFLAGS)
             AC_SUBST(TCL_LIBS)
