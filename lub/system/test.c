@@ -145,7 +145,7 @@ char **t_wp;
 struct t_op const *t_wp_op;
 
 static enum token t_lex(char *);
-static enum token t_lex_type(char *);
+static enum token_types t_lex_type(char *);
 static int oexpr(enum token n);
 static int aexpr(enum token n);
 static int nexpr(enum token n);
@@ -330,7 +330,7 @@ binop(void)
 	return 1; /* to make compiler happy */
 }
 
-static enum token
+static enum token_types
 t_lex_type(char *s)
 {
 	struct t_op const *op = ops;
