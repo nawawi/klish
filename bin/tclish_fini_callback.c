@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <tcl.h>
 
-#include "private.h"
+#include "tcl_private.h"
 /*--------------------------------------------------------- */
 void tclish_fini_callback(const clish_shell_t * shell)
 {

@@ -13,12 +13,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
 #include <tcl.h>
 
-#include "private.h"
+#include "tcl_private.h"
 /*--------------------------------------------------------- */
-bool_t tclish_script_callback(const clish_shell_t * shell, const char *script)
+bool_t tclish_script_callback(clish_shell_t * shell,
+	const clish_command_t * cmd, const char *script, char ** out)
 {
 	bool_t result = BOOL_TRUE;
 	tclish_cookie_t *this = clish_shell__get_client_cookie(shell);

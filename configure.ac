@@ -165,15 +165,12 @@ if test -e $TCL_CONFIG; then
     CPPFLAGS="$CPPFLAGS $TCL_CFLAGS"
     AC_CHECK_HEADERS(tcl.h,
         AC_CHECK_LIB(tcl, Tcl_CreateInterp, [
-            tcl_found="yes"
-        ])
-    )
-    if test "x${tcl_found}" != "x"; then
             AC_DEFINE([HAVE_LIBTCL], [], [Have TCL library])
             AC_SUBST(TCL_CFLAGS)
             AC_SUBST(TCL_LIBS)
             AC_SUBST(TCL_VERSION)
-    fi
+        ])
+    )
 fi
 )
 

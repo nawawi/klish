@@ -9,10 +9,9 @@
 
 #ifdef HAVE_LIBTCL
 #include <assert.h>
-
 #include <tcl.h>
 
-#include "private.h"
+#include "tcl_private.h"
 /*--------------------------------------------------------- */
 void tclish_show_result(Tcl_Interp * interp)
 {

@@ -15177,7 +15177,12 @@ fi
 $as_echo "$ac_cv_lib_tcl_Tcl_CreateInterp" >&6; }
 if test "x$ac_cv_lib_tcl_Tcl_CreateInterp" = x""yes; then :
 
-            tcl_found="yes"
+
+$as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h
+
+
+
+
 
 fi
 
@@ -15186,14 +15191,6 @@ fi
 
 done
 
-    if test "x${tcl_found}" != "x"; then
-
-$as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h
-
-
-
-
-    fi
 fi
 
 fi

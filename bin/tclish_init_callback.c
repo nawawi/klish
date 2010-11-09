@@ -10,10 +10,9 @@
 
 #ifdef HAVE_LIBTCL
 #include <assert.h>
-
 #include <tcl.h>
 
-#include "private.h"
+#include "tcl_private.h"
 /*--------------------------------------------------------- */
 bool_t tclish_init_callback(const clish_shell_t * shell)
 {
