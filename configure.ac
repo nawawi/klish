@@ -55,7 +55,7 @@ AM_CONDITIONAL(DEBUG,test x$enable_debug = xyes)
 LUB_LIBS="-llub"
 LUB_CFLAGS=""
 
-if test x$LUB_LIBS = x; then
+if test "x$LUB_LIBS" = "x"; then
     AC_MSG_ERROR([Cannot find the "Little Useful Bits" library])
 fi
 AC_SUBST(LUB_LIBS)
@@ -67,7 +67,7 @@ AC_SUBST(LUB_CFLAGS)
 KONF_LIBS="-lkonf"
 KONF_CFLAGS=""
 
-if test x$KONF_LIBS = x; then
+if test "x$KONF_LIBS" = "x"; then
     AC_MSG_ERROR([Cannot find the "CLI config" library])
 fi
 AC_SUBST(KONF_LIBS)
@@ -79,7 +79,7 @@ AC_SUBST(KONF_CFLAGS)
 TINYRL_LIBS="-ltinyrl"
 TINYRL_CFLAGS=""
 
-if test x$TINYRL_LIBS = x; then
+if test "x$TINYRL_LIBS" = "x"; then
     AC_MSG_ERROR([Cannot find the "Tiny Readline" library])
 fi
 AC_SUBST(TINYRL_LIBS)
@@ -91,7 +91,7 @@ AC_SUBST(TINYRL_CFLAGS)
 TINYXML_LIBS="-ltinyxml"
 TINYXML_CXXFLAGS="-std=gnu++98"
 
-if test x$TINYXML_LIBS = x; then
+if test "x$TINYXML_LIBS" = "x"; then
     AC_MSG_ERROR([Cannot find the "Tiny XML" library])
 fi
 AC_SUBST(TINYXML_LIBS)
@@ -109,7 +109,7 @@ AC_CHECK_HEADERS(pthread.h,
                  [AC_CHECK_LIB(pthread, 
                               pthread_create, 
                               [AC_DEFINE([HAVE_LIBPTHREAD], [], [Have POSIX threads library])
-                                if test x$with_pthread = x; then
+                                if test "x$with_pthread" = "x"; then
                                     PTHREAD_LIBS="-lpthread"
                                 else
                                     PTHREAD_CFLAGS="-I$with_pthread/include"
@@ -120,7 +120,7 @@ AC_CHECK_HEADERS(pthread.h,
                               ])
                  ])
 
-if test x$PTHREAD_LIBS = x; then
+if test "x$PTHREAD_LIBS" = "x"; then
     AC_MSG_ERROR([Cannot find the POSIX threads library])
 fi
 
@@ -135,7 +135,7 @@ AC_CHECK_LIB(rt,
              clock_gettime, 
              [
                 AC_DEFINE([HAVE_LIBRT], [], [Have POSIX real time library])
-                if test x$with_rt = x; then
+                if test "x$with_rt" = "x"; then
                     RT_LIBS="-lrt"
                 else
                     RT_CFLAGS="-I$with_rt/include"
@@ -152,28 +152,30 @@ TCL_CONFIG=${libdir}/tclConfig.sh
 
 AC_ARG_WITH(tcl,
             [AS_HELP_STRING([--with-tcl=DIR],
-                            [Use TCL library distribution in DIR])])
-
+                            [Use TCL library distribution in DIR])],
 if test -e $TCL_CONFIG; then
-    . ${TCL_CONFIG}; # get TCL_VERSION
+    source ${TCL_CONFIG} # get TCL_VERSION
+    if test "${with_tcl}" = "yes"; then
+        TCL_CFLAGS="${TCL_INCLUDE_SPEC}"
+        TCL_LIBS="${TCL_LIB_SPEC}"
+    else
+        TCL_CFLAGS="-I${with_tcl}/include"
+        TCL_LIBS="-L${with_tcl}/lib -ltcl"
+    fi
+    CPPFLAGS="$CPPFLAGS $TCL_CFLAGS"
     AC_CHECK_HEADERS(tcl.h,
-        AC_CHECK_LIB(tcl, 
-                     Tcl_CreateInterp, 
-                     [if test x$with_tcl = x; then
-                        TCL_LIBS="-ltcl"
-                      else
-                        TCL_CFLAGS="-I${TCL_DIR}/include"
-                        TCL_LIBS="-L${TCL_DIR}/lib -ltcl"
-                      fi
-                     ])
-        )
-    if test "x$TCL_LIBS" != "x"; then
+        AC_CHECK_LIB(tcl, Tcl_CreateInterp, [
+            tcl_found="yes"
+        ])
+    )
+    if test "x${tcl_found}" != "x"; then
             AC_DEFINE([HAVE_LIBTCL], [], [Have TCL library])
             AC_SUBST(TCL_CFLAGS)
             AC_SUBST(TCL_LIBS)
             AC_SUBST(TCL_VERSION)
     fi
 fi
+)
 
 ################################
 # Check for inclusion of lub_heap
@@ -186,13 +188,13 @@ AC_ARG_ENABLE(lubheap,
 
 AM_CONDITIONAL(LUBHEAP,test x$enable_lubheap = xyes)
 
-if test x$enable_lubheap = xyes; then
+if test "x$enable_lubheap" = "xyes"; then
     AC_MSG_WARN([Replacing standard memory libraries with lubheap])
 
     LUBHEAP_LIBS="-llubheap"
     LUBHEAP_CFLAGS=""
 
-    if test x$LUBHEAP_LIBS = x; then
+    if test "x$LUBHEAP_LIBS" = "x"; then
         AC_MSG_ERROR([Cannot find the "Little Useful Bits Heap" library])
     fi
     AC_SUBST(LUBHEAP_LIBS)
@@ -208,7 +210,7 @@ AC_ARG_ENABLE(gpl,
     [],
     [enable_gpl=yes])
 
-if test x$enable_gpl = xyes; then
+if test "x$enable_gpl" = "xyes"; then
     ################################
     # Check for BFD library
     ################################

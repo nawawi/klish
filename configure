@@ -14931,7 +14931,7 @@ fi
 LUB_LIBS="-llub"
 LUB_CFLAGS=""
 
-if test x$LUB_LIBS = x; then
+if test "x$LUB_LIBS" = "x"; then
     as_fn_error "Cannot find the \"Little Useful Bits\" library" "$LINENO" 5
 fi
 
@@ -14943,7 +14943,7 @@ fi
 KONF_LIBS="-lkonf"
 KONF_CFLAGS=""
 
-if test x$KONF_LIBS = x; then
+if test "x$KONF_LIBS" = "x"; then
     as_fn_error "Cannot find the \"CLI config\" library" "$LINENO" 5
 fi
 
@@ -14955,7 +14955,7 @@ fi
 TINYRL_LIBS="-ltinyrl"
 TINYRL_CFLAGS=""
 
-if test x$TINYRL_LIBS = x; then
+if test "x$TINYRL_LIBS" = "x"; then
     as_fn_error "Cannot find the \"Tiny Readline\" library" "$LINENO" 5
 fi
 
@@ -14967,7 +14967,7 @@ fi
 TINYXML_LIBS="-ltinyxml"
 TINYXML_CXXFLAGS="-std=gnu++98"
 
-if test x$TINYXML_LIBS = x; then
+if test "x$TINYXML_LIBS" = "x"; then
     as_fn_error "Cannot find the \"Tiny XML\" library" "$LINENO" 5
 fi
 
@@ -15030,7 +15030,7 @@ if test "x$ac_cv_lib_pthread_pthread_create" = x""yes; then :
 
 $as_echo "#define HAVE_LIBPTHREAD /**/" >>confdefs.h
 
-                                if test x$with_pthread = x; then
+                                if test "x$with_pthread" = "x"; then
                                     PTHREAD_LIBS="-lpthread"
                                 else
                                     PTHREAD_CFLAGS="-I$with_pthread/include"
@@ -15047,7 +15047,7 @@ fi
 done
 
 
-if test x$PTHREAD_LIBS = x; then
+if test "x$PTHREAD_LIBS" = "x"; then
     as_fn_error "Cannot find the POSIX threads library" "$LINENO" 5
 fi
 
@@ -15102,7 +15102,7 @@ if test "x$ac_cv_lib_rt_clock_gettime" = x""yes; then :
 
 $as_echo "#define HAVE_LIBRT /**/" >>confdefs.h
 
-                if test x$with_rt = x; then
+                if test "x$with_rt" = "x"; then
                     RT_LIBS="-lrt"
                 else
                     RT_CFLAGS="-I$with_rt/include"
@@ -15122,12 +15122,16 @@ TCL_CONFIG=${libdir}/tclConfig.sh
 
 # Check whether --with-tcl was given.
 if test "${with_tcl+set}" = set; then :
-  withval=$with_tcl;
-fi
-
-
-if test -e $TCL_CONFIG; then
-    . ${TCL_CONFIG}; # get TCL_VERSION
+  withval=$with_tcl; if test -e $TCL_CONFIG; then
+    source ${TCL_CONFIG} # get TCL_VERSION
+    if test "${with_tcl}" = "yes"; then
+        TCL_CFLAGS="${TCL_INCLUDE_SPEC}"
+        TCL_LIBS="${TCL_LIB_SPEC}"
+    else
+        TCL_CFLAGS="-I${with_tcl}/include"
+        TCL_LIBS="-L${with_tcl}/lib -ltcl"
+    fi
+    CPPFLAGS="$CPPFLAGS $TCL_CFLAGS"
     for ac_header in tcl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "tcl.h" "ac_cv_header_tcl_h" "$ac_includes_default"
@@ -15172,12 +15176,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tcl_Tcl_CreateInterp" >&5
 $as_echo "$ac_cv_lib_tcl_Tcl_CreateInterp" >&6; }
 if test "x$ac_cv_lib_tcl_Tcl_CreateInterp" = x""yes; then :
-  if test x$with_tcl = x; then
-                        TCL_LIBS="-ltcl"
-                      else
-                        TCL_CFLAGS="-I${TCL_DIR}/include"
-                        TCL_LIBS="-L${TCL_DIR}/lib -ltcl"
-                      fi
+
+            tcl_found="yes"
 
 fi
 
@@ -15186,7 +15186,7 @@ fi
 
 done
 
-    if test "x$TCL_LIBS" != "x"; then
+    if test "x${tcl_found}" != "x"; then
 
 $as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h
 
@@ -15195,6 +15195,9 @@ $as_echo "#define HAVE_LIBTCL /**/" >>confdefs.h
 
     fi
 fi
+
+fi
+
 
 ################################
 # Check for inclusion of lub_heap
@@ -15216,14 +15219,14 @@ else
 fi
 
 
-if test x$enable_lubheap = xyes; then
+if test "x$enable_lubheap" = "xyes"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Replacing standard memory libraries with lubheap" >&5
 $as_echo "$as_me: WARNING: Replacing standard memory libraries with lubheap" >&2;}
 
     LUBHEAP_LIBS="-llubheap"
     LUBHEAP_CFLAGS=""
 
-    if test x$LUBHEAP_LIBS = x; then
+    if test "x$LUBHEAP_LIBS" = "x"; then
         as_fn_error "Cannot find the \"Little Useful Bits Heap\" library" "$LINENO" 5
     fi
 
@@ -15241,7 +15244,7 @@ else
 fi
 
 
-if test x$enable_gpl = xyes; then
+if test "x$enable_gpl" = "xyes"; then
     ################################
     # Check for BFD library
     ################################
