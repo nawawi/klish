@@ -169,10 +169,12 @@ if test -e $TCL_CONFIG; then
             AC_SUBST(TCL_CFLAGS)
             AC_SUBST(TCL_LIBS)
             AC_SUBST(TCL_VERSION)
+            have_tcl="yes"
         ])
     )
 fi
 )
+AM_CONDITIONAL(TCL,test "x${have_tcl}" = "xyes")
 
 ################################
 # Check for inclusion of lub_heap
@@ -183,7 +185,7 @@ AC_ARG_ENABLE(lubheap,
     [],
     [enable_lubheap=no])
 
-AM_CONDITIONAL(LUBHEAP,test x$enable_lubheap = xyes)
+AM_CONDITIONAL(LUBHEAP,test "x$enable_lubheap" = "xyes")
 
 if test "x$enable_lubheap" = "xyes"; then
     AC_MSG_WARN([Replacing standard memory libraries with lubheap])

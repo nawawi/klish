@@ -38,7 +38,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = bin/clish$(EXEEXT) bin/konfd$(EXEEXT) bin/konf$(EXEEXT) \
-	bin/tclish@TCL_VERSION@$(EXEEXT) $(am__EXEEXT_1)
+	$(am__EXEEXT_1) $(am__EXEEXT_2)
 DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(top_srcdir)/bin/module.am \
@@ -85,8 +85,9 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	aux_scripts/config.guess aux_scripts/config.sub \
 	aux_scripts/depcomp aux_scripts/install-sh \
 	aux_scripts/ltmain.sh aux_scripts/missing
-@LUBHEAP_TRUE@am__append_1 = bin/lubheap
-@LUBHEAP_TRUE@am__append_2 = lub/heap/cache.c lub/heap/cache.h \
+@TCL_TRUE@am__append_1 = bin/tclish@TCL_VERSION@
+@LUBHEAP_TRUE@am__append_2 = bin/lubheap
+@LUBHEAP_TRUE@am__append_3 = lub/heap/cache.c lub/heap/cache.h \
 @LUBHEAP_TRUE@	lub/heap/cache_bucket.c lub/heap/context.c \
 @LUBHEAP_TRUE@	lub/heap/context.h lub/heap/heap__get_max_free.c \
 @LUBHEAP_TRUE@	lub/heap/heap__get_stacktrace.c \
@@ -148,10 +149,10 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 @LUBHEAP_TRUE@	lub/partition/private.h \
 @LUBHEAP_TRUE@	lub/partition/posix/posix_partition.c \
 @LUBHEAP_TRUE@	lub/partition/posix/private.h
-@LUBHEAP_TRUE@am__append_3 = liblubheap.la
+@LUBHEAP_TRUE@am__append_4 = liblubheap.la
 noinst_PROGRAMS = test/bintree$(EXEEXT) test/string$(EXEEXT) \
-	$(am__EXEEXT_2)
-@LUBHEAP_TRUE@am__append_4 = \
+	$(am__EXEEXT_3)
+@LUBHEAP_TRUE@am__append_5 = \
 @LUBHEAP_TRUE@    test/heap                  \
 @LUBHEAP_TRUE@    test/mallocTest            \
 @LUBHEAP_TRUE@    test/lubMallocTest
@@ -430,8 +431,9 @@ libtinyxml_la_OBJECTS = $(am_libtinyxml_la_OBJECTS)
 libtinyxml_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(libtinyxml_la_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-@LUBHEAP_TRUE@am__EXEEXT_1 = bin/lubheap$(EXEEXT)
-@LUBHEAP_TRUE@am__EXEEXT_2 = test/heap$(EXEEXT) \
+@TCL_TRUE@am__EXEEXT_1 = bin/tclish@TCL_VERSION@$(EXEEXT)
+@LUBHEAP_TRUE@am__EXEEXT_2 = bin/lubheap$(EXEEXT)
+@LUBHEAP_TRUE@am__EXEEXT_3 = test/heap$(EXEEXT) \
 @LUBHEAP_TRUE@	test/mallocTest$(EXEEXT) \
 @LUBHEAP_TRUE@	test/lubMallocTest$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
@@ -448,14 +450,17 @@ am__bin_lubheap_SOURCES_DIST = bin/lubheap.c
 @LUBHEAP_TRUE@am_bin_lubheap_OBJECTS = bin/lubheap.$(OBJEXT)
 bin_lubheap_OBJECTS = $(am_bin_lubheap_OBJECTS)
 bin_lubheap_DEPENDENCIES =
-am_bin_tclish@TCL_VERSION@_OBJECTS = bin/tclish.$(OBJEXT) \
-	bin/tclish_fini_callback.$(OBJEXT) \
-	bin/tclish_init_callback.$(OBJEXT) \
-	bin/tclish_script_callback.$(OBJEXT) \
-	bin/tclish_show_result.$(OBJEXT)
+am__bin_tclish@TCL_VERSION@_SOURCES_DIST = bin/tclish.cpp \
+	bin/tclish_fini_callback.c bin/tclish_init_callback.c \
+	bin/tclish_script_callback.c bin/tclish_show_result.c
+@TCL_TRUE@am_bin_tclish@TCL_VERSION@_OBJECTS = bin/tclish.$(OBJEXT) \
+@TCL_TRUE@	bin/tclish_fini_callback.$(OBJEXT) \
+@TCL_TRUE@	bin/tclish_init_callback.$(OBJEXT) \
+@TCL_TRUE@	bin/tclish_script_callback.$(OBJEXT) \
+@TCL_TRUE@	bin/tclish_show_result.$(OBJEXT)
 bin_tclish@TCL_VERSION@_OBJECTS =  \
 	$(am_bin_tclish@TCL_VERSION@_OBJECTS)
-bin_tclish@TCL_VERSION@_DEPENDENCIES = libclish.la
+@TCL_TRUE@bin_tclish@TCL_VERSION@_DEPENDENCIES = libclish.la
 am_test_bintree_OBJECTS = test/bintree.$(OBJEXT)
 test_bintree_OBJECTS = $(am_test_bintree_OBJECTS)
 test_bintree_DEPENDENCIES = liblub.la
@@ -520,8 +525,8 @@ DIST_SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
 	$(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
 	$(am__bin_lubheap_SOURCES_DIST) \
-	$(bin_tclish@TCL_VERSION@_SOURCES) $(test_bintree_SOURCES) \
-	$(am__test_heap_SOURCES_DIST) \
+	$(am__bin_tclish@TCL_VERSION@_SOURCES_DIST) \
+	$(test_bintree_SOURCES) $(am__test_heap_SOURCES_DIST) \
 	$(am__test_lubMallocTest_SOURCES_DIST) \
 	$(am__test_mallocTest_SOURCES_DIST) $(test_string_SOURCES)
 HEADERS = $(nobase_include_HEADERS)
@@ -680,7 +685,7 @@ AM_LD = $(CXX)
 @DEBUG_TRUE@DEBUG_CFLAGS = -DDEBUG
 AM_CFLAGS = -pedantic -Wall $(DEBUG_CFLAGS)
 AM_CXXFLAGS = -Wall $(DEBUG_CFLAGS)
-lib_LTLIBRARIES = libclish.la liblub.la $(am__append_3) libtinyrl.la \
+lib_LTLIBRARIES = libclish.la liblub.la $(am__append_4) libtinyrl.la \
 	libtinyxml.la libkonf.la
 lib_LIBRARIES = 
 nobase_include_HEADERS = clish/command.h clish/param.h clish/pargv.h \
@@ -747,22 +752,22 @@ bin_konf_LDADD = \
     @KONF_LIBS@ \
     @LUB_LIBS@
 
-bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp \
-    bin/tclish_fini_callback.c   \
-    bin/tclish_init_callback.c   \
-    bin/tclish_script_callback.c \
-    bin/tclish_show_result.c
+@TCL_TRUE@bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp \
+@TCL_TRUE@    bin/tclish_fini_callback.c   \
+@TCL_TRUE@    bin/tclish_init_callback.c   \
+@TCL_TRUE@    bin/tclish_script_callback.c \
+@TCL_TRUE@    bin/tclish_show_result.c
 
-bin_tclish@TCL_VERSION@_LDADD = \
-    libclish.la                   \
-    @KONF_LIBS@                   \
-    @TINYRL_LIBS@                 \
-    @TINYXML_LIBS@                \
-    @TCL_LIBS@                    \
-    @LUBHEAP_LIBS@                \
-    @LUB_LIBS@                    \
-    @PTHREAD_LIBS@                \
-    @BFD_LIBS@
+@TCL_TRUE@bin_tclish@TCL_VERSION@_LDADD = \
+@TCL_TRUE@    libclish.la                   \
+@TCL_TRUE@    @KONF_LIBS@                   \
+@TCL_TRUE@    @TINYRL_LIBS@                 \
+@TCL_TRUE@    @TINYXML_LIBS@                \
+@TCL_TRUE@    @TCL_LIBS@                    \
+@TCL_TRUE@    @LUBHEAP_LIBS@                \
+@TCL_TRUE@    @LUB_LIBS@                    \
+@TCL_TRUE@    @PTHREAD_LIBS@                \
+@TCL_TRUE@    @BFD_LIBS@
 
 @LUBHEAP_TRUE@bin_lubheap_SOURCES = bin/lubheap.c
 @LUBHEAP_TRUE@bin_lubheap_LDADD = \
@@ -830,7 +835,7 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/dblockpool/dblockpool_fini.c \
 	lub/dblockpool/dblockpool_free.c \
 	lub/dblockpool/dblockpool_init.c lub/dblockpool/private.h \
-	lub/dump/dump.c lub/dump/private.h $(am__append_2) \
+	lub/dump/dump.c lub/dump/private.h $(am__append_3) \
 	lub/string/string_cat.c lub/string/string_catn.c \
 	lub/string/string_dup.c lub/string/string_dupn.c \
 	lub/string/string_free.c lub/string/string_nocasecmp.c \
