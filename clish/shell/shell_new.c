@@ -47,6 +47,7 @@ clish_shell_init(clish_shell_t * this,
 	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 	this->default_shebang = lub_string_dup("/bin/sh");
 	this->fifo_name = NULL;
+	this->interactive = BOOL_TRUE; /* The interactive shell by default. */
 
 	/* Create internal ptypes and params */
 	/* Current depth */
@@ -65,6 +66,14 @@ clish_shell_init(clish_shell_t * this,
 	this->param_pwd = clish_param_new("__cur_pwd",
 		"Current path", tmp_ptype);
 	clish_param__set_hidden(this->param_pwd, BOOL_TRUE);
+	/* Interactive */
+	tmp_ptype = clish_shell_find_create_ptype(this,
+		"__INTERACTIVE", "Interactive flag", "[01]",
+		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
+	assert(tmp_ptype);
+	this->param_interactive = clish_param_new("__interactive",
+		"Interactive flag", tmp_ptype);
+	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
 
 	/* Initialize context */
 	this->context.completion_pargv = NULL;
@@ -77,10 +86,10 @@ clish_shell_init(clish_shell_t * this,
 
 /*-------------------------------------------------------- */
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
-		void *cookie,
-		FILE * istream,
-		FILE * ostream,
-		bool_t stop_on_error)
+	void *cookie,
+	FILE * istream,
+	FILE * ostream,
+	bool_t stop_on_error)
 {
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 

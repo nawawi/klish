@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 	const char *socket_path = KONFD_SOCKET_PATH;
 	bool_t lockless = BOOL_FALSE;
 	bool_t stop_on_error = BOOL_FALSE;
+	bool_t interactive = BOOL_TRUE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -59,7 +60,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:";
+	static const char *shortopts = "hvs:ledx:w:i:b";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -71,6 +72,7 @@ int main(int argc, char **argv)
 		{"xml-path",	1, NULL, 'x'},
 		{"view",	1, NULL, 'w'},
 		{"viewid",	1, NULL, 'i'},
+		{"background",	0, NULL, 'b'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -103,6 +105,9 @@ int main(int argc, char **argv)
 			break;
 		case 'e':
 			stop_on_error = BOOL_TRUE;
+			break;
+		case 'b':
+			interactive = BOOL_FALSE;
 			break;
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
@@ -144,6 +149,9 @@ int main(int argc, char **argv)
 	/* Set lockless mode */
 	if (lockless)
 		clish_shell__set_lockfile(shell, NULL);
+	/* Set interactive mode */
+	if (!interactive)
+		clish_shell__set_interactive(shell, interactive);
 	/* Set startup view */
 	if (view)
 		clish_shell__set_startup_view(shell, view);
@@ -205,6 +213,7 @@ static void help(int status, const char *argv0)
 			"of the konfd daemon.\n");
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 		printf("\t-e, --stop-on-error\tStop programm execution on error.\n");
+		printf("\t-b, --background\tStart shell using non-interactive mode.\n");
 		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
 		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
 		printf("\t-w, --view\tSet the startup view.\n");

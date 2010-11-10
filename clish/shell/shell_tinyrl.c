@@ -458,17 +458,29 @@ bool_t clish_shell_readline(clish_shell_t *this, char ** out)
 }
 
 /*-------------------------------------------------------- */
-
 FILE * clish_shell__get_istream(const clish_shell_t * this)
 {
 	return tinyrl__get_istream(this->tinyrl);
 }
 
 /*-------------------------------------------------------- */
-
 FILE * clish_shell__get_ostream(const clish_shell_t * this)
 {
 	return tinyrl__get_ostream(this->tinyrl);
+}
+
+/*-------------------------------------------------------- */
+void clish_shell__set_interactive(clish_shell_t * this, bool_t interactive)
+{
+	assert(this);
+	this->interactive = interactive;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell__get_interactive(const clish_shell_t * this)
+{
+	assert(this);
+	return this->interactive;
 }
 
 /*-------------------------------------------------------- */

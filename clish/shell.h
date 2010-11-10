@@ -386,6 +386,8 @@ char * clish_shell__expand_text(const clish_shell_t *instance,
 char * clish_shell__expand_variable(const clish_shell_t *instance,
 	clish_command_t *cmd, clish_pargv_t *pargv, const char *var);
 const char * clish_shell__get_fifo(clish_shell_t * instance);
+void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
+bool_t clish_shell__get_interactive(const clish_shell_t * instance);
 
 _END_C_DECL
 

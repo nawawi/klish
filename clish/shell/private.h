@@ -61,13 +61,17 @@ struct clish_shell_s {
 	clish_shell_pwd_t **cfg_pwdv;	/* Levels for the config file structure */
 	unsigned cfg_pwdc;
 	konf_client_t *client;
-	clish_param_t *param_depth;
-	clish_param_t *param_pwd;
 	char * lockfile;
 	pthread_t pthread;
 	clish_context_t context;
 	char * default_shebang;
-	char * fifo_name; /* The name of temporary fifo file */
+	char * fifo_name; /* The name of temporary fifo file. */
+	bool_t interactive; /* Is shell interactive. */
+
+	/* Static params for var expanding. The refactoring is needed. */
+	clish_param_t *param_depth;
+	clish_param_t *param_pwd;
+	clish_param_t *param_interactive;
 };
 
 /**
