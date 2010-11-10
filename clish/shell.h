@@ -319,11 +319,11 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
 int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
 bool_t clish_shell_execute(clish_shell_t * instance,
-	const clish_command_t * cmd, clish_pargv_t * pargv);
+	const clish_command_t * cmd, clish_pargv_t * pargv, char ** out);
 bool_t clish_shell_line(clish_shell_t * instance, const char *prompt,
 	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str);
-bool_t clish_shell_forceline(clish_shell_t *instance, const char *line);
-bool_t clish_shell_readline(clish_shell_t *instance);
+bool_t clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
+bool_t clish_shell_readline(clish_shell_t *instance, char ** out);
 void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);

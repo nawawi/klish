@@ -155,6 +155,8 @@ bool_t clish_dryrun_callback(clish_shell_t * this,
 #ifdef DEBUG
 	fprintf(stderr, "DRY-RUN: %s\n", script);
 #endif /* DEBUG */
+	if (out)
+		*out = NULL;
 
 	return BOOL_TRUE;
 }

@@ -181,7 +181,7 @@ void clish_shell_cleanup_script(void *script)
 /*----------------------------------------------------------- */
 bool_t
 clish_shell_execute(clish_shell_t * this,
-	const clish_command_t * cmd, clish_pargv_t * pargv)
+	const clish_command_t * cmd, clish_pargv_t * pargv, char ** out)
 {
 	bool_t result = BOOL_TRUE;
 	const char *builtin;
@@ -278,7 +278,7 @@ clish_shell_execute(clish_shell_t * this,
 		}
 	} else if (NULL != script) {
 		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(this, cmd, script, NULL);
+		result = this->client_hooks->script_fn(this, cmd, script, out);
 	}
 	pthread_cleanup_pop(1);
 

@@ -398,7 +398,7 @@ bool_t clish_shell_line(clish_shell_t * this, const char *prompt,
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_execline(clish_shell_t *this, const char *line)
+bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 {
 	const clish_command_t *cmd;
 	char *prompt = NULL;
@@ -430,7 +430,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 
 	/* execute the provided command */
 	if (running && cmd && pargv) {
-		if (BOOL_FALSE == clish_shell_execute(this, cmd, pargv)) {
+		if (BOOL_FALSE == clish_shell_execute(this, cmd, pargv, out)) {
 			if((!this->current_file && line) ||
 				(this->current_file &&
 				this->current_file->stop_on_error)) {
@@ -446,15 +446,15 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line)
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_forceline(clish_shell_t *this, const char *line)
+bool_t clish_shell_forceline(clish_shell_t *this, const char *line, char ** out)
 {
-	return clish_shell_execline(this, line);
+	return clish_shell_execline(this, line, out);
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_readline(clish_shell_t *this)
+bool_t clish_shell_readline(clish_shell_t *this, char ** out)
 {
-	return clish_shell_execline(this, NULL);
+	return clish_shell_execline(this, NULL, out);
 }
 
 /*-------------------------------------------------------- */

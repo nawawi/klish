@@ -136,7 +136,7 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 			/* only bother to read the next line if there hasn't been a script error */
 			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
 				/* get input from the user */
-				running = clish_shell_readline(this);
+				running = clish_shell_readline(this, NULL);
 			}
 			if ((BOOL_FALSE == running) ||
 			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {

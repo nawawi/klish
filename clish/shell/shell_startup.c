@@ -18,7 +18,7 @@ bool_t clish_shell_startup(clish_shell_t * this)
 	if (NULL != banner) {
 		tinyrl_printf(this->tinyrl, "%s\n", banner);
 	}
-	return clish_shell_execute(this, this->startup, NULL);
+	return clish_shell_execute(this, this->startup, NULL, NULL);
 }
 
 /*----------------------------------------------------------- */
