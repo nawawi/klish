@@ -227,14 +227,16 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		char *saveptr;
 		const char *delim = "@";
 		char *view_name = NULL;
+		char *cmd = NULL;
 		char *str = lub_string_dup(ref);
 
-		alias_name = strtok_r(str, delim, &saveptr);
-		if (!alias_name) {
+		cmd = strtok_r(str, delim, &saveptr);
+		if (!cmd) {
 			printf("EMPTY REFERENCE COMMAND: %s\n", name);
 			lub_string_free(str);
 			return;
 		}
+		alias_name = lub_string_dup(cmd);
 		view_name = strtok_r(NULL, delim, &saveptr);
 		if (!view_name)
 			alias_view = v;
@@ -294,6 +296,7 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_alias(cmd, alias_name);
 		assert(alias_view);
 		clish_command__set_alias_view(cmd, alias_view);
+		lub_string_free(alias_name);
 	}
 
 	process_children(shell, element, cmd);
