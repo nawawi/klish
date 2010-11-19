@@ -28,6 +28,8 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 
 	/* set up defaults */
 	this->link = NULL;
+	this->alias = NULL;
+	this->alias_view = NULL;
 	this->paramv = clish_paramv_new();
 	this->viewid = NULL;
 	this->view = NULL;
@@ -58,6 +60,8 @@ static void clish_command_fini(clish_command_t * this)
 {
 	lub_string_free(this->name);
 	this->name = NULL;
+	lub_string_free(this->text);
+	this->text = NULL;
 
 	/* Link need not full cleanup */
 	if (this->link)
@@ -66,12 +70,12 @@ static void clish_command_fini(clish_command_t * this)
 	/* finalize each of the parameter instances */
 	clish_paramv_delete(this->paramv);
 
+	lub_string_free(this->alias);
+	this->alias = NULL;
 	lub_string_free(this->viewid);
 	this->viewid = NULL;
 	lub_string_free(this->action);
 	this->action = NULL;
-	lub_string_free(this->text);
-	this->text = NULL;
 	lub_string_free(this->detail);
 	this->detail = NULL;
 	lub_string_free(this->builtin);
@@ -124,19 +128,19 @@ void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 }
 
 /*--------------------------------------------------------- */
-clish_command_t *clish_command_new(const char *name, const char *text)
+clish_command_t *clish_command_new(const char *name, const char *help)
 {
 	clish_command_t *this = malloc(sizeof(clish_command_t));
 
 	if (this) {
-		clish_command_init(this, name, text);
+		clish_command_init(this, name, help);
 	}
 	return this;
 }
 
 /*--------------------------------------------------------- */
 clish_command_t *clish_command_new_link(const char *name,
-	const clish_command_t * ref)
+	const char *help, const clish_command_t * ref)
 {
 	if (!ref)
 		return NULL;
@@ -148,12 +152,29 @@ clish_command_t *clish_command_new_link(const char *name,
 	*this = *ref;
 	/* Initialise the name (other than original name) */
 	this->name = lub_string_dup(name);
+	/* Initialise the name (other than original name) */
+	this->text = lub_string_dup(help);
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
 	/* It a link to command so set the link flag */
 	this->link = ref;
 
 	return this;
+}
+
+/*--------------------------------------------------------- */
+clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias)
+{
+	clish_command_t * ref;
+
+	if (!alias->alias)
+		return NULL;
+	assert(alias->alias_view);
+	ref = clish_view_find_command(alias->alias_view, alias->alias, BOOL_FALSE);
+	if (!ref)
+		return NULL;
+
+	return clish_command_new_link(alias->name, alias->text, ref);
 }
 
 /*---------------------------------------------------------
@@ -634,3 +655,31 @@ void clish_command__set_shebang(clish_command_t * this, const char * shebang)
 		prog += strlen(prefix);
 	this->shebang = lub_string_dup(prog);
 }
+
+/*--------------------------------------------------------- */
+void clish_command__set_alias(clish_command_t * this, const char * alias)
+{
+	assert(NULL == this->alias);
+	this->alias = lub_string_dup(alias);
+}
+
+/*--------------------------------------------------------- */
+const char * clish_command__get_alias(const clish_command_t * this)
+{
+	return this->alias;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_alias_view(clish_command_t * this,
+	clish_view_t * alias_view)
+{
+	this->alias_view = alias_view;
+}
+
+/*--------------------------------------------------------- */
+clish_view_t * clish_command__get_alias_view(const clish_command_t * this)
+{
+	return this->alias_view;
+}
+
+

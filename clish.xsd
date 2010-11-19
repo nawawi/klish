@@ -233,6 +233,7 @@
             <xs:element ref="ACTION" minOccurs="0"/>
         </xs:sequence>
         <xs:attributeGroup ref="menu_item_g"/>
+        <xs:attribute name="ref" type="xs:string" use="optional"/>
         <xs:attribute name="view" type="xs:string" use="optional"/>
         <xs:attribute name="viewid" type="xs:string" use="optional"/>
         <xs:attribute name="access" type="xs:string" use="optional"/>

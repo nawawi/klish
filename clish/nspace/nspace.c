@@ -75,6 +75,7 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 {
 	clish_command_t *cmd;
 	char *name = NULL;
+	const char *help = NULL;
 	clish_command_t *tmp = NULL;
 	const char *str = NULL;
 
@@ -83,11 +84,13 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 		assert(this->prefix_cmd);
 		name = lub_string_dup(prefix);
 		ref = this->prefix_cmd;
+		help = clish_command__get_text(this->prefix_cmd);
 	} else {
 		lub_string_catn(&name, prefix, strlen(prefix));
 		lub_string_catn(&name, " ", 1);
 		lub_string_catn(&name, clish_command__get_name(ref),
 				strlen(clish_command__get_name(ref)));
+		help = clish_command__get_text(ref);
 	}
 
 	/* The command is cached already */
@@ -95,7 +98,7 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 		free(name);
 		return cmd;
 	}
-	cmd = clish_command_new_link(name, ref);
+	cmd = clish_command_new_link(name, help, ref);
 	free(name);
 	assert(cmd);
 

@@ -181,8 +181,21 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_command_t *cmd = NULL;
-	const char *access = element->Attribute("access");
 	bool allowed = true;
+	clish_command_t *old;
+	char *alias_name = NULL;
+	clish_view_t *alias_view = NULL;
+
+	const char *access = element->Attribute("access");
+	const char *name = element->Attribute("name");
+	const char *help = element->Attribute("help");
+	const char *view = element->Attribute("view");
+	const char *viewid = element->Attribute("viewid");
+	const char *escape_chars = element->Attribute("escape_chars");
+	const char *args_name = element->Attribute("args");
+	const char *args_help = element->Attribute("args_help");
+	const char *lock = element->Attribute("lock");
+	const char *ref = element->Attribute("ref");
 
 	if (NULL != access) {
 		allowed = false;	// err on the side of caution
@@ -194,75 +207,96 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			    false;
 		}
 	}
+	if (!allowed)
+		return;
 
-	if (allowed) {
-		const char *name = element->Attribute("name");
-		const char *help = element->Attribute("help");
-		const char *view = element->Attribute("view");
-		const char *viewid = element->Attribute("viewid");
-		const char *escape_chars = element->Attribute("escape_chars");
-		const char *args_name = element->Attribute("args");
-		const char *args_help = element->Attribute("args_help");
-		const char *lock = element->Attribute("lock");
-
-		clish_command_t *old = clish_view_find_command(v, name, BOOL_FALSE);
-
-		// check this command doesn't already exist
-		if (NULL != old) {
-			// flag the duplication then ignore further definition
-			printf("DUPLICATE COMMAND: %s\n",
-			       clish_command__get_name(old));
-		} else {
-			assert(name);
-			assert(help);
-			/* create a command */
-			cmd = clish_view_new_command(v, name, help);
-			assert(cmd);
-			clish_command__set_pview(cmd, v);
-			if (NULL != escape_chars) {
-				/* define some specialist escape characters */
-				clish_command__set_escape_chars(cmd,
-								escape_chars);
-			}
-			if (NULL != args_name) {
-				/* define a "rest of line" argument */
-				clish_param_t *param;
-				clish_ptype_t *tmp = NULL;
-
-				assert(NULL != args_help);
-				tmp = clish_shell_find_create_ptype(shell,
-							  "internal_ARGS",
-							  "Arguments", "[^\\]+",
-							  CLISH_PTYPE_REGEXP,
-							  CLISH_PTYPE_NONE);
-				assert(tmp);
-				param =
-				    clish_param_new(args_name, args_help, tmp);
-
-				clish_command__set_args(cmd, param);
-			}
-			// define the view which this command changes to
-			if (NULL != view) {
-				clish_view_t *next =
-				    clish_shell_find_create_view(shell, view,
-								 NULL);
-
-				// reference the next view
-				clish_command__set_view(cmd, next);
-			}
-			// define the view id which this command changes to
-			if (NULL != viewid) {
-				clish_command__set_viewid(cmd, viewid);
-			}
-			/* lock field */
-			if (lock && (lub_string_nocasecmp(lock, "false") == 0))
-				clish_command__set_lock(cmd, BOOL_FALSE);
-			else
-				clish_command__set_lock(cmd, BOOL_TRUE);
-
-			process_children(shell, element, cmd);
-		}
+	old = clish_view_find_command(v, name, BOOL_FALSE);
+	// check this command doesn't already exist
+	if (old) {
+		// flag the duplication then ignore further definition
+		printf("DUPLICATE COMMAND: %s\n",
+		       clish_command__get_name(old));
+		return;
 	}
+
+	assert(name);
+	assert(help);
+
+	/* Reference 'ref' field */
+	if (ref) {
+		char *saveptr;
+		const char *delim = "@";
+		char *view_name = NULL;
+		char *str = lub_string_dup(ref);
+
+		alias_name = strtok_r(str, delim, &saveptr);
+		if (!alias_name) {
+			printf("EMPTY REFERENCE COMMAND: %s\n", name);
+			lub_string_free(str);
+			return;
+		}
+		view_name = strtok_r(NULL, delim, &saveptr);
+		if (!view_name)
+			alias_view = v;
+		else
+			alias_view = clish_shell_find_create_view(shell,
+				view_name, NULL);
+		lub_string_free(str);
+	}
+
+	/* create a command */
+	cmd = clish_view_new_command(v, name, help);
+	assert(cmd);
+	clish_command__set_pview(cmd, v);
+	if (NULL != escape_chars) {
+		/* define some specialist escape characters */
+		clish_command__set_escape_chars(cmd,
+						escape_chars);
+	}
+	if (NULL != args_name) {
+		/* define a "rest of line" argument */
+		clish_param_t *param;
+		clish_ptype_t *tmp = NULL;
+
+		assert(NULL != args_help);
+		tmp = clish_shell_find_create_ptype(shell,
+					  "internal_ARGS",
+					  "Arguments", "[^\\]+",
+					  CLISH_PTYPE_REGEXP,
+					  CLISH_PTYPE_NONE);
+		assert(tmp);
+		param =
+		    clish_param_new(args_name, args_help, tmp);
+
+		clish_command__set_args(cmd, param);
+	}
+	// define the view which this command changes to
+	if (NULL != view) {
+		clish_view_t *next =
+		    clish_shell_find_create_view(shell, view,
+						 NULL);
+
+		// reference the next view
+		clish_command__set_view(cmd, next);
+	}
+	// define the view id which this command changes to
+	if (NULL != viewid) {
+		clish_command__set_viewid(cmd, viewid);
+	}
+	/* lock field */
+	if (lock && (lub_string_nocasecmp(lock, "false") == 0))
+		clish_command__set_lock(cmd, BOOL_FALSE);
+	else
+		clish_command__set_lock(cmd, BOOL_TRUE);
+
+	/* Set alias */
+	if (alias_name) {
+		clish_command__set_alias(cmd, alias_name);
+		assert(alias_view);
+		clish_command__set_alias_view(cmd, alias_view);
+	}
+
+	process_children(shell, element, cmd);
 }
 
 ///////////////////////////////////////

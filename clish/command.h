@@ -25,9 +25,10 @@ typedef enum {
 /*-----------------
  * meta functions
  *----------------- */
-clish_command_t *clish_command_new(const char *name, const char *text);
+clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
-	const clish_command_t * ref);
+	const char *help, const clish_command_t * ref);
+clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias);
 int clish_command_bt_compare(const void *clientnode, const void *clientkey);
 void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t clish_command_bt_offset(void);
@@ -110,5 +111,11 @@ bool_t clish_command__get_lock(const clish_command_t * instance);
 void clish_command__set_lock(clish_command_t * instance, bool_t lock);
 const char * clish_command__get_shebang(const clish_command_t * instance);
 void clish_command__set_shebang(clish_command_t * instance, const char * shebang);
+
+void clish_command__set_alias(clish_command_t * instance, const char * alias);
+const char * clish_command__get_alias(const clish_command_t * instance);
+void clish_command__set_alias_view(clish_command_t * instance,
+	clish_view_t * alias_view);
+clish_view_t * clish_command__get_alias_view(const clish_command_t * instance);
 
 #endif				/* _clish_command_h */

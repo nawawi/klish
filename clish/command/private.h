@@ -18,6 +18,8 @@ struct clish_command_s {
 	char *escape_chars;
 	clish_param_t *args;
 	const struct clish_command_s * link;
+	clish_view_t *alias_view;
+	char *alias;
 	clish_view_t *pview;
 	bool_t lock;
 

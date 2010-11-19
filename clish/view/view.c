@@ -209,13 +209,27 @@ clish_command_t *clish_view_resolve_command(clish_view_t * this,
 /*--------------------------------------------------------- */
 clish_command_t *clish_view_find_command(clish_view_t * this, const char *name, bool_t inherit)
 {
-	clish_command_t *cmd, *result;
+	clish_command_t *cmd, *link, *result = NULL;
 	clish_nspace_t *nspace;
 	unsigned cnt = clish_view__get_nspace_count(this);
 	int i;
 
 	/* Search the current view */
 	result = lub_bintree_find(&this->tree, name);
+
+	/* Make command link from command alias */
+	if (result && clish_command__get_alias(result)) {
+		link = clish_command_new_link_from_alias(result);
+		/* remove the alias command from the tree */
+		lub_bintree_remove(&this->tree, result);
+		clish_command_delete(result);
+		if (-1 == lub_bintree_insert(&this->tree, link)) {
+			/* inserting a duplicate command is bad */
+			clish_command_delete(link);
+			link = NULL;
+		}
+		result = link;
+	}
 
 	if (!inherit)
 		return result;
