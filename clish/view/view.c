@@ -229,17 +229,22 @@ clish_command_t *clish_view_find_command(clish_view_t * this, const char *name, 
 			link = NULL;
 		}
 		result = link;
+printf("!!!!!!!!!!! transform %s\n", clish_command__get_name(result));
 	}
 
-	if (!inherit)
-		return result;
-
-	for (i = cnt - 1; i >= 0; i--) {
-		nspace = clish_view__get_nspace(this, i);
-		cmd = clish_nspace_find_command(nspace, name);
-		/* choose the longest match */
-		result = clish_command_choose_longest(result, cmd);
+	if (inherit) {
+		for (i = cnt - 1; i >= 0; i--) {
+			nspace = clish_view__get_nspace(this, i);
+			cmd = clish_nspace_find_command(nspace, name);
+			/* choose the longest match */
+			result = clish_command_choose_longest(result, cmd);
+		}
 	}
+
+//	if (result && clish_command__get_alias(result)) {
+//		printf("Sam link\n");
+//		clish_command_dump(result);
+//	}
 
 	return result;
 }

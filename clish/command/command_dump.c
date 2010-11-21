@@ -14,6 +14,8 @@ void clish_command_dump(const clish_command_t * this)
 	lub_dump_indent();
 	lub_dump_printf("name        : %s\n", this->name);
 	lub_dump_printf("text        : %s\n", this->text);
+	lub_dump_printf("link        : %s\n",
+		this->link ? clish_command__get_name(this->link) : "(null)");
 	lub_dump_printf("alias       : %s\n", this->alias);
 	lub_dump_printf("alias_view  : %s\n",
 		this->alias_view ? clish_view__get_name(this->alias_view) : "(null)");

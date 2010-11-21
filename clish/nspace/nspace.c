@@ -18,7 +18,6 @@
  *--------------------------------------------------------- */
 static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
 {
-
 	this->view = view;
 
 	/* set up defaults */
@@ -199,7 +198,20 @@ clish_command_t *clish_nspace_find_command(clish_nspace_t * this, const char *na
 		}
 	}
 
+printf("real_prefix=%s cmd=%s\n", real_prefix, cmd ? clish_command__get_name(cmd): NULL);
+if (cmd) {
+	printf("Pre cmd:\n");
+	clish_command_dump(cmd);
+}
 	retval = clish_nspace_find_create_command(this, real_prefix, cmd);
+if (retval) {
+	printf("Retval\n");
+	clish_command_dump(retval);
+if (cmd) {
+	printf("Post cmd:\n");
+	clish_command_dump(cmd);
+}
+}
 	lub_string_free(real_prefix);
 
 	return retval;
