@@ -91,15 +91,9 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 				strlen(clish_command__get_name(ref)));
 		help = clish_command__get_text(ref);
 	}
-printf("!!!!!! name=%s\n", name);
+
 	/* The command is cached already */
 	if ((cmd = lub_bintree_find(&this->tree, name))) {
-
-printf("!!!!!!!!! Already\n");
-if (cmd) {
-	printf("Pre cmd:\n");
-	clish_command_dump(cmd);
-}
 		free(name);
 		return cmd;
 	}
@@ -204,16 +198,7 @@ clish_command_t *clish_nspace_find_command(clish_nspace_t * this, const char *na
 		}
 	}
 
-printf("real_prefix=%s cmd=%s\n", real_prefix, cmd ? clish_command__get_name(cmd): NULL);
 	retval = clish_nspace_find_create_command(this, real_prefix, cmd);
-//if (retval) {
-//	printf("Retval\n");
-//	clish_command_dump(retval);
-//if (cmd) {
-//	printf("Post cmd:\n");
-//	clish_command_dump(cmd);
-//}
-//}
 	lub_string_free(real_prefix);
 
 	return retval;
