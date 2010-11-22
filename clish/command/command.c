@@ -177,6 +177,33 @@ clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias
 	return clish_command_new_link(alias->name, alias->text, ref);
 }
 
+/*--------------------------------------------------------- */
+clish_command_t * clish_command_alias_to_link(clish_command_t * this)
+{
+	clish_command_t * ref;
+	clish_command_t tmp;
+
+	if (!this || !this->alias)
+		return this;
+	assert(this->alias_view);
+	ref = clish_view_find_command(this->alias_view, this->alias, BOOL_FALSE);
+	if (!ref)
+		return this;
+printf("!!!!!!!! alias=%s\n", this->name);
+clish_command_dump(this);
+	memcpy(&tmp, this, sizeof(tmp));
+	*this = *ref;
+	memcpy(&this->bt_node, &tmp.bt_node, sizeof(tmp.bt_node));
+	this->name = lub_string_dup(tmp.name);
+	this->text = lub_string_dup(tmp.text);
+	this->link = ref;
+	clish_command_fini(&tmp);
+
+printf("!!!!!!!! link=%s\n", this->name);
+clish_command_dump(this);
+	return this;
+}
+
 /*---------------------------------------------------------
  * PUBLIC METHODS
  *--------------------------------------------------------- */

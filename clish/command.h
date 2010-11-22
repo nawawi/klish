@@ -29,6 +29,8 @@ clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
 clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias);
+clish_command_t * clish_command_alias_to_link(clish_command_t * instance);
+
 int clish_command_bt_compare(const void *clientnode, const void *clientkey);
 void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t clish_command_bt_offset(void);
