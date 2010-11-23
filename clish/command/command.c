@@ -39,6 +39,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->args = NULL;
 	this->pview = NULL;
 	this->lock = BOOL_TRUE;
+	this->dynamic = BOOL_FALSE;
 
 	/* ACTION params */
 	this->builtin = NULL;
@@ -160,21 +161,6 @@ clish_command_t *clish_command_new_link(const char *name,
 	this->link = ref;
 
 	return this;
-}
-
-/*--------------------------------------------------------- */
-clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias)
-{
-	clish_command_t * ref;
-
-	if (!alias->alias)
-		return NULL;
-	assert(alias->alias_view);
-	ref = clish_view_find_command(alias->alias_view, alias->alias, BOOL_FALSE);
-	if (!ref)
-		return NULL;
-
-	return clish_command_new_link(alias->name, alias->text, ref);
 }
 
 /*--------------------------------------------------------- */
@@ -314,6 +300,8 @@ clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2)
  *--------------------------------------------------------- */
 const char *clish_command__get_name(const clish_command_t * this)
 {
+	if (!this)
+		return NULL;
 	return this->name;
 }
 
@@ -705,4 +693,25 @@ clish_view_t * clish_command__get_alias_view(const clish_command_t * this)
 	return this->alias_view;
 }
 
+/*--------------------------------------------------------- */
+void clish_command__set_dynamic(clish_command_t * this, bool_t dynamic)
+{
+	this->dynamic = dynamic;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_command__get_dynamic(const clish_command_t * this)
+{
+	return this->dynamic;
+}
+
+/*--------------------------------------------------------- */
+const clish_command_t * clish_command__get_cmd(const clish_command_t * this)
+{
+	if (!this->dynamic)
+		return this;
+	if (this->link)
+		return clish_command__get_cmd(this->link);
+	return NULL;
+}
 

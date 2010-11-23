@@ -100,6 +100,8 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	cmd = clish_command_new_link(name, help, ref);
 	free(name);
 	assert(cmd);
+	/* The command was created dynamically */
+	clish_command__set_dynamic(cmd, BOOL_TRUE);
 
 	/* Delete proxy commands with another prefixes */
 	tmp = lub_bintree_findfirst(&this->tree);

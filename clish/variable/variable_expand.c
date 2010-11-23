@@ -65,7 +65,7 @@ static char *find_context_var(const context_t * this, const char *name)
 		result = lub_string_dup(clish_command__get_name(this->cmd));
 	} else if (!lub_string_nocasecmp(name, "__cmd")) {
 		result = lub_string_dup(clish_command__get_name(
-			clish_command__get_orig(this->cmd)));
+			clish_command__get_cmd(this->cmd)));
 	} else if (!lub_string_nocasecmp(name, "__orig_cmd")) {
 		result = lub_string_dup(clish_command__get_name(
 			clish_command__get_orig(this->cmd)));
@@ -80,7 +80,7 @@ static char *find_context_var(const context_t * this, const char *name)
 		int pnum = 0;
 		pnum = lub_argv_wordcount(clish_command__get_name(this->cmd)) -
 			lub_argv_wordcount(clish_command__get_name(
-			clish_command__get_orig(this->cmd)));
+			clish_command__get_cmd(this->cmd)));
 		idx = atoi(name + strlen("__prefix"));
 		if (idx < pnum) {
 			lub_argv_t *argv = lub_argv_new(

@@ -28,7 +28,6 @@ typedef enum {
 clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
-clish_command_t *clish_command_new_link_from_alias(const clish_command_t * alias);
 clish_command_t * clish_command_alias_to_link(clish_command_t * instance);
 
 int clish_command_bt_compare(const void *clientnode, const void *clientkey);
@@ -106,6 +105,7 @@ clish_view_restore_t clish_command__get_restore(const clish_command_t * instance
 bool_t clish_command__get_unique(const clish_command_t * instance);
 void clish_command__set_unique(clish_command_t * instance, bool_t unique);
 const clish_command_t * clish_command__get_orig(const clish_command_t * instance);
+const clish_command_t * clish_command__get_cmd(const clish_command_t * instance);
 void clish_command__set_cfg_depth(clish_command_t * instance, const char * cfg_depth);
 unsigned clish_command__get_cfg_depth(const clish_command_t * instance,
 	const char *viewid, clish_pargv_t * pargv);
@@ -119,5 +119,7 @@ const char * clish_command__get_alias(const clish_command_t * instance);
 void clish_command__set_alias_view(clish_command_t * instance,
 	clish_view_t * alias_view);
 clish_view_t * clish_command__get_alias_view(const clish_command_t * instance);
+void clish_command__set_dynamic(clish_command_t * instance, bool_t dynamic);
+bool_t clish_command__get_dynamic(const clish_command_t * instance);
 
 #endif				/* _clish_command_h */

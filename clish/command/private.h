@@ -22,6 +22,7 @@ struct clish_command_s {
 	char *alias;
 	clish_view_t *pview;
 	bool_t lock;
+	bool_t dynamic; /* Is command dynamically created */
 
 	/* ACTION params: */
 	char *builtin;
