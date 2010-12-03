@@ -4,23 +4,23 @@ bin_PROGRAMS += bin/clish bin/konfd bin/konf
 bin_clish_SOURCES = bin/clish.cpp
 bin_clish_LDADD  = \
     libclish.la    \
-    @KONF_LIBS@ \
-    @TINYRL_LIBS@  \
-    @TINYXML_LIBS@ \
-    @LUBHEAP_LIBS@ \
-    @LUB_LIBS@     \
+    libkonf.la     \
+    libtinyrl.la   \
+    libtinyxml.la  \
+    liblub.la      \
     @PTHREAD_LIBS@ \
     @BFD_LIBS@
+#    @LUBHEAP_LIBS@
 
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD  = \
-    @KONF_LIBS@ \
-    @LUB_LIBS@
+    libkonf.la     \
+    liblub.la
 
 bin_konf_SOURCES = bin/konf.c
 bin_konf_LDADD  = \
-    @KONF_LIBS@ \
-    @LUB_LIBS@
+    libkonf.la    \
+    liblub.la
 
 ## If TCL is enabled
 if TCL
@@ -32,24 +32,25 @@ if TCL
     bin/tclish_script_callback.c \
     bin/tclish_show_result.c
 
-  bin_tclish@TCL_VERSION@_LDADD   = \
+  bin_tclish@TCL_VERSION@_LDADD = \
     libclish.la                   \
-    @KONF_LIBS@                   \
-    @TINYRL_LIBS@                 \
-    @TINYXML_LIBS@                \
+    libkonf.la                    \
+    libtinyrl.la                  \
+    libtinyxml.la                 \
+    liblub.la                     \
     @TCL_LIBS@                    \
-    @LUBHEAP_LIBS@                \
-    @LUB_LIBS@                    \
     @PTHREAD_LIBS@                \
     @BFD_LIBS@
+#    @LUBHEAP_LIBS@
+
 endif
 
 if LUBHEAP
   bin_PROGRAMS += bin/lubheap
   bin_lubheap_SOURCES = bin/lubheap.c
   bin_lubheap_LDADD = \
+    liblub.la         \
     @LUBHEAP_LIBS@    \
-    @LUB_LIBS@        \
     @PTHREAD_LIBS@    \
     @BFD_LIBS@
 endif
