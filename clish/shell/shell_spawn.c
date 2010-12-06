@@ -151,7 +151,6 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 				pthread_testcancel();
 		}
 	}
-
 	return BOOL_TRUE;
 }
 

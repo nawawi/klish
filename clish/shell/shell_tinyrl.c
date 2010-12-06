@@ -378,7 +378,7 @@ bool_t clish_shell_line(clish_shell_t * this, const char *prompt,
 			line = tinyrl_readline(this->tinyrl, prompt, &context);
 		if (NULL != line) {
 			tinyrl_history_t *history =
-			    tinyrl__get_history(this->tinyrl);
+				tinyrl__get_history(this->tinyrl);
 
 			if (tinyrl__get_isatty(this->tinyrl)) {
 				/* deal with the history list */

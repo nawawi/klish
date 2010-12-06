@@ -700,6 +700,7 @@ internal_readline(tinyrl_t   *this,
                 const char *str)
 {
     FILE *istream = tinyrl_vt100__get_istream(this->term);
+    int crlf = 1; /* Enable crlf if result is NULL */
 
     /* initialise for reading a line */
     this->done             = BOOL_FALSE;
@@ -711,7 +712,6 @@ internal_readline(tinyrl_t   *this,
     this->prompt           = prompt;
     this->prompt_size      = strlen(prompt);
     this->context          = context;
-
 
     if((BOOL_TRUE == this->isatty) && (!str))
     {        
@@ -782,6 +782,12 @@ internal_readline(tinyrl_t   *this,
                 s = internal_insertline(this, buffer);
                 len = strlen(buffer) + 1; /* account for the '\0' */
             }
+            if (s == NULL || (this->line[0] == '\0' && feof(istream)))
+            {
+                 /* time to finish the session */
+                this->line = NULL;
+                crlf = 0;
+            }
         }
 
         /*
@@ -789,15 +795,13 @@ internal_readline(tinyrl_t   *this,
          * This is a measure to stop potential task spin on encountering an
          * error from fgets.
          */
-        if( s == NULL || (this->line[0] == '\0' && feof(istream)) )
+        if (this->line)
         {
-            /* time to finish the session */
-            this->line = NULL;
-        }
-        else
-        {
-            /* call the handler for the newline key */
-            if(BOOL_FALSE == this->handlers[KEY_LF](this,KEY_LF))
+            if (this->line[0] == '\0')
+            {
+                tinyrl_reset_line_state(this);
+            }  /* call the handler for the newline key */
+            else if(BOOL_FALSE == this->handlers[KEY_LF](this,KEY_LF))
             {
                 /* an issue has occured */
                 tinyrl_ding(this);
@@ -818,11 +822,12 @@ internal_readline(tinyrl_t   *this,
         /* free our internal buffer */
         free(this->buffer);
         this->buffer = NULL;
-    
-        if((NULL == result) || '\0' == *result)
+
+        if(crlf && ((NULL == result) || ('\0' == *result)))
         {
             /* make sure we're not left on a prompt line */
             tinyrl_crlf(this);
+
         }
         return result;
     }
