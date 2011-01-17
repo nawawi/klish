@@ -2,7 +2,7 @@
  Buildroot
 --------------------------------------------------------------------------------
 
-The buildroot/ directrory contain the files to embed the klish package into the
+The buildroot/ directory contain the files to embed the klish package into the
 buildroot environment. The buildroot/package/klish must be copied to the
 buildroot's source tree package/klish directory. Then the package/Config.in
 file must be changed. Add the following string
