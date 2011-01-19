@@ -52,15 +52,17 @@ int main(int argc, char **argv)
 	bool_t lockless = BOOL_FALSE;
 	bool_t stop_on_error = BOOL_FALSE;
 	bool_t interactive = BOOL_TRUE;
+	bool_t quiet = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
+	FILE *outfd = stdout;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:b";
+	static const char *shortopts = "hvs:ledx:w:i:bq";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -73,6 +75,7 @@ int main(int argc, char **argv)
 		{"view",	1, NULL, 'w'},
 		{"viewid",	1, NULL, 'i'},
 		{"background",	0, NULL, 'b'},
+		{"quiet",	0, NULL, 'q'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -109,6 +112,9 @@ int main(int argc, char **argv)
 		case 'b':
 			interactive = BOOL_FALSE;
 			break;
+		case 'q':
+			quiet = BOOL_TRUE;
+			break;
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
 			break;
@@ -137,7 +143,9 @@ int main(int argc, char **argv)
 	}
 
 	/* Create shell instance */
-	shell = clish_shell_new(&my_hooks, NULL, NULL, stdout, stop_on_error);
+	if (quiet)
+		outfd = fopen("/dev/null", "w");
+	shell = clish_shell_new(&my_hooks, NULL, NULL, outfd, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Cannot run clish.\n");
 		return -1;
@@ -179,6 +187,8 @@ int main(int argc, char **argv)
 
 	/* Cleanup */
 	clish_shell_delete(shell);
+	if (quiet)
+		fclose(outfd);
 
 	return result ? 0 : -1;
 }
@@ -214,6 +224,7 @@ static void help(int status, const char *argv0)
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 		printf("\t-e, --stop-on-error\tStop programm execution on error.\n");
 		printf("\t-b, --background\tStart shell using non-interactive mode.\n");
+		printf("\t-q, --quiet\tDisable echo while executing commands from the file stream.\n");
 		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
 		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
 		printf("\t-w, --view\tSet the startup view.\n");
