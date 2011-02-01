@@ -38,4 +38,5 @@ struct _tinyrl
                                               buffer for redisplay purposes */
     unsigned                  last_point; /* hold record of the previous 
                                               cursor position for redisplay purposes */
+    bool_t                    utf8; /* Is the encoding UTF-8 */
 };

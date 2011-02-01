@@ -445,7 +445,8 @@ tinyrl_init(tinyrl_t                 *this,
         this->isatty = BOOL_FALSE;
     this->last_buffer                   = NULL;
     this->last_point                    = 0;
-    
+    this->utf8                          = BOOL_FALSE;
+
     /* create the vt100 terminal */
     this->term = tinyrl_vt100_new(instream,outstream);
 
@@ -1432,8 +1433,23 @@ tinyrl__get_prompt(const tinyrl_t *this)
 {
     return this->prompt;
 }
+
 /*-------------------------------------------------------- */
-bool_t 
+bool_t
+tinyrl__get_utf8(const tinyrl_t *this)
+{
+    return this->utf8;
+}
+
+/*-------------------------------------------------------- */
+void
+tinyrl__set_utf8(tinyrl_t *this, bool_t utf8)
+{
+    this->utf8 = utf8;
+}
+
+/*-------------------------------------------------------- */
+bool_t
 tinyrl_is_quoting(const tinyrl_t *this)
 {
     bool_t result = BOOL_FALSE;

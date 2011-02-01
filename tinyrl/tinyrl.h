@@ -134,6 +134,12 @@ extern FILE *
 extern FILE *
     tinyrl__get_ostream(const tinyrl_t *instance);
 
+extern bool_t
+    tinyrl__get_utf8(const tinyrl_t *instance);
+
+extern void
+    tinyrl__set_utf8(tinyrl_t *instance, bool_t utf8);
+
 extern char *
     tinyrl_readline(tinyrl_t   *instance,
                     const char *prompt,
