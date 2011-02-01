@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	bool_t stop_on_error = BOOL_FALSE;
 	bool_t interactive = BOOL_TRUE;
 	bool_t quiet = BOOL_FALSE;
+	bool_t utf8 = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bq";
+	static const char *shortopts = "hvs:ledx:w:i:bqu";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
 		{"viewid",	1, NULL, 'i'},
 		{"background",	0, NULL, 'b'},
 		{"quiet",	0, NULL, 'q'},
+		{"utf8",	0, NULL, 'u'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -114,6 +116,9 @@ int main(int argc, char **argv)
 			break;
 		case 'q':
 			quiet = BOOL_TRUE;
+			break;
+		case 'u':
+			utf8 = BOOL_TRUE;
 			break;
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
@@ -166,6 +171,8 @@ int main(int argc, char **argv)
 	/* Set startup viewid */
 	if (viewid)
 		clish_shell__set_startup_viewid(shell, viewid);
+	/* Set UTF-8 mode if needed */
+	clish_shell__set_utf8(shell, utf8);
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (!running) {
@@ -229,6 +236,7 @@ static void help(int status, const char *argv0)
 		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
 		printf("\t-w, --view\tSet the startup view.\n");
 		printf("\t-i, --viewid\tSet the startup viewid.\n");
+		printf("\t-u, --utf8\tSuppose the console mode is UTF-8.\n");
 	}
 }
 

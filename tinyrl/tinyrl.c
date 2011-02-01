@@ -19,6 +19,45 @@
 
 #include "private.h"
 
+/*-------------------------------------------------------- */
+static void utf8_point_left(tinyrl_t * this)
+{
+	if (this->utf8) {
+		while (this->point &&
+			(UTF8_10 == (this->buffer[this->point] & UTF8_MASK)))
+			this->point--;
+	}
+}
+
+/*-------------------------------------------------------- */
+static void utf8_point_right(tinyrl_t * this)
+{
+	if (this->utf8) {
+		while ((this->point < this->end) &&
+			(UTF8_10 == (this->buffer[this->point] & UTF8_MASK)))
+			this->point++;
+	}
+}
+
+/*-------------------------------------------------------- */
+static unsigned utf8_nsyms(tinyrl_t * this, const char *str, unsigned num)
+{
+	unsigned nsym = 0;
+	unsigned i;
+
+	if (!this->utf8)
+		return num;
+	for (i = 0; i < num; i++) {
+		if ('\0' == str[i])
+			break;
+		if (UTF8_10 == (str[i] & UTF8_MASK))
+			continue;
+		nsym++;
+	}
+
+	return nsym;
+}
+
 /*----------------------------------------------------------------------- */
 static void tty_set_raw_mode(tinyrl_t * this)
 {
@@ -213,6 +252,7 @@ static bool_t tinyrl_key_left(tinyrl_t * this, int key)
 	bool_t result = BOOL_FALSE;
 	if (this->point > 0) {
 		this->point--;
+		utf8_point_left(this);
 		result = BOOL_TRUE;
 	}
 	/* keep the compiler happy */
@@ -226,6 +266,7 @@ static bool_t tinyrl_key_right(tinyrl_t * this, int key)
 	bool_t result = BOOL_FALSE;
 	if (this->point < this->end) {
 		this->point++;
+		utf8_point_right(this);
 		result = BOOL_TRUE;
 	}
 	/* keep the compiler happy */
@@ -238,8 +279,9 @@ static bool_t tinyrl_key_backspace(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	if (this->point) {
-		this->point--;
-		tinyrl_delete_text(this, this->point, this->point);
+		unsigned end = --this->point;
+		utf8_point_left(this);
+		tinyrl_delete_text(this, this->point, end);
 		result = BOOL_TRUE;
 	}
 	/* keep the compiler happy */
@@ -252,7 +294,9 @@ static bool_t tinyrl_key_delete(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	if (this->point < this->end) {
-		tinyrl_delete_text(this, this->point, this->point);
+		unsigned end = this->point;
+		utf8_point_left(this);
+		tinyrl_delete_text(this, this->point, end);
 		result = BOOL_TRUE;
 	}
 	/* keep the compiler happy */
@@ -507,19 +551,24 @@ void tinyrl_redisplay(tinyrl_t * this)
 							  this->point);
 						/* just get the terminal to delete the characters */
 						if (shift > 0) {
-							count = (unsigned)shift;
+							count = utf8_nsyms(this,
+								this->last_buffer + this->point,
+								(unsigned)shift);
 							/* we've moved the cursor backwards */
 							tinyrl_vt100_cursor_back
 							    (this->term, count);
 						} else if (shift < 0) {
-							count =
-							    (unsigned)-shift;
+							count = utf8_nsyms(this,
+								this->last_buffer + this->last_point,
+								(unsigned)-shift);
 							/* we've moved the cursor forwards */
 							tinyrl_vt100_cursor_forward
 							    (this->term, count);
 						}
 						/* now delete the characters */
-						count = (unsigned)-delta;
+						count = utf8_nsyms(this,
+							this->last_buffer + line_len,
+							(unsigned)-delta);
 						tinyrl_vt100_erase(this->term,
 								   count);
 					}
@@ -534,13 +583,16 @@ void tinyrl_redisplay(tinyrl_t * this)
 						    (int)(this->point -
 							  this->last_point);
 						if (delta > 0) {
-							count = (unsigned)delta;
+							count = utf8_nsyms(this,
+								this->line + this->last_point,
+								(unsigned)delta);
 							/* move the point forwards */
 							tinyrl_vt100_cursor_forward
 							    (this->term, count);
 						} else if (delta < 0) {
-							count =
-							    (unsigned)-delta;
+							count = utf8_nsyms(this,
+								this->line + this->point,
+								(unsigned)-delta);
 							/* move the cursor backwards */
 							tinyrl_vt100_cursor_back
 							    (this->term, count);
@@ -556,9 +608,10 @@ void tinyrl_redisplay(tinyrl_t * this)
 			tinyrl_internal_print(this, this->line);
 			if (this->point < line_len) {
 				/* move the cursor to the insertion point */
-				tinyrl_vt100_cursor_back(this->term,
-							 line_len -
-							 this->point);
+				count = utf8_nsyms(this,
+					this->line + this->point,
+					line_len - this->point);
+				tinyrl_vt100_cursor_back(this->term, count);
 			}
 			break;
 		}
@@ -567,10 +620,12 @@ void tinyrl_redisplay(tinyrl_t * this)
 		 */
 		if (this->last_point) {
 			/* move to just after the prompt of the line */
-			tinyrl_vt100_cursor_back(this->term, this->last_point);
+			count = utf8_nsyms(this, this->last_buffer, this->last_point);
+			tinyrl_vt100_cursor_back(this->term, count);
 		}
 		/* erase the previous line */
-		tinyrl_vt100_erase(this->term, strlen(this->last_buffer));
+		count = utf8_nsyms(this, this->last_buffer, last_line_len);
+		tinyrl_vt100_erase(this->term, count);
 
 		/* output the line accounting for the echo behaviour */
 		tinyrl_internal_print(this, this->line);
@@ -578,9 +633,8 @@ void tinyrl_redisplay(tinyrl_t * this)
 		delta = (int)(line_len - this->point);
 		if (delta) {
 			/* move the cursor back to the insertion point */
-			tinyrl_vt100_cursor_back(this->term,
-						 (strlen(this->line) -
-						  this->point));
+			count = utf8_nsyms(this, this->line + this->point, delta);
+			tinyrl_vt100_cursor_back(this->term, count);
 		}
 	} /*lint -e717 */ while (0)	/*lint +e717 */
 	;

@@ -484,3 +484,17 @@ bool_t clish_shell__get_interactive(const clish_shell_t * this)
 }
 
 /*-------------------------------------------------------- */
+bool_t clish_shell__get_utf8(const clish_shell_t * this)
+{
+	assert(this);
+	return tinyrl__get_utf8(this->tinyrl);
+}
+
+/*-------------------------------------------------------- */
+void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
+{
+	assert(this);
+	tinyrl__set_utf8(this->tinyrl, utf8);
+}
+
+/*-------------------------------------------------------- */

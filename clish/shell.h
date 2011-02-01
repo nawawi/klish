@@ -388,6 +388,8 @@ char * clish_shell__expand_variable(const clish_shell_t *instance,
 const char * clish_shell__get_fifo(clish_shell_t * instance);
 void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
 bool_t clish_shell__get_interactive(const clish_shell_t * instance);
+bool_t clish_shell__get_utf8(const clish_shell_t * instance);
+void clish_shell__set_utf8(clish_shell_t * instance, bool_t utf8);
 
 _END_C_DECL
 
