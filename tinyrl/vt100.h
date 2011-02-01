@@ -25,9 +25,7 @@ doesn't support all the features of a VT100 terminal.
 #include "lub/c_decl.h"
 #include "lub/types.h"
 
-_BEGIN_C_DECL
-
-typedef struct _tinyrl_vt100 tinyrl_vt100_t;
+_BEGIN_C_DECL typedef struct _tinyrl_vt100 tinyrl_vt100_t;
 
 /* define the Key codes */
 #define KEY_NUL	0	/**< ^@	Null character */
@@ -68,161 +66,63 @@ typedef struct _tinyrl_vt100 tinyrl_vt100_t;
 /**
  * This enumeration is used to identify the types of escape code 
  */
-typedef enum
-{
-    tinyrl_vt100_UNKNOWN,      /**< Undefined escape sequence */
-    tinyrl_vt100_CURSOR_UP,    /**< Move the cursor up        */
-    tinyrl_vt100_CURSOR_DOWN,  /**< Move the cursor down      */
-    tinyrl_vt100_CURSOR_LEFT,  /**< Move the cursor left      */
-    tinyrl_vt100_CURSOR_RIGHT  /**< Move the cursor right     */      
+typedef enum {
+	tinyrl_vt100_UNKNOWN,  /**< Undefined escape sequence */
+	tinyrl_vt100_CURSOR_UP,/**< Move the cursor up        */
+	tinyrl_vt100_CURSOR_DOWN,
+			       /**< Move the cursor down      */
+	tinyrl_vt100_CURSOR_LEFT,
+			       /**< Move the cursor left      */
+	tinyrl_vt100_CURSOR_RIGHT
+			       /**< Move the cursor right     */
 } tinyrl_vt100_escape_t;
 
-extern tinyrl_vt100_t *
-    tinyrl_vt100_new(
-        FILE               *instream,
-        FILE               *outstream
-    );
-extern void
-    tinyrl_vt100_delete(tinyrl_vt100_t *instance);
+extern tinyrl_vt100_t *tinyrl_vt100_new(FILE * instream, FILE * outstream);
+extern void tinyrl_vt100_delete(tinyrl_vt100_t * instance);
 
 /*lint -esym(534,tinyrl_vt100_printf) Ignoring return value of function */
-extern int
-    tinyrl_vt100_printf(
-        const tinyrl_vt100_t *instance,
-        const char           *fmt,
-        ...
+extern int tinyrl_vt100_printf(const tinyrl_vt100_t * instance, const char *fmt, ...
     );
 extern int
-    tinyrl_vt100_vprintf(
-        const tinyrl_vt100_t *instance,
-        const char           *fmt, 
-        va_list               args
-    );
+tinyrl_vt100_vprintf(const tinyrl_vt100_t * instance,
+		     const char *fmt, va_list args);
 
-extern int
-    tinyrl_vt100_oflush(
-        const tinyrl_vt100_t *instance
-    );
-extern int
-    tinyrl_vt100_ierror(
-        const tinyrl_vt100_t *instance
-    );
-extern int
-    tinyrl_vt100_oerror(
-        const tinyrl_vt100_t *instance
-    );
-extern int
-    tinyrl_vt100_ieof(
-        const tinyrl_vt100_t *instance
-    );
-extern int
-    tinyrl_vt100_getchar(
-        const tinyrl_vt100_t *instance
-    );
-extern unsigned
-    tinyrl_vt100__get_width(
-        const tinyrl_vt100_t *instance
-    );
-extern unsigned
-    tinyrl_vt100__get_height(
-        const tinyrl_vt100_t *instance
-    );
+extern int tinyrl_vt100_oflush(const tinyrl_vt100_t * instance);
+extern int tinyrl_vt100_ierror(const tinyrl_vt100_t * instance);
+extern int tinyrl_vt100_oerror(const tinyrl_vt100_t * instance);
+extern int tinyrl_vt100_ieof(const tinyrl_vt100_t * instance);
+extern int tinyrl_vt100_getchar(const tinyrl_vt100_t * instance);
+extern unsigned tinyrl_vt100__get_width(const tinyrl_vt100_t * instance);
+extern unsigned tinyrl_vt100__get_height(const tinyrl_vt100_t * instance);
 extern void
-    tinyrl_vt100__set_istream(
-        tinyrl_vt100_t *instance,
-        FILE           *istream
-    );
-extern FILE *
-    tinyrl_vt100__get_istream(
-        const tinyrl_vt100_t *instance
-    );
-extern FILE *
-    tinyrl_vt100__get_ostream(
-        const tinyrl_vt100_t *instance
-    );
+tinyrl_vt100__set_istream(tinyrl_vt100_t * instance, FILE * istream);
+extern FILE *tinyrl_vt100__get_istream(const tinyrl_vt100_t * instance);
+extern FILE *tinyrl_vt100__get_ostream(const tinyrl_vt100_t * instance);
 
 extern tinyrl_vt100_escape_t
-    tinyrl_vt100_escape_decode(
-        const tinyrl_vt100_t *instance
-    );
+tinyrl_vt100_escape_decode(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_ding(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_reset(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_bright(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_dim(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_underscore(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_blink(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_reverse(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_attribute_hidden(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_erase_line(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_clear_screen(const tinyrl_vt100_t * instance);
 extern void
-    tinyrl_vt100_ding(
-        const tinyrl_vt100_t *instance
-    );
+tinyrl_vt100_cursor_back(const tinyrl_vt100_t * instance, unsigned count);
 extern void
-    tinyrl_vt100_attribute_reset(
-        const tinyrl_vt100_t *instance
-    );
+tinyrl_vt100_cursor_forward(const tinyrl_vt100_t * instance, unsigned count);
 extern void
-    tinyrl_vt100_attribute_bright(
-        const tinyrl_vt100_t *instance
-    );
+tinyrl_vt100_cursor_up(const tinyrl_vt100_t * instance, unsigned count);
 extern void
-    tinyrl_vt100_attribute_dim(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_attribute_underscore(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_attribute_blink(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_attribute_reverse(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_attribute_hidden(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_erase_line(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_clear_screen(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_cursor_back(
-        const tinyrl_vt100_t *instance,
-        unsigned              count
-    );
-extern void
-    tinyrl_vt100_cursor_forward(
-        const tinyrl_vt100_t *instance,
-        unsigned              count
-    );
-extern void
-    tinyrl_vt100_cursor_up(
-        const tinyrl_vt100_t *instance,
-        unsigned              count
-    );
-extern void
-    tinyrl_vt100_cursor_down(
-        const tinyrl_vt100_t *instance,
-        unsigned              count
-    );
-extern void
-    tinyrl_vt100_cursor_home(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_cursor_save(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_cursor_restore(
-        const tinyrl_vt100_t *instance
-    );
-extern void
-    tinyrl_vt100_erase(
-        const tinyrl_vt100_t *instance,
-        unsigned              count
-    );
+tinyrl_vt100_cursor_down(const tinyrl_vt100_t * instance, unsigned count);
+extern void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_cursor_save(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_cursor_restore(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100_erase(const tinyrl_vt100_t * instance, unsigned count);
 _END_C_DECL
-
-#endif /* _tinyrl_vt100_h */
+#endif				/* _tinyrl_vt100_h */
 /** @} tinyrl_vt100 */
