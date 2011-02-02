@@ -16,6 +16,8 @@
 #include <getopt.h>
 #endif
 #include <signal.h>
+#include <locale.h>
+#include <langinfo.h>
 
 #include "clish/shell.h"
 #include "clish/internal.h"
@@ -54,6 +56,7 @@ int main(int argc, char **argv)
 	bool_t interactive = BOOL_TRUE;
 	bool_t quiet = BOOL_FALSE;
 	bool_t utf8 = BOOL_FALSE;
+	bool_t bit8 = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -63,7 +66,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -78,6 +81,7 @@ int main(int argc, char **argv)
 		{"background",	0, NULL, 'b'},
 		{"quiet",	0, NULL, 'q'},
 		{"utf8",	0, NULL, 'u'},
+		{"8bit",	0, NULL, '8'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -89,6 +93,9 @@ int main(int argc, char **argv)
 	sigpipe_act.sa_mask = sigpipe_set;
 	sigpipe_act.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
+
+	/* Set current locale */
+	setlocale(LC_ALL, "");
 
 	/* Parse command line options */
 	optind = 0;
@@ -120,6 +127,9 @@ int main(int argc, char **argv)
 		case 'u':
 			utf8 = BOOL_TRUE;
 			break;
+		case '8':
+			bit8 = BOOL_TRUE;
+			break;
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
 			break;
@@ -147,6 +157,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* Validate command line options */
+	if (utf8 && bit8) {
+		fprintf(stderr, "The -u and -8 options can't be used together.\n");
+		return -1;
+	}
+
 	/* Create shell instance */
 	if (quiet)
 		outfd = fopen("/dev/null", "w");
@@ -171,8 +187,14 @@ int main(int argc, char **argv)
 	/* Set startup viewid */
 	if (viewid)
 		clish_shell__set_startup_viewid(shell, viewid);
-	/* Set UTF-8 mode if needed */
-	clish_shell__set_utf8(shell, utf8);
+	/* Set UTF-8 or 8-bit mode */
+	if (utf8 || bit8)
+		clish_shell__set_utf8(shell, utf8);
+	else {
+		/* Autodetect encoding */
+		if (!strcmp(nl_langinfo(CODESET), "UTF-8"))
+			clish_shell__set_utf8(shell, BOOL_TRUE);
+	}
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (!running) {
@@ -236,7 +258,8 @@ static void help(int status, const char *argv0)
 		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
 		printf("\t-w, --view\tSet the startup view.\n");
 		printf("\t-i, --viewid\tSet the startup viewid.\n");
-		printf("\t-u, --utf8\tSuppose the console mode is UTF-8.\n");
+		printf("\t-u, --utf8\tForce UTF-8 encoding.\n");
+		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
 	}
 }
 
