@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 m4_define([MAJOR_VERSION], 1)
-m4_define([MINOR_VERSION], 3)
-m4_define([MICRO_VERSION], 1)
+m4_define([MINOR_VERSION], 4)
+m4_define([MICRO_VERSION], 0)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -240,6 +240,17 @@ fi
 ################################
 AC_CHECK_HEADERS(getopt.h, [],
     AC_MSG_WARN([getopt.h not found: only short parameters can be used on command line]))
+
+################################
+# Check for locale.h
+################################
+AC_CHECK_HEADERS(locale.h, [],
+    AC_MSG_WARN([locale.h not found: the locales is not supported]))
+
+################################
+# Check for CODESET within nl_langinfo
+################################
+AM_LANGINFO_CODESET
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

@@ -1,7 +1,7 @@
 //-------------------------------------
 // clish.cpp
 //
-// A simple client for libclish
+// A console client for libclish
 //-------------------------------------
 
 #ifdef HAVE_CONFIG_H
@@ -16,8 +16,12 @@
 #include <getopt.h>
 #endif
 #include <signal.h>
+#if HAVE_LOCALE_H
 #include <locale.h>
+#endif
+#if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
+#endif
 
 #include "clish/shell.h"
 #include "clish/internal.h"
@@ -94,8 +98,10 @@ int main(int argc, char **argv)
 	sigpipe_act.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
+#if HAVE_LOCALE_H
 	/* Set current locale */
 	setlocale(LC_ALL, "");
+#endif
 
 	/* Parse command line options */
 	optind = 0;
@@ -191,9 +197,14 @@ int main(int argc, char **argv)
 	if (utf8 || bit8)
 		clish_shell__set_utf8(shell, utf8);
 	else {
+#if HAVE_LANGINFO_CODESET
 		/* Autodetect encoding */
 		if (!strcmp(nl_langinfo(CODESET), "UTF-8"))
 			clish_shell__set_utf8(shell, BOOL_TRUE);
+#else
+		/* The default is 8-bit if locale is not supported */
+		clish_shell__set_utf8(shell, BOOL_FALSE);
+#endif
 	}
 	/* Execute startup */
 	running = clish_shell_startup(shell);

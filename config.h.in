@@ -12,6 +12,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#undef HAVE_LANGINFO_CODESET
+
 /* Have Binary File Decription library */
 #undef HAVE_LIBBFD
 
@@ -26,6 +29,9 @@
 
 /* Have TCL library */
 #undef HAVE_LIBTCL
+
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
