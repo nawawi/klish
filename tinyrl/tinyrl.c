@@ -24,7 +24,7 @@ static void utf8_point_left(tinyrl_t * this)
 {
 	if (this->utf8) {
 		while (this->point &&
-			(UTF8_10 == (this->buffer[this->point] & UTF8_MASK)))
+			(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
 			this->point--;
 	}
 }
@@ -34,7 +34,7 @@ static void utf8_point_right(tinyrl_t * this)
 {
 	if (this->utf8) {
 		while ((this->point < this->end) &&
-			(UTF8_10 == (this->buffer[this->point] & UTF8_MASK)))
+			(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
 			this->point++;
 	}
 }
