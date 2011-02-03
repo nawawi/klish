@@ -9,7 +9,7 @@
 
 <!-- Inheritance -->
 
-	<NAMESPACE ref="ping-view" 
+	<NAMESPACE ref="ping-view"
 		help="true"
 		completion="true"/>
 

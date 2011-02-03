@@ -10,7 +10,9 @@
 <!-- Show routing information -->
 
 	<COMMAND name="show ip route"
-		help="IP routing table">
+		help="IP routing table"
+		lock="false"
+		interrupt="true">
 		<ACTION>ip route show</ACTION>
 	</COMMAND>
 

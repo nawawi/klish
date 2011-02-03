@@ -11,7 +11,9 @@
 <!-- commands set: ping, ping6, arping, traceroute, traceroute6 -->
 <!-- ping, ping6, arping -->
 	<COMMAND name="ping"
-		help="Send messages to network hosts">
+		help="Send messages to network hosts"
+		lock="false"
+		interrupt="true">
 		<PARAM name="proto"
 			help="Protocol to use for the ping"
 			optional="true"
@@ -144,7 +146,9 @@
 
 <!-- traceroute, traceroute6 -->
 	<COMMAND name="traceroute"
-		help="Print the route packets trace to network host">
+		help="Print the route packets trace to network host"
+		lock="false"
+		interrupt="true">
 		<PARAM name="proto"
 			help="Protocol to use"
 			optional="true"

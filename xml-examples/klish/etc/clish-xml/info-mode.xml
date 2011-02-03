@@ -10,7 +10,7 @@
 
 <!-- Inheritance -->
 
-	<NAMESPACE ref="ping-view" 
+	<NAMESPACE ref="ping-view"
 		help="true"
 		completion="true"/>
 
@@ -18,7 +18,8 @@
 
 	<COMMAND name="enable"
 		help="Turn on privileged commands"
-		lock="false">
+		lock="false"
+		interrupt="true">
 		<ACTION>su -l -c "clish -x /etc/clish-enable"</ACTION>
 	</COMMAND>
 
