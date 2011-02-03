@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <signal.h>
 
 /*
  * These are the internal commands for this framework.
@@ -188,6 +189,8 @@ clish_shell_execute(clish_shell_t * this,
 	char *script;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
+	sigset_t old_sigs;
+	struct sigaction old_sigint, old_sigquit;
 
 	assert(NULL != cmd);
 
@@ -248,6 +251,19 @@ clish_shell_execute(clish_shell_t * this,
 		}
 	}
 
+	/* Ignore and block SIGINT and SIGQUIT */
+	if (!clish_command__get_interrupt(cmd)) {
+		struct sigaction sa = { 0 };
+		sigset_t sigs;
+		sa.sa_handler = SIG_IGN;
+		sigaction(SIGINT, &sa, &old_sigint);
+		sigaction(SIGQUIT, &sa, &old_sigquit);
+		sigemptyset(&sigs);
+		sigaddset(&sigs, SIGINT);
+		sigaddset(&sigs, SIGQUIT);
+		sigprocmask(SIG_BLOCK, &sigs, &old_sigs);
+	}
+
 	/* Execute ACTION */
 	builtin = clish_command__get_builtin(cmd);
 	script = clish_command__get_action(cmd, this->viewid, pargv);
@@ -281,6 +297,21 @@ clish_shell_execute(clish_shell_t * this,
 		result = this->client_hooks->script_fn(this, cmd, script, out);
 	}
 	pthread_cleanup_pop(1);
+
+	/* Restore SIGINT and SIGQUIT */
+	if (!clish_command__get_interrupt(cmd)) {
+		sigprocmask(SIG_SETMASK, &old_sigs, NULL);
+		/* Is the signals delivery guaranteed here (before
+		   sigaction restore) for previously blocked and
+		   pending signals? The simple test is working well.
+		   I don't want to use sigtimedwait() function bacause
+		   it needs a realtime extensions. The sigpending() with
+		   the sleep() is not nice too. Report bug if clish will
+		   get the SIGINT after non-interruptable action.
+		*/
+		sigaction(SIGINT, &old_sigint, NULL);
+		sigaction(SIGQUIT, &old_sigquit, NULL);
+	}
 
 	/* Call config callback */
 	if ((BOOL_TRUE == result) && this->client_hooks->config_fn)

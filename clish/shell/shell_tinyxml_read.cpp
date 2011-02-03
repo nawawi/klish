@@ -195,6 +195,7 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *args_name = element->Attribute("args");
 	const char *args_help = element->Attribute("args_help");
 	const char *lock = element->Attribute("lock");
+	const char *interrupt = element->Attribute("interrupt");
 	const char *ref = element->Attribute("ref");
 
 	if (NULL != access) {
@@ -290,6 +291,11 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_lock(cmd, BOOL_FALSE);
 	else
 		clish_command__set_lock(cmd, BOOL_TRUE);
+	/* interrupt field */
+	if (interrupt && (lub_string_nocasecmp(interrupt, "true") == 0))
+		clish_command__set_interrupt(cmd, BOOL_TRUE);
+	else
+		clish_command__set_interrupt(cmd, BOOL_FALSE);
 
 	/* Set alias */
 	if (alias_name) {

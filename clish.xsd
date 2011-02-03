@@ -241,6 +241,7 @@
         <xs:attribute name="args_help" type="xs:string" use="optional"/>
         <xs:attribute name="escape_chars" type="xs:string" use="optional"/>
         <xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
+        <xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
     </xs:complexType>
     <!--
 *******************************************************

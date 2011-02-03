@@ -39,6 +39,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text)
 	this->args = NULL;
 	this->pview = NULL;
 	this->lock = BOOL_TRUE;
+	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
 
 	/* ACTION params */
@@ -715,3 +716,14 @@ const clish_command_t * clish_command__get_cmd(const clish_command_t * this)
 	return NULL;
 }
 
+/*--------------------------------------------------------- */
+bool_t clish_command__get_interrupt(const clish_command_t * this)
+{
+	return this->interrupt;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_interrupt(clish_command_t * this, bool_t interrupt)
+{
+	this->interrupt = interrupt;
+}

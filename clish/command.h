@@ -121,5 +121,7 @@ void clish_command__set_alias_view(clish_command_t * instance,
 clish_view_t * clish_command__get_alias_view(const clish_command_t * instance);
 void clish_command__set_dynamic(clish_command_t * instance, bool_t dynamic);
 bool_t clish_command__get_dynamic(const clish_command_t * instance);
+bool_t clish_command__get_interrupt(const clish_command_t * instance);
+void clish_command__set_interrupt(clish_command_t * instance, bool_t interrupt);
 
 #endif				/* _clish_command_h */
