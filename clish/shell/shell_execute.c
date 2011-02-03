@@ -253,8 +253,10 @@ clish_shell_execute(clish_shell_t * this,
 
 	/* Ignore and block SIGINT and SIGQUIT */
 	if (!clish_command__get_interrupt(cmd)) {
-		struct sigaction sa = { 0 };
+		struct sigaction sa;
 		sigset_t sigs;
+		sa.sa_flags = 0;
+		sigemptyset(&sa.sa_mask);
 		sa.sa_handler = SIG_IGN;
 		sigaction(SIGINT, &sa, &old_sigint);
 		sigaction(SIGQUIT, &sa, &old_sigquit);
