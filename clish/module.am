@@ -1,36 +1,40 @@
 ## Process this file with automake to produce Makefile.in
-                                
-libclish_la_SOURCES              = \
-    clish/clish_access_callback.c  \
-    clish/clish_script_callback.c  \
-    clish/clish_config_callback.c  \
+lib_LTLIBRARIES += libclish.la
+
+libclish_la_SOURCES = \
+    clish/clish_access_callback.c \
+    clish/clish_script_callback.c \
+    clish/clish_config_callback.c \
     clish/private.h
 
 libclish_la_CFLAGS = @LUB_CFLAGS@ @LUBHEAP_CFLAGS@ $(DEBUG_CFLAGS)
+libclish_la_LIBADD = \
+	liblub.la \
+	libtinyrl.la \
+	libtinyxml.la \
+	libkonf.la
 
-lib_LTLIBRARIES += libclish.la
+nobase_include_HEADERS += \
+	clish/command.h \
+	clish/param.h \
+	clish/pargv.h \
+	clish/ptype.h \
+	clish/shell.h \
+	clish/variable.h \
+	clish/view.h \
+	clish/nspace.h \
+	clish/internal.h
 
-nobase_include_HEADERS  +=      \
-    clish/command.h             \
-    clish/param.h               \
-    clish/pargv.h               \
-    clish/ptype.h               \
-    clish/shell.h               \
-    clish/variable.h            \
-    clish/view.h                \
-    clish/nspace.h              \
-    clish/internal.h
-
-EXTRA_DIST                 += \
-    clish/command/module.am   \
-    clish/param/module.am     \
-    clish/pargv/module.am     \
-    clish/ptype/module.am     \
-    clish/shell/module.am     \
-    clish/variable/module.am  \
-    clish/view/module.am      \
-    clish/nspace/module.am    \
-    clish/README
+EXTRA_DIST += \
+	clish/command/module.am \
+	clish/param/module.am \
+	clish/pargv/module.am \
+	clish/ptype/module.am \
+	clish/shell/module.am \
+	clish/variable/module.am \
+	clish/view/module.am \
+	clish/nspace/module.am \
+	clish/README
 
 include $(top_srcdir)/clish/command/module.am
 include $(top_srcdir)/clish/param/module.am

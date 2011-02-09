@@ -37,8 +37,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = bin/clish$(EXEEXT) bin/konfd$(EXEEXT) bin/konf$(EXEEXT) \
-	$(am__EXEEXT_1) $(am__EXEEXT_2)
+bin_PROGRAMS = bin/clish$(EXEEXT) bin/konfd$(EXEEXT) bin/konf$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(top_srcdir)/bin/module.am \
@@ -85,10 +84,7 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	aux_scripts/config.guess aux_scripts/config.sub \
 	aux_scripts/depcomp aux_scripts/install-sh \
 	aux_scripts/ltmain.sh aux_scripts/missing
-@TCL_TRUE@am__append_1 = bin/tclish@TCL_VERSION@
-#    @LUBHEAP_LIBS@
-@LUBHEAP_TRUE@am__append_2 = bin/lubheap
-@LUBHEAP_TRUE@am__append_3 = lub/heap/cache.c lub/heap/cache.h \
+@LUBHEAP_TRUE@am__append_1 = lub/heap/cache.c lub/heap/cache.h \
 @LUBHEAP_TRUE@	lub/heap/cache_bucket.c lub/heap/context.c \
 @LUBHEAP_TRUE@	lub/heap/context.h lub/heap/heap__get_max_free.c \
 @LUBHEAP_TRUE@	lub/heap/heap__get_stacktrace.c \
@@ -150,10 +146,10 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 @LUBHEAP_TRUE@	lub/partition/private.h \
 @LUBHEAP_TRUE@	lub/partition/posix/posix_partition.c \
 @LUBHEAP_TRUE@	lub/partition/posix/private.h
-@LUBHEAP_TRUE@am__append_4 = liblubheap.la
+@LUBHEAP_TRUE@am__append_2 = liblubheap.la
 noinst_PROGRAMS = test/bintree$(EXEEXT) test/string$(EXEEXT) \
-	$(am__EXEEXT_3)
-@LUBHEAP_TRUE@am__append_5 = \
+	$(am__EXEEXT_1)
+@LUBHEAP_TRUE@am__append_3 = \
 @LUBHEAP_TRUE@    test/heap                  \
 @LUBHEAP_TRUE@    test/mallocTest            \
 @LUBHEAP_TRUE@    test/lubMallocTest
@@ -194,7 +190,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libdir)" \
 	"$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"
 LIBRARIES = $(lib_LIBRARIES)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libclish_la_LIBADD =
+libclish_la_DEPENDENCIES = liblub.la libtinyrl.la libtinyxml.la \
+	libkonf.la
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libclish_la_OBJECTS = clish/libclish_la-clish_access_callback.lo \
 	clish/libclish_la-clish_script_callback.lo \
@@ -242,7 +239,7 @@ am_libclish_la_OBJECTS = clish/libclish_la-clish_access_callback.lo \
 	clish/nspace/libclish_la-nspace.lo \
 	clish/nspace/libclish_la-nspace_dump.lo
 libclish_la_OBJECTS = $(am_libclish_la_OBJECTS)
-libkonf_la_DEPENDENCIES =
+libkonf_la_DEPENDENCIES = liblub.la
 am_libkonf_la_OBJECTS = konf/tree/tree.lo konf/tree/tree_dump.lo \
 	konf/query/query.lo konf/query/query_dump.lo konf/buf/buf.lo \
 	konf/net/net.lo
@@ -419,7 +416,7 @@ am__liblubheap_la_SOURCES_DIST = lubheap/posix/sysheap.c
 @LUBHEAP_TRUE@am_liblubheap_la_OBJECTS = lubheap/posix/sysheap.lo
 liblubheap_la_OBJECTS = $(am_liblubheap_la_OBJECTS)
 @LUBHEAP_TRUE@am_liblubheap_la_rpath = -rpath $(libdir)
-libtinyrl_la_LIBADD =
+libtinyrl_la_DEPENDENCIES = liblub.la
 am_libtinyrl_la_OBJECTS = tinyrl/tinyrl.lo tinyrl/history/history.lo \
 	tinyrl/history/history_entry.lo tinyrl/vt100/vt100.lo
 libtinyrl_la_OBJECTS = $(am_libtinyrl_la_OBJECTS)
@@ -432,9 +429,7 @@ libtinyxml_la_OBJECTS = $(am_libtinyxml_la_OBJECTS)
 libtinyxml_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(libtinyxml_la_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-@TCL_TRUE@am__EXEEXT_1 = bin/tclish@TCL_VERSION@$(EXEEXT)
-@LUBHEAP_TRUE@am__EXEEXT_2 = bin/lubheap$(EXEEXT)
-@LUBHEAP_TRUE@am__EXEEXT_3 = test/heap$(EXEEXT) \
+@LUBHEAP_TRUE@am__EXEEXT_1 = test/heap$(EXEEXT) \
 @LUBHEAP_TRUE@	test/mallocTest$(EXEEXT) \
 @LUBHEAP_TRUE@	test/lubMallocTest$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
@@ -448,22 +443,6 @@ bin_konf_DEPENDENCIES = libkonf.la liblub.la
 am_bin_konfd_OBJECTS = bin/konfd.$(OBJEXT)
 bin_konfd_OBJECTS = $(am_bin_konfd_OBJECTS)
 bin_konfd_DEPENDENCIES = libkonf.la liblub.la
-am__bin_lubheap_SOURCES_DIST = bin/lubheap.c
-@LUBHEAP_TRUE@am_bin_lubheap_OBJECTS = bin/lubheap.$(OBJEXT)
-bin_lubheap_OBJECTS = $(am_bin_lubheap_OBJECTS)
-@LUBHEAP_TRUE@bin_lubheap_DEPENDENCIES = liblub.la
-am__bin_tclish@TCL_VERSION@_SOURCES_DIST = bin/tclish.cpp \
-	bin/tclish_fini_callback.c bin/tclish_init_callback.c \
-	bin/tclish_script_callback.c bin/tclish_show_result.c
-@TCL_TRUE@am_bin_tclish@TCL_VERSION@_OBJECTS = bin/tclish.$(OBJEXT) \
-@TCL_TRUE@	bin/tclish_fini_callback.$(OBJEXT) \
-@TCL_TRUE@	bin/tclish_init_callback.$(OBJEXT) \
-@TCL_TRUE@	bin/tclish_script_callback.$(OBJEXT) \
-@TCL_TRUE@	bin/tclish_show_result.$(OBJEXT)
-bin_tclish@TCL_VERSION@_OBJECTS =  \
-	$(am_bin_tclish@TCL_VERSION@_OBJECTS)
-@TCL_TRUE@bin_tclish@TCL_VERSION@_DEPENDENCIES = libclish.la \
-@TCL_TRUE@	libkonf.la libtinyrl.la libtinyxml.la liblub.la
 am_test_bintree_OBJECTS = test/bintree.$(OBJEXT)
 test_bintree_OBJECTS = $(am_test_bintree_OBJECTS)
 test_bintree_DEPENDENCIES = liblub.la
@@ -518,7 +497,6 @@ SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(liblub_la_SOURCES) $(liblubheap_la_SOURCES) \
 	$(libtinyrl_la_SOURCES) $(libtinyxml_la_SOURCES) \
 	$(bin_clish_SOURCES) $(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
-	$(bin_lubheap_SOURCES) $(bin_tclish@TCL_VERSION@_SOURCES) \
 	$(test_bintree_SOURCES) $(test_heap_SOURCES) \
 	$(test_lubMallocTest_SOURCES) $(test_mallocTest_SOURCES) \
 	$(test_string_SOURCES)
@@ -527,8 +505,6 @@ DIST_SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(am__liblubheap_la_SOURCES_DIST) $(libtinyrl_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
 	$(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
-	$(am__bin_lubheap_SOURCES_DIST) \
-	$(am__bin_tclish@TCL_VERSION@_SOURCES_DIST) \
 	$(test_bintree_SOURCES) $(am__test_heap_SOURCES_DIST) \
 	$(am__test_lubMallocTest_SOURCES_DIST) \
 	$(am__test_mallocTest_SOURCES_DIST) $(test_string_SOURCES)
@@ -689,7 +665,7 @@ AM_LD = $(CXX)
 @DEBUG_TRUE@DEBUG_CFLAGS = -DDEBUG
 AM_CFLAGS = -pedantic -Wall $(DEBUG_CFLAGS)
 AM_CXXFLAGS = -Wall $(DEBUG_CFLAGS)
-lib_LTLIBRARIES = libclish.la liblub.la $(am__append_4) libtinyrl.la \
+lib_LTLIBRARIES = libclish.la liblub.la $(am__append_2) libtinyrl.la \
 	libtinyxml.la libkonf.la
 lib_LIBRARIES = 
 nobase_include_HEADERS = clish/command.h clish/param.h clish/pargv.h \
@@ -737,47 +713,24 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	konf/query/module.am konf/buf/module.am konf/net/module.am
 bin_clish_SOURCES = bin/clish.cpp
 bin_clish_LDADD = \
-    libclish.la    \
-    libkonf.la     \
-    libtinyrl.la   \
-    libtinyxml.la  \
-    liblub.la      \
-    @PTHREAD_LIBS@ \
-    @BFD_LIBS@
+	libclish.la \
+	libkonf.la \
+	libtinyrl.la \
+	libtinyxml.la \
+	liblub.la \
+	@PTHREAD_LIBS@ \
+	@BFD_LIBS@
 
-#    @LUBHEAP_LIBS@
+#	@LUBHEAP_LIBS@
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD = \
-    libkonf.la     \
-    liblub.la
+	libkonf.la \
+	liblub.la
 
 bin_konf_SOURCES = bin/konf.c
 bin_konf_LDADD = \
-    libkonf.la    \
-    liblub.la
-
-@TCL_TRUE@bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp \
-@TCL_TRUE@    bin/tclish_fini_callback.c   \
-@TCL_TRUE@    bin/tclish_init_callback.c   \
-@TCL_TRUE@    bin/tclish_script_callback.c \
-@TCL_TRUE@    bin/tclish_show_result.c
-
-@TCL_TRUE@bin_tclish@TCL_VERSION@_LDADD = \
-@TCL_TRUE@    libclish.la                   \
-@TCL_TRUE@    libkonf.la                    \
-@TCL_TRUE@    libtinyrl.la                  \
-@TCL_TRUE@    libtinyxml.la                 \
-@TCL_TRUE@    liblub.la                     \
-@TCL_TRUE@    @TCL_LIBS@                    \
-@TCL_TRUE@    @PTHREAD_LIBS@                \
-@TCL_TRUE@    @BFD_LIBS@
-
-@LUBHEAP_TRUE@bin_lubheap_SOURCES = bin/lubheap.c
-@LUBHEAP_TRUE@bin_lubheap_LDADD = \
-@LUBHEAP_TRUE@    liblub.la         \
-@LUBHEAP_TRUE@    @LUBHEAP_LIBS@    \
-@LUBHEAP_TRUE@    @PTHREAD_LIBS@    \
-@LUBHEAP_TRUE@    @BFD_LIBS@
+	libkonf.la \
+	liblub.la
 
 libclish_la_SOURCES = clish/clish_access_callback.c \
 	clish/clish_script_callback.c clish/clish_config_callback.c \
@@ -814,6 +767,12 @@ libclish_la_SOURCES = clish/clish_access_callback.c \
 	clish/nspace/nspace.c clish/nspace/nspace_dump.c \
 	clish/nspace/private.h
 libclish_la_CFLAGS = @LUB_CFLAGS@ @LUBHEAP_CFLAGS@ $(DEBUG_CFLAGS)
+libclish_la_LIBADD = \
+	liblub.la \
+	libtinyrl.la \
+	libtinyxml.la \
+	libkonf.la
+
 liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/argv/argv__get_count.c lub/argv/argv__get_offset.c \
 	lub/argv/argv__get_quoted.c lub/argv/argv_delete.c \
@@ -838,7 +797,7 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/dblockpool/dblockpool_fini.c \
 	lub/dblockpool/dblockpool_free.c \
 	lub/dblockpool/dblockpool_init.c lub/dblockpool/private.h \
-	lub/dump/dump.c lub/dump/private.h $(am__append_3) \
+	lub/dump/dump.c lub/dump/private.h $(am__append_1) \
 	lub/string/string_cat.c lub/string/string_catn.c \
 	lub/string/string_dup.c lub/string/string_dupn.c \
 	lub/string/string_free.c lub/string/string_nocasecmp.c \
@@ -848,15 +807,16 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/system/private.h
 liblub_la_LIBADD = -lpthread
 @LUBHEAP_TRUE@liblubheap_la_SOURCES = lubheap/posix/sysheap.c
+libtinyrl_la_LIBADD = liblub.la
 libtinyrl_la_SOURCES = tinyrl/tinyrl.c tinyrl/private.h \
 	tinyrl/history/history.c tinyrl/history/history_entry.c \
 	tinyrl/history/private.h tinyrl/vt100/vt100.c \
 	tinyrl/vt100/private.h
 libtinyxml_la_SOURCES = \
-    tinyxml/tinyxml.cpp         \
-    tinyxml/tinyxmlerror.cpp    \
-    tinyxml/tinyxmlparser.cpp   \
-    tinyxml/tinystr.cpp
+	tinyxml/tinyxml.cpp \
+	tinyxml/tinyxmlerror.cpp \
+	tinyxml/tinyxmlparser.cpp \
+	tinyxml/tinystr.cpp
 
 libtinyxml_la_CXXFLAGS = @TINYXML_CXXFLAGS@
 test_bintree_SOURCES = \
@@ -903,7 +863,7 @@ libkonf_la_SOURCES = konf/tree/tree.c konf/tree/tree_dump.c \
 	konf/tree/private.h konf/query/query.c konf/query/query_dump.c \
 	konf/query/private.h konf/buf/buf.c konf/buf/private.h \
 	konf/net/net.c konf/net/private.h
-libkonf_la_LIBADD = 
+libkonf_la_LIBADD = liblub.la
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -1660,24 +1620,6 @@ bin/konfd.$(OBJEXT): bin/$(am__dirstamp) bin/$(DEPDIR)/$(am__dirstamp)
 bin/konfd$(EXEEXT): $(bin_konfd_OBJECTS) $(bin_konfd_DEPENDENCIES) bin/$(am__dirstamp)
 	@rm -f bin/konfd$(EXEEXT)
 	$(LINK) $(bin_konfd_OBJECTS) $(bin_konfd_LDADD) $(LIBS)
-bin/lubheap.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/lubheap$(EXEEXT): $(bin_lubheap_OBJECTS) $(bin_lubheap_DEPENDENCIES) bin/$(am__dirstamp)
-	@rm -f bin/lubheap$(EXEEXT)
-	$(LINK) $(bin_lubheap_OBJECTS) $(bin_lubheap_LDADD) $(LIBS)
-bin/tclish.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/tclish_fini_callback.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/tclish_init_callback.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/tclish_script_callback.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/tclish_show_result.$(OBJEXT): bin/$(am__dirstamp) \
-	bin/$(DEPDIR)/$(am__dirstamp)
-bin/tclish@TCL_VERSION@$(EXEEXT): $(bin_tclish@TCL_VERSION@_OBJECTS) $(bin_tclish@TCL_VERSION@_DEPENDENCIES) bin/$(am__dirstamp)
-	@rm -f bin/tclish@TCL_VERSION@$(EXEEXT)
-	$(CXXLINK) $(bin_tclish@TCL_VERSION@_OBJECTS) $(bin_tclish@TCL_VERSION@_LDADD) $(LIBS)
 test/$(am__dirstamp):
 	@$(MKDIR_P) test
 	@: > test/$(am__dirstamp)
@@ -1715,12 +1657,6 @@ mostlyclean-compile:
 	-rm -f bin/clish.$(OBJEXT)
 	-rm -f bin/konf.$(OBJEXT)
 	-rm -f bin/konfd.$(OBJEXT)
-	-rm -f bin/lubheap.$(OBJEXT)
-	-rm -f bin/tclish.$(OBJEXT)
-	-rm -f bin/tclish_fini_callback.$(OBJEXT)
-	-rm -f bin/tclish_init_callback.$(OBJEXT)
-	-rm -f bin/tclish_script_callback.$(OBJEXT)
-	-rm -f bin/tclish_show_result.$(OBJEXT)
 	-rm -f clish/command/libclish_la-command.$(OBJEXT)
 	-rm -f clish/command/libclish_la-command.lo
 	-rm -f clish/command/libclish_la-command_dump.$(OBJEXT)
@@ -2075,12 +2011,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/clish.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/konf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/konfd.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/lubheap.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish_fini_callback.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish_init_callback.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish_script_callback.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bin/$(DEPDIR)/tclish_show_result.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/$(DEPDIR)/libclish_la-clish_access_callback.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/$(DEPDIR)/libclish_la-clish_config_callback.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/$(DEPDIR)/libclish_la-clish_script_callback.Plo@am__quote@
@@ -3136,6 +3066,33 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLIBRARIES \
 	uninstall-nobase_includeHEADERS
 
 
+@TCL_TRUE@	bin_PROGRAMS += bin/tclish@TCL_VERSION@
+
+@TCL_TRUE@	bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp \
+@TCL_TRUE@		bin/tclish_fini_callback.c \
+@TCL_TRUE@		bin/tclish_init_callback.c \
+@TCL_TRUE@		bin/tclish_script_callback.c \
+@TCL_TRUE@		bin/tclish_show_result.c
+
+@TCL_TRUE@	bin_tclish@TCL_VERSION@_LDADD = \
+@TCL_TRUE@		libclish.la \
+@TCL_TRUE@		libkonf.la \
+@TCL_TRUE@		libtinyrl.la \
+@TCL_TRUE@		libtinyxml.la \
+@TCL_TRUE@		liblub.la \
+@TCL_TRUE@		@TCL_LIBS@ \
+@TCL_TRUE@		@PTHREAD_LIBS@ \
+@TCL_TRUE@		@BFD_LIBS@
+#		@LUBHEAP_LIBS@
+
+@LUBHEAP_TRUE@	bin_PROGRAMS += bin/lubheap
+@LUBHEAP_TRUE@	bin_lubheap_SOURCES = bin/lubheap.c
+@LUBHEAP_TRUE@	bin_lubheap_LDADD = \
+@LUBHEAP_TRUE@		liblub.la \
+@LUBHEAP_TRUE@		@LUBHEAP_LIBS@ \
+@LUBHEAP_TRUE@		@PTHREAD_LIBS@ \
+@LUBHEAP_TRUE@		@BFD_LIBS@
+
 #EXTRA_DIST  +=                                  	\
 #                xml-examples/clock.xml 	\
 #                xml-examples/debug-commands.xml 	\
@@ -3153,3 +3110,4 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLIBRARIES \
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
+

@@ -1,2 +1,3 @@
-libkonf_la_SOURCES +=	konf/net/net.c	\
-			konf/net/private.h
+libkonf_la_SOURCES += \
+	konf/net/net.c \
+	konf/net/private.h

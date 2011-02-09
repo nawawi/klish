@@ -1,3 +1,4 @@
-libclish_la_SOURCES +=	clish/view/view.c		\
-			clish/view/view_dump.c	\
-			clish/view/private.h
+libclish_la_SOURCES += \
+	clish/view/view.c \
+	clish/view/view_dump.c \
+	clish/view/private.h
