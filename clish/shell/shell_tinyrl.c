@@ -272,15 +272,20 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 				result = BOOL_TRUE;
 				break;
 			case CLISH_BAD_HISTORY:
+				fprintf(stderr, "Error: Bad history entry.\n");
+				break;
 			case CLISH_BAD_CMD:
+				fprintf(stderr, "Error: Illegal command line.\n");
+				break;
 			case CLISH_BAD_PARAM:
+				fprintf(stderr, "Error: Illegal parameter.\n");
+				break;
 			case CLISH_LINE_PARTIAL:
-				tinyrl_crlf(this);
-				fprintf(stderr, "Error. Illegal command line.\n");
-				tinyrl_crlf(this);
-				tinyrl_reset_line_state(this);
+				fprintf(stderr, "Error: The command is not completed.\n");
 				break;
 			}
+			if (CLISH_LINE_OK != arg_status)
+				tinyrl_reset_line_state(this);
 		}
 	} else {
 		/* nothing to pass simply move down the screen */
