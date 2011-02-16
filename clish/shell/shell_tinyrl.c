@@ -160,6 +160,25 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 		/* if we are in the middle of a quote then simply enter a space */
 		result = tinyrl_insert_text(this, " ");
 	} else {
+context_t *context = tinyrl__get_context(this);
+const char *line = tinyrl__get_line(this);
+clish_pargv_status_t arg_status;
+			arg_status = clish_shell_parse(context->shell,
+						       line,
+						       &context->command,
+						       &context->pargv);
+//printf("!!!!!!!!%d\n", arg_status);
+			switch (arg_status) {
+			case CLISH_LINE_OK:
+			case CLISH_LINE_PARTIAL:
+				if (' ' != line[strlen(line) - 1])
+					result = tinyrl_insert_text(this, " ");
+				return result;
+				break;
+			default:
+				break;
+			}
+
 		/* perform word completion */
 		status = clish_shell_tinyrl_complete(this);
 		switch (status) {

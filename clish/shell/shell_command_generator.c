@@ -88,8 +88,8 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 			this->context.completion_index++))) {
 
 			if (param == clish_command__get_args(cmd)) {
-				/* The param is args so it has no format */
-				result = lub_string_dup(text);
+				/* The param is args so it has no completion */
+				result = NULL;
 			} else if (CLISH_PARAM_SUBCOMMAND ==
 				clish_param__get_mode(param)) {
 				/* The subcommand is identified by it's value */
@@ -101,7 +101,7 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 			} else {
 				/* The common param. Let ptype do the work */
 				if ((ptype = clish_param__get_ptype(param))) {
-					result = clish_ptype_word_generator(ptype, text, 
+					result = clish_ptype_word_generator(ptype, text,
 						this->context.completion_pindex++);
 					if (!result)
 						this->context.completion_pindex = 0;

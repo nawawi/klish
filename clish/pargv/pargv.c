@@ -274,7 +274,7 @@ clish_pargv_parse(clish_pargv_t * this,
 					clish_param__get_optional(param))
 					index++;
 				else
-					return CLISH_BAD_PARAM;
+					break;
 			}
 		} else {
 			return CLISH_BAD_PARAM;
@@ -288,7 +288,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		while (j < paramc) {
 			param = clish_paramv__get_param(paramv, j++);
 			if (BOOL_TRUE != clish_param__get_optional(param))
-				return CLISH_BAD_PARAM;
+				return CLISH_LINE_PARTIAL;
 		}
 	}
 
@@ -313,7 +313,7 @@ clish_pargv_parse(clish_pargv_t * this,
 		char *args = NULL;
 
 		if (!param)
-			return CLISH_BAD_PARAM;
+			return CLISH_BAD_CMD;
 
 		/*
 		 * put all the argument into a single string
@@ -394,9 +394,7 @@ clish_pargv_t *clish_pargv_new(const clish_command_t * cmd,
 	switch (*status) {
 	case CLISH_LINE_OK:
 		break;
-	case CLISH_BAD_CMD:
-	case CLISH_BAD_PARAM:
-	case CLISH_BAD_HISTORY:
+	default:
 		/* commit suicide */
 		clish_pargv_delete(this);
 		this = NULL;

@@ -225,13 +225,15 @@ char *clish_ptype_word_generator(clish_ptype_t * this,
 				 const char *text, unsigned state)
 {
 	char *result = NULL;
+
+	if (this->method != CLISH_PTYPE_SELECT)
+		return NULL;
 	if (0 == state) {
 		/* first of all simply try to validate the result */
 		result = clish_ptype_validate(this, text);
 	}
 	if (NULL == result) {
 		switch (this->method) {
-	    /*--------------------------------------------- */
 		case CLISH_PTYPE_SELECT:
 			{
 				if (0 == state) {
@@ -253,15 +255,8 @@ char *clish_ptype_word_generator(clish_ptype_t * this,
 				}
 				break;
 			}
-	    /*--------------------------------------------- */
-		case CLISH_PTYPE_INTEGER:
-		case CLISH_PTYPE_UNSIGNEDINTEGER:
-		case CLISH_PTYPE_REGEXP:
-			{
-				/* do nothing */
-				break;
-			}
-	    /*--------------------------------------------- */
+		default:
+			break;
 		}
 	}
 	return result;
