@@ -1168,6 +1168,7 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 	unsigned start, end;
 	bool_t completion = BOOL_FALSE;
 	bool_t prefix = BOOL_FALSE;
+	int i = 0;
 
 	/* find the start and end of the current word */
 	start = end = this->point;
@@ -1206,9 +1207,11 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 			}
 			completion = BOOL_TRUE;
 		}
-		if (0 == lub_string_nocasecmp(matches[0], matches[1])) {
-			/* this is just a prefix string */
-			prefix = BOOL_TRUE;
+		for (i = 1; matches[i]; i++) {
+			if (0 == lub_string_nocasecmp(matches[0], matches[i])) {
+				/* this is just a prefix string */
+				prefix = BOOL_TRUE;
+			}
 		}
 		/* is there more than one completion? */
 		if (matches[2] != NULL) {
