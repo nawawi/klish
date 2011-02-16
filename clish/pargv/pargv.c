@@ -273,8 +273,12 @@ clish_pargv_parse(clish_pargv_t * this,
 				if (BOOL_TRUE ==
 					clish_param__get_optional(param))
 					index++;
-				else
-					break;
+				else {
+					if (!arg)
+						break;
+					else
+						return CLISH_BAD_PARAM;
+				}
 			}
 		} else {
 			return CLISH_BAD_PARAM;

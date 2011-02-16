@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "tinyrl/tinyrl.h"
 #include "tinyrl/history.h"
@@ -155,60 +156,55 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	tinyrl_match_e status;
+	context_t *context = tinyrl__get_context(this);
+	const char *line = tinyrl__get_line(this);
+	clish_pargv_status_t arg_status;
+	const clish_command_t *cmd = NULL;
+	clish_pargv_t *pargv = NULL;
 
 	if (BOOL_TRUE == tinyrl_is_quoting(this)) {
 		/* if we are in the middle of a quote then simply enter a space */
-		result = tinyrl_insert_text(this, " ");
+		result = BOOL_TRUE;
 	} else {
-context_t *context = tinyrl__get_context(this);
-const char *line = tinyrl__get_line(this);
-clish_pargv_status_t arg_status;
-			arg_status = clish_shell_parse(context->shell,
-						       line,
-						       &context->command,
-						       &context->pargv);
-//printf("!!!!!!!!%d\n", arg_status);
-			switch (arg_status) {
-			case CLISH_LINE_OK:
-			case CLISH_LINE_PARTIAL:
-				if (' ' != line[strlen(line) - 1])
-					result = tinyrl_insert_text(this, " ");
-				return result;
-				break;
-			default:
-				break;
-			}
-
-		/* perform word completion */
-		status = clish_shell_tinyrl_complete(this);
-		switch (status) {
-		case TINYRL_NO_MATCH:
-		case TINYRL_AMBIGUOUS:
-			{
+		arg_status = clish_shell_parse(context->shell,
+			line, &cmd, &pargv);
+		if (pargv)
+			clish_pargv_delete(pargv);
+		switch (arg_status) {
+		case CLISH_LINE_OK:
+		case CLISH_LINE_PARTIAL:
+			if (' ' != line[strlen(line) - 1])
+				result = BOOL_TRUE;
+			break;
+		default:
+			/* perform word completion */
+			status = clish_shell_tinyrl_complete(this);
+			switch (status) {
+			case TINYRL_NO_MATCH:
+			case TINYRL_AMBIGUOUS:
 				/* ambiguous result signal an issue */
 				break;
-			}
-		case TINYRL_COMPLETED_AMBIGUOUS:
-			{
+			case TINYRL_COMPLETED_AMBIGUOUS:
 				/* perform word completion again in case we just did case
 				   modification the first time */
 				status = clish_shell_tinyrl_complete(this);
 				if (status == TINYRL_MATCH_WITH_EXTENSIONS) {
 					/* all is well with the world just enter a space */
-					result = tinyrl_insert_text(this, " ");
+					result = BOOL_TRUE;
 				}
 				break;
-			}
-		case TINYRL_MATCH:
-		case TINYRL_MATCH_WITH_EXTENSIONS:
-		case TINYRL_COMPLETED_MATCH:
-			{
+			case TINYRL_MATCH:
+			case TINYRL_MATCH_WITH_EXTENSIONS:
+			case TINYRL_COMPLETED_MATCH:
 				/* all is well with the world just enter a space */
-				result = tinyrl_insert_text(this, " ");
+				result = BOOL_TRUE;
 				break;
 			}
+			break;
 		}
 	}
+	if (result)
+		result = tinyrl_insert_text(this, " ");
 	/* keep compiler happy */
 	key = key;
 
@@ -278,6 +274,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 			case CLISH_BAD_HISTORY:
 			case CLISH_BAD_CMD:
 			case CLISH_BAD_PARAM:
+			case CLISH_LINE_PARTIAL:
 				tinyrl_crlf(this);
 				fprintf(stderr, "Error. Illegal command line.\n");
 				tinyrl_crlf(this);
