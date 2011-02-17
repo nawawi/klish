@@ -166,6 +166,9 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 		/* if we are in the middle of a quote then simply enter a space */
 		result = BOOL_TRUE;
 	} else {
+		/* Find out if current line is legal. It can be
+		 * fully completed or partially completed.
+		 */
 		arg_status = clish_shell_parse(context->shell,
 			line, &cmd, &pargv);
 		if (pargv)
@@ -177,6 +180,10 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 				result = BOOL_TRUE;
 			break;
 		default:
+			break;
+		}
+		/* If current line is illegal try to make auto-comletion. */
+		if (!result) {
 			/* perform word completion */
 			status = clish_shell_tinyrl_complete(this);
 			switch (status) {
@@ -200,7 +207,6 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 				result = BOOL_TRUE;
 				break;
 			}
-			break;
 		}
 	}
 	if (result)
