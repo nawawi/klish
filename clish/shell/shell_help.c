@@ -70,7 +70,7 @@ available_commands(clish_shell_t * this, const char *line, bool_t full)
 		} else {
 			name = clish_command__get_suffix(cmd);
 		}
-		fprintf(stderr, "%-*s  %s\n",
+		fprintf(stderr, "  %-*s  %s\n",
 		       (int)max_width, name, clish_command__get_text(cmd));
 	}
 	/* cleanup */

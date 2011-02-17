@@ -35,7 +35,6 @@ static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 		context_t *context = tinyrl__get_context(this);
 
 		tinyrl_crlf(this);
-		tinyrl_crlf(this);
 		clish_shell_help(context->shell, tinyrl__get_line(this));
 		tinyrl_crlf(this);
 		tinyrl_reset_line_state(this);

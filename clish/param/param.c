@@ -173,7 +173,7 @@ void clish_param_help(const clish_param_t * this, size_t offset)
 			name = clish_ptype__get_name(this->ptype);
 	}
 
-	fprintf(stderr, "%s %*c%s",
+	fprintf(stderr, "  %s %*c%s",
 		name, (int)(offset - strlen(name)), ' ', this->text);
 	if (NULL != range) {
 		fprintf(stderr, " (%s)", range);
