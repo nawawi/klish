@@ -123,22 +123,23 @@ int main(int argc, char **argv)
 #endif
 
 	if (!(client = konf_client_new(socket_path))) {
-		fprintf(stderr, "Can't create internal data structures.\n");
+		fprintf(stderr, "Error: Can't create internal data structures.\n");
 		goto err;
 	}
 
 	if (konf_client_connect(client) < 0) {
-		fprintf(stderr, "Can't connect to %s socket.\n", socket_path);
+		fprintf(stderr, "Error: Can't connect to %s socket.\n", socket_path);
 		goto err;
 	}
 
 	if (konf_client_send(client, line) < 0) {
-		fprintf(stderr, "Can't connect to %s socket.\n", socket_path);
+		fprintf(stderr, "Error: Can't send request to %s socket.\n", socket_path);
 		goto err;
 	}
 
 	if (konf_client_recv_answer(client, &buf) < 0) {
-		fprintf(stderr, "The error while request to the konfd daemon.\n");
+		fprintf(stderr, "Error: The error code from the konfd daemon.\n");
+		goto err;
 	}
 
 	if (buf) {
