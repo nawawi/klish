@@ -91,10 +91,11 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 
 	/* Network vars */
-	int sock;
+	int sock = -1;
 	struct sockaddr_un laddr;
 	struct sockaddr_un raddr;
 	fd_set active_fd_set, read_fd_set;
+	const int reuseaddr = 1;
 
 	/* Signal vars */
 	struct sigaction sig_act, sigpipe_act;
@@ -107,6 +108,75 @@ int main(int argc, char **argv)
 	opts = opts_init();
 	if (opts_parse(argc, argv, opts))
 		goto err;
+
+	/* Fork the daemon */
+	if (!opts->debug) {
+		FILE *f_pid = NULL;
+
+		/* Daemonize */
+		if (daemonize(0, 0) < 0) {
+			syslog(LOG_ERR, "Can't daemonize\n");
+			goto err;
+		}
+
+		/* Write pidfile */
+		if ((f_pid = fopen(opts->pidfile, "w")) == NULL) {
+			syslog(LOG_WARNING, "Can't open pidfile %s: %s",
+				opts->pidfile, strerror(errno));
+		} else {
+			if (fprintf(f_pid, "%u\n", getpid()) < 0)
+				syslog(LOG_WARNING, "Can't write to %s: %s",
+					opts->pidfile, strerror(errno));
+			fclose(f_pid);
+		}
+	}
+
+	/* Change GID */
+	if (opts->gid) { /* non-root GID */
+		if (setgid(opts->gid)) {
+			syslog(LOG_ERR, "Can't set GID to %u: %s",
+				opts->gid, strerror(errno));
+			goto err;
+		}
+	}
+
+	/* Change UID */
+	if (opts->uid) { /* non-root UID */
+		if (setuid(opts->uid)) {
+			syslog(LOG_ERR, "Can't set UID to %u: %s",
+				opts->uid, strerror(errno));
+			goto err;
+		}
+	}
+
+	/* Create listen socket */
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		syslog(LOG_ERR, "Can't create listen socket: %s\n",
+			strerror(errno));
+		goto err;
+	}
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+		&reuseaddr, sizeof(reuseaddr))) {
+		syslog(LOG_ERR, "Can't set socket options: %s\n", strerror(errno));
+		goto err;
+	}
+	laddr.sun_family = AF_UNIX;
+	strncpy(laddr.sun_path, opts->socket_path, UNIX_PATH_MAX);
+	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
+	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
+		syslog(LOG_ERR, "Can't bind socket: %s\n",
+			strerror(errno));
+		goto err;
+	}
+	listen(sock, 5);
+
+	/* Create configuration tree */
+	conf = konf_tree_new("", 0);
+
+	/* Initialize the tree of buffers */
+	lub_bintree_init(&bufs,
+		konf_buf_bt_offset(),
+		konf_buf_bt_compare, konf_buf_bt_getkey);
 
 	/* Set signal handler */
 	sigemptyset(&sig_set);
@@ -129,63 +199,6 @@ int main(int argc, char **argv)
 	sigpipe_act.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
-	/* Create listen socket */
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		syslog(LOG_ERR, "Can't create listen socket: %s\n",
-			strerror(errno));
-		goto err;
-	}
-
-	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, opts->socket_path, UNIX_PATH_MAX);
-	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
-	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
-		syslog(LOG_ERR, "Can't bind socket: %s\n",
-			strerror(errno));
-		goto err;
-	}
-	listen(sock, 5);
-
-	if (!opts->debug) {
-		FILE *f_pid = NULL;
-
-		/* Daemonize */
-		if (daemonize(0, 0) < 0) {
-			syslog(LOG_ERR, "Can't daemonize\n");
-			goto err;
-		}
-
-		/* Write pidfile */
-		if ((f_pid = fopen(opts->pidfile, "w")) == NULL) {
-			syslog(LOG_WARNING, "Can't open pidfile %s: %s",
-				opts->pidfile, strerror(errno));
-		} else {
-			if (fprintf(f_pid, "%u\n", getpid()) < 0)
-				syslog(LOG_WARNING, "Can't write to %s: %s",
-					opts->pidfile, strerror(errno));
-			fclose(f_pid);
-		}
-	}
-
-	/* Change UID */
-/*	if (opts.user) {
-		setfsuid(opts.user);
-		if ((setresgid(opts.user, opts.user, opts.user)<0) ||
-			(setresuid(opts.user, opts.user, opts.user)<0)) {
-			syslog(LOG_ERR, "%s", strerror(errno));
-			exit(1);
-		}
-	}
-*/
-
-
-	/* Create configuration tree */
-	conf = konf_tree_new("", 0);
-
-	/* Initialize the tree of buffers */
-	lub_bintree_init(&bufs,
-		konf_buf_bt_offset(),
-		konf_buf_bt_compare, konf_buf_bt_getkey);
 
 	/* Initialize the set of active sockets. */
 	FD_ZERO(&active_fd_set);
@@ -221,7 +234,9 @@ int main(int argc, char **argv)
 						fprintf(stderr, "accept");
 						continue;
 					}
-					fprintf(stderr, "Server: connect %u\n", new);
+#ifdef DEBUG
+					fprintf(stderr, "Connection established %u\n", new);
+#endif
 					konf_buftree_remove(&bufs, new);
 					tbuf = konf_buf_new(new);
 					/* insert it into the binary tree for this conf */
@@ -538,24 +553,13 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 			opts->debug = 1;
 			break;
 		case 'u': {
-			struct passwd pwd, *result;
-			size_t bufsize;
-			char *buf;
-			int res;
-
-			bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-			if (bufsize == -1)
-				bufsize = 16384;
-			buf = malloc(bufsize);
-			assert(buf);
-			res = getpwnam_r(optarg, &pwd, buf, bufsize, &result);
-			if (!result) {
+			struct passwd *pwd = getpwnam(optarg);
+			if (!pwd) {
 				syslog(LOG_ERR, "Can't identify user \"%s\"\n",
 					optarg);
 				return -1;
 			}
-			opts->uid = pwd.pw_uid;
-			free(buf);
+			opts->uid = pwd->pw_uid;
 			break;
 		}
 		case 'g': {
