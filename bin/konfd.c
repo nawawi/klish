@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 	lub_bintree_t bufs;
 	konf_buf_t *tbuf;
 	struct options *opts = NULL;
+	int pidfd = -1;
 
 	/* Network vars */
 	int sock = -1;
@@ -111,8 +112,6 @@ int main(int argc, char **argv)
 
 	/* Fork the daemon */
 	if (!opts->debug) {
-		FILE *f_pid = NULL;
-
 		/* Daemonize */
 		if (daemonize(0, 0) < 0) {
 			syslog(LOG_ERR, "Can't daemonize\n");
@@ -120,19 +119,23 @@ int main(int argc, char **argv)
 		}
 
 		/* Write pidfile */
-		if ((f_pid = fopen(opts->pidfile, "w")) == NULL) {
+		if ((pidfd = open(opts->pidfile,
+			O_WRONLY | O_CREAT | O_EXCL | O_TRUNC,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
 			syslog(LOG_WARNING, "Can't open pidfile %s: %s",
 				opts->pidfile, strerror(errno));
 		} else {
-			if (fprintf(f_pid, "%u\n", getpid()) < 0)
+			char str[20];
+			snprintf(str, sizeof(str), "%u\n", getpid());
+			if (write(pidfd, str, strlen(str)) < 0)
 				syslog(LOG_WARNING, "Can't write to %s: %s",
 					opts->pidfile, strerror(errno));
-			fclose(f_pid);
+			close(pidfd);
 		}
 	}
 
 	/* Change GID */
-	if (opts->gid) { /* non-root GID */
+	if (opts->gid != getgid()) {
 		if (setgid(opts->gid)) {
 			syslog(LOG_ERR, "Can't set GID to %u: %s",
 				opts->gid, strerror(errno));
@@ -141,7 +144,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Change UID */
-	if (opts->uid) { /* non-root UID */
+	if (opts->uid != getuid()) {
 		if (setuid(opts->uid)) {
 			syslog(LOG_ERR, "Can't set UID to %u: %s",
 				opts->uid, strerror(errno));
@@ -183,7 +186,7 @@ int main(int argc, char **argv)
 	sigaddset(&sig_set, SIGTERM);
 	sigaddset(&sig_set, SIGINT);
 	sigaddset(&sig_set, SIGQUIT);
-	
+
 	sig_act.sa_flags = 0;
 	sig_act.sa_mask = sig_set;
 	sig_act.sa_handler = &sighandler;
@@ -198,7 +201,6 @@ int main(int argc, char **argv)
 	sigpipe_act.sa_mask = sigpipe_set;
 	sigpipe_act.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
-
 
 	/* Initialize the set of active sockets. */
 	FD_ZERO(&active_fd_set);
@@ -281,6 +283,18 @@ err:
 	if (sock >= 0) {
 		close(sock);
 		unlink(opts->socket_path);
+	}
+
+	/* Restore original EUID for cleanup */
+/*	if (getuid() != geteuid())
+		seteuid(getuid());
+*/
+	/* Remove pidfile */
+	if (pidfd >= 0) {
+		if (unlink(opts->pidfile) < 0) {
+			syslog(LOG_ERR, "Can't remove pid-file %s: %s\n",
+			opts->pidfile, strerror(errno));
+		}
 	}
 
 	/* Free command line options */
@@ -496,6 +510,8 @@ struct options *opts_init(void)
 	opts->debug = 0; /* daemonize by default */
 	opts->socket_path = lub_string_dup(KONFD_SOCKET_PATH);
 	opts->pidfile = lub_string_dup(KONFD_PIDFILE);
+	opts->uid = getuid();
+	opts->gid = getgid();
 
 	return opts;
 }
