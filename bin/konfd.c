@@ -27,8 +27,12 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
 
 #include "clish/private.h"
 #include "konf/tree.h"
@@ -72,11 +76,12 @@ static int opts_parse(int argc, char *argv[], struct options *opts);
 
 /* Command line options */
 struct options {
-	char	*socket_path;
-	char	*pidfile;
-	int	debug; /* Don't daemonize in debug mode */
-	uid_t	uid;
-	gid_t	gid;
+	char *socket_path;
+	char *pidfile;
+	char *chroot;
+	int debug; /* Don't daemonize in debug mode */
+	uid_t uid;
+	gid_t gid;
 };
 
 /*--------------------------------------------------------- */
@@ -134,24 +139,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Change GID */
-	if (opts->gid != getgid()) {
-		if (setgid(opts->gid)) {
-			syslog(LOG_ERR, "Can't set GID to %u: %s",
-				opts->gid, strerror(errno));
-			goto err;
-		}
-	}
-
-	/* Change UID */
-	if (opts->uid != getuid()) {
-		if (setuid(opts->uid)) {
-			syslog(LOG_ERR, "Can't set UID to %u: %s",
-				opts->uid, strerror(errno));
-			goto err;
-		}
-	}
-
 	/* Create listen socket */
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		syslog(LOG_ERR, "Can't create listen socket: %s\n",
@@ -171,7 +158,41 @@ int main(int argc, char **argv)
 			strerror(errno));
 		goto err;
 	}
+	if (chown(opts->socket_path, opts->uid, opts->gid)) {
+		syslog(LOG_ERR, "Can't chown UNIX socket: %s\n",
+			strerror(errno));
+		goto err;
+	}
 	listen(sock, 5);
+
+	/* Change GID */
+	if (opts->gid != getgid()) {
+		if (setgid(opts->gid)) {
+			syslog(LOG_ERR, "Can't set GID to %u: %s",
+				opts->gid, strerror(errno));
+			goto err;
+		}
+	}
+
+#ifdef HAVE_CHROOT
+	/* Chroot */
+	if (opts->chroot) {
+		if (chroot(opts->chroot) < 0) {
+			syslog(LOG_ERR, "Can't chroot to %s: %s",
+				opts->chroot, strerror(errno));
+			goto err;
+		}
+	}
+#endif
+
+	/* Change UID */
+	if (opts->uid != getuid()) {
+		if (setuid(opts->uid)) {
+			syslog(LOG_ERR, "Can't set UID to %u: %s",
+				opts->uid, strerror(errno));
+			goto err;
+		}
+	}
 
 	/* Create configuration tree */
 	conf = konf_tree_new("", 0);
@@ -510,6 +531,7 @@ struct options *opts_init(void)
 	opts->debug = 0; /* daemonize by default */
 	opts->socket_path = lub_string_dup(KONFD_SOCKET_PATH);
 	opts->pidfile = lub_string_dup(KONFD_PIDFILE);
+	opts->chroot = NULL;
 	opts->uid = getuid();
 	opts->gid = getgid();
 
@@ -524,6 +546,8 @@ void opts_free(struct options *opts)
 		lub_string_free(opts->socket_path);
 	if (opts->pidfile)
 		lub_string_free(opts->pidfile);
+	if (opts->chroot)
+		lub_string_free(opts->chroot);
 	free(opts);
 }
 
@@ -531,7 +555,7 @@ void opts_free(struct options *opts)
 /* Parse command line options */
 static int opts_parse(int argc, char *argv[], struct options *opts)
 {
-	static const char *shortopts = "hvs:p:u:g:d";
+	static const char *shortopts = "hvs:p:u:g:dr:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -541,6 +565,7 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 		{"user",	1, NULL, 'u'},
 		{"group",	1, NULL, 'g'},
 		{"debug",	0, NULL, 'd'},
+		{"chroot",	1, NULL, 'r'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -565,10 +590,21 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 				lub_string_free(opts->pidfile);
 			opts->pidfile = lub_string_dup(optarg);
 			break;
+		case 'r':
+#ifdef HAVE_CHROOT
+			if (opts->chroot)
+				lub_string_free(opts->chroot);
+			opts->chroot = lub_string_dup(optarg);
+#else
+			syslog(LOG_ERR, "The --chroot option is not supported\n");
+			return -1;
+#endif
+			break;
 		case 'd':
 			opts->debug = 1;
 			break;
 		case 'u': {
+#ifdef HAVE_PWD_H
 			struct passwd *pwd = getpwnam(optarg);
 			if (!pwd) {
 				syslog(LOG_ERR, "Can't identify user \"%s\"\n",
@@ -576,9 +612,14 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 				return -1;
 			}
 			opts->uid = pwd->pw_uid;
+#else
+			syslog(LOG_ERR, "The --user option is not supported\n");
+			return -1;
+#endif
 			break;
 		}
 		case 'g': {
+#ifdef HAVE_GRP_H
 			struct group *grp = getgrnam(optarg);
 			if (!grp) {
 				syslog(LOG_ERR, "Can't identify group \"%s\"\n",
@@ -586,6 +627,10 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 				return -1;
 			}
 			opts->gid = grp->gr_gid;
+#else
+			syslog(LOG_ERR, "The --group option is not supported\n");
+			return -1;
+#endif
 			break;
 		}
 		case 'h':
@@ -636,6 +681,7 @@ static void help(int status, const char *argv0)
 		printf("\t-s <path>, --socket=<path>\tSpecify the UNIX socket "
 			"filesystem path to listen on.\n");
 		printf("\t-p <path>, --pid=<path>\tFile to save daemon's PID to.\n");
+		printf("\t-r <path>, --chroot=<path>\tDirectory to chroot.\n");
 		printf("\t-u <user>, --user=<user>\tExecute process as"
 			" specified user.\n");
 		printf("\t-g <group>, --group=<group>\tExecute process as"

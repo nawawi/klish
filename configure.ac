@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_define([MAJOR_VERSION], 1)
 m4_define([MINOR_VERSION], 4)
-m4_define([MICRO_VERSION], 1)
+m4_define([MICRO_VERSION], 2)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -251,6 +251,20 @@ AC_CHECK_HEADERS(locale.h, [],
 # Check for CODESET within nl_langinfo
 ################################
 AM_LANGINFO_CODESET
+
+################################
+# Check for pwd.h and grp.h
+################################
+AC_CHECK_HEADERS(pwd.h, [],
+    AC_MSG_WARN([pwd.h not found: the pwd operations is not supported]))
+AC_CHECK_HEADERS(grp.h, [],
+    AC_MSG_WARN([grp.h not found: the grp operations is not supported]))
+
+################################
+# Check for chroot
+################################
+AC_CHECK_FUNCS(chroot, [],
+    AC_MSG_WARN([chroot() not found: the choot is not supported]))
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
