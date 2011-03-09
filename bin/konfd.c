@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 	sigset_t sig_set, sigpipe_set;
 
 	/* Initialize syslog */
-	openlog(argv[0], LOG_CONS | LOG_PERROR, LOG_DAEMON);
+	openlog(argv[0], LOG_CONS, LOG_DAEMON);
 
 	/* Parse command line options */
 	opts = opts_init();
