@@ -389,37 +389,33 @@ bool_t clish_shell_line(clish_shell_t * this, const char *prompt,
 	char *line = NULL;
 	bool_t result = BOOL_FALSE;
 	context_t context;
+	tinyrl_history_t *history;
 
-	/* set up the context */
+	/* Set up the context for tinyrl */
 	context.command = NULL;
 	context.pargv = NULL;
 	context.shell = this;
 
-	if (SHELL_STATE_CLOSING != this->state) {
-		this->state = SHELL_STATE_READY;
+	if (str)
+		line = tinyrl_forceline(this->tinyrl, prompt, &context, str);
+	else
+		line = tinyrl_readline(this->tinyrl, prompt, &context);
+	if (!line)
+		return result;
 
-		if (str)
-			line = tinyrl_forceline(this->tinyrl, prompt, &context, str);
-		else
-			line = tinyrl_readline(this->tinyrl, prompt, &context);
-		if (NULL != line) {
-			tinyrl_history_t *history =
-				tinyrl__get_history(this->tinyrl);
-
-			if (tinyrl__get_isatty(this->tinyrl)) {
-				/* deal with the history list */
-				tinyrl_history_add(history, line);
-			}
-			if (this->client_hooks->cmd_line_fn) {
-				/* now let the client know the command line has been entered */
-				this->client_hooks->cmd_line_fn(this, line);
-			}
-			free(line);
-			result = BOOL_TRUE;
-			*cmd = context.command;
-			*pargv = context.pargv;
-		}
+	/* Deal with the history list */
+	if (tinyrl__get_isatty(this->tinyrl)) {
+		history = tinyrl__get_history(this->tinyrl);
+		tinyrl_history_add(history, line);
 	}
+	/* Let the client know the command line has been entered */
+	if (this->client_hooks->cmd_line_fn)
+		this->client_hooks->cmd_line_fn(this, line);
+	free(line);
+	result = BOOL_TRUE;
+	*cmd = context.command;
+	*pargv = context.pargv;
+
 	return result;
 }
 
@@ -431,38 +427,49 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	clish_pargv_t *pargv = NULL;
 	const clish_view_t *view;
 	bool_t running = BOOL_TRUE;
+	char *str;
+	context_t context;
+	tinyrl_history_t *history;
 
 	assert(this);
 	if (!line && !tinyrl__get_istream(this->tinyrl))
 		return BOOL_FALSE;
 
-	/* obtain the prompt */
+	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-
 	prompt = clish_view__get_prompt(view,
 		clish_shell__get_viewid(this));
 	assert(prompt);
 
-	if (line) {
-		/* push the specified line */
-		running = clish_shell_line(this, prompt,
-			&cmd, &pargv, line);
-	} else {
-		running = clish_shell_line(this, prompt,
-			&cmd, &pargv, NULL);
-	}
-	lub_string_free(prompt);
+	/* Push the specified line or interactive line */
+	/* Set up the context for tinyrl */
+	context.command = NULL;
+	context.pargv = NULL;
+	context.shell = this;
 
-	/* execute the provided command */
-	if (running && cmd && pargv) {
-		if (BOOL_FALSE == clish_shell_execute(this, cmd, pargv, out)) {
-			if((!this->current_file && line) ||
-				(this->current_file &&
-				this->current_file->stop_on_error)) {
-				this->state = SHELL_STATE_SCRIPT_ERROR;
-			}
-		}
+	if (line)
+		str = tinyrl_forceline(this->tinyrl, prompt, &context, line);
+	else
+		str = tinyrl_readline(this->tinyrl, prompt, &context);
+	lub_string_free(prompt);
+	if (!str)
+		return result;
+
+	/* Deal with the history list */
+	if (tinyrl__get_isatty(this->tinyrl)) {
+		history = tinyrl__get_history(this->tinyrl);
+		tinyrl_history_add(history, str);
+	}
+	/* Let the client know the command line has been entered */
+	if (this->client_hooks->cmd_line_fn)
+		this->client_hooks->cmd_line_fn(this, str);
+	free(str);
+
+	/* Execute the provided command */
+	if (running && context.command && context.pargv) {
+		if (BOOL_FALSE == clish_shell_execute(this, context.command, context.pargv, out))
+			this->state = SHELL_STATE_SCRIPT_ERROR;
 	}
 
 	if (NULL != pargv)

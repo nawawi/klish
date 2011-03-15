@@ -119,38 +119,34 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 	assert(this);
 	if (!tinyrl__get_istream(this->tinyrl))
 		return BOOL_FALSE;
-	/*
-	 * Check the shell isn't closing down
-	 */
-	if (this && (SHELL_STATE_CLOSING != this->state)) {
+	/* Check the shell isn't closing down */
+	if (this && (SHELL_STATE_CLOSING == this->state))
+		return BOOL_TRUE;
+
+	if (is_thread)
+		pthread_testcancel();
+	/* Loop reading and executing lines until the user quits. */
+	while (running) {
+		/* Get input from the stream */
+		running = clish_shell_readline(this, NULL);
+		if ((SHELL_STATE_SCRIPT_ERROR == this->state) &&
+			(BOOL_TRUE == tinyrl__get_isatty(this->tinyrl))) {
+			/* interactive session doesn't automatically exit on error */
+			this->state = SHELL_STATE_READY;
+		}
+		if ((BOOL_FALSE == running) ||
+			(this->state == SHELL_STATE_SCRIPT_ERROR)) {
+			/* we've reached the end of a file (or a script error has occured)
+			 * unwind the file stack to see whether 
+			 * we need to exit
+			 */
+			running = clish_shell_pop_file(this);
+		}
+		/* test for cancellation */
 		if (is_thread)
 			pthread_testcancel();
-
-		/* Loop reading and executing lines until the user quits. */
-		while (running) {
-			if ((SHELL_STATE_SCRIPT_ERROR == this->state) &&
-			    (BOOL_TRUE == tinyrl__get_isatty(this->tinyrl))) {
-				/* interactive session doesn't automatically exit on error */
-				this->state = SHELL_STATE_READY;
-			}
-			/* only bother to read the next line if there hasn't been a script error */
-			if (this->state != SHELL_STATE_SCRIPT_ERROR) {
-				/* get input from the user */
-				running = clish_shell_readline(this, NULL);
-			}
-			if ((BOOL_FALSE == running) ||
-			    (this->state == SHELL_STATE_SCRIPT_ERROR)) {
-				/* we've reached the end of a file (or a script error has occured)
-				 * unwind the file stack to see whether 
-				 * we need to exit
-				 */
-				running = clish_shell_pop_file(this);
-			}
-			/* test for cancellation */
-			if (is_thread)
-				pthread_testcancel();
-		}
 	}
+
 	return BOOL_TRUE;
 }
 
