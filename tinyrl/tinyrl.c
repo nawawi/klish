@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* POSIX HEADERS */
 #include <unistd.h>
@@ -671,17 +672,14 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 
 	/* strip any spurious '\r' or '\n' */
 	p = strchr(buffer, '\r');
-	if (NULL == p) {
+	if (NULL == p)
 		p = strchr(buffer, '\n');
-	}
-	if (NULL != p) {
+	if (NULL != p)
 		*p = '\0';
-	}
 	/* skip any whitespace at the beginning of the line */
 	if (0 == this->point) {
-		while (*s && isspace(*s)) {
+		while (*s && isspace(*s))
 			s++;
-		}
 	}
 	if (*s) {
 		/* append this string to the input buffer */
@@ -695,11 +693,12 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 
 /*----------------------------------------------------------------------- */
 static char *internal_readline(tinyrl_t * this,
-			       const char *prompt,
-			       void *context, const char *str)
+	const char *prompt, void *context, const char *str)
 {
 	FILE *istream = tinyrl_vt100__get_istream(this->term);
 	int crlf = 1;		/* Enable crlf if result is NULL */
+	char *result = NULL;
+	int lerrno = 0;
 
 	/* initialise for reading a line */
 	this->done = BOOL_FALSE;
@@ -715,51 +714,42 @@ static char *internal_readline(tinyrl_t * this,
 	if ((BOOL_TRUE == this->isatty) && (!str)) {
 		/* set the terminal into raw input mode */
 		tty_set_raw_mode(this);
-
 		tinyrl_reset_line_state(this);
 
 		while (!this->done) {
 			int key;
 			/* update the display */
 			tinyrl_redisplay(this);
-
 			/* get a key */
 			key = tinyrl_getchar(this);
-
 			/* has the input stream terminated? */
 			if (EOF != key) {
 				/* call the handler for this key */
-				if (BOOL_FALSE ==
-				    this->handlers[key] (this, key)) {
-					/* an issue has occured */
+				if (!this->handlers[key](this, key))
 					tinyrl_ding(this);
-				}
-
-				if (BOOL_TRUE == this->done) {
+				if (this->done) {
 					/*
-					 * If the last character in the line (other than 
+					 * If the last character in the line (other than
 					 * the null) is a space remove it.
 					 */
-					if (this->end
-					    && isspace(this->
-						       line[this->end - 1])) {
+					if (this->end &&
+						isspace(this->line[this->end - 1]))
 						tinyrl_delete_text(this,
-								   this->end -
-								   1,
-								   this->end);
-					}
+							this->end - 1,
+							this->end);
 				}
 			} else {
 				/* time to finish the session */
 				this->done = BOOL_TRUE;
 				this->line = NULL;
+				lerrno = ENODATA;
 			}
 		}
 		/* restores the terminal mode */
 		tty_restore_mode(this);
 	} else {
 		/* This is a non-interactive set of commands */
-		char *s = 0, buffer[80];
+		char *s = NULL, buffer[80];
 		size_t len = sizeof(buffer);
 		char *tmp = NULL;
 
@@ -772,15 +762,15 @@ static char *internal_readline(tinyrl_t * this,
 			s = internal_insertline(this, tmp);
 		} else {
 			while ((sizeof(buffer) == len) &&
-			       (s = fgets(buffer, sizeof(buffer), istream))) {
+				(s = fgets(buffer, sizeof(buffer), istream))) {
 				s = internal_insertline(this, buffer);
-				len = strlen(buffer) + 1;	/* account for the '\0' */
+				len = strlen(buffer) + 1; /* account for the '\0' */
 			}
-			if (s == NULL
-			    || (this->line[0] == '\0' && feof(istream))) {
+			if (!s || (this->line[0] == '\0' && feof(istream))) {
 				/* time to finish the session */
-				this->line = NULL;
 				crlf = 0;
+				this->line = NULL;
+				lerrno = ENODATA;
 			}
 		}
 
@@ -792,12 +782,11 @@ static char *internal_readline(tinyrl_t * this,
 		if (this->line) {
 			if (this->line[0] == '\0') {
 				tinyrl_reset_line_state(this);
-			} /* call the handler for the newline key */
-			else if (BOOL_FALSE ==
-				 this->handlers[KEY_LF] (this, KEY_LF)) {
+			} else if (!this->handlers[KEY_LF](this, KEY_LF)) {
 				/* an issue has occured */
 				tinyrl_ding(this);
 				this->line = NULL;
+				lerrno = EBADMSG;
 			}
 		}
 		if (str)
@@ -808,20 +797,19 @@ static char *internal_readline(tinyrl_t * this,
 	 * we have to duplicate as we may be referencing a
 	 * history entry or our internal buffer
 	 */
-	{
-		char *result = this->line ? lub_string_dup(this->line) : NULL;
+	result = this->line ? lub_string_dup(this->line) : NULL;
 
-		/* free our internal buffer */
-		free(this->buffer);
-		this->buffer = NULL;
+	/* free our internal buffer */
+	free(this->buffer);
+	this->buffer = NULL;
 
-		if (crlf && ((NULL == result) || ('\0' == *result))) {
-			/* make sure we're not left on a prompt line */
-			tinyrl_crlf(this);
+	/* make sure we're not left on a prompt line */
+	if (crlf && ((NULL == result) || ('\0' == *result)))
+		tinyrl_crlf(this);
 
-		}
-		return result;
-	}
+	if (!result)
+		errno = lerrno; /* get saved errno */
+	return result;
 }
 
 /*----------------------------------------------------------------------- */
@@ -846,52 +834,51 @@ char *tinyrl_forceline(tinyrl_t * this,
 bool_t tinyrl_extend_line_buffer(tinyrl_t * this, unsigned len)
 {
 	bool_t result = BOOL_TRUE;
-	if (this->buffer_size < len) {
-		char *new_buffer;
-		size_t new_len = len;
+	char *new_buffer;
+	size_t new_len = len;
 
-		/* 
-		 * What we do depends on whether we are limited by
-		 * memory or a user imposed limit.
-		 */
+	if (this->buffer_size >= len)
+		return result;
 
-		if (this->max_line_length == 0) {
-			if (new_len < this->buffer_size + 10) {
-				/* make sure we don't realloc too often */
-				new_len = this->buffer_size + 10;
-			}
-			/* leave space for terminator */
-			new_buffer = realloc(this->buffer, new_len + 1);
+	/*
+	 * What we do depends on whether we are limited by
+	 * memory or a user imposed limit.
+	 */
+	if (this->max_line_length == 0) {
+		/* make sure we don't realloc too often */
+		if (new_len < this->buffer_size + 10)
+			new_len = this->buffer_size + 10;
+		/* leave space for terminator */
+		new_buffer = realloc(this->buffer, new_len + 1);
+
+		if (NULL == new_buffer) {
+			tinyrl_ding(this);
+			result = BOOL_FALSE;
+		} else {
+			this->buffer_size = new_len;
+			this->line = this->buffer = new_buffer;
+		}
+	} else {
+		if (new_len < this->max_line_length) {
+
+			/* Just reallocate once to the max size */
+			new_buffer = realloc(this->buffer,
+				this->max_line_length);
 
 			if (NULL == new_buffer) {
 				tinyrl_ding(this);
 				result = BOOL_FALSE;
 			} else {
-				this->buffer_size = new_len;
+				this->buffer_size =
+					this->max_line_length - 1;
 				this->line = this->buffer = new_buffer;
 			}
 		} else {
-			if (new_len < this->max_line_length) {
-
-				/* Just reallocate once to the max size */
-				new_buffer =
-				    realloc(this->buffer,
-					    this->max_line_length);
-
-				if (NULL == new_buffer) {
-					tinyrl_ding(this);
-					result = BOOL_FALSE;
-				} else {
-					this->buffer_size =
-					    this->max_line_length - 1;
-					this->line = this->buffer = new_buffer;
-				}
-			} else {
-				tinyrl_ding(this);
-				result = BOOL_FALSE;
-			}
+			tinyrl_ding(this);
+			result = BOOL_FALSE;
 		}
 	}
+
 	return result;
 }
 
@@ -903,7 +890,7 @@ bool_t tinyrl_insert_text(tinyrl_t * this, const char *text)
 {
 	unsigned delta = strlen(text);
 
-	/* 
+	/*
 	 * If the client wants to change the line ensure that the line and buffer
 	 * references are in sync
 	 */
@@ -912,9 +899,8 @@ bool_t tinyrl_insert_text(tinyrl_t * this, const char *text)
 	if ((delta + this->end) > (this->buffer_size)) {
 		/* extend the current buffer */
 		if (BOOL_FALSE ==
-		    tinyrl_extend_line_buffer(this, this->end + delta)) {
+			tinyrl_extend_line_buffer(this, this->end + delta))
 			return BOOL_FALSE;
-		}
 	}
 
 	if (this->point < this->end) {

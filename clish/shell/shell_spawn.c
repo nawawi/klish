@@ -125,22 +125,27 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 
 	if (is_thread)
 		pthread_testcancel();
-	/* Loop reading and executing lines until the user quits. */
+	/* Loop reading and executing lines until the user quits */
 	while (running) {
 		/* Get input from the stream */
+		this->state = SHELL_STATE_READY;
 		running = clish_shell_readline(this, NULL);
-		if ((SHELL_STATE_SCRIPT_ERROR == this->state) &&
-			(BOOL_TRUE == tinyrl__get_isatty(this->tinyrl))) {
-			/* interactive session doesn't automatically exit on error */
-			this->state = SHELL_STATE_READY;
-		}
-		if ((BOOL_FALSE == running) ||
-			(this->state == SHELL_STATE_SCRIPT_ERROR)) {
-			/* we've reached the end of a file (or a script error has occured)
-			 * unwind the file stack to see whether 
-			 * we need to exit
-			 */
-			running = clish_shell_pop_file(this);
+		if (!running) {
+			switch (this->state) {
+			case SHELL_STATE_SCRIPT_ERROR:
+			case SHELL_STATE_SYNTAX_ERROR:
+				/* Interactive session doesn't exit on error */
+				if (tinyrl__get_isatty(this->tinyrl) ||
+					!this->current_file->stop_on_error)
+					running = BOOL_TRUE;
+				break;
+			case SHELL_STATE_EOF:
+				/* We've reached the end of a file */
+				running = clish_shell_pop_file(this);
+				break;
+			default:
+				break;
+			}
 		}
 		/* test for cancellation */
 		if (is_thread)

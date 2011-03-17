@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <errno.h>
 
 #include "tinyrl/tinyrl.h"
 #include "tinyrl/history.h"
@@ -20,7 +21,7 @@
 typedef struct _context context_t;
 struct _context {
 	clish_shell_t *shell;
-	const clish_command_t *command;
+	const clish_command_t *cmd;
 	clish_pargv_t *pargv;
 };
 /*-------------------------------------------------------- */
@@ -269,7 +270,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 			/* we've got a command so check the syntax */
 			arg_status = clish_shell_parse(context->shell,
 						       line,
-						       &context->command,
+						       &context->cmd,
 						       &context->pargv);
 			switch (arg_status) {
 			case CLISH_LINE_OK:
@@ -311,8 +312,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 /* This is the completion function provided for CLISH */
 static tinyrl_completion_func_t clish_shell_tinyrl_completion;
 static char **clish_shell_tinyrl_completion(tinyrl_t * this,
-					    const char *line,
-					    unsigned start, unsigned end)
+	const char *line, unsigned start, unsigned end)
 {
 	char **matches;
 
@@ -321,9 +321,7 @@ static char **clish_shell_tinyrl_completion(tinyrl_t * this,
 
 	/* perform the matching */
 	matches = tinyrl_completion(this,
-				    line,
-				    start,
-				    end, clish_shell_tinyrl_word_generator);
+		line, start, end, clish_shell_tinyrl_word_generator);
 	return matches;
 }
 
@@ -347,17 +345,15 @@ static void clish_shell_tinyrl_init(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-/* 
+/*
  * Create an instance of the specialised class
  */
 tinyrl_t *clish_shell_tinyrl_new(FILE * istream,
-				 FILE * ostream, unsigned stifle)
+	FILE * ostream, unsigned stifle)
 {
 	/* call the parent constructor */
 	tinyrl_t *this = tinyrl_new(istream,
-				    ostream,
-				    stifle,
-				    clish_shell_tinyrl_completion);
+		ostream, stifle, clish_shell_tinyrl_completion);
 	if (NULL != this) {
 		/* now call our own constructor */
 		clish_shell_tinyrl_init(this);
@@ -383,57 +379,25 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_line(clish_shell_t * this, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str)
-{
-	char *line = NULL;
-	bool_t result = BOOL_FALSE;
-	context_t context;
-	tinyrl_history_t *history;
-
-	/* Set up the context for tinyrl */
-	context.command = NULL;
-	context.pargv = NULL;
-	context.shell = this;
-
-	if (str)
-		line = tinyrl_forceline(this->tinyrl, prompt, &context, str);
-	else
-		line = tinyrl_readline(this->tinyrl, prompt, &context);
-	if (!line)
-		return result;
-
-	/* Deal with the history list */
-	if (tinyrl__get_isatty(this->tinyrl)) {
-		history = tinyrl__get_history(this->tinyrl);
-		tinyrl_history_add(history, line);
-	}
-	/* Let the client know the command line has been entered */
-	if (this->client_hooks->cmd_line_fn)
-		this->client_hooks->cmd_line_fn(this, line);
-	free(line);
-	result = BOOL_TRUE;
-	*cmd = context.command;
-	*pargv = context.pargv;
-
-	return result;
-}
-
-/*-------------------------------------------------------- */
 bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 {
-	const clish_command_t *cmd;
 	char *prompt = NULL;
-	clish_pargv_t *pargv = NULL;
 	const clish_view_t *view;
-	bool_t running = BOOL_TRUE;
 	char *str;
-	context_t context;
+	context_t con;
 	tinyrl_history_t *history;
+	int lerror = 0;
 
 	assert(this);
-	if (!line && !tinyrl__get_istream(this->tinyrl))
+	if (!line && !tinyrl__get_istream(this->tinyrl)) {
+		this->state = SHELL_STATE_SYSTEM_ERROR;
 		return BOOL_FALSE;
+	}
+
+	/* Set up the context for tinyrl */
+	con.cmd = NULL;
+	con.pargv = NULL;
+	con.shell = this;
 
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
@@ -443,18 +407,26 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	assert(prompt);
 
 	/* Push the specified line or interactive line */
-	/* Set up the context for tinyrl */
-	context.command = NULL;
-	context.pargv = NULL;
-	context.shell = this;
-
 	if (line)
-		str = tinyrl_forceline(this->tinyrl, prompt, &context, line);
+		str = tinyrl_forceline(this->tinyrl, prompt, &con, line);
 	else
-		str = tinyrl_readline(this->tinyrl, prompt, &context);
+		str = tinyrl_readline(this->tinyrl, prompt, &con);
+	lerror = errno;
 	lub_string_free(prompt);
-	if (!str)
-		return result;
+	if (!str) {
+		switch (lerror) {
+		case ENODATA:
+			this->state = SHELL_STATE_EOF;
+			break;
+		case EBADMSG:
+			this->state = SHELL_STATE_SYNTAX_ERROR;
+			break;
+		default:
+			this->state = SHELL_STATE_SYSTEM_ERROR;
+			break;
+		};
+		return BOOL_FALSE;
+	}
 
 	/* Deal with the history list */
 	if (tinyrl__get_isatty(this->tinyrl)) {
@@ -467,15 +439,19 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	free(str);
 
 	/* Execute the provided command */
-	if (running && context.command && context.pargv) {
-		if (BOOL_FALSE == clish_shell_execute(this, context.command, context.pargv, out))
+	if (con.cmd && con.pargv) {
+		if (!clish_shell_execute(this, con.cmd, con.pargv, out)) {
 			this->state = SHELL_STATE_SCRIPT_ERROR;
+			if (con.pargv)
+				clish_pargv_delete(con.pargv);
+			return BOOL_FALSE;
+		}
 	}
 
-	if (NULL != pargv)
-		clish_pargv_delete(pargv);
+	if (con.pargv)
+		clish_pargv_delete(con.pargv);
 
-	return running;
+	return BOOL_TRUE;
 }
 
 /*-------------------------------------------------------- */

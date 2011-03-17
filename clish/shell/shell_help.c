@@ -100,24 +100,22 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 		/* we've resolved a particular command */
 		switch (this->state) {
 		case SHELL_STATE_HELPING:
-			{
-				const char *detail =
-				    clish_command__get_detail(cmd);
-				if (NULL != detail) {
-					fprintf(stderr, "%s\n", detail);
-				} else {
-					/* get the command to describe itself */
-					clish_command_help(cmd, this->viewid, line);
-				}
-				break;
-			}
+		{
+			const char *detail =
+				clish_command__get_detail(cmd);
+			if (NULL != detail)
+				fprintf(stderr, "%s\n", detail);
+			else
+				clish_command_help(cmd, this->viewid, line);
+			break;
+		}
 		case SHELL_STATE_READY:
 		case SHELL_STATE_SCRIPT_ERROR:
+		case SHELL_STATE_SYNTAX_ERROR:
 			/* get the command to provide help */
 			clish_command_help(cmd, this->viewid, line);
 			break;
-		case SHELL_STATE_INITIALISING:
-		case SHELL_STATE_CLOSING:
+		default:
 			/* do nothing */
 			break;
 		}

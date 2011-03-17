@@ -34,9 +34,10 @@ typedef enum {
 	SHELL_STATE_INITIALISING,
 	SHELL_STATE_READY,
 	SHELL_STATE_HELPING,
-	SHELL_STATE_SCRIPT_ERROR,
-	SHELL_STATE_EOF,
-	SHELL_STATE_SYNTAX_ERROR,
+	SHELL_STATE_SCRIPT_ERROR,/* Script execution error */
+	SHELL_STATE_EOF, /* EOF of input stream */
+	SHELL_STATE_SYNTAX_ERROR, /* Illegal line entered */
+	SHELL_STATE_SYSTEM_ERROR, /* Some internal system error */
 	SHELL_STATE_CLOSING
 } clish_shell_state_t;
 
