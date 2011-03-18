@@ -29,6 +29,7 @@ struct _context {
 static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_TRUE;
+
 	if (BOOL_TRUE == tinyrl_is_quoting(this)) {
 		/* if we are in the middle of a quote then simply enter a space */
 		result = tinyrl_insert_text(this, "?");
@@ -55,8 +56,7 @@ static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 /*lint -e818
   Pointer paramter 'this' could be declared as pointing to const */
 static char *clish_shell_tinyrl_word_generator(tinyrl_t * this,
-					       const char *line,
-					       unsigned offset, unsigned state)
+	const char *line, unsigned offset, unsigned state)
 {
 	/* get the context */
 	context_t *context = tinyrl__get_context(this);
@@ -77,7 +77,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 
 	/* first of all perform any history substitutions */
 	rtn = tinyrl_history_expand(tinyrl__get_history(this),
-				    tinyrl__get_line(this), &buffer);
+		tinyrl__get_line(this), &buffer);
 
 	switch (rtn) {
 	case -1:
@@ -120,34 +120,28 @@ static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 
 	/* first of all perform any history expansion */
 	(void)clish_shell_tinyrl_expand(this);
-
 	/* perform normal completion */
 	status = tinyrl_complete(this);
-
 	switch (status) {
 	case TINYRL_NO_MATCH:
-		{
-			if (BOOL_FALSE == tinyrl_is_completion_error_over(this)) {
-				/* The user hasn't even entered a valid prefix!!! */
-//				tinyrl_crlf(this);
-//				clish_shell_help(context->shell,
-//						 tinyrl__get_line(this));
-//				tinyrl_crlf(this);
-//				tinyrl_reset_line_state(this);
-			}
-			break;
+		if (BOOL_FALSE == tinyrl_is_completion_error_over(this)) {
+			/* The user hasn't even entered a valid prefix!!! */
+//			tinyrl_crlf(this);
+//			clish_shell_help(context->shell,
+//				tinyrl__get_line(this));
+//			tinyrl_crlf(this);
+//			tinyrl_reset_line_state(this);
 		}
+		break;
 	case TINYRL_MATCH:
 	case TINYRL_MATCH_WITH_EXTENSIONS:
 	case TINYRL_COMPLETED_MATCH:
 	case TINYRL_AMBIGUOUS:
 	case TINYRL_COMPLETED_AMBIGUOUS:
-		{
-			/* the default completion function will have prompted for completions as
-			 * necessary
-			 */
-			break;
-		}
+		/* the default completion function will have prompted for completions as
+		 * necessary
+		 */
+		break;
 	}
 	return status;
 }
@@ -302,10 +296,10 @@ static char **clish_shell_tinyrl_completion(tinyrl_t * this,
 
 	/* don't bother to resort to filename completion */
 	tinyrl_completion_over(this);
-
 	/* perform the matching */
 	matches = tinyrl_completion(this,
 		line, start, end, clish_shell_tinyrl_word_generator);
+
 	return matches;
 }
 
@@ -338,10 +332,9 @@ tinyrl_t *clish_shell_tinyrl_new(FILE * istream,
 	/* call the parent constructor */
 	tinyrl_t *this = tinyrl_new(istream,
 		ostream, stifle, clish_shell_tinyrl_completion);
-	if (NULL != this) {
-		/* now call our own constructor */
+	/* now call our own constructor */
+	if (this)
 		clish_shell_tinyrl_init(this);
-	}
 	return this;
 }
 
@@ -357,7 +350,6 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 {
 	/* call our destructor */
 	clish_shell_tinyrl_fini(this);
-
 	/* and call the parent destructor */
 	tinyrl_delete(this);
 }
