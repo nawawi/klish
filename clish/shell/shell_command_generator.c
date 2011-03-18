@@ -9,7 +9,7 @@
 /*-------------------------------------------------------- */
 void
 clish_shell_iterator_init(clish_shell_iterator_t * iter,
-			  clish_nspace_visibility_t field)
+	clish_nspace_visibility_t field)
 {
 	iter->last_cmd = NULL;
 	iter->field = field;
@@ -17,9 +17,7 @@ clish_shell_iterator_init(clish_shell_iterator_t * iter,
 
 /*-------------------------------------------------------- */
 const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
-							this, const char *line,
-							clish_shell_iterator_t *
-							iter)
+	this, const char *line, clish_shell_iterator_t * iter)
 {
 	const clish_command_t *result, *cmd;
 
@@ -43,10 +41,8 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 
 /*--------------------------------------------------------- */
 static char *clish_shell_param_generator(clish_shell_t * this,
-	const clish_command_t * cmd,
-	const char *line,
-	unsigned offset,
-	unsigned state)
+	const clish_command_t * cmd, const char *line,
+	unsigned offset, unsigned state)
 {
 	char *result = NULL;
 	const char *name = clish_command__get_name(cmd);
@@ -136,24 +132,20 @@ static char *clish_shell_param_generator(clish_shell_t * this,
 
 /*--------------------------------------------------------- */
 static char *clish_shell_command_generator(clish_shell_t * this,
-					   const char *line,
-					   unsigned offset, unsigned state)
+	const char *line, unsigned offset, unsigned state)
 {
 	char *result = NULL;
 	const clish_command_t *cmd = NULL;
-	if (0 == state) {
-		cmd =
-		    clish_shell_getfirst_command(this, line,
-						 CLISH_NSPACE_COMPLETION);
-	} else {
+	if (0 == state)
+		cmd = clish_shell_getfirst_command(this, line,
+			CLISH_NSPACE_COMPLETION);
+	else
 		cmd = clish_shell_getnext_command(this, line);
-	}
-
-	if (NULL != cmd) {
+	if (cmd)
 		result = lub_string_dup(clish_command__get_suffix(cmd));
-	}
 	/* keep the compiler happy */
 	offset = offset;
+
 	return result;
 }
 

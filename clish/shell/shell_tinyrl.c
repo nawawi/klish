@@ -133,11 +133,7 @@ static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 //			tinyrl_reset_line_state(this);
 		}
 		break;
-	case TINYRL_MATCH:
-	case TINYRL_MATCH_WITH_EXTENSIONS:
-	case TINYRL_COMPLETED_MATCH:
-	case TINYRL_AMBIGUOUS:
-	case TINYRL_COMPLETED_AMBIGUOUS:
+	default:
 		/* the default completion function will have prompted for completions as
 		 * necessary
 		 */
@@ -240,8 +236,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 			 */
 			line = tinyrl__get_line(this);
 			/* get the command to parse? */
-			cmd = clish_shell_resolve_command
-				(context->shell, line);
+			cmd = clish_shell_resolve_command(context->shell, line);
 			/*
 			 * We have had a match but it is not a command
 			 * so add a space so as not to confuse the user
@@ -253,7 +248,8 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 			/* failed to get a unique match... */
 			break;
 		}
-	} else {
+	}
+	if (cmd) {
 		clish_pargv_status_t arg_status;
 		tinyrl_crlf(this);
 		/* we've got a command so check the syntax */

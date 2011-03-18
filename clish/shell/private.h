@@ -99,25 +99,20 @@ bool_t clish_shell_pop_file(clish_shell_t * instance);
 
 clish_view_t *clish_shell_find_view(clish_shell_t * instance, const char *name);
 void clish_shell_insert_view(clish_shell_t * instance, clish_view_t * view);
-clish_pargv_status_t
-clish_shell_parse(const clish_shell_t * instance,
-		  const char *line,
-		  const clish_command_t ** cmd, clish_pargv_t ** pargv);
+clish_pargv_status_t clish_shell_parse(const clish_shell_t * instance,
+	const char *line, const clish_command_t ** cmd, clish_pargv_t ** pargv);
 char *clish_shell_word_generator(clish_shell_t * instance,
-				 const char *line,
-				 unsigned offset, unsigned state);
+	const char *line, unsigned offset, unsigned state);
 const clish_command_t *clish_shell_resolve_command(const clish_shell_t *
-						   instance, const char *line);
+	instance, const char *line);
 const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t *
-						  instance, const char *line);
+	instance, const char *line);
 const clish_command_t *clish_shell_getfirst_command(clish_shell_t * instance,
-						    const char *line,
-						    clish_nspace_visibility_t
-						    field);
+	const char *line, clish_nspace_visibility_t field);
 const clish_command_t *clish_shell_getnext_command(clish_shell_t * instance,
-						   const char *line);
+	const char *line);
 void clish_shell_insert_ptype(clish_shell_t * instance, clish_ptype_t * ptype);
 void clish_shell_tinyrl_history(clish_shell_t * instance, unsigned int *limit);
 tinyrl_t *clish_shell_tinyrl_new(FILE * instream,
-				 FILE * outstream, unsigned stifle);
+	FILE * outstream, unsigned stifle);
 void clish_shell_tinyrl_delete(tinyrl_t * instance);

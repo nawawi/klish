@@ -30,7 +30,7 @@ available_commands(clish_shell_t * this, const char *line, bool_t full)
 
 		/* find the best match... */
 		cmd = clish_shell_resolve_prefix(this, line);
-		if (NULL != cmd) {
+		if (cmd) {
 			error_offset +=
 			    strlen(clish_command__get_name(cmd)) + 1;
 			/* take a copy for help purposes */

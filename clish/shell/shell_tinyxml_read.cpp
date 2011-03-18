@@ -14,7 +14,7 @@ extern "C" {
 #include <string.h>
 #include <assert.h>
 typedef void (PROCESS_FN) (clish_shell_t * instance,
-			   TiXmlElement * element, void *parent);
+	TiXmlElement * element, void *parent);
 
 // Define a control block for handling the decode of an XML file
 typedef struct clish_xml_cb_s clish_xml_cb_t;
@@ -86,10 +86,10 @@ static void process_node(clish_shell_t * shell, TiXmlNode * node, void *parent)
 ///////////////////////////////////////
 static void
 process_children(clish_shell_t * shell,
-		 TiXmlElement * element, void *parent = NULL)
+	TiXmlElement * element, void *parent = NULL)
 {
 	for (TiXmlNode * node = element->FirstChild();
-	     NULL != node; node = element->IterateChildren(node)) {
+		NULL != node; node = element->IterateChildren(node)) {
 		// Now deal with all the contained elements
 		process_node(shell, node, parent);
 	}
@@ -100,10 +100,9 @@ static void
 process_clish_module(clish_shell_t * shell, TiXmlElement * element, void *)
 {
 	// create the global view
-	if (NULL == shell->global) {
+	if (!shell->global)
 		shell->global =
-		    clish_shell_find_create_view(shell, "global", "");
-	}
+			clish_shell_find_create_view(shell, "global", "");
 	process_children(shell, element, shell->global);
 }
 
@@ -142,20 +141,19 @@ static void process_ptype(clish_shell_t * shell, TiXmlElement * element, void *)
 	clish_ptype_method_e method;
 	clish_ptype_preprocess_e preprocess;
 	clish_ptype_t *ptype;
+
 	const char *name = element->Attribute("name");
 	const char *help = element->Attribute("help");
 	const char *pattern = element->Attribute("pattern");
 	const char *method_name = element->Attribute("method");
 	const char *preprocess_name = element->Attribute("preprocess");
+
 	assert(name);
 	assert(pattern);
 	method = clish_ptype_method_resolve(method_name);
 	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
-
 	ptype = clish_shell_find_create_ptype(shell,
-					      name,
-					      help,
-					      pattern, method, preprocess);
+		name, help, pattern, method, preprocess);
 	assert(ptype);
 }
 

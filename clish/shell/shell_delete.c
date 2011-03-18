@@ -19,7 +19,6 @@ static void clish_shell_fini(clish_shell_t * this)
 	while ((view = lub_bintree_findfirst(&this->view_tree))) {
 		/* remove the view from the tree */
 		lub_bintree_remove(&this->view_tree, view);
-
 		/* release the instance */
 		clish_view_delete(view);
 	}
@@ -28,7 +27,6 @@ static void clish_shell_fini(clish_shell_t * this)
 	while ((ptype = lub_bintree_findfirst(&this->ptype_tree))) {
 		/* remove the command from the tree */
 		lub_bintree_remove(&this->ptype_tree, ptype);
-
 		/* release the instance */
 		clish_ptype_delete(ptype);
 	}
@@ -36,14 +34,11 @@ static void clish_shell_fini(clish_shell_t * this)
 	lub_string_free(this->overview);
 	lub_string_free(this->viewid);
 
-	if (NULL != this->startup) {
-		/* remove the startup command */
+	/* remove the startup command */
+	if (this->startup)
 		clish_command_delete(this->startup);
-	}
 	/* clean up the file stack */
-	while (BOOL_TRUE == clish_shell_pop_file(this)) {
-		/* not alot do do here */
-	}
+	while (BOOL_TRUE == clish_shell_pop_file(this));
 	/* delete the tinyrl object */
 	clish_shell_tinyrl_delete(this->tinyrl);
 
@@ -81,11 +76,9 @@ static void clish_shell_fini(clish_shell_t * this)
 /*--------------------------------------------------------- */
 void clish_shell_delete(clish_shell_t * this)
 {
-	if (this->client_hooks->fini_fn) {
-		/* now call the client finalisation */
+	/* now call the client finalisation */
+	if (this->client_hooks->fini_fn)
 		this->client_hooks->fini_fn(this);
-	}
-
 	clish_shell_fini(this);
 
 	free(this);

@@ -16,7 +16,7 @@ clish_pargv_status_t clish_shell_parse(
 
 	*cmd = clish_shell_resolve_command(this, line);
 	/* Now construct the parameters for the command */
-	if (NULL != *cmd)
+	if (*cmd)
 		*pargv = clish_pargv_new(*cmd, this->viewid, line, 0, &result);
 	if (*pargv) {
 		char str[100];

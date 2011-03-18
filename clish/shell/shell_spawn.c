@@ -29,6 +29,7 @@ static char *clish_shell_tilde_expand(const char *path)
 	const char *p = path;
 	const char *segment = path;
 	int count = 0;
+
 	while (*p) {
 		if ('~' == *p) {
 			if (count) {
@@ -43,6 +44,7 @@ static char *clish_shell_tilde_expand(const char *path)
 	}
 	if (count)
 		lub_string_catn(&result, segment, count);
+
 	return result;
 }
 
@@ -219,6 +221,7 @@ int clish_shell_spawn_and_wait(clish_shell_t * this,
 {
 	if (clish_shell_spawn(this, attr) < 0)
 		return -1;
+
 	return clish_shell_wait(this);
 }
 

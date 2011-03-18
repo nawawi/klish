@@ -5,7 +5,7 @@
 
 /*--------------------------------------------------------- */
 const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t * this,
-						  const char *line)
+	const char *line)
 {
 	clish_command_t *cmd, *result;
 

@@ -79,6 +79,7 @@ clish_source_internal(const clish_shell_t * shell,
 		result = clish_shell_push_file(this, filename,
 			stop_on_error);
 	}
+
 	return result;
 }
 
@@ -128,7 +129,7 @@ static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
 	unsigned limit = 0;
 	const char *arg = lub_argv__get_arg(argv, 0);
 
-	if ((NULL != arg) && ('\0' != *arg)) {
+	if (arg && ('\0' != *arg)) {
 		limit = (unsigned)atoi(arg);
 		if (0 == limit) {
 			/* unlimit the history list */
@@ -186,7 +187,7 @@ clish_shell_execute(clish_shell_t * this,
 	sigset_t old_sigs;
 	struct sigaction old_sigint, old_sigquit;
 
-	assert(NULL != cmd);
+	assert(cmd);
 
 	/* Pre-change view if the command is from another depth/view */
         {
@@ -206,7 +207,7 @@ clish_shell_execute(clish_shell_t * this,
 				clish_command__get_depth(cmd));
 		}
 
-		if (NULL != view) {
+		if (view) {
 			this->view = view;
 			/* cleanup */
 			lub_string_free(this->viewid);
@@ -266,7 +267,7 @@ clish_shell_execute(clish_shell_t * this,
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
 		script);
-	if (NULL != builtin) {
+	if (builtin) {
 		clish_shell_builtin_fn_t *callback;
 		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
 
@@ -275,20 +276,17 @@ clish_shell_execute(clish_shell_t * this,
 		/* search for an internal command */
 		callback = find_builtin_callback(clish_cmd_list, builtin);
 
-		if (NULL == callback) {
+		if (!callback) {
 			/* search for a client command */
-			callback =
-			    find_builtin_callback(this->client_hooks->cmd_list,
-						  builtin);
+			callback = find_builtin_callback(
+				this->client_hooks->cmd_list, builtin);
 		}
-		if (NULL != callback) {
-			/* invoke the builtin callback */
+		/* invoke the builtin callback */
+		if (callback)
 			result = callback(this, argv);
-		}
-		if (NULL != argv) {
+		if (argv)
 			lub_argv_delete(argv);
-		}
-	} else if (NULL != script) {
+	} else if (script) {
 		/* now get the client to interpret the resulting script */
 		result = this->client_hooks->script_fn(this, cmd, script, out);
 	}
@@ -324,7 +322,7 @@ clish_shell_execute(clish_shell_t * this,
 		clish_view_t *view = clish_command__get_view(cmd);
 		char *viewid = clish_command__get_viewid(cmd,
 			this->viewid, pargv);
-		if (NULL != view) {
+		if (view) {
 			/* Save the current config PWD */
 			char *line = clish_variable__get_line(cmd, pargv);
 			clish_shell__set_pwd(this,

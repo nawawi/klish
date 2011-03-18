@@ -9,7 +9,6 @@ bool_t clish_shell_pop_file(clish_shell_t * this)
 	clish_shell_file_t *node = this->current_file;
 
 	if (node) {
-
 		/* remove the current file from the stack... */
 		this->current_file = node->next;
 

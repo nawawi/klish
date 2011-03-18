@@ -19,14 +19,14 @@ void clish_shell_dump(clish_shell_t * this)
 
 	/* iterate the tree of views */
 	for (lub_bintree_iterator_init(&iter, &this->view_tree, v);
-	     v; v = lub_bintree_iterator_next(&iter)) {
+		v; v = lub_bintree_iterator_next(&iter)) {
 		clish_view_dump(v);
 	}
 
 	/* iterate the tree of types */
 	t = lub_bintree_findfirst(&this->ptype_tree);
 	for (lub_bintree_iterator_init(&iter, &this->ptype_tree, t);
-	     t; t = lub_bintree_iterator_next(&iter)) {
+		t; t = lub_bintree_iterator_next(&iter)) {
 		clish_ptype_dump(t);
 	}
 	lub_dump_undent();

@@ -102,6 +102,7 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 				this->state = SHELL_STATE_CLOSING;
 		}
 	}
+
 	return this;
 }
 
