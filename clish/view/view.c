@@ -53,8 +53,8 @@ clish_view_init(clish_view_t * this, const char *name, const char *prompt)
 
 	/* initialise the tree of commands for this view */
 	lub_bintree_init(&this->tree,
-			 clish_command_bt_offset(),
-			 clish_command_bt_compare, clish_command_bt_getkey);
+		clish_command_bt_offset(),
+		clish_command_bt_compare, clish_command_bt_getkey);
 
 	/* set up the defaults */
 	clish_view__set_prompt(this, prompt);
@@ -70,7 +70,6 @@ static void clish_view_fini(clish_view_t * this)
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
 		/* remove the command from the tree */
 		lub_bintree_remove(&this->tree, cmd);
-
 		/* release the instance */
 		clish_command_delete(cmd);
 	}
@@ -104,9 +103,8 @@ clish_view_t *clish_view_new(const char *name, const char *prompt)
 {
 	clish_view_t *this = malloc(sizeof(clish_view_t));
 
-	if (this) {
+	if (this)
 		clish_view_init(this, name, prompt);
-	}
 	return this;
 }
 
@@ -121,7 +119,7 @@ void clish_view_delete(clish_view_t * this)
 
 /*--------------------------------------------------------- */
 clish_command_t *clish_view_new_command(clish_view_t * this,
-					const char *name, const char *help)
+	const char *name, const char *help)
 {
 	/* allocate the memory for a new parameter definition */
 	clish_command_t *cmd = clish_command_new(name, help);
@@ -149,7 +147,7 @@ clish_command_t *clish_view_new_command(clish_view_t * this,
  * line - the command line to analyse 
  */
 clish_command_t *clish_view_resolve_prefix(clish_view_t * this,
-					   const char *line, bool_t inherit)
+	const char *line, bool_t inherit)
 {
 	clish_command_t *result = NULL, *cmd;
 	char *buffer = NULL;
@@ -166,10 +164,9 @@ clish_command_t *clish_view_resolve_prefix(clish_view_t * this,
 		/* set the result to the longest match */
 		cmd = clish_view_find_command(this, buffer, inherit);
 
-		if (NULL == cmd) {
-			/* job done */
+		/* job done */
+		if (!cmd)
 			break;
-		}
 		result = cmd;
 
 		/* ready for the next word */
@@ -185,16 +182,15 @@ clish_command_t *clish_view_resolve_prefix(clish_view_t * this,
 
 /*--------------------------------------------------------- */
 clish_command_t *clish_view_resolve_command(clish_view_t * this,
-					    const char *line, bool_t inherit)
+	const char *line, bool_t inherit)
 {
 	clish_command_t *result = clish_view_resolve_prefix(this, line, inherit);
 
-	if (NULL != result) {
+	if (result) {
 		char *action = clish_command__get_action(result, NULL, NULL);
-		if ((NULL == action) &&
-		    (NULL == clish_command__get_builtin(result)) &&
-		    (CLISH_CONFIG_NONE == clish_command__get_cfg_op(result)) &&
-		    (NULL == clish_command__get_view(result))) {
+		if (!action && (NULL == clish_command__get_builtin(result)) &&
+			(CLISH_CONFIG_NONE == clish_command__get_cfg_op(result)) &&
+			(NULL == clish_command__get_view(result))) {
 			/* if this doesn't do anything we've
 			 * not resolved a command 
 			 */
@@ -207,7 +203,8 @@ clish_command_t *clish_view_resolve_command(clish_view_t * this,
 }
 
 /*--------------------------------------------------------- */
-clish_command_t *clish_view_find_command(clish_view_t * this, const char *name, bool_t inherit)
+clish_command_t *clish_view_find_command(clish_view_t * this,
+	const char *name, bool_t inherit)
 {
 	clish_command_t *cmd, *result = NULL;
 	clish_nspace_t *nspace;
@@ -244,24 +241,21 @@ static const clish_command_t *find_next_completion(clish_view_t * this,
 	largv = lub_argv_new(line, 0);
 	words = lub_argv__get_count(largv);
 
-	if (!*line || lub_ctype_isspace(line[strlen(line) - 1])) {
-		/* account for trailing space */
+	/* account for trailing space */
+	if (!*line || lub_ctype_isspace(line[strlen(line) - 1]))
 		words++;
-	}
 
-	if (NULL != iter_cmd) {
+	if (iter_cmd)
 		name = iter_cmd;
-	}
 	while ((cmd = lub_bintree_findnext(&this->tree, name))) {
 		/* Make command link from command alias */
 		cmd = clish_command_alias_to_link(cmd);
 		name = clish_command__get_name(cmd);
 		if (words == lub_argv_wordcount(name)) {
 			/* only bother with commands of which this line is a prefix */
-			if (lub_string_nocasestr(name, line) == name) {
-				/* this is a completion */
+			/* this is a completion */
+			if (lub_string_nocasestr(name, line) == name)
 				break;
-			}
 		}
 	}
 	/* clean up the dynamic memory */
@@ -272,7 +266,8 @@ static const clish_command_t *find_next_completion(clish_view_t * this,
 
 /*--------------------------------------------------------- */
 const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
-		const char *iter_cmd, const char *line, clish_nspace_visibility_t field, bool_t inherit)
+	const char *iter_cmd, const char *line,
+	clish_nspace_visibility_t field, bool_t inherit)
 {
 	const clish_command_t *result, *cmd;
 	clish_nspace_t *nspace;
@@ -335,7 +330,7 @@ const char *clish_view__get_name(const clish_view_t * this)
 /*--------------------------------------------------------- */
 void clish_view__set_prompt(clish_view_t * this, const char *prompt)
 {
-	assert(NULL == this->prompt);
+	assert(!this->prompt);
 	this->prompt = lub_string_dup(prompt);
 }
 

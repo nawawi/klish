@@ -45,7 +45,7 @@ int clish_pargv_insert(clish_pargv_t * this,
 
 	clish_parg_t *parg = find_parg(this, clish_param__get_name(param));
 
-	if (NULL != parg) {
+	if (parg) {
 		/* release the current value */
 		lub_string_free(parg->value);
 	} else {
@@ -96,8 +96,7 @@ static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
 #endif
 
 /*--------------------------------------------------------- */
-clish_pargv_status_t
-clish_pargv_parse(clish_pargv_t * this,
+clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 	const clish_command_t * cmd,
 	const char *viewid,
 	clish_paramv_t * paramv,
@@ -348,10 +347,8 @@ clish_pargv_parse(clish_pargv_t * this,
 }
 
 /*--------------------------------------------------------- */
-static clish_pargv_status_t
-clish_pargv_init(clish_pargv_t * this,
-	const clish_command_t * cmd,
-	const char *viewid,
+static clish_pargv_status_t clish_pargv_init(clish_pargv_t * this,
+	const clish_command_t * cmd, const char *viewid,
 	const lub_argv_t * argv)
 {
 	unsigned idx = lub_argv_wordcount(clish_command__get_name(cmd));

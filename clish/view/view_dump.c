@@ -25,7 +25,7 @@ void clish_view_dump(clish_view_t * this)
 	/* iterate the tree of commands */
 	c = lub_bintree_findfirst(&this->tree);
 	for (lub_bintree_iterator_init(&iter, &this->tree, c);
-	     c; c = lub_bintree_iterator_next(&iter)) {
+		c; c = lub_bintree_iterator_next(&iter)) {
 		clish_command_dump(c);
 	}
 

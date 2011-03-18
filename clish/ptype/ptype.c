@@ -15,16 +15,15 @@
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static char *clish_ptype_select__get_name(const clish_ptype_t * this,
-					  unsigned index)
+	unsigned index)
 {
 	char *result = NULL;
 	const char *arg = lub_argv__get_arg(this->u.select.items, index);
-	if (NULL != arg) {
+	if (arg) {
 		size_t name_len = 0;
 		const char *lbrk = strchr(arg, '(');
-		if (NULL != lbrk) {
+		if (lbrk)
 			name_len = (size_t) (lbrk - arg);
-		}
 		assert(name_len < strlen(arg));	/* check for syntax error */
 		result = lub_string_dupn(arg, name_len);
 	}
@@ -33,20 +32,19 @@ static char *clish_ptype_select__get_name(const clish_ptype_t * this,
 
 /*--------------------------------------------------------- */
 static char *clish_ptype_select__get_value(const clish_ptype_t * this,
-					   unsigned index)
+	unsigned index)
 {
 	char *result = NULL;
 	const char *arg = lub_argv__get_arg(this->u.select.items, index);
-	if (NULL != arg) {
+	if (arg) {
 		const char *lbrk = strchr(arg, '(');
 		const char *rbrk = strchr(arg, ')');
 		const char *value = NULL;
 		size_t value_len = 0;
 		if (lbrk) {
 			value = lbrk + 1;
-			if (rbrk) {
+			if (rbrk)
 				value_len = (size_t) (rbrk - value);
-			}
 		}
 		assert(value_len < strlen(arg));	/* check for syntax error */
 		result = lub_string_dupn(value, value_len);
@@ -63,61 +61,53 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 	switch (this->method) {
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_REGEXP:
-		{
-			/* 
-			 * nothing more to do 
-			 */
-			break;
-		}
+		/*
+		 * nothing more to do 
+		 */
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_INTEGER:
-		{
-			/*
-			 * Setup the integer range
-			 */
-			sprintf(tmp,
-				"%d..%d",
-				this->u.integer.min, this->u.integer.max);
-			this->range = lub_string_dup(tmp);
-			break;
-		}
+		/*
+		 * Setup the integer range
+		 */
+		sprintf(tmp,
+			"%d..%d",
+			this->u.integer.min, this->u.integer.max);
+		this->range = lub_string_dup(tmp);
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_UNSIGNEDINTEGER:
-		{
-			/*
-			 * Setup the unsigned integer range
-			 */
-			sprintf(tmp,
-				"%u..%u",
-				(unsigned int)this->u.integer.min,
-				(unsigned int)this->u.integer.max);
-			this->range = lub_string_dup(tmp);
-			break;
-		}
+		/*
+		 * Setup the unsigned integer range
+		 */
+		sprintf(tmp,
+			"%u..%u",
+			(unsigned int)this->u.integer.min,
+			(unsigned int)this->u.integer.max);
+		this->range = lub_string_dup(tmp);
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_SELECT:
-		{
-			/*
-			 * Setup the selection values to the help text
-			 */
-			unsigned i;
+	{
+		/*
+		 * Setup the selection values to the help text
+		 */
+		unsigned i;
 
-			for (i = 0;
-			     i < lub_argv__get_count(this->u.select.items);
-			     i++) {
-				char *p = tmp;
-				char *name =
-				    clish_ptype_select__get_name(this, i);
+		for (i = 0;
+			i < lub_argv__get_count(this->u.select.items);
+			i++) {
+			char *p = tmp;
+			char *name = clish_ptype_select__get_name(this, i);
 
-				if (i > 0) {
-					p += sprintf(p, "/");
-				}
-				p += sprintf(p, "%s", name);
-				lub_string_cat(&this->range, tmp);
-				lub_string_free(name);
-			}
-			break;
+			if (i > 0)
+				p += sprintf(p, "/");
+			p += sprintf(p, "%s", name);
+			lub_string_cat(&this->range, tmp);
+			lub_string_free(name);
 		}
+		break;
+	}
 	/*------------------------------------------------- */
 	}
 }
@@ -192,8 +182,8 @@ static const char *preprocess_names[] = {
 };
 
 /*--------------------------------------------------------- */
-const char *clish_ptype_preprocess__get_name(clish_ptype_preprocess_e
-					     preprocess)
+const char *clish_ptype_preprocess__get_name(
+	clish_ptype_preprocess_e preprocess)
 {
 	return preprocess_names[preprocess];
 }
@@ -202,7 +192,7 @@ const char *clish_ptype_preprocess__get_name(clish_ptype_preprocess_e
 clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char *name)
 {
 	clish_ptype_preprocess_e result = CLISH_PTYPE_NONE;
-	if (NULL != name) {
+	if (name) {
 		unsigned i;
 		for (i = 0; i < CLISH_PTYPE_TOLOWER + 1; i++) {
 			if (0 == strcmp(name, preprocess_names[i])) {
@@ -228,33 +218,23 @@ char *clish_ptype_word_generator(clish_ptype_t * this,
 
 	if (this->method != CLISH_PTYPE_SELECT)
 		return NULL;
-	if (0 == state) {
-		/* first of all simply try to validate the result */
+	/* first of all simply try to validate the result */
+	if (0 == state)
 		result = clish_ptype_validate(this, text);
-	}
-	if (NULL == result) {
+	if (!result) {
 		switch (this->method) {
 		case CLISH_PTYPE_SELECT:
-			{
-				if (0 == state) {
-					this->last_name = 0;
-				}
-				while ((result =
-					clish_ptype_select__get_name(this,
-								     this->
-								     last_name++)))
-				{
-					/* get the next item and check if it is a completion */
-					if (result ==
-					    lub_string_nocasestr(result,
-								 text)) {
-						/* found the next completion */
+			if (0 == state)
+				this->last_name = 0;
+			while ((result = clish_ptype_select__get_name(this,
+					this->last_name++))) {
+				/* get the next item and check if it is a completion */
+				/* found the next completion */
+				if (result == lub_string_nocasestr(result, text))
 						break;
-					}
-					lub_string_free(result);
-				}
-				break;
+				lub_string_free(result);
 			}
+			break;
 		default:
 			break;
 		}
@@ -264,8 +244,7 @@ char *clish_ptype_word_generator(clish_ptype_t * this,
 
 /*--------------------------------------------------------- */
 static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
-					       const char *text,
-					       bool_t translate)
+	const char *text, bool_t translate)
 {
 	char *result = lub_string_dup(text);
 	assert(this->pattern);
@@ -273,160 +252,144 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 	switch (this->preprocess) {
 	/*----------------------------------------- */
 	case CLISH_PTYPE_NONE:
-		{
-			break;
-		}
+		break;
 	/*----------------------------------------- */
 	case CLISH_PTYPE_TOUPPER:
-		{
-			char *p = result;
-			while (*p) {
-				/*lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
-				 * MACRO implementation uses braces to prevent multiple increments
-				 * when called.
-				 */
-				*p = lub_ctype_toupper(*p);
-				p++;
-			}
-			break;
+	{
+		char *p = result;
+		while (*p) {
+			/*lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
+			 * MACRO implementation uses braces to prevent multiple increments
+			 * when called.
+			 */
+			*p = lub_ctype_toupper(*p);
+			p++;
 		}
+		break;
+	}
 	/*----------------------------------------- */
 	case CLISH_PTYPE_TOLOWER:
-		{
-			char *p = result;
-			while (*p) {
-				*p = lub_ctype_tolower(*p);
-				p++;
-			}
-			break;
+	{
+		char *p = result;
+		while (*p) {
+			*p = lub_ctype_tolower(*p);
+			p++;
 		}
+		break;
+	}
 	/*----------------------------------------- */
 	}
-	/* 
+	/*
 	 * now validate according the specified method 
 	 */
 	switch (this->method) {
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_REGEXP:
-		{
-			/* test the regular expression against the string */
-			/*lint -e64 Type mismatch (arg. no. 4) */
-			/*
-			 * lint seems to equate regmatch_t[] as being of type regmatch_t !!!
-			 */
-			if (0 != regexec(&this->u.regexp, result, 0, NULL, 0)) {
-				lub_string_free(result);
-				result = NULL;
-			}
-			/*lint +e64 */
-			break;
+		/* test the regular expression against the string */
+		/*lint -e64 Type mismatch (arg. no. 4) */
+		/*
+		 * lint seems to equate regmatch_t[] as being of type regmatch_t !!!
+		 */
+		if (0 != regexec(&this->u.regexp, result, 0, NULL, 0)) {
+			lub_string_free(result);
+			result = NULL;
 		}
+		/*lint +e64 */
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_INTEGER:
-		{
-			/* first of all check that this is a number */
+	{
+		/* first of all check that this is a number */
+		bool_t ok = BOOL_TRUE;
+		const char *p = result;
 
-			bool_t ok = BOOL_TRUE;
-			const char *p = result;
-
-			if (*p == '-') {
-				p++;
+		if (*p == '-')
+			p++;
+		while (*p) {
+			if (!lub_ctype_isdigit(*p++)) {
+				ok = BOOL_FALSE;
+				break;
 			}
-			while (*p) {
-				if (!lub_ctype_isdigit(*p++)) {
-					ok = BOOL_FALSE;
-					break;
-				}
-			}
-			if (BOOL_TRUE == ok) {
-				/* convert and check the range */
-				int value = atoi(result);
-				if ((value < this->u.integer.min)
-				    || (value > this->u.integer.max)) {
-					lub_string_free(result);
-					result = NULL;
-				}
-			} else {
+		}
+		if (BOOL_TRUE == ok) {
+			/* convert and check the range */
+			int value = atoi(result);
+			if ((value < this->u.integer.min)
+				|| (value > this->u.integer.max)) {
 				lub_string_free(result);
 				result = NULL;
 			}
-			break;
+		} else {
+			lub_string_free(result);
+			result = NULL;
 		}
+		break;
+	}
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_UNSIGNEDINTEGER:
-		{
-			/* first of all check that this is a number */
-			bool_t ok = BOOL_TRUE;
-			const char *p = result;
-			if (*p == '-') {
-				p++;
+	{
+		/* first of all check that this is a number */
+		bool_t ok = BOOL_TRUE;
+		const char *p = result;
+		if (*p == '-')
+			p++;
+		while (*p) {
+			if (!lub_ctype_isdigit(*p++)) {
+				ok = BOOL_FALSE;
+				break;
 			}
-			while (*p) {
-				if (!lub_ctype_isdigit(*p++)) {
-					ok = BOOL_FALSE;
-					break;
-				}
-			}
-			if (BOOL_TRUE == ok) {
-				/* convert and check the range */
-				unsigned int value = (unsigned int)atoi(result);
-				if ((value < (unsigned)this->u.integer.min)
-				    || (value > (unsigned)this->u.integer.max)) {
-					lub_string_free(result);
-					result = NULL;
-				}
-			} else {
+		}
+		if (BOOL_TRUE == ok) {
+			/* convert and check the range */
+			unsigned int value = (unsigned int)atoi(result);
+			if ((value < (unsigned)this->u.integer.min)
+				|| (value > (unsigned)this->u.integer.max)) {
 				lub_string_free(result);
 				result = NULL;
 			}
-			break;
+		} else {
+			lub_string_free(result);
+			result = NULL;
 		}
+		break;
+	}
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_SELECT:
-		{
-			unsigned i;
-			for (i = 0;
-			     i < lub_argv__get_count(this->u.select.items);
-			     i++) {
-				char *name =
-				    clish_ptype_select__get_name(this, i);
-				char *value =
-				    clish_ptype_select__get_value(this, i);
-				int tmp = lub_string_nocasecmp(result, name);
-				lub_string_free((BOOL_TRUE ==
-						 translate) ? name : value);
-				if (0 == tmp) {
-					lub_string_free(result);
-					result =
-					    ((BOOL_TRUE ==
-					      translate) ? value : name);
-					break;
-				} else {
-					lub_string_free((BOOL_TRUE ==
-							 translate) ? value :
-							name);
-				}
-			}
-			if (i == lub_argv__get_count(this->u.select.items)) {
-				/* failed to find a match */
+	{
+		unsigned i;
+		for (i = 0; i < lub_argv__get_count(this->u.select.items);
+			i++) {
+			char *name = clish_ptype_select__get_name(this, i);
+			char *value = clish_ptype_select__get_value(this, i);
+			int tmp = lub_string_nocasecmp(result, name);
+			lub_string_free((BOOL_TRUE ==
+				translate) ? name : value);
+			if (0 == tmp) {
 				lub_string_free(result);
-				result = NULL;
+				result = ((BOOL_TRUE ==
+					translate) ? value : name);
+				break;
+			} else {
+				lub_string_free((BOOL_TRUE ==
+					translate) ? value : name);
 			}
-			break;
 		}
+		if (i == lub_argv__get_count(this->u.select.items)) {
+			/* failed to find a match */
+			lub_string_free(result);
+			result = NULL;
+		}
+		break;
+	}
 	/*------------------------------------------------- */
 	}
 	return (char *)result;
 }
 
 /*--------------------------------------------------------- */
-static void
-clish_ptype_init(clish_ptype_t * this,
-		 const char *name,
-		 const char *text,
-		 const char *pattern,
-		 clish_ptype_method_e method,
-		 clish_ptype_preprocess_e preprocess)
+static void clish_ptype_init(clish_ptype_t * this,
+	const char *name, const char *text, const char *pattern,
+	clish_ptype_method_e method, clish_ptype_preprocess_e preprocess)
 {
 	assert(name);
 	this->name = lub_string_dup(name);
@@ -438,7 +401,7 @@ clish_ptype_init(clish_ptype_t * this,
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
 
-	if (NULL != pattern) {
+	if (pattern) {
 		/* set the pattern for this type */
 		clish_ptype__set_pattern(this, pattern, method);
 	} else {
@@ -446,10 +409,9 @@ clish_ptype_init(clish_ptype_t * this,
 		this->method = CLISH_PTYPE_REGEXP;
 	}
 	
-	if (NULL != text) {
-		/* set the help text for this type */
+	/* set the help text for this type */
+	if (text)
 		clish_ptype__set_text(this, text);
-	}
 }
 
 /*--------------------------------------------------------- */
@@ -466,16 +428,13 @@ char *clish_ptype_translate(const clish_ptype_t * this, const char *text)
 
 /*--------------------------------------------------------- */
 clish_ptype_t *clish_ptype_new(const char *name,
-			       const char *help,
-			       const char *pattern,
-			       clish_ptype_method_e method,
-			       clish_ptype_preprocess_e preprocess)
+	const char *help, const char *pattern,
+	clish_ptype_method_e method, clish_ptype_preprocess_e preprocess)
 {
 	clish_ptype_t *this = malloc(sizeof(clish_ptype_t));
 
-	if (NULL != this) {
+	if (this)
 		clish_ptype_init(this, name, help, pattern, method, preprocess);
-	}
 	return this;
 }
 
@@ -484,19 +443,15 @@ static void clish_ptype_fini(clish_ptype_t * this)
 {
 	if (this->pattern) {
 		switch (this->method) {
-		/*------------------------------------------------- */
 		case CLISH_PTYPE_REGEXP:
 			regfree(&this->u.regexp);
 			break;
-		/*------------------------------------------------- */
 		case CLISH_PTYPE_INTEGER:
 		case CLISH_PTYPE_UNSIGNEDINTEGER:
 			break;
-		/*------------------------------------------------- */
 		case CLISH_PTYPE_SELECT:
 			lub_argv_delete(this->u.select.items);
 			break;
-		/*------------------------------------------------- */
 		}
 	}
 
@@ -540,56 +495,47 @@ clish_ptype__set_pattern(clish_ptype_t * this,
 	switch (this->method) {
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_REGEXP:
-		{
-			int result;
+	{
+		int result;
 
-			/* only the expression is allowed */
-			lub_string_cat(&this->pattern, "^");
-			lub_string_cat(&this->pattern, pattern);
-			lub_string_cat(&this->pattern, "$");
+		/* only the expression is allowed */
+		lub_string_cat(&this->pattern, "^");
+		lub_string_cat(&this->pattern, pattern);
+		lub_string_cat(&this->pattern, "$");
 
-			/* compile the regular expression for later use */
-			result =
-			    regcomp(&this->u.regexp, this->pattern,
-				    REG_NOSUB | REG_EXTENDED);
-			assert(0 == result);
-			break;
-		}
+		/* compile the regular expression for later use */
+		result = regcomp(&this->u.regexp, this->pattern,
+			REG_NOSUB | REG_EXTENDED);
+		assert(0 == result);
+		break;
+	}
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_INTEGER:
-		{
-			/* default the range to that of an integer */
-			this->u.integer.min = INT_MIN;
-			this->u.integer.max = INT_MAX;
-			this->pattern = lub_string_dup(pattern);
-			/* now try and read the specified range */
-			sscanf(this->pattern,
-			       "%d..%d",
-			       &this->u.integer.min, &this->u.integer.max);
-			break;
-		}
+		/* default the range to that of an integer */
+		this->u.integer.min = INT_MIN;
+		this->u.integer.max = INT_MAX;
+		this->pattern = lub_string_dup(pattern);
+		/* now try and read the specified range */
+		sscanf(this->pattern, "%d..%d",
+			&this->u.integer.min, &this->u.integer.max);
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_UNSIGNEDINTEGER:
-		{
-			/* default the range to that of an unsigned integer */
-			this->u.integer.min = 0;
-			this->u.integer.max = (int)UINT_MAX;
-			this->pattern = lub_string_dup(pattern);
-			/* now try and read the specified range */
-			sscanf(this->pattern,
-			       "%u..%u",
-			       (unsigned int *)&this->u.integer.min,
-			       (unsigned int *)&this->u.integer.max);
-			break;
-		}
+		/* default the range to that of an unsigned integer */
+		this->u.integer.min = 0;
+		this->u.integer.max = (int)UINT_MAX;
+		this->pattern = lub_string_dup(pattern);
+		/* now try and read the specified range */
+		sscanf(this->pattern, "%u..%u",
+			(unsigned int *)&this->u.integer.min,
+			(unsigned int *)&this->u.integer.max);
+		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_SELECT:
-		{
-			this->pattern = lub_string_dup(pattern);
-			/* store a vector of item descriptors */
-			this->u.select.items = lub_argv_new(this->pattern, 0);
-			break;
-		}
+		this->pattern = lub_string_dup(pattern);
+		/* store a vector of item descriptors */
+		this->u.select.items = lub_argv_new(this->pattern, 0);
+		break;
 	/*------------------------------------------------- */
 	}
 	/* now set up the range details */
@@ -599,7 +545,7 @@ clish_ptype__set_pattern(clish_ptype_t * this,
 /*--------------------------------------------------------- */
 void clish_ptype__set_text(clish_ptype_t * this, const char *text)
 {
-	assert(NULL == this->text);
+	assert(!this->text);
 	this->text = lub_string_dup(text);
 
 }
@@ -607,7 +553,7 @@ void clish_ptype__set_text(clish_ptype_t * this, const char *text)
 /*--------------------------------------------------------- */
 void
 clish_ptype__set_preprocess(clish_ptype_t * this,
-			    clish_ptype_preprocess_e preprocess)
+	clish_ptype_preprocess_e preprocess)
 {
 	this->preprocess = preprocess;
 }

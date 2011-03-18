@@ -11,7 +11,7 @@ void clish_parg_dump(const clish_parg_t * this)
 	lub_dump_indent();
 	lub_dump_printf("name : %s\n", clish_parg__get_name(this));
 	lub_dump_printf("ptype: %s\n",
-			clish_ptype__get_name(clish_parg__get_ptype(this)));
+		clish_ptype__get_name(clish_parg__get_ptype(this)));
 	lub_dump_printf("value: %s\n", clish_parg__get_value(this));
 	lub_dump_undent();
 }

@@ -87,7 +87,7 @@ static void clish_command_fini(clish_command_t * this)
 	lub_string_free(this->escape_chars);
 	this->escape_chars = NULL;
 
-	if (NULL != this->args) {
+	if (this->args) {
 		clish_param_delete(this->args);
 		this->args = NULL;
 	}
@@ -134,9 +134,9 @@ clish_command_t *clish_command_new(const char *name, const char *help)
 {
 	clish_command_t *this = malloc(sizeof(clish_command_t));
 
-	if (this) {
+	if (this)
 		clish_command_init(this, name, help);
-	}
+
 	return this;
 }
 
@@ -263,7 +263,7 @@ void clish_command_help(const clish_command_t * this, const char * viewid,
 
 /*--------------------------------------------------------- */
 clish_command_t *clish_command_choose_longest(clish_command_t * cmd1,
-					      clish_command_t * cmd2)
+	clish_command_t * cmd2)
 {
 	unsigned len1 = (cmd1 ? strlen(clish_command__get_name(cmd1)) : 0);
 	unsigned len2 = (cmd2 ? strlen(clish_command__get_name(cmd2)) : 0);
@@ -283,17 +283,16 @@ int
 clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2)
 {
 	if (NULL == cmd1) {
-		if (NULL != cmd2) {
+		if (NULL != cmd2)
 			return 1;
-		} else {
+		else
 			return 0;
-		}
 	}
-	if (NULL == cmd2) {
+	if (NULL == cmd2)
 		return -1;
-	}
+
 	return lub_string_nocasecmp(clish_command__get_name(cmd1),
-				    clish_command__get_name(cmd2));
+		clish_command__get_name(cmd2));
 }
 
 /*---------------------------------------------------------
@@ -334,7 +333,7 @@ void clish_command__set_detail(clish_command_t * this, const char *detail)
 
 /*--------------------------------------------------------- */
 char *clish_command__get_action(const clish_command_t * this,
-				const char *viewid, clish_pargv_t * pargv)
+	const char *viewid, clish_pargv_t * pargv)
 {
 	return clish_variable_expand(this->action, viewid, this, pargv);
 }
@@ -373,14 +372,14 @@ void clish_command__force_viewid(clish_command_t * this, const char *viewid)
 
 /*--------------------------------------------------------- */
 char *clish_command__get_viewid(const clish_command_t * this,
-				const char *viewid, clish_pargv_t * pargv)
+	const char *viewid, clish_pargv_t * pargv)
 {
 	return clish_variable_expand(this->viewid, viewid, this, pargv);
 }
 
 /*--------------------------------------------------------- */
 const clish_param_t *clish_command__get_param(const clish_command_t * this,
-					      unsigned index)
+	unsigned index)
 {
 	return clish_paramv__get_param(this->paramv, index);
 }
@@ -407,7 +406,7 @@ const char *clish_command__get_builtin(const clish_command_t * this)
 /*--------------------------------------------------------- */
 void
 clish_command__set_escape_chars(clish_command_t * this,
-				const char *escape_chars)
+	const char *escape_chars)
 {
 	assert(NULL == this->escape_chars);
 	this->escape_chars = lub_string_dup(escape_chars);
@@ -467,7 +466,7 @@ unsigned clish_command__get_depth(const clish_command_t * this)
 /*--------------------------------------------------------- */
 void
 clish_command__set_cfg_op(clish_command_t * this,
-			  clish_config_operation_t operation)
+	clish_config_operation_t operation)
 {
 	this->cfg_op = operation;
 }
@@ -507,7 +506,7 @@ char *clish_command__get_pattern(const clish_command_t * this,
 /*--------------------------------------------------------- */
 void clish_command__set_file(clish_command_t * this, const char *file)
 {
-	assert(NULL == this->file);
+	assert(!this->file);
 	this->file = lub_string_dup(file);
 }
 
@@ -533,7 +532,7 @@ void clish_command__set_splitter(clish_command_t * this, bool_t splitter)
 /*--------------------------------------------------------- */
 void clish_command__set_seq(clish_command_t * this, const char * seq)
 {
-	assert(NULL == this->seq);
+	assert(!this->seq);
 	this->seq = lub_string_dup(seq);
 }
 
@@ -548,7 +547,7 @@ unsigned short clish_command__get_seq(const clish_command_t * this,
 		return 0;
 
 	str = clish_variable_expand(this->seq, viewid, this, pargv);
-	if ((str != NULL) && (*str != '\0')) {
+	if (str && (*str != '\0')) {
 		long val = 0;
 		char *endptr;
 
@@ -604,7 +603,7 @@ const clish_command_t * clish_command__get_orig(const clish_command_t * this)
 /*--------------------------------------------------------- */
 void clish_command__set_cfg_depth(clish_command_t * this, const char * cfg_depth)
 {
-	assert(NULL == this->cfg_depth);
+	assert(!this->cfg_depth);
 	this->cfg_depth = lub_string_dup(cfg_depth);
 }
 
@@ -619,7 +618,7 @@ unsigned clish_command__get_cfg_depth(const clish_command_t * this,
 		return clish_command__get_depth(this);
 
 	str = clish_variable_expand(this->cfg_depth, viewid, this, pargv);
-	if ((str != NULL) && (*str != '\0')) {
+	if (str && (*str != '\0')) {
 		long val = 0;
 		char *endptr;
 
@@ -662,7 +661,7 @@ void clish_command__set_shebang(clish_command_t * this, const char * shebang)
 	const char *prog = shebang;
 	const char *prefix = "#!";
 
-	assert(NULL == this->shebang);
+	assert(!this->shebang);
 	if (lub_string_nocasestr(shebang, prefix) == shebang)
 		prog += strlen(prefix);
 	this->shebang = lub_string_dup(prog);
@@ -671,7 +670,7 @@ void clish_command__set_shebang(clish_command_t * this, const char * shebang)
 /*--------------------------------------------------------- */
 void clish_command__set_alias(clish_command_t * this, const char * alias)
 {
-	assert(NULL == this->alias);
+	assert(!this->alias);
 	this->alias = lub_string_dup(alias);
 }
 

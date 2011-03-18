@@ -130,9 +130,8 @@ clish_nspace_t *clish_nspace_new(clish_view_t * view)
 {
 	clish_nspace_t *this = malloc(sizeof(clish_nspace_t));
 
-	if (this) {
+	if (this)
 		clish_nspace_init(this, view);
-	}
 	return this;
 }
 
@@ -280,7 +279,7 @@ clish_view_t *clish_nspace__get_view(const clish_nspace_t * this)
 /*--------------------------------------------------------- */
 void clish_nspace__set_prefix(clish_nspace_t * this, const char *prefix)
 {
-	assert(NULL == this->prefix);
+	assert(!this->prefix);
 	this->prefix = lub_string_dup(prefix);
 }
 
@@ -339,9 +338,8 @@ bool_t clish_nspace__get_inherit(const clish_nspace_t * this)
 }
 
 /*--------------------------------------------------------- */
-bool_t
-clish_nspace__get_visibility(const clish_nspace_t * instance,
-			     clish_nspace_visibility_t field)
+bool_t clish_nspace__get_visibility(const clish_nspace_t * instance,
+	clish_nspace_visibility_t field)
 {
 	bool_t result = BOOL_FALSE;
 
