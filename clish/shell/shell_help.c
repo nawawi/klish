@@ -84,19 +84,17 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 
 	/* if there are further commands then we need to show them too */
 	cmd = clish_shell_resolve_prefix(this, line);
-	if (NULL != cmd) {
+	if (cmd) {
 		clish_shell_iterator_t iter;
 
 		/* skip the command already known about */
 		clish_shell_iterator_init(&iter, CLISH_NSPACE_HELP);
-
 		first_cmd = clish_shell_find_next_completion(this, line, &iter);
 		next_cmd = clish_shell_find_next_completion(this, line, &iter);
 	} else {
 		first_cmd = next_cmd = NULL;
 	}
-	if ((NULL != cmd) && (NULL == next_cmd)
-	    && (!first_cmd || (first_cmd == cmd))) {
+	if (cmd && !next_cmd && (!first_cmd || (first_cmd == cmd))) {
 		/* we've resolved a particular command */
 		switch (this->state) {
 		case SHELL_STATE_HELPING:
@@ -124,11 +122,10 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 		available_commands(this, line, BOOL_FALSE);
 	}
 	/* update the state */
-	if (this->state == SHELL_STATE_HELPING) {
+	if (this->state == SHELL_STATE_HELPING)
 		this->state = SHELL_STATE_READY;
-	} else {
+	else
 		this->state = SHELL_STATE_HELPING;
-	}
 }
 
 /*--------------------------------------------------------- */

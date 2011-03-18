@@ -96,12 +96,10 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 	if (this) {
 		clish_shell_init(this, hooks, cookie,
 			istream, ostream, stop_on_error);
-
 		if (hooks->init_fn) {
 			/* now call the client initialisation */
-			if (BOOL_TRUE != hooks->init_fn(this)) {
+			if (BOOL_TRUE != hooks->init_fn(this))
 				this->state = SHELL_STATE_CLOSING;
-			}
 		}
 	}
 	return this;

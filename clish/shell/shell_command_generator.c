@@ -159,34 +159,32 @@ static char *clish_shell_command_generator(clish_shell_t * this,
 
 /*--------------------------------------------------------- */
 char *clish_shell_word_generator(clish_shell_t * this,
-				 const char *line,
-				 unsigned offset, unsigned state)
+	const char *line, unsigned offset, unsigned state)
 {
 	char *result = NULL;
 	const clish_command_t *cmd, *next = NULL;
 
 	/* try and resolve a command which is a prefix of the line */
 	cmd = clish_shell_resolve_command(this, line);
-	if (NULL != cmd) {
+	if (cmd) {
 		clish_shell_iterator_t iter;
 		/* see whether there is an extended extension */
 		clish_shell_iterator_init(&iter, CLISH_NSPACE_COMPLETION);
 		next = clish_shell_find_next_completion(this, line, &iter);
 	}
-	if ((NULL != cmd) && (NULL == next)) {
+	if (cmd && !next) {
 		/* this needs to be completed as a parameter */
-		result =
-		    clish_shell_param_generator(this, cmd, line, offset,
-						   state);
+		result = clish_shell_param_generator(this, cmd, line, offset,
+			state);
 	} else {
 		/* this needs to be completed as a command */
-		result =
-		    clish_shell_command_generator(this, line, offset, state);
+		result = clish_shell_command_generator(this, line, offset,
+			state);
 	}
-	if (0 == state) {
-		/* reset the state from a help perspective */
+	/* reset the state from a help perspective */
+	if (0 == state)
 		this->state = SHELL_STATE_READY;
-	}
+
 	return result;
 }
 

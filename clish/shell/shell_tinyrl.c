@@ -226,86 +226,69 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 	const char *line = tinyrl__get_line(this);
 	bool_t result = BOOL_FALSE;
 
-	if (*line) {
-		/* try and parse the command */
-		cmd = clish_shell_resolve_command(context->shell, line);
-		if (NULL == cmd) {
-			tinyrl_match_e status =
-			    clish_shell_tinyrl_complete(this);
-			switch (status) {
-			case TINYRL_NO_MATCH:
-			case TINYRL_AMBIGUOUS:
-			case TINYRL_COMPLETED_AMBIGUOUS:
-				{
-					/* failed to get a unique match... */
-					break;
-				}
-			case TINYRL_MATCH:
-			case TINYRL_MATCH_WITH_EXTENSIONS:
-			case TINYRL_COMPLETED_MATCH:
-				{
-					/* re-fetch the line as it may have changed
-					 * due to auto-completion
-					 */
-					line = tinyrl__get_line(this);
-					/* get the command to parse? */
-					cmd =
-					    clish_shell_resolve_command
-					    (context->shell, line);
-					if (NULL == cmd) {
-						/*
-						 * We have had a match but it is not a command
-						 * so add a space so as not to confuse the user
-						 */
-						result =
-						    tinyrl_insert_text(this,
-								       " ");
-					}
-					break;
-				}
-			}
-		}
-		if (NULL != cmd) {
-			clish_pargv_status_t arg_status;
-			tinyrl_crlf(this);
-			/* we've got a command so check the syntax */
-			arg_status = clish_shell_parse(context->shell,
-						       line,
-						       &context->cmd,
-						       &context->pargv);
-			switch (arg_status) {
-			case CLISH_LINE_OK:
-				tinyrl_done(this);
-				result = BOOL_TRUE;
-				break;
-			case CLISH_BAD_HISTORY:
-				fprintf(stderr, "Error: Bad history entry.\n");
-				break;
-			case CLISH_BAD_CMD:
-				fprintf(stderr, "Error: Illegal command line.\n");
-				break;
-			case CLISH_BAD_PARAM:
-				fprintf(stderr, "Error: Illegal parameter.\n");
-				break;
-			case CLISH_LINE_PARTIAL:
-				fprintf(stderr, "Error: The command is not completed.\n");
-				break;
-			}
-			if (CLISH_LINE_OK != arg_status)
-				tinyrl_reset_line_state(this);
-		}
-	} else {
-		/* nothing to pass simply move down the screen */
+	/* nothing to pass simply move down the screen */
+	if (!*line) {
 		tinyrl_crlf(this);
 		tinyrl_reset_line_state(this);
-		result = BOOL_TRUE;
+		return BOOL_TRUE;
 	}
-	if ((BOOL_FALSE == result) && (BOOL_FALSE == tinyrl__get_isatty(this))) {
-		/* we've found an error in a script */
-		context->shell->state = SHELL_STATE_SCRIPT_ERROR;
+
+	/* try and parse the command */
+	cmd = clish_shell_resolve_command(context->shell, line);
+	if (!cmd) {
+		tinyrl_match_e status = clish_shell_tinyrl_complete(this);
+		switch (status) {
+		case TINYRL_MATCH:
+		case TINYRL_MATCH_WITH_EXTENSIONS:
+		case TINYRL_COMPLETED_MATCH:
+			/* re-fetch the line as it may have changed
+			 * due to auto-completion
+			 */
+			line = tinyrl__get_line(this);
+			/* get the command to parse? */
+			cmd = clish_shell_resolve_command
+				(context->shell, line);
+			/*
+			 * We have had a match but it is not a command
+			 * so add a space so as not to confuse the user
+			 */
+			if (!cmd)
+				result = tinyrl_insert_text(this, " ");
+			break;
+		default:
+			/* failed to get a unique match... */
+			break;
+		}
+	} else {
+		clish_pargv_status_t arg_status;
+		tinyrl_crlf(this);
+		/* we've got a command so check the syntax */
+		arg_status = clish_shell_parse(context->shell,
+			line, &context->cmd, &context->pargv);
+		switch (arg_status) {
+		case CLISH_LINE_OK:
+			tinyrl_done(this);
+			result = BOOL_TRUE;
+			break;
+		case CLISH_BAD_HISTORY:
+			fprintf(stderr, "Error: Bad history entry.\n");
+			break;
+		case CLISH_BAD_CMD:
+			fprintf(stderr, "Error: Illegal command line.\n");
+			break;
+		case CLISH_BAD_PARAM:
+			fprintf(stderr, "Error: Illegal parameter.\n");
+			break;
+		case CLISH_LINE_PARTIAL:
+			fprintf(stderr, "Error: The command is not completed.\n");
+			break;
+		}
+		if (CLISH_LINE_OK != arg_status)
+			tinyrl_reset_line_state(this);
 	}
 	/* keep the compiler happy */
 	key = key;
+
 	return result;
 }
 
