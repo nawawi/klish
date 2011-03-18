@@ -105,18 +105,16 @@ static char *context_retrieve(const context_t * this, const char *name)
 	/* try and substitute a parameter value */
 	if (this && this->pargv) {
 		const clish_parg_t *parg =
-		    clish_pargv_find_arg(this->pargv, name);
-		if (NULL != parg) {
-			/* substitute the command line value */
+			clish_pargv_find_arg(this->pargv, name);
+		/* substitute the command line value */
+		if (parg)
 			tmp = clish_parg__get_value(parg);
-		}
 	}
 
 	if (NULL == tmp) {
 		/* try and substitute a viewId variable */
-		if (this && this->viewid) {
+		if (this && this->viewid)
 			tmp = string = find_viewid_var(this->viewid, name);
-		}
 	}
 
 	if (NULL == tmp) {
@@ -133,7 +131,7 @@ static char *context_retrieve(const context_t * this, const char *name)
 		escape_chars = clish_command__get_escape_chars(this->cmd);
 	}
 	result = lub_string_encode(tmp, escape_chars);
-	if (NULL != string) {
+	if (string) {
 		/* free the dynamic memory */
 		lub_string_free(string);
 	}
@@ -158,7 +156,7 @@ static char *context_nextsegment(const context_t * this, const char **string)
 			p += 2;
 			tmp = p;
 
-			/* 
+			/*
 			 * find the end of the variable 
 			 */
 			while (*p && p++[0] != '}') {
@@ -180,16 +178,15 @@ static char *context_nextsegment(const context_t * this, const char **string)
 				 * of the words is an expandable variable
 				 */
 				for (q = strtok_r(text, ":", &saveptr);
-				     q; q = strtok_r(NULL, ":", &saveptr)) {
+					q; q = strtok_r(NULL, ":", &saveptr)) {
 					char *var = context_retrieve(this, q);
 
 					/* copy the expansion or the raw word */
 					lub_string_cat(&result, var ? var : q);
 
 					/* record any expansions */
-					if (NULL != var) {
+					if (var)
 						valid = BOOL_TRUE;
-					}
 					lub_string_free(var);
 				}
 
@@ -205,15 +202,13 @@ static char *context_nextsegment(const context_t * this, const char **string)
 		} else {
 			/* find the start of a variable */
 			while (*p) {
-				if ((p[0] == '$') && (p[1] == '{')) {
+				if ((p[0] == '$') && (p[1] == '{'))
 					break;
-				}
 				len++;
 				p++;
 			}
-			if (len > 0) {
+			if (len > 0)
 				result = lub_string_dupn(*string, len);
-			}
 		}
 		/* move the string pointer on for next time... */
 		*string = p;
@@ -227,9 +222,8 @@ static char *context_nextsegment(const context_t * this, const char **string)
  * subtituting each occurance of a "${FRED}" type variable sub-string
  * with the appropriate value.
  */
-char *clish_variable_expand(const char *string,
-			    const char *viewid,
-			    const clish_command_t * cmd, clish_pargv_t * pargv)
+char *clish_variable_expand(const char *string, const char *viewid,
+	const clish_command_t * cmd, clish_pargv_t * pargv)
 {
 	char *seg, *result = NULL;
 	context_t context;
