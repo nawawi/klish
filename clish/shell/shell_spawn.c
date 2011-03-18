@@ -41,9 +41,8 @@ static char *clish_shell_tilde_expand(const char *path)
 		count++;
 		p++;
 	}
-	if (count) {
+	if (count)
 		lub_string_catn(&result, segment, count);
-	}
 	return result;
 }
 
@@ -55,16 +54,15 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 	char *dirname;
 	char *saveptr;
 
-	if (NULL == path) {
-		/* use the default path */
+	/* use the default path */
+	if (NULL == path)
 		path = default_path;
-	}
 	/* take a copy of the path */
 	buffer = clish_shell_tilde_expand(path);
 
 	/* now loop though each directory */
 	for (dirname = strtok_r(buffer, ";", &saveptr);
-	     dirname; dirname = strtok_r(NULL, ";", &saveptr)) {
+		dirname; dirname = strtok_r(NULL, ";", &saveptr)) {
 		DIR *dir;
 		struct dirent *entry;
 
@@ -73,31 +71,28 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 		if (NULL == dir) {
 #ifdef DEBUG
 			tinyrl_printf(this->tinyrl,
-				      "*** Failed to open '%s' directory\n",
-				      dirname);
+				"*** Failed to open '%s' directory\n",
+				dirname);
 #endif
 			continue;
 		}
 		for (entry = readdir(dir); entry; entry = readdir(dir)) {
 			const char *extension = strrchr(entry->d_name, '.');
 			/* check the filename */
-			if (NULL != extension) {
-				if (0 == strcmp(".xml", extension)) {
-					char *filename = NULL;
+			if ((NULL != extension) &&
+				(0 == strcmp(".xml", extension))) {
+				char *filename = NULL;
 
-					/* build the filename */
-					lub_string_cat(&filename, dirname);
-					lub_string_cat(&filename, "/");
-					lub_string_cat(&filename,
-						       entry->d_name);
+				/* build the filename */
+				lub_string_cat(&filename, dirname);
+				lub_string_cat(&filename, "/");
+				lub_string_cat(&filename, entry->d_name);
 
-					/* load this file */
-					(void)clish_shell_xml_read(this,
-								   filename);
+				/* load this file */
+				(void)clish_shell_xml_read(this, filename);
 
-					/* release the resource */
-					lub_string_free(filename);
-				}
+				/* release the resource */
+				lub_string_free(filename);
 			}
 		}
 		/* all done for this directory */
@@ -106,7 +101,6 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 	/* tidy up */
 	lub_string_free(buffer);
 #ifdef DEBUG
-
 	clish_shell_dump(this);
 #endif
 }
@@ -128,7 +122,6 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 	/* Loop reading and executing lines until the user quits */
 	while (running) {
 		/* Get input from the stream */
-		this->state = SHELL_STATE_READY;
 		running = clish_shell_readline(this, NULL);
 		if (!running) {
 			switch (this->state) {
@@ -139,14 +132,14 @@ static bool_t _loop(clish_shell_t * this, bool_t is_thread)
 					!this->current_file->stop_on_error)
 					running = BOOL_TRUE;
 				break;
-			case SHELL_STATE_EOF:
-				/* We've reached the end of a file */
-				running = clish_shell_pop_file(this);
-				break;
 			default:
 				break;
 			}
 		}
+		if (SHELL_STATE_CLOSING == this->state)
+			running = BOOL_FALSE;
+		if (!running)
+			running = clish_shell_pop_file(this);
 		/* test for cancellation */
 		if (is_thread)
 			pthread_testcancel();

@@ -24,6 +24,7 @@ struct _context {
 	const clish_command_t *cmd;
 	clish_pargv_t *pargv;
 };
+
 /*-------------------------------------------------------- */
 static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 {
@@ -389,6 +390,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	int lerror = 0;
 
 	assert(this);
+	this->state = SHELL_STATE_READY;
 	if (!line && !tinyrl__get_istream(this->tinyrl)) {
 		this->state = SHELL_STATE_SYSTEM_ERROR;
 		return BOOL_FALSE;

@@ -37,15 +37,13 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 };
 
 /*----------------------------------------------------------- */
-/*
- Terminate the current shell session 
-*/
+/* Terminate the current shell session */
 static bool_t clish_close(const clish_shell_t * shell, const lub_argv_t * argv)
 {
 	/* the exception proves the rule... */
 	clish_shell_t *this = (clish_shell_t *) shell;
 
-	argv = argv;		/* not used */
+	argv = argv; /* not used */
 	this->state = SHELL_STATE_CLOSING;
 
 	return BOOL_TRUE;
@@ -59,7 +57,7 @@ static bool_t clish_close(const clish_shell_t * shell, const lub_argv_t * argv)
 */
 static bool_t
 clish_source_internal(const clish_shell_t * shell,
-		      const lub_argv_t * argv, bool_t stop_on_error)
+	const lub_argv_t * argv, bool_t stop_on_error)
 {
 	bool_t result = BOOL_FALSE;
 	const char *filename = lub_argv__get_arg(argv, 0);
@@ -73,7 +71,7 @@ clish_source_internal(const clish_shell_t * shell,
 	 */
 	if ((0 == stat((char *)filename, &fileStat)) &&
 		(!S_ISDIR(fileStat.st_mode))) {
-		/* 
+		/*
 		 * push this file onto the file stack associated with this
 		 * session. This will be closed by clish_shell_pop_file() 
 		 * when it is finished with.
@@ -114,7 +112,7 @@ clish_source_nostop(const clish_shell_t * shell, const lub_argv_t * argv)
 static bool_t
 clish_overview(const clish_shell_t * this, const lub_argv_t * argv)
 {
-	argv = argv;		/* not used */
+	argv = argv; /* not used */
 
 	tinyrl_printf(this->tinyrl, "%s\n", this->overview);
 
@@ -132,7 +130,6 @@ static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
 
 	if ((NULL != arg) && ('\0' != *arg)) {
 		limit = (unsigned)atoi(arg);
-
 		if (0 == limit) {
 			/* unlimit the history list */
 			(void)tinyrl_history_unstifle(history);
@@ -142,12 +139,12 @@ static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
 		}
 	}
 	for (entry = tinyrl_history_getfirst(history, &iter);
-	     entry; entry = tinyrl_history_getnext(&iter)) {
+		entry; entry = tinyrl_history_getnext(&iter)) {
 		/* dump the details of this entry */
 		tinyrl_printf(this->tinyrl,
-			      "%5d  %s\n",
-			      tinyrl_history_entry__get_index(entry),
-			      tinyrl_history_entry__get_line(entry));
+			"%5d  %s\n",
+			tinyrl_history_entry__get_index(entry),
+			tinyrl_history_entry__get_line(entry));
 	}
 	return BOOL_TRUE;
 }
@@ -157,17 +154,14 @@ static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
  * Searches for a builtin command to execute
  */
 static clish_shell_builtin_fn_t *find_builtin_callback(const
-						       clish_shell_builtin_t *
-						       cmd_list,
-						       const char *name)
+	clish_shell_builtin_t * cmd_list, const char *name)
 {
 	const clish_shell_builtin_t *result;
 
 	/* search a list of commands */
 	for (result = cmd_list; result && result->name; result++) {
-		if (0 == strcmp(name, result->name)) {
+		if (0 == strcmp(name, result->name))
 			break;
-		}
 	}
 	return (result && result->name) ? result->callback : NULL;
 }
