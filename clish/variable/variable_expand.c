@@ -34,7 +34,7 @@ static char *find_viewid_var(const char *viewid, const char *name)
 
 	/* now perform the matching */
 	/*lint -e64 Type mismatch (arg. no. 4) */
-	/* 
+	/*
 	 * lint seems to equate regmatch_t[] as being of type regmatch_t !!!
 	 */
 	status = regexec(&regex, viewid, 2, pmatches, 0);
@@ -111,30 +111,25 @@ static char *context_retrieve(const context_t * this, const char *name)
 			tmp = clish_parg__get_value(parg);
 	}
 
-	if (NULL == tmp) {
-		/* try and substitute a viewId variable */
+	/* try and substitute a viewId variable */
+	if (!tmp) {
 		if (this && this->viewid)
 			tmp = string = find_viewid_var(this->viewid, name);
 	}
-
-	if (NULL == tmp) {
-		/* try and substitute context fixed variable */
+	/* try and substitute context fixed variable */
+	if (!tmp)
 		tmp = string = find_context_var(this, name);
-	}
-
 	/* get the contents of an environment variable */
-	if (NULL == tmp) {
+	if (!tmp)
 		tmp = getenv(name);
-	}
-	if (this && this->cmd) {
-		/* override the escape characters */
+	/* override the escape characters */
+	if (this && this->cmd)
 		escape_chars = clish_command__get_escape_chars(this->cmd);
-	}
 	result = lub_string_encode(tmp, escape_chars);
-	if (string) {
-		/* free the dynamic memory */
+	/* free the dynamic memory */
+	if (string)
 		lub_string_free(string);
-	}
+
 	return result;
 }
 
@@ -190,7 +185,7 @@ static char *context_nextsegment(const context_t * this, const char **string)
 					lub_string_free(var);
 				}
 
-				if (BOOL_FALSE == valid) {
+				if (!valid) {
 					/* not a valid variable expansion */
 					lub_string_free(result);
 					result = lub_string_dup("");
@@ -263,7 +258,7 @@ char *clish_variable__get_params(const clish_command_t * cmd, clish_pargv_t * pa
 		parg = clish_pargv__get_parg(pargv, i);
 		tmp = clish_parg__get_value(parg);
 		space = strchr(tmp, ' ');
-		if (NULL != line)
+		if (line)
 			lub_string_cat(&line, " ");
 		if (space)
 			lub_string_cat(&line, "\\\"");
