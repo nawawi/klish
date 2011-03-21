@@ -79,9 +79,8 @@ konf_buf_t *konf_buf_new(int fd)
 {
 	konf_buf_t *this = malloc(sizeof(konf_buf_t));
 
-	if (this) {
+	if (this)
 		konf_buf_init(this, fd);
-	}
 
 	return this;
 }

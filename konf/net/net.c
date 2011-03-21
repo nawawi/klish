@@ -161,24 +161,19 @@ static int process_answer(konf_client_t * this, char *str, konf_buf_t *buf, konf
 /*	konf_query_dump(query);
 */
 #endif
-
 	switch (konf_query__get_op(query)) {
-
 	case KONF_QUERY_OP_OK:
 		res = 0;
 		break;
-
 	case KONF_QUERY_OP_ERROR:
 		res = -1;
 		break;
-
 	case KONF_QUERY_OP_STREAM:
 		if (!(*data = konf_client_recv_data(this, buf)))
 			res = -1;
 		else
 			res = 1; /* wait for another answer */
 		break;
-
 	default:
 		res = -1;
 		break;

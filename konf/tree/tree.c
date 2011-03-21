@@ -120,9 +120,8 @@ konf_tree_t *konf_tree_new(const char *line, unsigned short priority)
 {
 	konf_tree_t *this = malloc(sizeof(konf_tree_t));
 
-	if (this) {
+	if (this)
 		konf_tree_init(this, line, priority);
-	}
 
 	return this;
 }

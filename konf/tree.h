@@ -52,7 +52,7 @@ int konf_tree_del_pattern(konf_tree_t * instance,
 	bool_t seq, unsigned short seq_num);
 
 /*-----------------
- * attributes 
+ * attributes
  *----------------- */
 unsigned short konf_tree__get_priority(const konf_tree_t * instance);
 unsigned char konf_tree__get_priority_hi(const konf_tree_t * instance);
