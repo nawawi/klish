@@ -244,44 +244,42 @@ int main(int argc, char **argv)
 
 		/* Service all the sockets with input pending. */
 		for (i = 0; i < FD_SETSIZE; ++i) {
-			if (FD_ISSET(i, &read_fd_set)) {
-				if (i == sock) {
-					/* Connection request on original socket. */
-					int new;
-					socklen_t size;
-					
-					size = sizeof(raddr);
-					new = accept(sock, (struct sockaddr *)
-						     &raddr, &size);
-					if (new < 0) {
-						fprintf(stderr, "accept");
-						continue;
-					}
+			if (!FD_ISSET(i, &read_fd_set))
+				continue;
+			if (i == sock) {
+				/* Connection request on listen socket. */
+				int new;
+				socklen_t size = sizeof(raddr);
+				new = accept(sock,
+					(struct sockaddr *)&raddr, &size);
+				if (new < 0) {
+					fprintf(stderr, "accept");
+					continue;
+				}
 #ifdef DEBUG
-					fprintf(stderr, "Connection established %u\n", new);
+				fprintf(stderr, "Connection established %u\n", new);
 #endif
-					konf_buftree_remove(&bufs, new);
-					tbuf = konf_buf_new(new);
-					/* insert it into the binary tree for this conf */
-					lub_bintree_insert(&bufs, tbuf);
-					FD_SET(new, &active_fd_set);
-				} else {
-					int nbytes;
-					/* Data arriving on an already-connected socket. */
-					if ((nbytes = konf_buftree_read(&bufs, i)) <= 0) {
-						close(i);
-						FD_CLR(i, &active_fd_set);
-						konf_buftree_remove(&bufs, i);
-						continue;
-					}
-					while ((str = konf_buftree_parse(&bufs, i))) {
-						char *answer;
-						if (!(answer = process_query(i, conf, str)))
-							answer = lub_string_dup("-e");
-						lub_string_free(str);
-						answer_send(i, answer);
-						lub_string_free(answer);
-					}
+				konf_buftree_remove(&bufs, new);
+				tbuf = konf_buf_new(new);
+				/* insert it into the binary tree for this conf */
+				lub_bintree_insert(&bufs, tbuf);
+				FD_SET(new, &active_fd_set);
+			} else {
+				int nbytes;
+				/* Data arriving on an already-connected socket. */
+				if ((nbytes = konf_buftree_read(&bufs, i)) <= 0) {
+					close(i);
+					FD_CLR(i, &active_fd_set);
+					konf_buftree_remove(&bufs, i);
+					continue;
+				}
+				while ((str = konf_buftree_parse(&bufs, i))) {
+					char *answer;
+					if (!(answer = process_query(i, conf, str)))
+						answer = lub_string_dup("-e");
+					lub_string_free(str);
+					answer_send(i, answer);
+					lub_string_free(answer);
 				}
 			}
 		}
@@ -306,10 +304,6 @@ err:
 		unlink(opts->socket_path);
 	}
 
-	/* Restore original EUID for cleanup */
-/*	if (getuid() != geteuid())
-		seteuid(getuid());
-*/
 	/* Remove pidfile */
 	if (pidfd >= 0) {
 		if (unlink(opts->pidfile) < 0) {
