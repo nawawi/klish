@@ -175,7 +175,7 @@ char *clish_shell_word_generator(clish_shell_t * this,
 	}
 	/* reset the state from a help perspective */
 	if (0 == state)
-		this->state = SHELL_STATE_READY;
+		this->state = SHELL_STATE_OK;
 
 	return result;
 }

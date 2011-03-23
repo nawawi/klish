@@ -35,7 +35,7 @@ typedef struct {
 	char *viewid;
 } clish_shell_pwd_t;
 
-/* 
+/*
  * The context structure
  */
 struct clish_context_s {
@@ -86,11 +86,11 @@ clish_shell_iterator_init(clish_shell_iterator_t * iter,
  */
 const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 	instance, const char *line, clish_shell_iterator_t * iter);
-/** 
+/**
  * Pop the current file handle from the stack of file handles, shutting
  * the file down and freeing any associated memory. The next file handle
  * in the stack becomes associated with the input stream for this shell.
- * 
+ *
  * \return
  * BOOL_TRUE - the current file handle has been replaced.
  * BOOL_FALSE - there is only one handle on the stack which cannot be replaced.

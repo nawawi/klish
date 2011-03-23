@@ -361,7 +361,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	int lerror = 0;
 
 	assert(this);
-	this->state = SHELL_STATE_READY;
+	this->state = SHELL_STATE_OK;
 	if (!line && !tinyrl__get_istream(this->tinyrl)) {
 		this->state = SHELL_STATE_SYSTEM_ERROR;
 		return BOOL_FALSE;

@@ -107,7 +107,7 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 				clish_command_help(cmd, this->viewid, line);
 			break;
 		}
-		case SHELL_STATE_READY:
+		case SHELL_STATE_OK:
 		case SHELL_STATE_SCRIPT_ERROR:
 		case SHELL_STATE_SYNTAX_ERROR:
 			/* get the command to provide help */
@@ -123,7 +123,7 @@ void clish_shell_help(clish_shell_t * this, const char *line)
 	}
 	/* update the state */
 	if (this->state == SHELL_STATE_HELPING)
-		this->state = SHELL_STATE_READY;
+		this->state = SHELL_STATE_OK;
 	else
 		this->state = SHELL_STATE_HELPING;
 }

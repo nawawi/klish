@@ -32,7 +32,7 @@ typedef struct clish_shell_s clish_shell_t;
 
 typedef enum {
 	SHELL_STATE_INITIALISING,
-	SHELL_STATE_READY,
+	SHELL_STATE_OK,
 	SHELL_STATE_HELPING,
 	SHELL_STATE_SCRIPT_ERROR,/* Script execution error */
 	SHELL_STATE_EOF, /* EOF of input stream */
