@@ -639,9 +639,8 @@ void tinyrl_redisplay(tinyrl_t * this)
 }
 
 /*----------------------------------------------------------------------- */
-tinyrl_t *tinyrl_new(FILE * instream,
-		     FILE * outstream,
-		     unsigned stifle, tinyrl_completion_func_t * complete_fn)
+tinyrl_t *tinyrl_new(FILE * instream, FILE * outstream,
+	unsigned stifle, tinyrl_completion_func_t * complete_fn)
 {
 	tinyrl_t *this = NULL;
 
@@ -1021,9 +1020,8 @@ bool_t tinyrl_bind_key(tinyrl_t * this, int key, tinyrl_key_func_t * fn)
  * more matches. 
  */
 char **tinyrl_completion(tinyrl_t * this,
-			 const char *line,
-			 unsigned start,
-			 unsigned end, tinyrl_compentry_func_t * entry_func)
+	const char *line, unsigned start, unsigned end,
+	tinyrl_compentry_func_t * entry_func)
 {
 	unsigned state = 0;
 	size_t size = 1;

@@ -54,13 +54,11 @@ typedef enum {
 
 /* virtual methods */
 typedef char *tinyrl_compentry_func_t(tinyrl_t * instance,
-				      const char *text,
-				      unsigned offset, unsigned state);
+	const char *text, unsigned offset, unsigned state);
 typedef int tinyrl_hook_func_t(tinyrl_t * instance);
 
 typedef char **tinyrl_completion_func_t(tinyrl_t * instance,
-					const char *text,
-					unsigned start, unsigned end);
+	const char *text, unsigned start, unsigned end);
 /**
  * \return
  * - BOOL_TRUE if the action associated with the key has

@@ -305,17 +305,17 @@ static void clish_shell_tinyrl_init(tinyrl_t * this)
 	bool_t status;
 	/* bind the '?' key to the help function */
 	status = tinyrl_bind_key(this, '?', clish_shell_tinyrl_key_help);
-	assert(BOOL_TRUE == status);
+	assert(status);
 
 	/* bind the <RET> key to the help function */
 	status = tinyrl_bind_key(this, '\r', clish_shell_tinyrl_key_enter);
-	assert(BOOL_TRUE == status);
+	assert(status);
 	status = tinyrl_bind_key(this, '\n', clish_shell_tinyrl_key_enter);
-	assert(BOOL_TRUE == status);
+	assert(status);
 
 	/* bind the <SPACE> key to auto-complete if necessary */
 	status = tinyrl_bind_key(this, ' ', clish_shell_tinyrl_key_space);
-	assert(BOOL_TRUE == status);
+	assert(status);
 }
 
 /*-------------------------------------------------------- */
