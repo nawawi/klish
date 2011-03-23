@@ -6,9 +6,9 @@
 #include <stdlib.h>
 
 /*--------------------------------------------------------- */
-void
-lub_string_free(char *ptr)
+void lub_string_free(char *ptr)
 {
-    free(ptr);
+	free(ptr);
 }
+
 /*--------------------------------------------------------- */

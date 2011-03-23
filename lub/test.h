@@ -26,7 +26,6 @@
  \li They can be run during builds as ``sanity-checks'' that components
      are functional.
 
-
 \par What is the unit test interface?
 
  The Unit Test Interface provide a set of basic capabilities that
@@ -43,7 +42,6 @@
 
  \li Have a consistent set of command-line options for controlling
      the unit test behavior.  (see unitTestCL() below)
-
 
 \par Verbosity
 
@@ -71,7 +69,6 @@
  output if the current Verbosity setting is equal to or greater
  than that level.
 
-
 \par Sequences
 
  Simple numbering of tests is adequate only for very small unit
@@ -87,7 +84,6 @@
  number and a printf-style format specification of their name.
  This outputs a sequence header (at 'normal' verbosity) and
  resets the test counter.  Another call ends the sequence.
-
 
 \par Tests
 
@@ -123,7 +119,6 @@
  The overall unit test pass/fail result can be requested at any
  time via a function call.
 
-
 \par Logging
 
  Three different logging functions are provided.  All are similar
@@ -139,7 +134,6 @@
  Utilities will generate a reasonable log based on the sequence and
  test calls.  However, additional logging may add significant value
  and human readability to the test results.
-
 
 \author  Graeme McKerrell
 \author  Brett B. Bonner
@@ -171,22 +165,21 @@
 #include "lub/types.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
- 
+extern "C" {
+#endif				/* __cplusplus */
+
 /** Status codes */
-typedef enum {
-  LUB_TEST_PASS, /*!< Indicates a test has passed */
-  LUB_TEST_FAIL  /*!< Indicates a test has failed */
-} lub_test_status_t;
+	typedef enum {
+		LUB_TEST_PASS,	/*!< Indicates a test has passed */
+		LUB_TEST_FAIL	/*!< Indicates a test has failed */
+	} lub_test_status_t;
 
 /** Message priority/verbosity levels */
-typedef enum {
-  LUB_TEST_TERSE=0,/*!< Only output test failures, errors and final result */
-  LUB_TEST_NORMAL, /*!< Output all test results, sequence headers, errors and results */
-  LUB_TEST_VERBOSE /*!< Output everything */
-} lub_test_verbosity_t;
+	typedef enum {
+		LUB_TEST_TERSE = 0,	/*!< Only output test failures, errors and final result */
+		LUB_TEST_NORMAL,	/*!< Output all test results, sequence headers, errors and results */
+		LUB_TEST_VERBOSE	/*!< Output everything */
+	} lub_test_verbosity_t;
 
 /*
  ************************************************************
@@ -236,11 +229,12 @@ typedef enum {
  If the log file cannot be opened it will exit(1)
 
 */
-void lub_test_parse_command_line(/** The number of command line arguments */
-                     		int argc, 
-                     		/** An array of command line arguments */
-                     		const char * const *argv);
-  
+	void lub_test_parse_command_line(
+				 /** The number of command line arguments */
+						int argc,
+				/** An array of command line arguments */
+						const char *const *argv);
+
 /**
  This starts and specifies the name for the unit-test.
 
@@ -255,13 +249,14 @@ void lub_test_parse_command_line(/** The number of command line arguments */
  - The overall pass/fail status is reset.
 
 */
-void lub_test_begin(/** a printf style format string to specify the name
+	void lub_test_begin(
+		    /** a printf style format string to specify the name
                        of the test */
-                   const char *fmt, 
-                   /** any further arguments required by the format
+				   const char *fmt,
+		   /** any further arguments required by the format
                        string */
-                   ...);
-  
+				   ...);
+
 /**
  This is the most generic of the logging functions. No addition
  formating is performed.
@@ -280,14 +275,14 @@ void lub_test_begin(/** a printf style format string to specify the name
  - If lub_test_begin() has not been called then behaviour is undefined
 
 */
-void 
-		lub_test_log(/**  the verbosity level for this message */
-                	     lub_test_verbosity_t level, 
-                             /**  a printf style format string to specify the
+	void
+	 lub_test_log(	     /**  the verbosity level for this message */
+			     lub_test_verbosity_t level,
+			     /**  a printf style format string to specify the
                       	          message to log */
-		             const char *fmt, 
-                	     /** any further arguments required by the format string */
-                 	     ...);
+			     const char *fmt,
+			     /** any further arguments required by the format string */
+			     ...);
 
 /**
  This function provide the current overall status for the
@@ -306,8 +301,7 @@ The current overall status. (TESTPASS/TESTFAIL)
  - If lub_test_end() has been called the behaviour is undefined
 
 */
-lub_test_status_t 
-		lub_test_get_status(void);
+	 lub_test_status_t lub_test_get_status(void);
 
 /**
  
@@ -327,8 +321,8 @@ The current number of failed tests.
  - If lub_test_end() has been called the behaviour is undefined
 
 */
-int 
-		lub_test_failure_count(void);
+	int
+	 lub_test_failure_count(void);
 
 /**
  
@@ -349,8 +343,8 @@ int
  - If lub_test_end() has been called the behaviour is undefined
 
 */
-void
-		lub_test_end(void);
+	void
+	 lub_test_end(void);
 
 /**
  
@@ -367,8 +361,8 @@ void
  none
  
 */
-void 
-		lub_test_stop_here(void);
+	void
+	 lub_test_stop_here(void);
 
 /*
  ************************************************************
@@ -395,14 +389,14 @@ void
  - If lub_test_end() has been called the behaviour is undefined
 
 */
-void
-		lub_test_seq_begin(/** a user specified sequence number */
-              			   int seq, 
-                                   /** a printf style format string to specify the sequence
+	void
+	 lub_test_seq_begin(	   /** a user specified sequence number */
+				   int seq,
+				   /** a printf style format string to specify the sequence
                                        name*/
-                                   const char *fmt, 
-                                   /** any further arguments required by the format string */
-                                   ...);
+				   const char *fmt,
+				   /** any further arguments required by the format string */
+				   ...);
 
 /**
  
@@ -422,13 +416,13 @@ void
  - If lub_test_seq_begin() has not been called the behaviour is undefined
 
 */
-void
-		lub_test_seq_log(/** The verbosity level of the message */
-                                 lub_test_verbosity_t level, 
-                                 /** a printf style format string to specify the message */
-                                 const char *fmt, 
-                                 /** any further arguments required by the format string */
-                                 ...);
+	void
+	 lub_test_seq_log(	 /** The verbosity level of the message */
+				 lub_test_verbosity_t level,
+				 /** a printf style format string to specify the message */
+				 const char *fmt,
+				 /** any further arguments required by the format string */
+				 ...);
 
 /** 
  This function marks the end of the current sequence.
@@ -447,8 +441,8 @@ void
  - If lub_test_seq_begin() has not been called then behaviour is undefined
 
 */
-void 
-		lub_test_seq_end(void);
+	void
+	 lub_test_seq_end(void);
 
 /*
  ************************************************************
@@ -482,14 +476,14 @@ void
  -  If lub_test_begin() has not been called the behaviour is undefined
 
 */
-lub_test_status_t
-	lub_test_check(/** a boolean expression to evaluate */
-                       bool_t expr, 
-                       /** a printf style format string to specify the test
+	 lub_test_status_t lub_test_check(
+		       /** a boolean expression to evaluate */
+						 bool_t expr,
+		       /** a printf style format string to specify the test
                            scenario */
-                       const char *fmt, 
-                       /** any further arguments required by the format string */
-                       ...);
+						 const char *fmt,
+		       /** any further arguments required by the format string */
+						 ...);
 
 /** 
  This function is almost identical to test() except it accepts an
@@ -512,15 +506,15 @@ lub_test_status_t
  - If lub_test_begin() has not been called the behaviour is undefined
 
 */
-lub_test_status_t
-		lub_test_check_int(/** the expected integer value */
-              		           int expect,
-                                   /** the actual integer value*/
-                                   int actual,
-                                   /** a printf style format string to specify the test scenario */
-                                   const char *fmt, 
-                                   /** any further arguments required by the format string */
-                                   ... );
+	 lub_test_status_t lub_test_check_int(
+				   /** the expected integer value */
+						     int expect,
+				   /** the actual integer value*/
+						     int actual,
+				   /** a printf style format string to specify the test scenario */
+						     const char *fmt,
+				   /** any further arguments required by the format string */
+						     ...);
 
 /** 
  This function is designed to ensure that a floating point value
@@ -544,22 +538,20 @@ lub_test_status_t
  -  If lub_test_begin() has not been called the behaviour is undefined
 
 */
-lub_test_status_t
-		lag_test_test_float(/** the minimum acceptible value */
-                		    double      min,
-                                    /** the maximum acceptible value */
-                                    double      max,
-                                    /** the actual value */
-                                    double      actual,
-                                    /** a printf style format string to specify the test scenario */
-                                    const char *fmt, 
-                                    /** any further arguments required by the format string */
-                                    ...);
+	 lub_test_status_t lag_test_test_float(
+				    /** the minimum acceptible value */
+						      double min,
+				    /** the maximum acceptible value */
+						      double max,
+				    /** the actual value */
+						      double actual,
+				    /** a printf style format string to specify the test scenario */
+						      const char *fmt,
+				    /** any further arguments required by the format string */
+						      ...);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
-#endif /* _lub_test_h */
+#endif				/* __cplusplus */
+#endif				/* _lub_test_h */
 /** @} test */
-

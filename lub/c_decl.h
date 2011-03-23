@@ -34,14 +34,14 @@ _END_C_DECL
 
 #ifndef _lub_c_decl_h
 #define _lub_c_decl_h
- 
+
 #ifdef __cplusplus
 #define _BEGIN_C_DECL extern "C" {
 #define _END_C_DECL   }
-#else  /* not __cplusplus */
-#define _BEGIN_C_DECL 
-#define _END_C_DECL   
-#endif /* not __cplusplus */
+#else				/* not __cplusplus */
+#define _BEGIN_C_DECL
+#define _END_C_DECL
+#endif				/* not __cplusplus */
 
 /** @} */
-#endif /* _lub_c_decl_h */
+#endif				/* _lub_c_decl_h */

@@ -7,26 +7,19 @@
 #include "lub/argv.h"
 
 typedef struct lub_arg_s lub_arg_t;
-struct lub_arg_s
-{
-    char   *arg;
-    size_t  offset;
-    bool_t  quoted;
+struct lub_arg_s {
+	char *arg;
+	size_t offset;
+	bool_t quoted;
 };
 
-struct lub_argv_s
-{
-    char *line;
-    unsigned   argc;
-    lub_arg_t *argv;
+struct lub_argv_s {
+	char *line;
+	unsigned argc;
+	lub_arg_t *argv;
 };
 /*-------------------------------------
  * PRIVATE META FUNCTIONS
  *------------------------------------- */
-const char *
-    lub_argv_nextword(
-        const char *string,
-        size_t     *len,
-        size_t     *offset,
-        bool_t     *quoted
-    );
+const char *lub_argv_nextword(const char *string,
+			      size_t * len, size_t * offset, bool_t * quoted);

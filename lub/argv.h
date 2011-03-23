@@ -28,7 +28,6 @@ contains four "words" the third of which is a string.
 #include "types.h"
 
 _BEGIN_C_DECL
-
 /**
  * This type is used to reference an instance of an argument vector
  */
@@ -47,13 +46,11 @@ typedef struct lub_argv_s lub_argv_t;
  * \post
  * - none
  */
-unsigned
-    lub_argv_wordcount(
-        /** 
+unsigned lub_argv_wordcount(
+	/** 
          * The string to analyse
          */
-        const char *line
-    );
+				   const char *line);
 /**
  *  This operation is used to construct an instance of this class. The client
  * species a string and an offset within that string, from which to start 
@@ -71,41 +68,25 @@ unsigned
  * - The client becomes resposible for releasing the instance when they are
  *   finished with it, by calling lub_argv_delete()
  */
-lub_argv_t *
-    lub_argv_new(
-        /** 
+lub_argv_t *lub_argv_new(
+	/** 
          * The string to analyse
-         */            
-        const char *line,
-        /** 
+         */
+				const char *line,
+	/** 
          * The offset in the string to start from
          */
-        size_t offset
-    );
-            
-void
-    lub_argv_delete(lub_argv_t *instance);
-unsigned
-    lub_argv__get_count(const lub_argv_t *instance);
-const char *
-    lub_argv__get_arg(const lub_argv_t *instance,
-                      unsigned          index);
-size_t
-    lub_argv__get_offset(const lub_argv_t *instance,
-                         unsigned          index);
-bool_t
-    lub_argv__get_quoted(const lub_argv_t *instance,
-                         unsigned          index);
-void
-    lub_argv__set_arg(lub_argv_t *instance,
-                      unsigned    index,
-                      const char *arg);
-char **
-    lub_argv__get_argv(const lub_argv_t *instance, char *argv0);
-const char *
-    lub_argv__get_line(const lub_argv_t *instance);
+				size_t offset);
+
+void lub_argv_delete(lub_argv_t * instance);
+unsigned lub_argv__get_count(const lub_argv_t * instance);
+const char *lub_argv__get_arg(const lub_argv_t * instance, unsigned index);
+size_t lub_argv__get_offset(const lub_argv_t * instance, unsigned index);
+bool_t lub_argv__get_quoted(const lub_argv_t * instance, unsigned index);
+void lub_argv__set_arg(lub_argv_t * instance, unsigned index, const char *arg);
+char **lub_argv__get_argv(const lub_argv_t * instance, char *argv0);
+const char *lub_argv__get_line(const lub_argv_t * instance);
 
 _END_C_DECL
-
-#endif /* _lub_argv_h */
+#endif				/* _lub_argv_h */
 /** @} lub_argv */

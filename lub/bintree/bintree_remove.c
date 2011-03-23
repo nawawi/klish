@@ -47,40 +47,35 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void
-lub_bintree_remove(lub_bintree_t *this,
-                   void          *clientnode)
+void lub_bintree_remove(lub_bintree_t * this, void *clientnode)
 {
-    lub_bintree_node_t *x,*t;
-    lub_bintree_key_t   key;
-    int                 comp;
+	lub_bintree_node_t *x, *t;
+	lub_bintree_key_t key;
+	int comp;
 
-    /* get the key from the node */
-    this->getkeyFn(clientnode,&key);
+	/* get the key from the node */
+	this->getkeyFn(clientnode, &key);
 
-    /* bring the node in question to the root of the tree */
-    t = lub_bintree_splay(this,this->root,&key);
+	/* bring the node in question to the root of the tree */
+	t = lub_bintree_splay(this, this->root, &key);
 
-    /* check that the node was there to remove */
-    comp = lub_bintree_compare(this,t,&key);
+	/* check that the node was there to remove */
+	comp = lub_bintree_compare(this, t, &key);
 
-    assert(0 == comp);
-    if(0 == comp)
-    {
-        if (t->left == NULL)
-        {
-            x = t->right;
-        }
-        else
-        {
-            x        = lub_bintree_splay(this,t->left,&key);
-            x->right = t->right;
-        }
-        /* set the new root */
-        this->root  = x;
+	assert(0 == comp);
+	if (0 == comp) {
+		if (t->left == NULL) {
+			x = t->right;
+		} else {
+			x = lub_bintree_splay(this, t->left, &key);
+			x->right = t->right;
+		}
+		/* set the new root */
+		this->root = x;
 
-        /* re-initialise the node control block for re-use */
-        lub_bintree_node_init(lub_bintree_getnode(this,clientnode));
-    }
+		/* re-initialise the node control block for re-use */
+		lub_bintree_node_init(lub_bintree_getnode(this, clientnode));
+	}
 }
+
 /*--------------------------------------------------------- */

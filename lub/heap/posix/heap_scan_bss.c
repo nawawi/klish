@@ -12,10 +12,10 @@
 extern char START, END;
 
 /*--------------------------------------------------------- */
-void
-lub_heap_scan_bss(void)
+void lub_heap_scan_bss(void)
 {
-    /* now scan the memory */
-    lub_heap_scan_memory(&START,&END-&START);
+	/* now scan the memory */
+	lub_heap_scan_memory(&START, &END - &START);
 }
+
 /*--------------------------------------------------------- */

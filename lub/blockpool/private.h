@@ -21,9 +21,8 @@
  **************************************************************** */
 #include "lub/blockpool.h"
 
-struct _lub_blockpool_block
-{
-    lub_blockpool_block_t *next;
+struct _lub_blockpool_block {
+	lub_blockpool_block_t *next;
 };
 /*************************************************************
  * PRIVATE OPERATIONS

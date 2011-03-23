@@ -5,10 +5,10 @@
 #include <ctype.h>
 
 /*--------------------------------------------------------- */
-char
-lub_ctype_toupper(char c)
+char lub_ctype_toupper(char c)
 {
-    unsigned char tmp = (unsigned char)c;
-    return toupper(tmp); 
+	unsigned char tmp = (unsigned char)c;
+	return toupper(tmp);
 }
+
 /*--------------------------------------------------------- */

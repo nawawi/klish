@@ -30,14 +30,14 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void *
-lub_bintree_iterator_previous(lub_bintree_iterator_t *this)
+void *lub_bintree_iterator_previous(lub_bintree_iterator_t * this)
 {
-        void *clientnode = lub_bintree_findprevious(this->tree,&this->key);
-        
-        /* make sure that next time we've move onward */
-        lub_bintree_iterator_init(this,this->tree,clientnode);
-        
-        return clientnode;
+	void *clientnode = lub_bintree_findprevious(this->tree, &this->key);
+
+	/* make sure that next time we've move onward */
+	lub_bintree_iterator_init(this, this->tree, clientnode);
+
+	return clientnode;
 }
+
 /*--------------------------------------------------------- */

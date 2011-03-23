@@ -11,14 +11,14 @@
 
 extern char START, END;
 char *lub_heap_data_start = &START;
- char *lub_heap_data_end   = &END;
+char *lub_heap_data_end = &END;
 
 /*--------------------------------------------------------- */
-void
-lub_heap_scan_data(void)
+void lub_heap_scan_data(void)
 {
-    /* now scan the memory */
-    lub_heap_scan_memory(lub_heap_data_start,
-                         lub_heap_data_end-lub_heap_data_start);
+	/* now scan the memory */
+	lub_heap_scan_memory(lub_heap_data_start,
+			     lub_heap_data_end - lub_heap_data_start);
 }
+
 /*--------------------------------------------------------- */

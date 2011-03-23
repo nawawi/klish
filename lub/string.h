@@ -35,7 +35,6 @@ If a "const char *" is returned then the client has no responsiblity for releasi
 
 #include "lub/c_decl.h"
 _BEGIN_C_DECL
-
 /**
  * This operation duplicates the specified string.
  *
@@ -49,13 +48,11 @@ _BEGIN_C_DECL
  * - The client is responsible for calling lub_string_free() with the
  *   returned string when they are finished using it.
  */
-char *
-    lub_string_dup(
-        /** 
+char *lub_string_dup(
+	/** 
          * The string to duplicate
          */
-        const char *string
-    );
+			    const char *string);
 /**
  * This operation concatinates the specified text onto an existing string.
  *
@@ -72,17 +69,15 @@ char *
  * - The client maintains responsibility for releasing the string reference
  *   by string_ptr when they are finished using it.
  */
-void
-    lub_string_cat(
-        /** 
+void lub_string_cat(
+	/** 
          * A pointer to the string to concatinate
          */
-        char      **string_ptr,
-        /** 
+			   char **string_ptr,
+	/** 
          * The text to be appended
          */
-        const char *text
-    );
+			   const char *text);
 /**
  * This operation concatinates a specified length of some text onto an
  * existing string.
@@ -103,21 +98,19 @@ void
  * - The client maintains responsibility for releasing the string reference
  *   by string_ptr when they are finished using it.
  */
-void
-    lub_string_catn(
-        /** 
+void lub_string_catn(
+	/** 
          * A pointer to the string to concatinate
          */
-        char      **string_ptr,
-        /** 
+			    char **string_ptr,
+	/** 
          * The text to be appended
          */
-        const char *text,
-        /** 
+			    const char *text,
+	/** 
          * The length of text to be appended
          */
-        size_t      length
-    );
+			    size_t length);
 /**
  * This operation dupicates a specified length of some text into a
  * new string.
@@ -132,17 +125,15 @@ void
  * - The client is responsible for calling lub_string_free() with the
  *   returned string when they are finished using it.
  */
-char *
-    lub_string_dupn(
-        /** 
+char *lub_string_dupn(
+	/** 
          * The string containing the text to duplicate
          */
-        const char *string,
-        /** 
+			     const char *string,
+	/** 
          * The length of text to be duplicated
          */
-        unsigned length
-    );
+			     unsigned length);
 /**
  * This operation returns a pointer to the last (space separated) word in the
  * specified string.
@@ -156,13 +147,11 @@ char *
  * \post 
  * - none
  */
-const char *
-    lub_string_suffix(
-        /**
+const char *lub_string_suffix(
+	/**
          * The string from which to extract a suffix 
          */
-        const char *string
-    );
+				     const char *string);
 
 /**
  * This operation compares string cs to string ct in a case insensitive manner.
@@ -178,17 +167,15 @@ const char *
  * \post 
  * - none
  */
-int
-    lub_string_nocasecmp(
-        /**
+int lub_string_nocasecmp(
+	/**
          * The first string for the comparison
          */
-        const char *cs,
-        /**
+				const char *cs,
+	/**
          * The second string for the comparison 
          */
-        const char *ct
-    );
+				const char *ct);
 /**
  * This operation performs a case insensitive search for a substring within
  * another string.
@@ -203,18 +190,16 @@ int
  * \post 
  * - none
  */
-const char *
-    lub_string_nocasestr(
-        /**
+const char *lub_string_nocasestr(
+	/**
          * The string within which to find a substring
          */
-        const char *cs,
-        /**
+					const char *cs,
+	/**
          * The substring for which to search
          */
-        const char *ct
-    );
-        
+					const char *ct);
+
 /**
  * This operation releases the resources associated with a dynamically allocated
  * string.
@@ -228,13 +213,11 @@ const char *
  * \post 
  * - The string is no longer usable, any references to it must be discarded.
  */
-void
-    lub_string_free(
-        /**
+void lub_string_free(
+	/**
          * The string to be released
          */
-        char *string
-    );
+			    char *string);
 
 /**
  * This operation decode the escaped string.
@@ -248,8 +231,7 @@ void
  * \post
  * - The result string must be freed after using.
  */
-char *
-    lub_string_decode(const char *string);
+char *lub_string_decode(const char *string);
 
 /**
  * This operation encode the string using escape.
@@ -263,12 +245,8 @@ char *
  * \post
  * - The result string must be freed after using.
  */
-char *
-    lub_string_encode(const char *string, const char *escape_chars);
+char *lub_string_encode(const char *string, const char *escape_chars);
 
-
- _END_C_DECL
-
-#endif /* _lub_string_h */
+_END_C_DECL
+#endif				/* _lub_string_h */
 /** @} */
-

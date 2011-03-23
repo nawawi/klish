@@ -347,9 +347,8 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	/* Go through the pwd */
 	iconf = conf;
 	for (i = 0; i < konf_query__get_pwdc(query); i++) {
-		if (!
-		    (iconf =
-		     konf_tree_find_conf(iconf, konf_query__get_pwd(query, i), 0, 0))) {
+		if (!(iconf = konf_tree_find_conf(iconf,
+			konf_query__get_pwd(query, i), 0, 0))) {
 			iconf = NULL;
 			break;
 		}

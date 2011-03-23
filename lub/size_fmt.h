@@ -10,6 +10,6 @@
 #  else
 #    define SIZE_FMT "u"
 #  endif
-#else /* not HAVE_CONFIG_H */
+#else				/* not HAVE_CONFIG_H */
 #  define SIZE_FMT "u"
-#endif /* not HAVE_CONFIG_H */
+#endif				/* not HAVE_CONFIG_H */

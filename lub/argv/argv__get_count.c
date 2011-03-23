@@ -3,9 +3,9 @@
  */
 #include "private.h"
 /*--------------------------------------------------------- */
-unsigned
-lub_argv__get_count(const lub_argv_t *this)
+unsigned lub_argv__get_count(const lub_argv_t * this)
 {
-    return this->argc;
+	return this->argc;
 }
+
 /*--------------------------------------------------------- */

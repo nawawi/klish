@@ -35,7 +35,6 @@ limits on re-use.
 #include "c_decl.h"
 
 _BEGIN_C_DECL
-
 /****************************************************************
  * TYPE DEFINITIONS
  **************************************************************** */
@@ -46,12 +45,11 @@ typedef struct _lub_dblockpool lub_dblockpool_t;
 /**
  * CLIENTS MUST NOT USE THESE FIELDS DIRECTLY
  */
-struct _lub_dblockpool
-{
-    struct _lub_dblockpool_chunk *first_chunk;
-    size_t                        block_size;
-    unsigned                      chunk_size;
-    unsigned                      max_chunks;
+struct _lub_dblockpool {
+	struct _lub_dblockpool_chunk *first_chunk;
+	size_t block_size;
+	unsigned chunk_size;
+	unsigned max_chunks;
 };
 
 /****************************************************************
@@ -67,26 +65,24 @@ struct _lub_dblockpool
  * \post If the size constraint is not met an assert will fire.
  * \post Following initialisation the allocation of memory can be performed.
  */
-extern void 
-    lub_dblockpool_init(
-        /** 
+extern void lub_dblockpool_init(
+	/** 
          * the "dblockpool" instance to initialise.
          */
-        lub_dblockpool_t *instance,
-        /**
+				       lub_dblockpool_t * instance,
+	/**
          * The size in bytes of each block.
          */
-        size_t blocksize,
-        /** 
+				       size_t blocksize,
+	/** 
          * The number of blocks to be managed in a chunk.
          */
-        unsigned chunksize,
-        /** 
+				       unsigned chunksize,
+	/** 
          * The maximum number of chunks to be allocated.
          * (a value of zero means unlimited...)
          */
-        unsigned max_chunks
-    );
+				       unsigned max_chunks);
 /**
  * This operation finalises an instance of a dblockpool.
  *
@@ -94,13 +90,11 @@ extern void
  *
  * \post All the dynamic memory allocated will be released.
  */
-extern void 
-    lub_dblockpool_fini(
-        /** 
+extern void lub_dblockpool_fini(
+	/** 
          * the "dblockpool" instance to finalise.
          */
-        lub_dblockpool_t *instance
-    );
+				       lub_dblockpool_t * instance);
 /**
  * This operation allocates a "block" of memory from a "dblockpool"
  *
@@ -115,13 +109,11 @@ extern void
  * \post
  * The behaviour is undefined if the "dblockpool" is uninitialised.
  */
-extern void *
-    lub_dblockpool_alloc(
-        /** 
+extern void *lub_dblockpool_alloc(
+	/** 
          * the "dblockpool" instance to operate on
          */
-        lub_dblockpool_t *instance
-    );
+					 lub_dblockpool_t * instance);
 /**
  * This operation de-allocates a "block" of memory back into a "blockpool"
  *
@@ -133,19 +125,16 @@ extern void *
  * The de-allocated block become available for subsequent
  * lub_blockpool_alloc() requests.
  */
-extern void
-    lub_dblockpool_free(
-        /** 
+extern void lub_dblockpool_free(
+	/** 
          * the "blockpool" instance to invoke this operation upon
          */
-        lub_dblockpool_t *instance,
-        /** 
+				       lub_dblockpool_t * instance,
+	/** 
          * the "block" to release back to the pool
          */
-        void *block
-    );
+				       void *block);
 
 _END_C_DECL
-
-#endif /* _lub_dblockpool_h */
+#endif				/* _lub_dblockpool_h */
 /** @} lub_dblockpool */

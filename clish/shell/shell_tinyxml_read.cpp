@@ -89,7 +89,7 @@ process_children(clish_shell_t * shell,
 	TiXmlElement * element, void *parent = NULL)
 {
 	for (TiXmlNode * node = element->FirstChild();
-		NULL != node; node = element->IterateChildren(node)) {
+		node; node = element->IterateChildren(node)) {
 		// Now deal with all the contained elements
 		process_node(shell, node, parent);
 	}
@@ -101,8 +101,8 @@ process_clish_module(clish_shell_t * shell, TiXmlElement * element, void *)
 {
 	// create the global view
 	if (!shell->global)
-		shell->global =
-			clish_shell_find_create_view(shell, "global", "");
+		shell->global = clish_shell_find_create_view(shell,
+			"global", "");
 	process_children(shell, element, shell->global);
 }
 
@@ -118,7 +118,7 @@ static void process_view(clish_shell_t * shell, TiXmlElement * element, void *)
 	// re-use a view if it already exists
 	view = clish_shell_find_create_view(shell, name, prompt);
 
-	if ((depth != NULL) && (*depth != '\0') && (lub_ctype_isdigit(*depth))) {
+	if (depth && (*depth != '\0') && (lub_ctype_isdigit(*depth))) {
 		unsigned res = atoi(depth);
 		clish_view__set_depth(view, res);
 	}
@@ -164,7 +164,7 @@ process_overview(clish_shell_t * shell, TiXmlElement * element, void *)
 	// read the following text element
 	TiXmlNode *text = element->FirstChild();
 
-	if (NULL != text) {
+	if (text) {
 		assert(TiXmlNode::TEXT == text->Type());
 		// set the overview text for this view
 		assert(NULL == shell->overview);
@@ -196,14 +196,12 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *interrupt = element->Attribute("interrupt");
 	const char *ref = element->Attribute("ref");
 
-	if (NULL != access) {
-		allowed = false;	// err on the side of caution
+	if (access) {
+		allowed = false; // err on the side of caution
 		if (shell->client_hooks->access_fn) {
 			// get the client to authenticate
-			allowed =
-			    shell->client_hooks->access_fn(shell,
-							   access) ? true :
-			    false;
+			allowed = shell->client_hooks->access_fn(shell,
+				access) ? true : false;
 		}
 	}
 	if (!allowed)
@@ -249,41 +247,35 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	cmd = clish_view_new_command(v, name, help);
 	assert(cmd);
 	clish_command__set_pview(cmd, v);
-	if (NULL != escape_chars) {
-		/* define some specialist escape characters */
-		clish_command__set_escape_chars(cmd,
-						escape_chars);
-	}
-	if (NULL != args_name) {
+	/* define some specialist escape characters */
+	if (escape_chars)
+		clish_command__set_escape_chars(cmd, escape_chars);
+	if (args_name) {
 		/* define a "rest of line" argument */
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
-		assert(NULL != args_help);
+		assert(args_help);
 		tmp = clish_shell_find_create_ptype(shell,
-					  "internal_ARGS",
-					  "Arguments", "[^\\]+",
-					  CLISH_PTYPE_REGEXP,
-					  CLISH_PTYPE_NONE);
+			"internal_ARGS",
+			"Arguments", "[^\\]+",
+			CLISH_PTYPE_REGEXP,
+			CLISH_PTYPE_NONE);
 		assert(tmp);
-		param =
-		    clish_param_new(args_name, args_help, tmp);
-
+		param = clish_param_new(args_name, args_help, tmp);
 		clish_command__set_args(cmd, param);
 	}
 	// define the view which this command changes to
-	if (NULL != view) {
-		clish_view_t *next =
-		    clish_shell_find_create_view(shell, view,
-						 NULL);
+	if (view) {
+		clish_view_t *next = clish_shell_find_create_view(shell, view,
+			NULL);
 
 		// reference the next view
 		clish_command__set_view(cmd, next);
 	}
 	// define the view id which this command changes to
-	if (NULL != viewid) {
+	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
-	}
 	/* lock field */
 	if (lock && (lub_string_nocasecmp(lock, "false") == 0))
 		clish_command__set_lock(cmd, BOOL_FALSE);
@@ -316,7 +308,7 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *viewid = element->Attribute("viewid");
 	const char *default_shebang = element->Attribute("default_shebang");
 
-	assert(NULL == shell->startup);
+	assert(!shell->startup);
 	assert(view);
 
 	/* create a command with NULL help */
@@ -329,11 +321,10 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	clish_command__set_view(cmd, next);
 
 	// define the view id which this command changes to
-	if (NULL != viewid) {
+	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
-	}
 
-	if (NULL != default_shebang)
+	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
 	// remember this command
@@ -353,7 +344,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	else
 		cmd = (clish_command_t *) parent;
 
-	if ((NULL != cmd) || (NULL != p_param)) {
+	if (cmd || p_param) {
 		assert((!cmd) || (cmd != shell->startup));
 		const char *name = element->Attribute("name");
 		const char *help = element->Attribute("help");
@@ -374,9 +365,9 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		assert(ptype);
 		if (ptype && *ptype) {
 			tmp = clish_shell_find_create_ptype(shell, ptype,
-							    NULL, NULL,
-							    CLISH_PTYPE_REGEXP,
-							    CLISH_PTYPE_NONE);
+				NULL, NULL,
+				CLISH_PTYPE_REGEXP,
+				CLISH_PTYPE_NONE);
 			assert(tmp);
 		}
 		param = clish_param_new(name, help, tmp);
@@ -385,7 +376,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		 * command syntax over newer optional command mechanism.
 		 * It will create nested PARAM.
 		 */
-		if (NULL != prefix) {
+		if (prefix) {
 			const char *ptype_name = "__SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
 
@@ -406,7 +397,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 					      CLISH_PARAM_SUBCOMMAND);
 			clish_param__set_optional(opt_param, BOOL_TRUE);
 
-			if (NULL != test)
+			if (test)
 				clish_param__set_test(opt_param, test);
 
 			if (cmd)
@@ -420,16 +411,15 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			p_param = opt_param;
 		}
 
-		if (NULL != defval) {
+		if (defval)
 			clish_param__set_default(param, defval);
-		}
 
 		if (hidden && (lub_string_nocasecmp(hidden, "true") == 0))
 			clish_param__set_hidden(param, BOOL_TRUE);
 		else
 			clish_param__set_hidden(param, BOOL_FALSE);
 
-		if (NULL != mode) {
+		if (mode) {
 			if (!lub_string_nocasecmp(mode, "switch")) {
 				clish_param__set_mode(param,
 					CLISH_PARAM_SWITCH);
@@ -448,14 +438,14 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		else
 			clish_param__set_optional(param, BOOL_FALSE);
 
-		if (NULL != value) {
+		if (value) {
 			clish_param__set_value(param, value);
 			/* Force mode to subcommand */
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
 		}
 
-		if ((NULL != test) && (NULL == prefix))
+		if (test && !prefix)
 			clish_param__set_test(param, test);
 
 		if (cmd)
@@ -476,22 +466,21 @@ process_action(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
 	clish_command_t *cmd = (clish_command_t *) parent;
 
-	if (NULL != cmd) {
+	if (cmd) {
 		// read the following text element
 		TiXmlNode *text = element->FirstChild();
 		const char *builtin = element->Attribute("builtin");
 		const char *shebang = element->Attribute("shebang");
 
-		if (NULL != text) {
+		if (text) {
 			assert(TiXmlNode::TEXT == text->Type());
 			// store the action
 			clish_command__set_action(cmd, text->Value());
 		}
-		if (NULL != builtin) {
-			// store the action
+		// store the action
+		if (builtin)
 			clish_command__set_builtin(cmd, builtin);
-		}
-		if (NULL != shebang)
+		if (shebang)
 			clish_command__set_shebang(cmd, shebang);
 	}
 }
@@ -505,7 +494,7 @@ process_detail(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	// read the following text element
 	TiXmlNode *text = element->FirstChild();
 
-	if ((NULL != cmd) && (NULL != text)) {
+	if (cmd && text) {
 		assert(TiXmlNode::TEXT == text->Type());
 		// store the action
 		clish_command__set_detail(cmd, text->Value());
@@ -528,14 +517,14 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *inherit = element->Attribute("inherit");
 
 	assert(view);
-	clish_view_t *ref_view =
-	    clish_shell_find_create_view(shell, view, NULL);
+	clish_view_t *ref_view = clish_shell_find_create_view(shell,
+		view, NULL);
 	assert(ref_view);
 	nspace = clish_nspace_new(ref_view);
 	assert(nspace);
 	clish_view_insert_nspace(v, nspace);
 
-	if (NULL != prefix) {
+	if (prefix) {
 		clish_nspace__set_prefix(nspace, prefix);
 		if (prefix_help)
 			clish_nspace_create_prefix_cmd(nspace,
@@ -566,7 +555,6 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_nspace__set_inherit(nspace, BOOL_FALSE);
 	else
 		clish_nspace__set_inherit(nspace, BOOL_TRUE);
-
 }
 
 ////////////////////////////////////////
@@ -575,7 +563,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
 	clish_command_t *cmd = (clish_command_t *) parent;
 
-	if (NULL == cmd)
+	if (!cmd)
 		return;
 
 	// read the following text element
@@ -600,7 +588,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_priority(cmd, 0x7f00);
 	}
 
-	if ((priority != NULL) && (*priority != '\0')) {
+	if (priority && (*priority != '\0')) {
 		long val = 0;
 		char *endptr;
 		unsigned short pri;
@@ -617,12 +605,12 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_command__set_priority(cmd, pri);
 	}
 
-	if (pattern != NULL)
+	if (pattern)
 		clish_command__set_pattern(cmd, pattern);
 	else
 		clish_command__set_pattern(cmd, "^${__cmd}");
 
-	if (file != NULL)
+	if (file)
 		clish_command__set_file(cmd, file);
 
 	if (splitter && (lub_string_nocasecmp(splitter, "false") == 0))
@@ -635,13 +623,13 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	else
 		clish_command__set_unique(cmd, BOOL_TRUE);
 
-	if (seq != NULL)
+	if (seq)
 		clish_command__set_seq(cmd, seq);
 	else
 		/* The entries without sequence cannot be non-unique */
 		clish_command__set_unique(cmd, BOOL_TRUE);
 
-	if (cfg_depth != NULL)
+	if (cfg_depth)
 		clish_command__set_cfg_depth(cmd, cfg_depth);
 
 }

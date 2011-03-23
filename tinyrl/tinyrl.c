@@ -23,21 +23,21 @@
 /*-------------------------------------------------------- */
 static void utf8_point_left(tinyrl_t * this)
 {
-	if (this->utf8) {
-		while (this->point &&
-			(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
-			this->point--;
-	}
+	if (!this->utf8)
+		return;
+	while (this->point &&
+		(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
+		this->point--;
 }
 
 /*-------------------------------------------------------- */
 static void utf8_point_right(tinyrl_t * this)
 {
-	if (this->utf8) {
-		while ((this->point < this->end) &&
-			(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
-			this->point++;
-	}
+	if (!this->utf8)
+		return;
+	while ((this->point < this->end) &&
+		(UTF8_10 == (this->line[this->point] & UTF8_MASK)))
+		this->point++;
 }
 
 /*-------------------------------------------------------- */
@@ -208,7 +208,7 @@ static bool_t tinyrl_key_up(tinyrl_t * this, int key)
 		/* already traversing the history list so get previous */
 		entry = tinyrl_history_getprevious(&this->hist_iter);
 	}
-	if (NULL != entry) {
+	if (entry) {
 		/* display the entry moving the insertion point
 		 * to the end of the line 
 		 */
@@ -230,7 +230,7 @@ static bool_t tinyrl_key_down(tinyrl_t * this, int key)
 		/* the iterator will have been set up by the key_up() function */
 		tinyrl_history_entry_t *entry =
 		    tinyrl_history_getnext(&this->hist_iter);
-		if (NULL == entry) {
+		if (!entry) {
 			/* nothing more in the history list */
 			this->line = this->buffer;
 		} else {
@@ -364,20 +364,15 @@ static bool_t tinyrl_key_tab(tinyrl_t * this, int key)
 	switch (status) {
 	case TINYRL_COMPLETED_MATCH:
 	case TINYRL_MATCH:
-		{
-
-			/* everything is OK with the world... */
-			result = tinyrl_insert_text(this, " ");
-			break;
-		}
+		/* everything is OK with the world... */
+		result = tinyrl_insert_text(this, " ");
+		break;
 	case TINYRL_NO_MATCH:
 	case TINYRL_MATCH_WITH_EXTENSIONS:
 	case TINYRL_AMBIGUOUS:
 	case TINYRL_COMPLETED_AMBIGUOUS:
-		{
-			/* oops don't change the result and let the bell ring */
-			break;
-		}
+		/* oops don't change the result and let the bell ring */
+		break;
 	}
 	/* keep the compiler happy */
 	key = key;
@@ -405,9 +400,8 @@ static void tinyrl_fini(tinyrl_t * this)
 /*-------------------------------------------------------- */
 static void
 tinyrl_init(tinyrl_t * this,
-	    FILE * instream,
-	    FILE * outstream,
-	    unsigned stifle, tinyrl_completion_func_t * complete_fn)
+	FILE * instream, FILE * outstream,
+	unsigned stifle, tinyrl_completion_func_t * complete_fn)
 {
 	int i;
 
@@ -446,8 +440,8 @@ tinyrl_init(tinyrl_t * this,
 	this->echo_char = '\0';
 	this->echo_enabled = BOOL_TRUE;
 	if (instream)
-		this->isatty =
-		    isatty(fileno(instream)) ? BOOL_TRUE : BOOL_FALSE;
+		this->isatty = isatty(fileno(instream)) ?
+			BOOL_TRUE : BOOL_FALSE;
 	else
 		this->isatty = BOOL_FALSE;
 	this->last_buffer = NULL;
@@ -510,7 +504,7 @@ static void tinyrl_internal_print(const tinyrl_t * this, const char *text)
 			unsigned i = strlen(text);
 			while (i--) {
 				tinyrl_vt100_printf(this->term, "%c",
-						    this->echo_char);
+					this->echo_char);
 			}
 		}
 	}
@@ -530,26 +524,21 @@ void tinyrl_redisplay(tinyrl_t * this)
 			if (delta > 0) {
 				count = (unsigned)delta;
 				/* is the current line simply an extension of the previous one? */
-				if (0 ==
-				    strncmp(this->line, this->last_buffer,
-					    last_line_len)) {
+				if (0 == strncmp(this->line, this->last_buffer,
+					last_line_len)) {
 					/* output the line accounting for the echo behaviour */
 					tinyrl_internal_print(this,
-							      &this->
-							      line[line_len -
-								   count]);
+						&this->line[line_len - count]);
 					break;
 				}
 			} else if (delta < 0) {
 				/* is the current line simply a deletion of some characters from the end? */
-				if (0 ==
-				    strncmp(this->line, this->last_buffer,
-					    line_len)) {
+				if (0 == strncmp(this->line, this->last_buffer,
+					line_len)) {
 					if (this->echo_enabled
-					    || this->echo_char) {
-						int shift =
-						    (int)(this->last_point -
-							  this->point);
+						|| this->echo_char) {
+						int shift = (int)(this->last_point -
+							this->point);
 						/* just get the terminal to delete the characters */
 						if (shift > 0) {
 							count = utf8_nsyms(this,
@@ -657,9 +646,8 @@ tinyrl_t *tinyrl_new(FILE * instream,
 	tinyrl_t *this = NULL;
 
 	this = malloc(sizeof(tinyrl_t));
-	if (NULL != this) {
+	if (this)
 		tinyrl_init(this, instream, outstream, stifle, complete_fn);
-	}
 
 	return this;
 }
@@ -672,9 +660,9 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 
 	/* strip any spurious '\r' or '\n' */
 	p = strchr(buffer, '\r');
-	if (NULL == p)
+	if (!p)
 		p = strchr(buffer, '\n');
-	if (NULL != p)
+	if (p)
 		*p = '\0';
 	/* skip any whitespace at the beginning of the line */
 	if (0 == this->point) {
@@ -804,7 +792,7 @@ static char *internal_readline(tinyrl_t * this,
 	this->buffer = NULL;
 
 	/* make sure we're not left on a prompt line */
-	if (crlf && ((NULL == result) || ('\0' == *result)))
+	if (crlf && (!result || ('\0' == *result)))
 		tinyrl_crlf(this);
 
 	if (!result)
@@ -820,7 +808,7 @@ char *tinyrl_readline(tinyrl_t * this, const char *prompt, void *context)
 
 /*----------------------------------------------------------------------- */
 char *tinyrl_forceline(tinyrl_t * this,
-		       const char *prompt, void *context, const char *line)
+	 const char *prompt, void *context, const char *line)
 {
 	return internal_readline(this, prompt, context, line);
 }
@@ -851,7 +839,7 @@ bool_t tinyrl_extend_line_buffer(tinyrl_t * this, unsigned len)
 		/* leave space for terminator */
 		new_buffer = realloc(this->buffer, new_len + 1);
 
-		if (NULL == new_buffer) {
+		if (!new_buffer) {
 			tinyrl_ding(this);
 			result = BOOL_FALSE;
 		} else {
@@ -865,7 +853,7 @@ bool_t tinyrl_extend_line_buffer(tinyrl_t * this, unsigned len)
 			new_buffer = realloc(this->buffer,
 				this->max_line_length);
 
-			if (NULL == new_buffer) {
+			if (!new_buffer) {
 				tinyrl_ding(this);
 				result = BOOL_FALSE;
 			} else {
@@ -950,7 +938,7 @@ tinyrl_display_matches(const tinyrl_t * this,
 				const char *match = *matches++;
 				len--;
 				tinyrl_vt100_printf(this->term, "%-*s ", max,
-						    match);
+					match);
 			}
 			tinyrl_crlf(this);
 		}
@@ -966,7 +954,7 @@ void tinyrl_delete_text(tinyrl_t * this, unsigned start, unsigned end)
 {
 	unsigned delta;
 
-	/* 
+	/*
 	 * If the client wants to change the line ensure that the line and buffer
 	 * references are in sync
 	 */
@@ -978,9 +966,8 @@ void tinyrl_delete_text(tinyrl_t * this, unsigned start, unsigned end)
 		start = end;
 		end = tmp;
 	}
-	if (end > this->end) {
+	if (end > this->end)
 		end = this->end;
-	}
 
 	delta = (end - start) + 1;
 
@@ -998,11 +985,10 @@ void tinyrl_delete_text(tinyrl_t * this, unsigned start, unsigned end)
 			this->point = start;
 		}
 	}
-	if (this->end > end) {
+	if (this->end > end)
 		this->end -= delta;
-	} else {
+	else
 		this->end = start;
-	}
 	/* put a terminator at the end of the buffer */
 	this->buffer[this->end] = '\0';
 }
@@ -1055,10 +1041,9 @@ char **tinyrl_completion(tinyrl_t * this,
 			matches =
 			    realloc(matches, (sizeof(char *) * (size + 1)));
 		}
-		if (NULL == matches) {
-			/* not much we can do... */
+		/* not much we can do... */
+		if (!matches)
 			break;
-		}
 		matches[offset] = match;
 
 		/*
@@ -1082,9 +1067,8 @@ char **tinyrl_completion(tinyrl_t * this,
 	/* be a good memory citizen */
 	lub_string_free(text);
 
-	if (matches) {
+	if (matches)
 		matches[offset] = NULL;
-	}
 	return matches;
 }
 
@@ -1167,26 +1151,23 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 		this->completion_error_over = BOOL_FALSE;
 		/* try and complete the current line buffer */
 		matches = this->attempted_completion_function(this,
-							      this->line,
-							      start, end);
+			this->line, start, end);
 	}
-	if ((NULL == matches)
+	if (!matches
 	    && (BOOL_FALSE == this->completion_over)) {
 		/* insert default completion call here... */
 	}
 
 	if (matches) {
 		/* identify and insert a common prefix if there is one */
-		if (0 !=
-		    strncmp(matches[0], &this->line[start],
-			    strlen(matches[0]))) {
-			/* 
+		if (0 != strncmp(matches[0], &this->line[start],
+			strlen(matches[0]))) {
+			/*
 			 * delete the original text not including 
 			 * the current insertion point character 
 			 */
-			if (this->end != end) {
+			if (this->end != end)
 				end--;
-			}
 			tinyrl_delete_text(this, start, end);
 			if (BOOL_FALSE == tinyrl_insert_text(this, matches[0])) {
 				return TINYRL_NO_MATCH;
@@ -1194,13 +1175,12 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 			completion = BOOL_TRUE;
 		}
 		for (i = 1; matches[i]; i++) {
-			if (0 == lub_string_nocasecmp(matches[0], matches[i])) {
-				/* this is just a prefix string */
+			/* this is just a prefix string */
+			if (0 == lub_string_nocasecmp(matches[0], matches[i]))
 				prefix = BOOL_TRUE;
-			}
 		}
 		/* is there more than one completion? */
-		if (matches[2] != NULL) {
+		if (matches[2]) {
 			char **tmp = matches;
 			unsigned max, len;
 			max = len = 0;
@@ -1229,8 +1209,8 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 				tinyrl_reset_line_state(this);
 			}
 		} else {
-			result =
-			    completion ? TINYRL_COMPLETED_MATCH : TINYRL_MATCH;
+			result = completion ?
+				TINYRL_COMPLETED_MATCH : TINYRL_MATCH;
 		}
 		/* free the memory */
 		tinyrl_delete_matches(matches);

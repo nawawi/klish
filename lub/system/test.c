@@ -98,47 +98,47 @@ enum token_types {
 struct t_op {
 	const char *op_text;
 	short op_num, op_type;
-} const ops [] = {
-	{"-r",	FILRD,	UNOP},
-	{"-w",	FILWR,	UNOP},
-	{"-x",	FILEX,	UNOP},
-	{"-e",	FILEXIST,UNOP},
-	{"-f",	FILREG,	UNOP},
-	{"-d",	FILDIR,	UNOP},
-	{"-c",	FILCDEV,UNOP},
-	{"-b",	FILBDEV,UNOP},
-	{"-p",	FILFIFO,UNOP},
-	{"-u",	FILSUID,UNOP},
-	{"-g",	FILSGID,UNOP},
-	{"-k",	FILSTCK,UNOP},
-	{"-s",	FILGZ,	UNOP},
-	{"-t",	FILTT,	UNOP},
-	{"-z",	STREZ,	UNOP},
-	{"-n",	STRNZ,	UNOP},
-	{"-h",	FILSYM,	UNOP},		/* for backwards compat */
-	{"-O",	FILUID,	UNOP},
-	{"-G",	FILGID,	UNOP},
-	{"-L",	FILSYM,	UNOP},
-	{"-S",	FILSOCK,UNOP},
-	{"=",	STREQ,	BINOP},
-	{"!=",	STRNE,	BINOP},
-	{"<",	STRLT,	BINOP},
-	{">",	STRGT,	BINOP},
-	{"-eq",	INTEQ,	BINOP},
-	{"-ne",	INTNE,	BINOP},
-	{"-ge",	INTGE,	BINOP},
-	{"-gt",	INTGT,	BINOP},
-	{"-le",	INTLE,	BINOP},
-	{"-lt",	INTLT,	BINOP},
-	{"-nt",	FILNT,	BINOP},
-	{"-ot",	FILOT,	BINOP},
-	{"-ef",	FILEQ,	BINOP},
-	{"!",	UNOT,	BUNOP},
-	{"-a",	BAND,	BBINOP},
-	{"-o",	BOR,	BBINOP},
-	{"(",	LPAREN,	PAREN},
-	{")",	RPAREN,	PAREN},
-	{0,	0,	0}
+} const ops[] = {
+	{"-r", FILRD, UNOP},
+	{"-w", FILWR, UNOP},
+	{"-x", FILEX, UNOP},
+	{"-e", FILEXIST, UNOP},
+	{"-f", FILREG, UNOP},
+	{"-d", FILDIR, UNOP},
+	{"-c", FILCDEV, UNOP},
+	{"-b", FILBDEV, UNOP},
+	{"-p", FILFIFO, UNOP},
+	{"-u", FILSUID, UNOP},
+	{"-g", FILSGID, UNOP},
+	{"-k", FILSTCK, UNOP},
+	{"-s", FILGZ, UNOP},
+	{"-t", FILTT, UNOP},
+	{"-z", STREZ, UNOP},
+	{"-n", STRNZ, UNOP},
+	{"-h", FILSYM, UNOP},	/* for backwards compat */
+	{"-O", FILUID, UNOP},
+	{"-G", FILGID, UNOP},
+	{"-L", FILSYM, UNOP},
+	{"-S", FILSOCK, UNOP},
+	{"=", STREQ, BINOP},
+	{"!=", STRNE, BINOP},
+	{"<", STRLT, BINOP},
+	{">", STRGT, BINOP},
+	{"-eq", INTEQ, BINOP},
+	{"-ne", INTNE, BINOP},
+	{"-ge", INTGE, BINOP},
+	{"-gt", INTGT, BINOP},
+	{"-le", INTLE, BINOP},
+	{"-lt", INTLT, BINOP},
+	{"-nt", FILNT, BINOP},
+	{"-ot", FILOT, BINOP},
+	{"-ef", FILEQ, BINOP},
+	{"!", UNOT, BUNOP},
+	{"-a", BAND, BBINOP},
+	{"-o", BOR, BBINOP},
+	{"(", LPAREN, PAREN},
+	{")", RPAREN, PAREN},
+	{0, 0, 0}
 };
 
 char **t_wp;
@@ -159,10 +159,9 @@ static int equalf(const char *, const char *);
 
 #define syntax(op,msg) {return 2;}
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-	int	res;
+	int res;
 
 	if (strcmp(argv[0], "[") == 0) {
 		if (strcmp(argv[--argc], "]"))
@@ -210,9 +209,7 @@ main(int argc, char *argv[])
 	return res;
 }
 
-
-static int
-oexpr(enum token n)
+static int oexpr(enum token n)
 {
 	int res;
 
@@ -223,8 +220,7 @@ oexpr(enum token n)
 	return res;
 }
 
-static int
-aexpr(enum token n)
+static int aexpr(enum token n)
 {
 	int res;
 
@@ -235,16 +231,14 @@ aexpr(enum token n)
 	return res;
 }
 
-static int
-nexpr(enum token n)
+static int nexpr(enum token n)
 {
 	if (n == UNOT)
 		return !nexpr(t_lex(*++t_wp));
 	return primary(n);
 }
 
-static int
-primary(enum token n)
+static int primary(enum token n)
 {
 	int res;
 
@@ -260,7 +254,7 @@ primary(enum token n)
 	 * We need this, if not binary operations with more than 4
 	 * arguments will always fall into unary.
 	 */
-	if(t_lex_type(t_wp[1]) == BINOP) {
+	if (t_lex_type(t_wp[1]) == BINOP) {
 		t_lex(t_wp[1]);
 		if (t_wp_op && t_wp_op->op_type == BINOP)
 			return binop();
@@ -285,14 +279,13 @@ primary(enum token n)
 	return strlen(*t_wp) > 0;
 }
 
-static int
-binop(void)
+static int binop(void)
 {
 	const char *opnd1, *opnd2;
 	struct t_op const *op;
 
 	opnd1 = *t_wp;
-	(void) t_lex(*++t_wp);
+	(void)t_lex(*++t_wp);
 	op = t_wp_op;
 
 	if ((opnd2 = *++t_wp) == NULL)
@@ -327,11 +320,10 @@ binop(void)
 		return equalf(opnd1, opnd2);
 	}
 	/* NOTREACHED */
-	return 1; /* to make compiler happy */
+	return 1;		/* to make compiler happy */
 }
 
-static enum token_types
-t_lex_type(char *s)
+static enum token_types t_lex_type(char *s)
 {
 	struct t_op const *op = ops;
 
@@ -346,8 +338,7 @@ t_lex_type(char *s)
 	return -1;
 }
 
-static int
-filstat(char *nm, enum token mode)
+static int filstat(char *nm, enum token mode)
 {
 	struct stat s;
 	mode_t i;
@@ -419,15 +410,14 @@ filstat(char *nm, enum token mode)
 		return 1;
 	}
 
-filetype:
+ filetype:
 	return ((s.st_mode & S_IFMT) == i);
 
-filebit:
+ filebit:
 	return ((s.st_mode & i) != 0);
 }
 
-static enum token
-t_lex(char *s)
+static enum token t_lex(char *s)
 {
 	struct t_op const *op = ops;
 
@@ -447,8 +437,7 @@ t_lex(char *s)
 }
 
 /* atoi with error detection */
-static int
-getn(const char *s)
+static int getn(const char *s)
 {
 	char *p;
 	long r;
@@ -465,36 +454,30 @@ getn(const char *s)
 	if (*p)
 		syntax(NULL, "bad number");
 
-	return (int) r;
+	return (int)r;
 }
 
-static int
-newerf(const char *f1, const char *f2)
+static int newerf(const char *f1, const char *f2)
 {
 	struct stat b1, b2;
 
 	return (stat(f1, &b1) == 0 &&
-	    stat(f2, &b2) == 0 &&
-	    b1.st_mtime > b2.st_mtime);
+		stat(f2, &b2) == 0 && b1.st_mtime > b2.st_mtime);
 }
 
-static int
-olderf(const char *f1, const char *f2)
+static int olderf(const char *f1, const char *f2)
 {
 	struct stat b1, b2;
 
 	return (stat(f1, &b1) == 0 &&
-	    stat(f2, &b2) == 0 &&
-	    b1.st_mtime < b2.st_mtime);
+		stat(f2, &b2) == 0 && b1.st_mtime < b2.st_mtime);
 }
 
-static int
-equalf(const char *f1, const char *f2)
+static int equalf(const char *f1, const char *f2)
 {
 	struct stat b1, b2;
 
 	return (stat(f1, &b1) == 0 &&
-	    stat(f2, &b2) == 0 &&
-	    b1.st_dev == b2.st_dev &&
-	    b1.st_ino == b2.st_ino);
+		stat(f2, &b2) == 0 &&
+		b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
 }

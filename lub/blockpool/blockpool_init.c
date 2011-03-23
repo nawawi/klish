@@ -44,34 +44,30 @@
 
 /*--------------------------------------------------------- */
 void
-lub_blockpool_init(lub_blockpool_t *this,
-                   void            *memory,
-                   size_t           blocksize,
-                   unsigned         blockcount)
+lub_blockpool_init(lub_blockpool_t * this,
+		   void *memory, size_t blocksize, unsigned blockcount)
 {
-        unsigned i;
-        char    *ptr = memory;
-        
-        /* check that this is a multiple of sizeof(void*) */
-        assert((blocksize & (sizeof(void*)-1)) == 0);
+	unsigned i;
+	char *ptr = memory;
 
-        /* start off with nothing in the list */
-        this->m_head = this->m_tail         = NULL;
-    
-        /* run through all the blocks placing them into the free list */
-        for(i = 0;
-            i < blockcount;
-            ++i)
-        {
-                lub_blockpool_free(this,ptr);
-                ptr += blocksize;
-        }
-        /* intialise the stats */
-        this->m_block_size            = blocksize;
-        this->m_num_blocks            = blockcount;
-        this->m_alloc_blocks          = 0;
-        this->m_alloc_total_blocks    = 0;
-        this->m_alloc_hightide_blocks = 0;
-        this->m_alloc_failures        = 0;
+	/* check that this is a multiple of sizeof(void*) */
+	assert((blocksize & (sizeof(void *) - 1)) == 0);
+
+	/* start off with nothing in the list */
+	this->m_head = this->m_tail = NULL;
+
+	/* run through all the blocks placing them into the free list */
+	for (i = 0; i < blockcount; ++i) {
+		lub_blockpool_free(this, ptr);
+		ptr += blocksize;
+	}
+	/* intialise the stats */
+	this->m_block_size = blocksize;
+	this->m_num_blocks = blockcount;
+	this->m_alloc_blocks = 0;
+	this->m_alloc_total_blocks = 0;
+	this->m_alloc_hightide_blocks = 0;
+	this->m_alloc_failures = 0;
 }
+
 /*--------------------------------------------------------- */

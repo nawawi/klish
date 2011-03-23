@@ -5,14 +5,13 @@
 
 #include <string.h>
 /*--------------------------------------------------------- */
-char *
-lub_string_dup(const char *string)
+char *lub_string_dup(const char *string)
 {
 	char *result = NULL;
-	if(NULL != string)
-	{
-		lub_string_cat(&result,string);
+	if (NULL != string) {
+		lub_string_cat(&result, string);
 	}
 	return result;
 }
+
 /*--------------------------------------------------------- */

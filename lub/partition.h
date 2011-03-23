@@ -39,12 +39,10 @@ slower mutex locked global heap is created and used instead.
 #include "lub/heap.h"
 
 _BEGIN_C_DECL
-
 /**
  * This type is used to reference an instance of a heap.
  */
 typedef struct _lub_partition lub_partition_t;
-
 
 /**
  * This type defines a fundamental allocation function which 
@@ -55,17 +53,16 @@ typedef void *lub_partition_sysalloc_fn(size_t required);
  * This type is used to specify any local requirements
  */
 typedef struct _lub_partition_spec lub_partition_spec_t;
-struct _lub_partition_spec
-{
+struct _lub_partition_spec {
     /**
      * Indicates whether or not to use a thread specific heap will be created
      * for each client of the partition.
      */
-    bool_t use_local_heap;
+	bool_t use_local_heap;
     /**
      * The maximum block size for the local heap.
      */
-    lub_heap_align_t max_local_block_size;
+	lub_heap_align_t max_local_block_size;
     /**
      * The number of maximum sized blocks to make available.
      *
@@ -75,22 +72,22 @@ struct _lub_partition_spec
      * If this is zero then a local heap of size max_block_size
      * will be created (without a cache)
      */
-    size_t num_local_max_blocks;
+	size_t num_local_max_blocks;
     /**
      * When the partition grows each new segment will be at least this many bytes in size
      */
-     size_t min_segment_size;
+	size_t min_segment_size;
     /**
      * The limit in total bytes which can be allocated from the malloc hook
      * for the growth of this partition
      */
-     size_t memory_limit;
+	size_t memory_limit;
     /**
      * If non-NULL then this pointer references the fundamental memory allocation
      * function which should be used to extend the partition.
      * If NULL then the standard 'malloc' function will be used. 
      */
-     lub_partition_sysalloc_fn *sysalloc;
+	lub_partition_sysalloc_fn *sysalloc;
 };
 
 /**
@@ -106,14 +103,12 @@ struct _lub_partition_spec
   * \post
   * - memory allocations can be invoked on the returned intance.
   */
-lub_partition_t *
-    lub_partition_create(
-        /**
+lub_partition_t *lub_partition_create(
+	/**
          * This is used to specify the details to be used for 
          * the partition.
          */
-        const lub_partition_spec_t *spec
-    );
+					     const lub_partition_spec_t * spec);
 /**
   * This operation starts the process of killing a partition.
   *
@@ -130,13 +125,11 @@ lub_partition_t *
   * - Upon final destruction any resources obtained from the
   *   system pool will be returned.
   */
-void
-    lub_partition_kill(
-        /**
+void lub_partition_kill(
+	/**
          * The heap instance on which to operate
          */
-        lub_partition_t *instance
-    );
+			       lub_partition_t * instance);
 /**
  * This operation changes the size of the object referenced by a passed in 
  * pointer to "size". The contents will be unchanged up to the minimum of the old 
@@ -161,26 +154,24 @@ void
  * - (size == 0) No new memory will be allocated, *ptr will be set to NULL,
  *   and any original memory referenced by it will have been released.
  */
-lub_heap_status_t
-    lub_partition_realloc(
-        /**
+lub_heap_status_t lub_partition_realloc(
+	/**
          * The partition instance on which to operate
          */
-        lub_partition_t *instance,
-        /**
+					       lub_partition_t * instance,
+	/**
          * Reference to a pointer containing previously allocated memory 
          * or NULL.
          */
-        char **ptr,
-        /**
+					       char **ptr,
+	/**
          * The number of bytes required for the object 
          */
-        size_t size,
-        /**
+					       size_t size,
+	/**
          * The alignment required for a new allocations.
          */
-        lub_heap_align_t alignment
-    );
+					       lub_heap_align_t alignment);
 /**
  * This operation checks the integrety of the memory in the specified
  * partition.
@@ -196,65 +187,55 @@ lub_heap_status_t
  * \post
  * - none
  */
-extern bool_t 
-    lub_partition_check_memory(lub_partition_t *instance);
+extern bool_t lub_partition_check_memory(lub_partition_t * instance);
 /**
  * This operation dumps the salient details of the specified partition to stdout
  */
-void
-    lub_partition_show(
-        /**
+void lub_partition_show(
+	/**
          * The instance on which to operate
          */
-        lub_partition_t *instance,
-        /**
+			       lub_partition_t * instance,
+	/**
          * Whether to be verbose or not
          */
-        bool_t verbose
-    );
+			       bool_t verbose);
 /**
  * This function is invoked whenever a call to lub_partition_realloc()
  * fails.
  * It is provided as a debugging aid; simple set a breakpoint to
  * stop execution of the program and any failures will be caught in context.
  */
-void 
-    lub_partition_stop_here(
-        /**
+void lub_partition_stop_here(
+	/**
          * The failure status of the the call to realloc
          */
-        lub_heap_status_t status,
-        /**
+				    lub_heap_status_t status,
+	/**
          * The old value of the pointer passed in
          */
-        char *old_ptr,
-        /**
+				    char *old_ptr,
+	/**
          * The requested number of bytes
          */
-        size_t new_size
-    );
+				    size_t new_size);
 /**
  * This causes leak detection to be disabled for this partition 
  */
-void
-    lub_partition_disable_leak_detection(
-        /**
+void lub_partition_disable_leak_detection(
+	/**
          * The instance on which to operate
          */
-        lub_partition_t *instance
-    );
+						 lub_partition_t * instance);
 /**
  * This causes leak detection to be enabled for this partition
  */
-void
-    lub_partition_enable_leak_detection(
-        /**
+void lub_partition_enable_leak_detection(
+	/**
          * The instance on which to operate
          */
-        lub_partition_t *instance
-    );
+						lub_partition_t * instance);
 
 _END_C_DECL
-
-#endif /* _lub_partition_h */
+#endif				/* _lub_partition_h */
 /** @} */

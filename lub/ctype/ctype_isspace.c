@@ -5,10 +5,10 @@
 #include <ctype.h>
 
 /*--------------------------------------------------------- */
-bool_t
-lub_ctype_isspace(char c)
+bool_t lub_ctype_isspace(char c)
 {
-    unsigned char tmp = (unsigned char)c;
-    return isspace(tmp) ? BOOL_TRUE : BOOL_FALSE; 
+	unsigned char tmp = (unsigned char)c;
+	return isspace(tmp) ? BOOL_TRUE : BOOL_FALSE;
 }
+
 /*--------------------------------------------------------- */

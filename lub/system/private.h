@@ -6,4 +6,3 @@
 #include "lub/system.h"
 
 int testcmd(int argc, char *argv[]);
-

@@ -32,14 +32,13 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void
-lub_bintree_node_init(lub_bintree_node_t *node)
+void lub_bintree_node_init(lub_bintree_node_t * node)
 {
-    assert(node);
-    if(node)
-    {
-        node->left  = NULL;
-        node->right = NULL;
-    }
+	assert(node);
+	if (node) {
+		node->left = NULL;
+		node->right = NULL;
+	}
 }
+
 /*--------------------------------------------------------- */

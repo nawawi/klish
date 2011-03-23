@@ -5,10 +5,10 @@
 #include <ctype.h>
 
 /*--------------------------------------------------------- */
-char
-lub_ctype_tolower(char c)
+char lub_ctype_tolower(char c)
 {
-    unsigned char tmp = (unsigned char)c;
-    return tolower(tmp); 
+	unsigned char tmp = (unsigned char)c;
+	return tolower(tmp);
 }
+
 /*--------------------------------------------------------- */

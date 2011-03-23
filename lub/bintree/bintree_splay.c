@@ -71,69 +71,60 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-lub_bintree_node_t *
-lub_bintree_splay (const lub_bintree_t *this,
-                   lub_bintree_node_t  *t,
-                   const void          *key)
+lub_bintree_node_t *lub_bintree_splay(const lub_bintree_t * this,
+				      lub_bintree_node_t * t, const void *key)
 {
-        /* Simple top down splay, not requiring "key" to be in the tree t.  */
-        /* What it does is described above.                                 */
-        lub_bintree_node_t N, *leftTreeMax, *rightTreeMin, *y;
-        int                comp;
-        
-        if (t == NULL)
-                return t;
-        N.left = N.right = NULL;
-        leftTreeMax = rightTreeMin = &N;
-        
-        for (;;)
-        {
-                comp = lub_bintree_compare(this,t,key);
-                if (comp > 0)
-                {
-                        if (t->left == NULL)
-                                break;
-                        if (lub_bintree_compare(this,t->left,key) > 0)
-                        {
-                                y        = t->left; /* rotate right */
-                                t->left  = y->right;
-                                y->right = t;
-                                t        = y;
-                                if (t->left == NULL)
-                                        break;
-                        }
-                        rightTreeMin->left = t; /* link right */
-                        rightTreeMin       = t;
-                        t                  = t->left;
-                }
-                else if (comp < 0)
-                {
-                        if (t->right == NULL)
-                                break;
-                        if (lub_bintree_compare(this,t->right,key) < 0)
-                        {
-                                y        = t->right; /* rotate left */
-                                t->right = y->left;
-                                y->left  = t;
-                                t        = y;
-                                if (t->right == NULL)
-                                        break;
-                        }
-                        leftTreeMax->right = t; /* link left */
-                        leftTreeMax        = t;
-                        t                  = t->right;
-                }
-                else
-                {
-                        break;
-                }
-        }
-        leftTreeMax->right = t->left; /* assemble */
-        rightTreeMin->left = t->right;
-        t->left            = N.right;
-        t->right           = N.left;
-        
-        /* return the new root */
-        return t;
+	/* Simple top down splay, not requiring "key" to be in the tree t.  */
+	/* What it does is described above.                                 */
+	lub_bintree_node_t N, *leftTreeMax, *rightTreeMin, *y;
+	int comp;
+
+	if (t == NULL)
+		return t;
+	N.left = N.right = NULL;
+	leftTreeMax = rightTreeMin = &N;
+
+	for (;;) {
+		comp = lub_bintree_compare(this, t, key);
+		if (comp > 0) {
+			if (t->left == NULL)
+				break;
+			if (lub_bintree_compare(this, t->left, key) > 0) {
+				y = t->left;	/* rotate right */
+				t->left = y->right;
+				y->right = t;
+				t = y;
+				if (t->left == NULL)
+					break;
+			}
+			rightTreeMin->left = t;	/* link right */
+			rightTreeMin = t;
+			t = t->left;
+		} else if (comp < 0) {
+			if (t->right == NULL)
+				break;
+			if (lub_bintree_compare(this, t->right, key) < 0) {
+				y = t->right;	/* rotate left */
+				t->right = y->left;
+				y->left = t;
+				t = y;
+				if (t->right == NULL)
+					break;
+			}
+			leftTreeMax->right = t;	/* link left */
+			leftTreeMax = t;
+			t = t->right;
+		} else {
+			break;
+		}
+	}
+	leftTreeMax->right = t->left;	/* assemble */
+	rightTreeMin->left = t->right;
+	t->left = N.right;
+	t->right = N.left;
+
+	/* return the new root */
+	return t;
 }
+
 /*--------------------------------------------------------- */

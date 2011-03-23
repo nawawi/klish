@@ -26,7 +26,7 @@ bool_t lub_system_line_test(const char *line)
 }
 
 /*--------------------------------------------------------- */
-bool_t lub_system_argv_test(const lub_argv_t *argv)
+bool_t lub_system_argv_test(const lub_argv_t * argv)
 {
 	bool_t res;
 	char **str_argv;

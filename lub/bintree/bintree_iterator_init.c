@@ -37,21 +37,20 @@
 #define MAGIC_NUMBER 0x12345678
 /*--------------------------------------------------------- */
 void
-lub_bintree_iterator_init(lub_bintree_iterator_t *this,
-                          lub_bintree_t          *tree,
-                          const void             *clientnode)
+lub_bintree_iterator_init(lub_bintree_iterator_t * this,
+			  lub_bintree_t * tree, const void *clientnode)
 {
-    if(clientnode != NULL)
-    {
-        this->tree = tree;
-        this->key.magic = MAGIC_NUMBER;
-        /* fill out the iterator's key */
-        this->tree->getkeyFn(clientnode,&this->key);
-        /*
-         * this assert will fire if the client tries to store more than 
-         * the current storage permits
-         */
-        assert(this->key.magic == MAGIC_NUMBER);
-    }
+	if (clientnode != NULL) {
+		this->tree = tree;
+		this->key.magic = MAGIC_NUMBER;
+		/* fill out the iterator's key */
+		this->tree->getkeyFn(clientnode, &this->key);
+		/*
+		 * this assert will fire if the client tries to store more than 
+		 * the current storage permits
+		 */
+		assert(this->key.magic == MAGIC_NUMBER);
+	}
 }
+
 /*--------------------------------------------------------- */

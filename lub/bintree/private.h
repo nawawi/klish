@@ -34,10 +34,9 @@
  * t    - the root node to splay to.
  * key  - the value with which to splay
  */
-extern lub_bintree_node_t *
-		lub_bintree_splay(const lub_bintree_t *tree,
-                		  lub_bintree_node_t  *t,
-                  		  const void          *key);
+extern lub_bintree_node_t *lub_bintree_splay(const lub_bintree_t * tree,
+					     lub_bintree_node_t * t,
+					     const void *key);
 /*------------------------------------------------------------ */
 /* This operation converts a "node" into a "clientnode"
  * subtracting the offset gives the base pointer to the node
@@ -55,7 +54,7 @@ extern lub_bintree_node_t *
  * clientnode - the clientnode to convert
  */
 #define lub_bintree_getnode(this,clientnode)\
-(lub_bintree_node_t *)(((char*)clientnode) + this->node_offset) /*lint -e826 */
+(lub_bintree_node_t *)(((char*)clientnode) + this->node_offset)	/*lint -e826 */
 /*------------------------------------------------------------ */
 /* This operation compares a key with a "node"
  * it returns

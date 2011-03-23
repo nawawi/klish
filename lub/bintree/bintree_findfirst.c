@@ -36,31 +36,31 @@
 static lub_bintree_compare_fn compareleft;
 
 /*--------------------------------------------------------- */
-void *
-lub_bintree_findfirst(lub_bintree_t *this)
+void *lub_bintree_findfirst(lub_bintree_t * this)
 {
-        lub_bintree_compare_fn *client_compare = this->compareFn;
-        
-        /*
-         * put dummy functions in place
-         * This will make the search faster and direct it to the left most
-         * node
-         */
-        this->compareFn = compareleft;
-        
-        /*
-         * the key doesn't matter here cos we've cobbled the compare function
-         */
-        this->root = lub_bintree_splay(this,this->root,NULL);
-        
-        /* restore the client functions */
-        this->compareFn = client_compare;
-        
-        if(NULL == this->root)
-                return NULL;
-        else
-                return lub_bintree_getclientnode(this,this->root);
+	lub_bintree_compare_fn *client_compare = this->compareFn;
+
+	/*
+	 * put dummy functions in place
+	 * This will make the search faster and direct it to the left most
+	 * node
+	 */
+	this->compareFn = compareleft;
+
+	/*
+	 * the key doesn't matter here cos we've cobbled the compare function
+	 */
+	this->root = lub_bintree_splay(this, this->root, NULL);
+
+	/* restore the client functions */
+	this->compareFn = client_compare;
+
+	if (NULL == this->root)
+		return NULL;
+	else
+		return lub_bintree_getclientnode(this, this->root);
 }
+
 /*--------------------------------------------------------- */
 /*
  * This comparison operation always returns 1 hence will force a
@@ -69,12 +69,11 @@ lub_bintree_findfirst(lub_bintree_t *this)
  * clientnode - node to compare (not used)
  * clientkey  - key to compare (not used)
  */
-static int
-compareleft(const void *clientnode,
-            const void *clientkey)
+static int compareleft(const void *clientnode, const void *clientkey)
 {
-        clientnode = clientnode;
-        clientkey  = clientkey;
-        return 1;
+	clientnode = clientnode;
+	clientkey = clientkey;
+	return 1;
 }
+
 /*--------------------------------------------------------- */

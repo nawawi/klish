@@ -7,31 +7,30 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-const char *
-lub_argv__get_line(const lub_argv_t *this)
+const char *lub_argv__get_line(const lub_argv_t * this)
 {
 	return this->line;
 }
 
 /*--------------------------------------------------------- */
-char **
-lub_argv__get_argv(const lub_argv_t *this, char *argv0)
+char **lub_argv__get_argv(const lub_argv_t * this, char *argv0)
 {
-    char **result = NULL;
-    unsigned i;
-    unsigned a = 0;
+	char **result = NULL;
+	unsigned i;
+	unsigned a = 0;
 
-    if(argv0)
-        a = 1;
+	if (argv0)
+		a = 1;
 
-    result = malloc(sizeof(char *) * (this->argc + 1 + a));
+	result = malloc(sizeof(char *) * (this->argc + 1 + a));
 
-    if(argv0)
-        result[0] = argv0;
-    for(i = 0; i < this->argc; i++)
-        result[i + a] = this->argv[i].arg;
-    result[i + a] = NULL;
+	if (argv0)
+		result[0] = argv0;
+	for (i = 0; i < this->argc; i++)
+		result[i + a] = this->argv[i].arg;
+	result[i + a] = NULL;
 
-    return result;
+	return result;
 }
+
 /*--------------------------------------------------------- */

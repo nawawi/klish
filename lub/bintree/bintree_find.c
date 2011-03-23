@@ -33,17 +33,15 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void *
-lub_bintree_find(lub_bintree_t *this,
-                 const void    *clientkey)
+void *lub_bintree_find(lub_bintree_t * this, const void *clientkey)
 {
-        this->root = lub_bintree_splay(this,this->root,clientkey);
-        
-        if(NULL != this->root)
-        {
-	        if(lub_bintree_compare(this,this->root,clientkey) == 0)
-	                return lub_bintree_getclientnode(this,this->root);
-        }
-        return NULL;
+	this->root = lub_bintree_splay(this, this->root, clientkey);
+
+	if (NULL != this->root) {
+		if (lub_bintree_compare(this, this->root, clientkey) == 0)
+			return lub_bintree_getclientnode(this, this->root);
+	}
+	return NULL;
 }
+
 /*--------------------------------------------------------- */

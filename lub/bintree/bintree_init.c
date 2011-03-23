@@ -38,14 +38,15 @@
 
 /*--------------------------------------------------------- */
 void
-lub_bintree_init(lub_bintree_t         *this,
-                 size_t                 node_offset,
-                 lub_bintree_compare_fn compareFn,
-                 lub_bintree_getkey_fn  getkeyFn)
+lub_bintree_init(lub_bintree_t * this,
+		 size_t node_offset,
+		 lub_bintree_compare_fn compareFn,
+		 lub_bintree_getkey_fn getkeyFn)
 {
-        this->root          = NULL;
-        this->node_offset   = node_offset;
-        this->compareFn     = compareFn;
-        this->getkeyFn      = getkeyFn;
+	this->root = NULL;
+	this->node_offset = node_offset;
+	this->compareFn = compareFn;
+	this->getkeyFn = getkeyFn;
 }
+
 /*--------------------------------------------------------- */

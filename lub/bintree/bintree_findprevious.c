@@ -35,38 +35,33 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void *
-lub_bintree_findprevious(lub_bintree_t *this,
-                         const void    *clientkey)
+void *lub_bintree_findprevious(lub_bintree_t * this, const void *clientkey)
 {
-    lub_bintree_node_t *t = this->root;
-    int                 comp;
+	lub_bintree_node_t *t = this->root;
+	int comp;
 
-    /*
-     * have a look for a direct match
-     */
-    t = this->root = lub_bintree_splay(this,t,clientkey);
-        
-    if(NULL != t)
-    {
-        /* now look at what we have got */
-        comp = lub_bintree_compare(this,t,clientkey);
-        if(comp >= 0)
-        {
-            /*
-             * time to fiddle with the left hand side of the tree
-             * we need the closest node from the left hand side
-             */
-            t = t->left = lub_bintree_splay(this,t->left,clientkey);
-        }
-    }
-    if(NULL == t)
-    {
-        return NULL;
-    }
-    else
-    {
-        return lub_bintree_getclientnode(this,t);
-    }
+	/*
+	 * have a look for a direct match
+	 */
+	t = this->root = lub_bintree_splay(this, t, clientkey);
+
+	if (NULL != t) {
+		/* now look at what we have got */
+		comp = lub_bintree_compare(this, t, clientkey);
+		if (comp >= 0) {
+			/*
+			 * time to fiddle with the left hand side of the tree
+			 * we need the closest node from the left hand side
+			 */
+			t = t->left =
+			    lub_bintree_splay(this, t->left, clientkey);
+		}
+	}
+	if (NULL == t) {
+		return NULL;
+	} else {
+		return lub_bintree_getclientnode(this, t);
+	}
 }
+
 /*--------------------------------------------------------- */

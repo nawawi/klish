@@ -112,7 +112,6 @@ fast searching for the appropriate block.
 #include "lub/types.h"
 #include "lub/c_decl.h"
 _BEGIN_C_DECL
-
 /**
  * This type is used to reference an instance of a heap.
  */
@@ -127,302 +126,300 @@ typedef struct lub_heap_free_block_s lub_heap_free_block_t;
  * This type defines the statistics available for each heap.
  */
 typedef struct lub_heap_stats_s lub_heap_stats_t;
-struct lub_heap_stats_s
-{
+struct lub_heap_stats_s {
     /*----------------------------------------------------- */
     /**
      * Number of segments comprising this heap.
      */
-    size_t segs;
+	size_t segs;
     /**
      * Number of bytes available in all the segments.
      */
-    size_t segs_bytes;
+	size_t segs_bytes;
     /**
      * Number of bytes used in housekeeping overheads
      */
-    size_t segs_overhead;
+	size_t segs_overhead;
     /*----------------------------------------------------- */
     /**
      * Number of free blocks. This is indication 
      * the fragmentation state of a heap.
      */
-    size_t free_blocks;
+	size_t free_blocks;
     /**
      * Number of bytes available in a heap.
      */
-    size_t free_bytes;
+	size_t free_bytes;
     /**
      * Number of bytes used in housekeeping overheads
      */
-    size_t free_overhead;
+	size_t free_overhead;
     /*----------------------------------------------------- */
     /**
      * Number of dynamically allocated blocks currently
      * held by clients of a heap.
      */
-    size_t alloc_blocks;
+	size_t alloc_blocks;
     /**
      * Number of dynamically allocated bytes currently
      * held by clients of a heap.
      */
-    size_t alloc_bytes;
+	size_t alloc_bytes;
     /**
      * Number of bytes used in housekeeping overheads
      */
-    size_t alloc_overhead;
+	size_t alloc_overhead;
     /*----------------------------------------------------- */
     /**
      * Cumulative number of dynamically allocated blocks
      * given to clients of a heap.
      */
-    size_t alloc_total_blocks;
+	size_t alloc_total_blocks;
     /**
      * Cumulative number of dynamically allocated bytes
      * given to clients of a heap.
      */
-    size_t alloc_total_bytes;
+	size_t alloc_total_bytes;
     /*----------------------------------------------------- */
     /**
      * Number of dynamically allocated blocks
      * given to clients when the memory usage was at it's highest.
      */
-    size_t alloc_hightide_blocks;
+	size_t alloc_hightide_blocks;
     /**
      * Number of dynamically allocated bytes
      * given to clients of a heap when the memory usage was at it's
      * highest
      */
-    size_t alloc_hightide_bytes;
+	size_t alloc_hightide_bytes;
     /**
      * Number of bytes of overhead in use when the memory usage 
      * was at it's highest
      */
-    size_t alloc_hightide_overhead;
+	size_t alloc_hightide_overhead;
     /**
      * Number of free blocks when the memory usage was at it's
      * highest
      */
-    size_t free_hightide_blocks;
+	size_t free_hightide_blocks;
     /**
      * Number of free bytes when the memory usage was at it's highest.
      */
-    size_t free_hightide_bytes;
+	size_t free_hightide_bytes;
    /**
      * Number of housekeeping overhead bytes when the memory 
      * usage was at it's highest.
      */
-    size_t free_hightide_overhead;
+	size_t free_hightide_overhead;
     /*----------------------------------------------------- */
     /**
      * Number of statically allocated blocks currently
      * held by clients of a heap.
      */
-    size_t static_blocks;
+	size_t static_blocks;
     /**
      * Number of statically allocated bytes currently
      * held by clients of a heap.
      */
-    size_t static_bytes;    
+	size_t static_bytes;
     /**
      * Number of dynamically allocated bytes currently
      * held by clients of a heap.
      */
-    size_t static_overhead;
+	size_t static_overhead;
     /*----------------------------------------------------- */
 };
 /**
  * This type is used to indicate the result of a dynamic
  * memory allocation
  */
-typedef enum
-{
+typedef enum {
     /**
      * The allocation was successful
      */
-    LUB_HEAP_OK,
+	LUB_HEAP_OK,
     /**
      * There was insufficient resource to satisfy the request
      */
-    LUB_HEAP_FAILED,
+	LUB_HEAP_FAILED,
     /**
      * An attempt has been made to release an already freed block
      * of memory.
      */
-    LUB_HEAP_DOUBLE_FREE,
+	LUB_HEAP_DOUBLE_FREE,
     /**
      * A memory corruption has been detected. e.g. someone writing
      * beyond the bounds of an allocated block of memory.
      */
-    LUB_HEAP_CORRUPTED,
+	LUB_HEAP_CORRUPTED,
     /**
      * The client has passed in an invalid pointer
      * i.e. one which lies outside the bounds of the current heap.
      */
-    LUB_HEAP_INVALID_POINTER
+	LUB_HEAP_INVALID_POINTER
 } lub_heap_status_t;
 
-typedef struct {void *ptr;} struct_void_ptr;
+typedef struct {
+	void *ptr;
+} struct_void_ptr;
 /**
  * This type is used to indicate the alignment required 
  * for a memory allocation.
  */
-typedef enum
-{
+typedef enum {
     /**
      * This is the "native" alignment required for the current
      * CPU architecture.
      */
-    LUB_HEAP_ALIGN_NATIVE = sizeof(struct_void_ptr),
+	LUB_HEAP_ALIGN_NATIVE = sizeof(struct_void_ptr),
     /**
      * 4 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_2 = 0x00000004,
+	LUB_HEAP_ALIGN_2_POWER_2 = 0x00000004,
     /**
      * 8 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_3 = 0x00000008,
+	LUB_HEAP_ALIGN_2_POWER_3 = 0x00000008,
     /**
      * 16 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_4 = 0x00000010,
+	LUB_HEAP_ALIGN_2_POWER_4 = 0x00000010,
     /**
      * 32 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_5 = 0x00000020,
+	LUB_HEAP_ALIGN_2_POWER_5 = 0x00000020,
     /**
      * 64 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_6 = 0x00000040,
+	LUB_HEAP_ALIGN_2_POWER_6 = 0x00000040,
     /**
      * 128 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_7 = 0x00000080,
+	LUB_HEAP_ALIGN_2_POWER_7 = 0x00000080,
     /**
      * 256 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_8 = 0x00000100,
+	LUB_HEAP_ALIGN_2_POWER_8 = 0x00000100,
     /**
      * 512 byte alignment
      */
-    LUB_HEAP_ALIGN_2_POWER_9 = 0x00000200,
+	LUB_HEAP_ALIGN_2_POWER_9 = 0x00000200,
     /**
      * 1024 byte alignment (1KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_10 = 0x00000400,
+	LUB_HEAP_ALIGN_2_POWER_10 = 0x00000400,
     /**
      * 2048 byte alignment (2KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_11 = 0x00000800,
+	LUB_HEAP_ALIGN_2_POWER_11 = 0x00000800,
     /**
      * 4096 byte alignment (4KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_12 = 0x00001000,
+	LUB_HEAP_ALIGN_2_POWER_12 = 0x00001000,
     /**
      * 8192 byte alignment (8KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_13 = 0x00002000,
+	LUB_HEAP_ALIGN_2_POWER_13 = 0x00002000,
     /**
      * 16384 byte alignment (16KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_14 = 0x00004000,
+	LUB_HEAP_ALIGN_2_POWER_14 = 0x00004000,
     /**
      * 32768 byte alignment (32KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_15 = 0x00008000,
+	LUB_HEAP_ALIGN_2_POWER_15 = 0x00008000,
     /**
      * 65536 byte alignment (64KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_16 = 0x00010000,
+	LUB_HEAP_ALIGN_2_POWER_16 = 0x00010000,
     /**
      * 131072 byte alignment (128KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_17 = 0x00020000,
+	LUB_HEAP_ALIGN_2_POWER_17 = 0x00020000,
     /**
      * 262144 byte alignment (256KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_18 = 0x00040000,
+	LUB_HEAP_ALIGN_2_POWER_18 = 0x00040000,
     /**
      * 524288 byte alignment (512KB)
      */
-    LUB_HEAP_ALIGN_2_POWER_19 = 0x00080000,
+	LUB_HEAP_ALIGN_2_POWER_19 = 0x00080000,
     /**
      * 1048576 byte alignment (1MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_20 = 0x00100000,
+	LUB_HEAP_ALIGN_2_POWER_20 = 0x00100000,
     /**
      * 2097152 byte alignment (2MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_21 = 0x00200000,
+	LUB_HEAP_ALIGN_2_POWER_21 = 0x00200000,
     /**
      * 4194304 byte alignment (4MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_22 = 0x00400000,
+	LUB_HEAP_ALIGN_2_POWER_22 = 0x00400000,
     /**
      * 8388608 byte alignment (8MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_23 = 0x00800000,
+	LUB_HEAP_ALIGN_2_POWER_23 = 0x00800000,
     /**
      *  16777216 byte alignment (16MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_24 = 0x01000000,
+	LUB_HEAP_ALIGN_2_POWER_24 = 0x01000000,
     /**
      *  33554432 byte alignment (32MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_25 = 0x02000000,
+	LUB_HEAP_ALIGN_2_POWER_25 = 0x02000000,
     /**
      * 67108864 byte alignment (64MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_26 = 0x04000000,
+	LUB_HEAP_ALIGN_2_POWER_26 = 0x04000000,
     /**
      * 134217728 byte alignment (128MB)
      */
-    LUB_HEAP_ALIGN_2_POWER_27 = 0x08000000
-} lub_heap_align_t;
+	LUB_HEAP_ALIGN_2_POWER_27 = 0x08000000
+}
+lub_heap_align_t;
 
 /**
  * This type defines how leak details should be displayed
  */
-typedef enum
-{
+typedef enum {
     /**
      * Only show allocations which have no reference elsewhere
      * in the system
      */
-    LUB_HEAP_SHOW_LEAKS,
+	LUB_HEAP_SHOW_LEAKS,
     /**
      * Only show allocations which have no direct reference elsewhere
      * in the system, but do have their contents referenced.
      */
-    LUB_HEAP_SHOW_PARTIALS,
+	LUB_HEAP_SHOW_PARTIALS,
     /**
      * Show all the current allocations in the system.
      */
-    LUB_HEAP_SHOW_ALL
+	LUB_HEAP_SHOW_ALL
 } lub_heap_show_e;
 
 /**
  * This type defines a function prototype to be used to 
  * iterate around each of a number of things in the system.
  */
-typedef void 
-    lub_heap_foreach_fn(
-        /**
+typedef void lub_heap_foreach_fn(
+	/**
          * The current entity
          */
-        void *block,
-        /**
+					void *block,
+	/**
          * A simple 1-based identifier for this entity
          */
-        unsigned index,
-        /**
+					unsigned index,
+	/**
          * The number of bytes available in this entity
          */
-        size_t size,
-        /**
+					size_t size,
+	/**
          * Client specific argument
          */
-        void *arg);
+					void *arg);
 
 /**
  * This operation is a diagnostic which can be used to 
@@ -440,21 +437,20 @@ typedef void
  * -The specified function will have been called once for every segment
  *  in the specified heap
  */
-void
-    lub_heap_foreach_segment(
-        /**
+void lub_heap_foreach_segment(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+				     lub_heap_t * instance,
+	/**
          * The client provided function to call for each free block
          */
-        lub_heap_foreach_fn *fn,
-        /**
+				     lub_heap_foreach_fn * fn,
+	/**
          * Some client specific data to pass through to the callback
          * function.
          */
-        void *arg);
+				     void *arg);
 /**
  * This operation is a diagnostic which can be used to 
  * iterate around all the free blocks in the specified heap.
@@ -471,21 +467,20 @@ void
  * -The specified function will have been called once for every free
  *  block in the specified heap
  */
-void
-    lub_heap_foreach_free_block(
-        /**
+void lub_heap_foreach_free_block(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+					lub_heap_t * instance,
+	/**
          * The client provided function to call for each free block
          */
-        lub_heap_foreach_fn *fn,
-        /**
+					lub_heap_foreach_fn * fn,
+	/**
          * Some client specific data to pass through to the callback
          * function.
          */
-        void *arg);
+					void *arg);
 
 /**
   * This operation creates a dynamic heap from the provided
@@ -503,18 +498,16 @@ void
   * - further memory segements can be augmented to the heap using
   *   the lub_heap_add_segment() operation.
   */
-lub_heap_t *
-    lub_heap_create(
-        /**
+lub_heap_t *lub_heap_create(
+	/**
          * The begining of the first memory segment to associate with 
          * this heap
          */
-        void *start,
-        /**
+				   void *start,
+	/**
          * The number of bytes available for use in the first segment.
          */
-        size_t size
-    );
+				   size_t size);
 /**
   * This operation creates a dynamic heap from the provided
   * memory segment.
@@ -531,13 +524,11 @@ lub_heap_t *
   *   may now be reused.
   * - Any extra resources used for leak detection will have been released.
   */
-void
-    lub_heap_destroy(
-        /**
+void lub_heap_destroy(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance
-    );
+			     lub_heap_t * instance);
 /**
  * This operation augments an existing heap with 
  * some more memory to manage.
@@ -555,21 +546,19 @@ void
  * \post
  * - The new segment of memory becomes available for use by this heap.
  */
-void 
-    lub_heap_add_segment(
-        /**
+void lub_heap_add_segment(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance,
-        /** 
+				 lub_heap_t * instance,
+	/** 
          * The beginning of the memory segment to be managed
          */
-        void *start,
-        /**
+				 void *start,
+	/**
          * The number of bytes available for use in this segment
          */
-        size_t size
-    );
+				 size_t size);
 /**
  * This operation allocates some "static" memory from a heap. This is 
  * memory which will remain allocted for the lifetime of the heap instance.
@@ -589,17 +578,15 @@ void
  *   managing memory which itself has been dynamically allocated, then 
  *   the memory will be recovered when the heap is released.
  */
-void *
-    lub_heap_static_alloc(
-        /**
+void *lub_heap_static_alloc(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+				   lub_heap_t * instance,
+	/**
          * The number of bytes to allocate
          */
-        size_t size
-    );
+				   size_t size);
 /**
  * This operation changes the size of the object referenced by a passed in 
  * pointer to "size". The contents will be unchanged up to the minimum of the old 
@@ -624,26 +611,24 @@ void *
  * - (size == 0) No new memory will be allocated, *ptr will be set to NULL,
  *   and any original memory referenced by it will have been released.
  */
-lub_heap_status_t
-    lub_heap_realloc(
-        /**
+lub_heap_status_t lub_heap_realloc(
+	/**
          * The heap instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+					  lub_heap_t * instance,
+	/**
          * Reference to a pointer containing previously allocated memory 
          * or NULL.
          */
-        char **ptr,
-        /**
+					  char **ptr,
+	/**
          * The number of bytes required for the object 
          */
-        size_t size,
-        /**
+					  size_t size,
+	/**
          * The alignement required for a new allocations.
          */
-        lub_heap_align_t alignment
-    );
+					  lub_heap_align_t alignment);
 /**
  * This operation controls the tainted memory facility.
  * This means that during certain heap operations memory can
@@ -668,13 +653,11 @@ lub_heap_status_t
  *   be set to 0xAA as the "uninitialised" value.
  * - (disabled) no memory tainting will occur.
  */
-bool_t
-    lub_heap_taint(
-        /**
+bool_t lub_heap_taint(
+	/**
          * BOOL_TRUE to enable tainting or BOOL_FALSE to disable
          */
-        bool_t enable
-    );
+			     bool_t enable);
 /**
  * This operation indicates the current status of the memory tainting
  * facility
@@ -688,9 +671,8 @@ bool_t
  *
  * \post 
  * none
- */ 
-bool_t
-    lub_heap_is_tainting(void);
+ */
+bool_t lub_heap_is_tainting(void);
 /**
  * This operation controls runtime heap corruption detection.
  * This means that during every heap operation a full check is 
@@ -714,13 +696,11 @@ bool_t
  * return status of the invoking heap operation will be LUB_HEAP_CORRUPTED.
  * - (disabled) no entire heap memory checking will occur.
  */
-bool_t
-    lub_heap_check(
-        /**
+bool_t lub_heap_check(
+	/**
          * BOOL_TRUE to enable checking or BOOL_FALSE to disable
          */
-        bool_t enable
-    );
+			     bool_t enable);
 
 /**
  * This operation indicates the current status of the full memory checking
@@ -735,9 +715,8 @@ bool_t
  *
  * \post 
  * none
- */ 
-bool_t
-    lub_heap_is_checking(void);
+ */
+bool_t lub_heap_is_checking(void);
 
 /**
  * This operation checks the integrety of the memory in the specified
@@ -754,29 +733,26 @@ bool_t
  * \post
  * - none
  */
-extern bool_t 
-    lub_heap_check_memory(lub_heap_t *instance);
+extern bool_t lub_heap_check_memory(lub_heap_t * instance);
 
 /**
  * This function is invoked whenever a call to lub_heap_realloc() fails.
  * It is provided as a debugging aid; simple set a breakpoint to
  * stop execution of the program and any failures will be caught in context.
  */
-void 
-    lub_heap_stop_here(
-        /**
+void lub_heap_stop_here(
+	/**
          * The failure status of the the call to realloc
          */
-        lub_heap_status_t status,
-        /**
+			       lub_heap_status_t status,
+	/**
          * The old value of the pointer passed in
          */
-        char *old_ptr,
-        /**
+			       char *old_ptr,
+	/**
          * The requested number of bytes
          */
-        size_t new_size
-    );
+			       size_t new_size);
 
 /**
  * This operation fills out a statistics structure with the details for the 
@@ -789,32 +765,28 @@ void
  * - the results filled out are a snapshot of the statistics as the time
  *   of the call.
  */
-void
-    lub_heap__get_stats(
-        /**
+void lub_heap__get_stats(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+				lub_heap_t * instance,
+	/**
          * A client provided structure to fill out with the heap details
          */
-        lub_heap_stats_t *stats
-    );
+				lub_heap_stats_t * stats);
 
 /**
  * This operation dumps the salient details of the specified heap to stdout
  */
-void
-    lub_heap_show(
-        /**
+void lub_heap_show(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+			  lub_heap_t * instance,
+	/**
          * Whether to be verbose or not
          */
-        bool_t verbose
-    );
+			  bool_t verbose);
 /**
  * This method provides the size, in bytes, of the largest allocation
  * which can be performed.
@@ -827,21 +799,16 @@ void
  * \post
  * - none
  */
-size_t    
-lub_heap__get_max_free(
-        /**
+size_t lub_heap__get_max_free(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance
-    );
+				     lub_heap_t * instance);
 
 extern size_t
-    lub_heap__get_block_overhead(lub_heap_t *instance,
-                                 const void *ptr);
+lub_heap__get_block_overhead(lub_heap_t * instance, const void *ptr);
 
-extern size_t
-    lub_heap__get_block_size(lub_heap_t *instance,
-                             const void *ptr);
+extern size_t lub_heap__get_block_size(lub_heap_t * instance, const void *ptr);
 /**
  * This function scans memory to identify memory leaks
  * 
@@ -849,8 +816,7 @@ extern size_t
  * references may remain in freed memory.
  *
  */
-extern void
-    lub_heap_leak_scan(void);
+extern void lub_heap_leak_scan(void);
 /**
  * This function dumps all the context details for the heap
  * to stdout.
@@ -865,33 +831,26 @@ extern void
  * \return 
  * - a boolean indicating whether any leaks were displayed or not.
  */
-extern bool_t
-    lub_heap_leak_report(
-        /**
+extern bool_t lub_heap_leak_report(
+	/**
          * how to display the details
          */
-        lub_heap_show_e how,
-        /**
+					  lub_heap_show_e how,
+	/**
          * an optional substring to use to filter contexts.
          * Only contexts which contain the substring will be displayed
          */
-        const char *substring
-    );
+					  const char *substring);
 
-void
-    lub_heap__set_framecount(
-        /**
+void lub_heap__set_framecount(
+	/**
          * The new framecount to use
          */
-        unsigned framecount
-    );
+				     unsigned framecount);
 
-unsigned
-    lub_heap__get_framecount(void);
-    
-extern bool_t 
-    lub_heap_validate_pointer(lub_heap_t *instance,
-                              char       *ptr);
+unsigned lub_heap__get_framecount(void);
+
+extern bool_t lub_heap_validate_pointer(lub_heap_t * instance, char *ptr);
 /**
  * This 'magic' pointer is returned when a client requests zero bytes
  * The client can see that the allocation has succeeded, but cannot use 
@@ -915,15 +874,12 @@ extern bool_t
  *   support (disabled by default) then only the address of
  *   each stack frame will be shown.
  */
-extern void
-    lub_heap_init(
-        /** 
+extern void lub_heap_init(
+	/** 
          * The full pathname of the current executable
          * This is typically obtained from argv[0] in main()
          */
-        const char *program_name
-    );
-
+				 const char *program_name);
 
 #if defined(__CYGWIN__)
 
@@ -931,12 +887,11 @@ extern void
  * CYGWIN requires a specialised initialisation to account for 
  * argv[0] not containing the trailing ".exe" of the executable.
  */
-extern void 
-    cygwin_lub_heap_init(const char *file_name);
+extern void cygwin_lub_heap_init(const char *file_name);
 
 #define lub_heap_init(arg0) cygwin_lub_heap_init(arg0)
 
-#endif /* __CYGWIN__ */
+#endif				/* __CYGWIN__ */
 /**
   * This operation adds a cache to the current heap, which speeds up
   * the allocation and releasing of smaller block sizes.
@@ -953,21 +908,19 @@ extern void
   * - memory allocations for smaller block sizes may come from the
   *   cache.
   */
-lub_heap_status_t
-    lub_heap_cache_init(
-        /**
+lub_heap_status_t lub_heap_cache_init(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance,
-        /**
+					     lub_heap_t * instance,
+	/**
          * The maximum block size for the cache
          */
-        lub_heap_align_t max_block_size,
-        /**
+					     lub_heap_align_t max_block_size,
+	/**
          * The number of maximum sized blocks to make available.
          */
-        size_t num_max_blocks
-    );
+					     size_t num_max_blocks);
 /**
   * This operation signals the start of a section of code which 
   * should not have any of it's heap usage monitored by the leak
@@ -983,13 +936,11 @@ lub_heap_status_t
   * - If leak detection is enabled then no subsequent allocations will
   *   be monitored until the lub_heap_leak_restore_detection() is called.
   */
-void
-    lub_heap_leak_suppress_detection(
-        /**
+void lub_heap_leak_suppress_detection(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance
-    );
+					     lub_heap_t * instance);
 /**
   * This operation signals the end of a section of code which 
   * should not have any of it's heap usage monitored by the leak
@@ -1010,13 +961,11 @@ void
   * - If leak detection is enabled then no subsequent allocations will
   *   be monitored until the lub_heap_end_unmonitored_section() is called.
   */
-void
-    lub_heap_leak_restore_detection(
-        /**
+void lub_heap_leak_restore_detection(
+	/**
          * The instance on which to operate
          */
-        lub_heap_t *instance
-    );
+					    lub_heap_t * instance);
 
 /**
   * This operation returns the overhead, in bytes, which is required
@@ -1033,20 +982,16 @@ void
   * \post
   * - none
   */
-size_t
-    lub_heap_overhead_size(
-        /**
+size_t lub_heap_overhead_size(
+	/**
          * The maximum block size for the cache
          */
-        lub_heap_align_t max_block_size,
-        /**
+				     lub_heap_align_t max_block_size,
+	/**
          * The number of maximum sized blocks to make available.
          */
-        size_t num_max_blocks
-    );
-
+				     size_t num_max_blocks);
 
 _END_C_DECL
-
-#endif /* _lub_heap_h */
+#endif				/* _lub_heap_h */
 /** @} */

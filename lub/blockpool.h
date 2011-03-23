@@ -45,89 +45,87 @@ typedef struct _lub_blockpool_block lub_blockpool_block_t;
  * This type represents a "blockpool" instance.
  */
 typedef struct _lub_blockpool lub_blockpool_t;
-struct _lub_blockpool
-{
-    /* CLIENTS MUSTN'T TOUCH THESE DETAILS */
-    lub_blockpool_block_t *m_head;
-    lub_blockpool_block_t *m_tail;
-    size_t                 m_block_size;
-    size_t                 m_num_blocks;
-    unsigned               m_alloc_blocks;
-    unsigned               m_alloc_total_blocks;
-    unsigned               m_alloc_hightide_blocks;
-    unsigned               m_alloc_failures;
+struct _lub_blockpool {
+	/* CLIENTS MUSTN'T TOUCH THESE DETAILS */
+	lub_blockpool_block_t *m_head;
+	lub_blockpool_block_t *m_tail;
+	size_t m_block_size;
+	size_t m_num_blocks;
+	unsigned m_alloc_blocks;
+	unsigned m_alloc_total_blocks;
+	unsigned m_alloc_hightide_blocks;
+	unsigned m_alloc_failures;
 };
 /**
  * This type defines the statistics available for each blockpool.
  */
 typedef struct _lub_blockpool_stats lub_blockpool_stats_t;
-struct _lub_blockpool_stats
-{
+struct _lub_blockpool_stats {
     /*----------------------------------------------------- */
     /**
      * NUmber of bytes in each block.
      */
-    size_t block_size;
+	size_t block_size;
     /**
      * Total number of blocks in this pool.
      */
-    size_t num_blocks;
+	size_t num_blocks;
     /*----------------------------------------------------- */
     /**
      * Number of dynamically allocated blocks currently
      * held by clients of a blockpool.
      */
-    size_t alloc_blocks;
+	size_t alloc_blocks;
     /**
      * Number of dynamically allocated bytes currently
      * held by clients of a blockpool.
      */
-    size_t alloc_bytes;
+	size_t alloc_bytes;
     /**
      * Number of free blocks.
      */
-    size_t free_blocks;
+	size_t free_blocks;
     /**
      * Number of bytes available in a blockpool.
      */
-    size_t free_bytes;
+	size_t free_bytes;
     /*----------------------------------------------------- */
     /**
      * Cumulative number of dynamically allocated blocks
      * given to clients of a blockpool.
      */
-    size_t alloc_total_blocks;
+	size_t alloc_total_blocks;
     /**
      * Cumulative number of dynamically allocated bytes
      * given to clients of a blockpool.
      */
-    size_t alloc_total_bytes;
+	size_t alloc_total_bytes;
     /*----------------------------------------------------- */
     /**
      * Number of dynamically allocated blocks
      * given to clients when the memory usage was at it's highest.
      */
-    size_t alloc_hightide_blocks;
+	size_t alloc_hightide_blocks;
     /**
      * Number of dynamically allocated bytes
      * given to clients of a blockpool when the memory usage was at it's
      * highest
      */
-    size_t alloc_hightide_bytes;
+	size_t alloc_hightide_bytes;
     /**
      * Number of free blocks when the memory usage was at it's
      * highest
      */
-    size_t free_hightide_blocks;
+	size_t free_hightide_blocks;
     /**
      * Number of free bytes when the memory usage was at it's highest.
      */
-    size_t free_hightide_bytes;
+	size_t free_hightide_bytes;
     /*----------------------------------------------------- */
     /**
      * Number of time an allocation has failed from this block
      */
-    size_t alloc_failures;
+	size_t alloc_failures;
     /*----------------------------------------------------- */
 };
 /****************************************************************
@@ -144,26 +142,24 @@ struct _lub_blockpool_stats
  * \post If the size constraint is not met an assert will fire.
  * \post Following initialisation the allocation of memory can be performed.
  */
-extern void
-    lub_blockpool_init(
-        /** 
+extern void lub_blockpool_init(
+	/** 
          * the "blockpool" instance to initialise.
          */
-        lub_blockpool_t *blockpool,
-        /** 
+				      lub_blockpool_t * blockpool,
+	/** 
          * the memory to be managed.
          */
-        void *memory,
-        /**
+				      void *memory,
+	/**
          * The size in bytes of each block.
          */
-        size_t blocksize,
-        /** The number of blocks to be managed. NB the client is
+				      size_t blocksize,
+	/** The number of blocks to be managed. NB the client is
          * responsible for ensuring that (blocksize x blockcount)
          * bytes of memory are available for use.
          */
-        unsigned blockcount
-    );
+				      unsigned blockcount);
 
 /**
  * This operation allocates a "block" of memory from a "blockpool"
@@ -179,13 +175,11 @@ extern void
  * \post
  * The behaviour is undefined if the "blockpool" is uninitialised.
  */
-extern void *
-    lub_blockpool_alloc(
-        /** 
+extern void *lub_blockpool_alloc(
+	/** 
          * the "blockpool" instance to invoke this operation upon
          */
-        lub_blockpool_t *blockpool
-    );
+					lub_blockpool_t * blockpool);
 
 /**
  * This operation de-allocates a "block" of memory back into a "blockpool"
@@ -198,17 +192,15 @@ extern void *
  * The de-allocated block become available for subsequent
  * lub_blockpool_alloc() requests.
  */
-extern void
-    lub_blockpool_free(
-        /** 
+extern void lub_blockpool_free(
+	/** 
          * the "blockpool" instance to invoke this operation upon
          */
-        lub_blockpool_t *blockpool,
-        /** 
+				      lub_blockpool_t * blockpool,
+	/** 
          * the "block" to release back to the pool
          */
-        void *block
-    );
+				      void *block);
 /**
  * This operation fills out a statistics structure with the details for the 
  * specified blockpool.
@@ -220,18 +212,15 @@ extern void
  * - the results filled out are a snapshot of the statistics as the time
  *   of the call.
  */
-void
-    lub_blockpool__get_stats(
-        /**
+void lub_blockpool__get_stats(
+	/**
          * The instance on which to operate
          */
-        lub_blockpool_t *instance,
-        /**
+				     lub_blockpool_t * instance,
+	/**
          * A client provided structure to fill out with the blockpool details
          */
-        lub_blockpool_stats_t *stats
-    );
+				     lub_blockpool_stats_t * stats);
 
-#endif /* _lub_blockpool_h */
+#endif				/* _lub_blockpool_h */
 /** @} blockpool */
-

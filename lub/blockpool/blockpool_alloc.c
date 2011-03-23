@@ -44,34 +44,27 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void *
-lub_blockpool_alloc(lub_blockpool_t *this)
+void *lub_blockpool_alloc(lub_blockpool_t * this)
 {
-    lub_blockpool_block_t *newblock = this->m_head;
-    if(newblock)
-    {
-        if(newblock == this->m_tail)
-        {
-            /* remove the last item from the pool */
-            this->m_head = NULL;
-            this->m_tail = NULL;
-        }
-        else
-        {
-            this->m_head = newblock->next;
-        }
-        /* updated the stats */
-        ++this->m_alloc_blocks;
-        ++this->m_alloc_total_blocks;
-        if(this->m_alloc_blocks > this->m_alloc_hightide_blocks)
-        {
-            this->m_alloc_hightide_blocks = this->m_alloc_blocks;
-        }
-    }
-    else
-    {
-        ++this->m_alloc_failures;
-    }
-    return newblock;
+	lub_blockpool_block_t *newblock = this->m_head;
+	if (newblock) {
+		if (newblock == this->m_tail) {
+			/* remove the last item from the pool */
+			this->m_head = NULL;
+			this->m_tail = NULL;
+		} else {
+			this->m_head = newblock->next;
+		}
+		/* updated the stats */
+		++this->m_alloc_blocks;
+		++this->m_alloc_total_blocks;
+		if (this->m_alloc_blocks > this->m_alloc_hightide_blocks) {
+			this->m_alloc_hightide_blocks = this->m_alloc_blocks;
+		}
+	} else {
+		++this->m_alloc_failures;
+	}
+	return newblock;
 }
+
 /*--------------------------------------------------------- */
