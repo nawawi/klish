@@ -5,6 +5,9 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <assert.h>
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include "lub/types.h"
 #include "lub/argv.h"
@@ -78,7 +81,8 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	int pwdc = 0;
 
 	static const char *shortopts = "suoedtp:q:r:l:f:in";
-/*	static const struct option longopts[] = {
+#ifdef HAVE_GETOPT_H
+	static const struct option longopts[] = {
 		{"set",		0, NULL, 's'},
 		{"unset",	0, NULL, 'u'},
 		{"ok",		0, NULL, 'o'},
@@ -94,13 +98,16 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 		{"non-unique",	0, NULL, 'n'},
 		{NULL,		0, NULL, 0}
 	};
-*/
+#endif
 
 	optind = 0;
 	while(1) {
 		int opt;
-/*		opt = getopt_long(argc, argv, shortopts, longopts, NULL); */
+#ifdef HAVE_GETOPT_H
+		opt = getopt_long(argc, argv, shortopts, longopts, NULL);
+#else
 		opt = getopt(argc, argv, shortopts);
+#endif
 		if (-1 == opt)
 			break;
 		switch (opt) {
@@ -173,9 +180,9 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	if (KONF_QUERY_OP_NONE == this->op)
 		return -1;
 	if (KONF_QUERY_OP_SET == this->op) {
-		if (NULL == this->pattern)
+		if (!this->pattern)
 			return -1;
-		if (NULL == this->line)
+		if (!this->line)
 			return -1;
 	}
 
