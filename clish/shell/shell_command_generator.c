@@ -60,7 +60,6 @@ const clish_command_t *clish_shell_getnext_command(clish_shell_t * this,
 void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 	const clish_command_t *cmd, const char *line, unsigned offset)
 {
-	char *result = NULL;
 	const char *name = clish_command__get_name(cmd);
 	char *text = lub_string_dup(&line[offset]);
 	clish_ptype_t *ptype;
@@ -88,27 +87,23 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 
 		while ((param = clish_pargv__get_param(completion_pargv,
 			completion_index++))) {
-			if (param == clish_command__get_args(cmd)) {
-				/* The param is args so it has no completion */
-				result = NULL;
-			} else if (CLISH_PARAM_SWITCH ==
+			char *result;
+			/* The param is args so it has no completion */
+			if (param == clish_command__get_args(cmd))
+				continue;
+			/* The switch has no completion string */
+			if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
+				continue;
+			/* The subcommand is identified by it's value */
+			if (CLISH_PARAM_SUBCOMMAND ==
 				clish_param__get_mode(param)) {
-				/* The switch has no completion string */
-				result = NULL;
-			} else if (CLISH_PARAM_SUBCOMMAND ==
-				clish_param__get_mode(param)) {
-				/* The subcommand is identified by it's value */
 				result = clish_param__get_value(param);
-			} else {
-				/* The common PARAM. Let ptype do the work */
-				if ((ptype = clish_param__get_ptype(param)))
-					clish_ptype_word_generator(ptype,
-						matches, text);
-				else
-					result = NULL;
+				if (result)
+					lub_argv_add(matches, result);
 			}
-			if (result)
-				lub_argv_add(matches, result);
+			/* The common PARAM. Let ptype do the work */
+			if ((ptype = clish_param__get_ptype(param)))
+				clish_ptype_word_generator(ptype, matches, text);
 		}
 		clish_pargv_delete(completion_pargv);
 	}
