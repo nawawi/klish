@@ -10,11 +10,8 @@ static void lub_argv_fini(lub_argv_t * this)
 {
 	unsigned i;
 
-	lub_string_free(this->line);
-	this->line = NULL;
-	for (i = 0; i < this->argc; i++) {
+	for (i = 0; i < this->argc; i++)
 		lub_string_free(this->argv[i].arg);
-	}
 	free(this->argv);
 	this->argv = NULL;
 }

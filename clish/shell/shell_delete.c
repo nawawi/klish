@@ -65,12 +65,6 @@ static void clish_shell_fini(clish_shell_t * this)
 		unlink(this->fifo_name);
 		lub_string_free(this->fifo_name);
 	}
-
-	/* Clear the context */
-	if (this->context.completion_pargv) {
-		clish_pargv_delete(this->context.completion_pargv);
-		this->context.completion_pargv = NULL;
-	}
 }
 
 /*--------------------------------------------------------- */

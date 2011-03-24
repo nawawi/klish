@@ -1140,9 +1140,8 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 
 	/* find the start and end of the current word */
 	start = end = this->point;
-	while (start && !isspace(this->line[start - 1])) {
+	while (start && !isspace(this->line[start - 1]))
 		start--;
-	}
 
 	if (this->attempted_completion_function) {
 		this->completion_over = BOOL_FALSE;
@@ -1151,71 +1150,66 @@ tinyrl_do_complete(tinyrl_t * this, bool_t with_extensions)
 		matches = this->attempted_completion_function(this,
 			this->line, start, end);
 	}
-	if (!matches
-	    && (BOOL_FALSE == this->completion_over)) {
+	if (!matches && (BOOL_FALSE == this->completion_over)) {
 		/* insert default completion call here... */
 	}
+	if (!matches)
+		return result;
 
-	if (matches) {
-		/* identify and insert a common prefix if there is one */
-		if (0 != strncmp(matches[0], &this->line[start],
-			strlen(matches[0]))) {
-			/*
-			 * delete the original text not including 
-			 * the current insertion point character 
-			 */
-			if (this->end != end)
-				end--;
-			tinyrl_delete_text(this, start, end);
-			if (BOOL_FALSE == tinyrl_insert_text(this, matches[0])) {
-				return TINYRL_NO_MATCH;
-			}
-			completion = BOOL_TRUE;
-		}
-		for (i = 1; matches[i]; i++) {
-			/* this is just a prefix string */
-			if (0 == lub_string_nocasecmp(matches[0], matches[i]))
-				prefix = BOOL_TRUE;
-		}
-		/* is there more than one completion? */
-		if (matches[2]) {
-			char **tmp = matches;
-			unsigned max, len;
-			max = len = 0;
-			while (*tmp) {
-				size_t size = strlen(*tmp++);
-				len++;
-				if (size > max) {
-					max = size;
-				}
-			}
-			if (BOOL_TRUE == completion) {
-				result = TINYRL_COMPLETED_AMBIGUOUS;
-			} else if (BOOL_TRUE == prefix) {
-				result = TINYRL_MATCH_WITH_EXTENSIONS;
-			} else {
-				result = TINYRL_AMBIGUOUS;
-			}
-			if ((BOOL_TRUE == with_extensions)
-			    || (BOOL_FALSE == prefix)) {
-				/* Either we always want to show extensions or
-				 * we haven't been able to complete the current line
-				 * and there is just a prefix, so let the user see the options
-				 */
-				tinyrl_crlf(this);
-				tinyrl_display_matches(this, matches, len, max);
-				tinyrl_reset_line_state(this);
-			}
-		} else {
-			result = completion ?
-				TINYRL_COMPLETED_MATCH : TINYRL_MATCH;
-		}
-		/* free the memory */
-		tinyrl_delete_matches(matches);
-
-		/* redisplay the line */
-		tinyrl_redisplay(this);
+	/* identify and insert a common prefix if there is one */
+	if (0 != strncmp(matches[0], &this->line[start],
+		strlen(matches[0]))) {
+		/*
+		 * delete the original text not including
+		 * the current insertion point character
+		 */
+		if (this->end != end)
+			end--;
+		tinyrl_delete_text(this, start, end);
+		if (BOOL_FALSE == tinyrl_insert_text(this, matches[0]))
+			return TINYRL_NO_MATCH;
+		completion = BOOL_TRUE;
 	}
+	for (i = 1; matches[i]; i++) {
+		/* this is just a prefix string */
+		if (0 == lub_string_nocasecmp(matches[0], matches[i]))
+			prefix = BOOL_TRUE;
+	}
+	/* is there more than one completion? */
+	if (matches[2]) {
+		char **tmp = matches;
+		unsigned max, len;
+		max = len = 0;
+		while (*tmp) {
+			size_t size = strlen(*tmp++);
+			len++;
+			if (size > max)
+				max = size;
+		}
+		if (completion)
+			result = TINYRL_COMPLETED_AMBIGUOUS;
+		else if (prefix)
+			result = TINYRL_MATCH_WITH_EXTENSIONS;
+		else
+			result = TINYRL_AMBIGUOUS;
+		if (with_extensions || !prefix) {
+			/* Either we always want to show extensions or
+			 * we haven't been able to complete the current line
+			 * and there is just a prefix, so let the user see the options
+			 */
+			tinyrl_crlf(this);
+			tinyrl_display_matches(this, matches, len, max);
+			tinyrl_reset_line_state(this);
+		}
+	} else {
+		result = completion ?
+			TINYRL_COMPLETED_MATCH : TINYRL_MATCH;
+	}
+	/* free the memory */
+	tinyrl_delete_matches(matches);
+	/* redisplay the line */
+	tinyrl_redisplay(this);
+
 	return result;
 }
 

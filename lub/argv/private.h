@@ -14,7 +14,6 @@ struct lub_arg_s {
 };
 
 struct lub_argv_s {
-	char *line;
 	unsigned argc;
 	lub_arg_t *argv;
 };
@@ -22,4 +21,4 @@ struct lub_argv_s {
  * PRIVATE META FUNCTIONS
  *------------------------------------- */
 const char *lub_argv_nextword(const char *string,
-			      size_t * len, size_t * offset, bool_t * quoted);
+	size_t * len, size_t * offset, bool_t * quoted);

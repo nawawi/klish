@@ -13,12 +13,13 @@ unsigned lub_argv_wordcount(const char *line)
 	bool_t quoted;
 
 	for (word = lub_argv_nextword(line, &len, &offset, &quoted);
-	     *word;
-	     word = lub_argv_nextword(word + len, &len, &offset, &quoted)) {
+		*word;
+		word = lub_argv_nextword(word + len, &len, &offset, &quoted)) {
 		/* account for the terminating quotation mark */
 		len += (BOOL_TRUE == quoted) ? 1 : 0;
 		result++;
 	}
+
 	return result;
 }
 

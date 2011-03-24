@@ -10,8 +10,6 @@ libclish_la_SOURCES += \
 	clish/shell/shell_find_create_ptype.c \
 	clish/shell/shell_find_create_view.c \
 	clish/shell/shell_find_view.c \
-	clish/shell/shell_getfirst_command.c \
-	clish/shell/shell_getnext_command.c \
 	clish/shell/shell_help.c \
 	clish/shell/shell_insert_ptype.c \
 	clish/shell/shell_insert_view.c \

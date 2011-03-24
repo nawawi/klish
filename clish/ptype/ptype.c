@@ -4,6 +4,7 @@
 #include "private.h"
 #include "lub/string.h"
 #include "lub/ctype.h"
+#include "lub/argv.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -211,35 +212,31 @@ clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char *name)
  *--------------------------------------------------------- */
 
 /*--------------------------------------------------------- */
-char *clish_ptype_word_generator(clish_ptype_t * this,
-				 const char *text, unsigned state)
+void clish_ptype_word_generator(clish_ptype_t * this,
+	lub_argv_t *matches, const char *text)
 {
 	char *result = NULL;
+	unsigned i = 0;
 
+	/* Another ptypes has no completions */
 	if (this->method != CLISH_PTYPE_SELECT)
-		return NULL;
-	/* first of all simply try to validate the result */
-	if (0 == state)
-		result = clish_ptype_validate(this, text);
-	if (!result) {
-		switch (this->method) {
-		case CLISH_PTYPE_SELECT:
-			if (0 == state)
-				this->last_name = 0;
-			while ((result = clish_ptype_select__get_name(this,
-					this->last_name++))) {
-				/* get the next item and check if it is a completion */
-				/* found the next completion */
-				if (result == lub_string_nocasestr(result, text))
-						break;
-				lub_string_free(result);
-			}
-			break;
-		default:
-			break;
-		}
+		return;
+
+	/* First of all simply try to validate the result */
+	result = clish_ptype_validate(this, text);
+	if (result) {
+		lub_argv_add(matches, result);
+		lub_string_free(result);
+		return;
 	}
-	return result;
+
+	/* Iterate possible completion */
+	while ((result = clish_ptype_select__get_name(this, i++))) {
+		/* get the next item and check if it is a completion */
+		if (result == lub_string_nocasestr(result, text))
+			lub_argv_add(matches, result);
+		lub_string_free(result);
+	}
 }
 
 /*--------------------------------------------------------- */

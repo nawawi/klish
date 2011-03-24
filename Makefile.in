@@ -215,8 +215,6 @@ am_libclish_la_OBJECTS = clish/libclish_la-clish_access_callback.lo \
 	clish/shell/libclish_la-shell_find_create_ptype.lo \
 	clish/shell/libclish_la-shell_find_create_view.lo \
 	clish/shell/libclish_la-shell_find_view.lo \
-	clish/shell/libclish_la-shell_getfirst_command.lo \
-	clish/shell/libclish_la-shell_getnext_command.lo \
 	clish/shell/libclish_la-shell_help.lo \
 	clish/shell/libclish_la-shell_insert_ptype.lo \
 	clish/shell/libclish_la-shell_insert_view.lo \
@@ -749,9 +747,7 @@ libclish_la_SOURCES = clish/clish_access_callback.c \
 	clish/shell/shell_execute.c \
 	clish/shell/shell_find_create_ptype.c \
 	clish/shell/shell_find_create_view.c \
-	clish/shell/shell_find_view.c \
-	clish/shell/shell_getfirst_command.c \
-	clish/shell/shell_getnext_command.c clish/shell/shell_help.c \
+	clish/shell/shell_find_view.c clish/shell/shell_help.c \
 	clish/shell/shell_insert_ptype.c \
 	clish/shell/shell_insert_view.c clish/shell/shell_new.c \
 	clish/shell/shell_parse.c clish/shell/shell_pop_file.c \
@@ -1070,12 +1066,6 @@ clish/shell/libclish_la-shell_find_create_view.lo:  \
 	clish/shell/$(am__dirstamp) \
 	clish/shell/$(DEPDIR)/$(am__dirstamp)
 clish/shell/libclish_la-shell_find_view.lo:  \
-	clish/shell/$(am__dirstamp) \
-	clish/shell/$(DEPDIR)/$(am__dirstamp)
-clish/shell/libclish_la-shell_getfirst_command.lo:  \
-	clish/shell/$(am__dirstamp) \
-	clish/shell/$(DEPDIR)/$(am__dirstamp)
-clish/shell/libclish_la-shell_getnext_command.lo:  \
 	clish/shell/$(am__dirstamp) \
 	clish/shell/$(DEPDIR)/$(am__dirstamp)
 clish/shell/libclish_la-shell_help.lo: clish/shell/$(am__dirstamp) \
@@ -1707,10 +1697,6 @@ mostlyclean-compile:
 	-rm -f clish/shell/libclish_la-shell_find_create_view.lo
 	-rm -f clish/shell/libclish_la-shell_find_view.$(OBJEXT)
 	-rm -f clish/shell/libclish_la-shell_find_view.lo
-	-rm -f clish/shell/libclish_la-shell_getfirst_command.$(OBJEXT)
-	-rm -f clish/shell/libclish_la-shell_getfirst_command.lo
-	-rm -f clish/shell/libclish_la-shell_getnext_command.$(OBJEXT)
-	-rm -f clish/shell/libclish_la-shell_getnext_command.lo
 	-rm -f clish/shell/libclish_la-shell_help.$(OBJEXT)
 	-rm -f clish/shell/libclish_la-shell_help.lo
 	-rm -f clish/shell/libclish_la-shell_insert_ptype.$(OBJEXT)
@@ -2036,8 +2022,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_find_create_ptype.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_find_create_view.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_find_view.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_getfirst_command.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_getnext_command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_help.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_insert_ptype.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/shell/$(DEPDIR)/libclish_la-shell_insert_view.Plo@am__quote@
@@ -2365,20 +2349,6 @@ clish/shell/libclish_la-shell_find_view.lo: clish/shell/shell_find_view.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='clish/shell/shell_find_view.c' object='clish/shell/libclish_la-shell_find_view.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/shell/libclish_la-shell_find_view.lo `test -f 'clish/shell/shell_find_view.c' || echo '$(srcdir)/'`clish/shell/shell_find_view.c
-
-clish/shell/libclish_la-shell_getfirst_command.lo: clish/shell/shell_getfirst_command.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -MT clish/shell/libclish_la-shell_getfirst_command.lo -MD -MP -MF clish/shell/$(DEPDIR)/libclish_la-shell_getfirst_command.Tpo -c -o clish/shell/libclish_la-shell_getfirst_command.lo `test -f 'clish/shell/shell_getfirst_command.c' || echo '$(srcdir)/'`clish/shell/shell_getfirst_command.c
-@am__fastdepCC_TRUE@	$(am__mv) clish/shell/$(DEPDIR)/libclish_la-shell_getfirst_command.Tpo clish/shell/$(DEPDIR)/libclish_la-shell_getfirst_command.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='clish/shell/shell_getfirst_command.c' object='clish/shell/libclish_la-shell_getfirst_command.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/shell/libclish_la-shell_getfirst_command.lo `test -f 'clish/shell/shell_getfirst_command.c' || echo '$(srcdir)/'`clish/shell/shell_getfirst_command.c
-
-clish/shell/libclish_la-shell_getnext_command.lo: clish/shell/shell_getnext_command.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -MT clish/shell/libclish_la-shell_getnext_command.lo -MD -MP -MF clish/shell/$(DEPDIR)/libclish_la-shell_getnext_command.Tpo -c -o clish/shell/libclish_la-shell_getnext_command.lo `test -f 'clish/shell/shell_getnext_command.c' || echo '$(srcdir)/'`clish/shell/shell_getnext_command.c
-@am__fastdepCC_TRUE@	$(am__mv) clish/shell/$(DEPDIR)/libclish_la-shell_getnext_command.Tpo clish/shell/$(DEPDIR)/libclish_la-shell_getnext_command.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='clish/shell/shell_getnext_command.c' object='clish/shell/libclish_la-shell_getnext_command.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/shell/libclish_la-shell_getnext_command.lo `test -f 'clish/shell/shell_getnext_command.c' || echo '$(srcdir)/'`clish/shell/shell_getnext_command.c
 
 clish/shell/libclish_la-shell_help.lo: clish/shell/shell_help.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -MT clish/shell/libclish_la-shell_help.lo -MD -MP -MF clish/shell/$(DEPDIR)/libclish_la-shell_help.Tpo -c -o clish/shell/libclish_la-shell_help.lo `test -f 'clish/shell/shell_help.c' || echo '$(srcdir)/'`clish/shell/shell_help.c

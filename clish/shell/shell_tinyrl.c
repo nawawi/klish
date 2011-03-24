@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "tinyrl/tinyrl.h"
 #include "tinyrl/history.h"
@@ -46,22 +47,6 @@ static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 	key = key;
 
 	return result;
-}
-
-/*-------------------------------------------------------- */
-/* Generator function for command completion.  STATE lets us
- * know whether to start from scratch; without any state
- *  (i.e. STATE == 0), then we start at the top of the list. 
- */
-/*lint -e818
-  Pointer paramter 'this' could be declared as pointing to const */
-static char *clish_shell_tinyrl_word_generator(tinyrl_t * this,
-	const char *line, unsigned offset, unsigned state)
-{
-	/* get the context */
-	context_t *context = tinyrl__get_context(this);
-
-	return clish_shell_word_generator(context->shell, line, offset, state);
 }
 
 /*lint +e818 */
@@ -285,18 +270,56 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 /*-------------------------------------------------------- */
 /* This is the completion function provided for CLISH */
 static tinyrl_completion_func_t clish_shell_tinyrl_completion;
-static char **clish_shell_tinyrl_completion(tinyrl_t * this,
+static char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
 	const char *line, unsigned start, unsigned end)
 {
-	char **matches;
+	lub_argv_t *matches = lub_argv_new(NULL, 0);
+	context_t *context = tinyrl__get_context(tinyrl);
+	clish_shell_t *this = context->shell;
+	clish_shell_iterator_t iter;
+	const clish_command_t *cmd = NULL;
+	char *text = lub_string_dupn(line, end);
+	char **result = NULL;
 
-	/* don't bother to resort to filename completion */
-	tinyrl_completion_over(this);
-	/* perform the matching */
-	matches = tinyrl_completion(this,
-		line, start, end, clish_shell_tinyrl_word_generator);
+	/* Don't bother to resort to filename completion */
+	tinyrl_completion_over(tinyrl);
 
-	return matches;
+	/* Search for COMMAND completions */
+	clish_shell_iterator_init(&iter, CLISH_NSPACE_COMPLETION);
+	while ((cmd = clish_shell_find_next_completion(this, text, &iter)))
+		lub_argv_add(matches, clish_command__get_suffix(cmd));
+
+	/* Try and resolve a command */
+	cmd = clish_shell_resolve_command(this, text);
+	/* Search for PARAM completion */
+	if (cmd)
+		clish_shell_param_generator(this, matches, cmd, text, start);
+
+	lub_string_free(text);
+
+	/* Matches were found */
+	if (lub_argv__get_count(matches) > 0) {
+		unsigned i;
+		char *subst = lub_string_dup(lub_argv__get_arg(matches, 0));
+		/* Find out substitution */
+		for (i = 1; i < lub_argv__get_count(matches); i++) {
+			char *p = subst;
+			const char *match = lub_argv__get_arg(matches, i);
+			size_t match_len = strlen(p);
+			/* identify the common prefix */
+			while ((tolower(*p) == tolower(*match)) && match_len--) {
+				p++;
+				match++;
+			}
+			/* Terminate the prefix string */
+			*p = '\0';
+		}
+		result = lub_argv__get_argv(matches, subst);
+		lub_string_free(subst);
+	}
+	lub_argv_delete(matches);
+
+	return result;
 }
 
 /*-------------------------------------------------------- */

@@ -211,7 +211,7 @@ int konf_query_parse_str(konf_query_t *this, char *str)
 
 	/* Parse query */
 	res = konf_query_parse(this, str_argc, str_argv);
-	free(str_argv);
+	lub_argv__free_argv(str_argv);
 	lub_argv_delete(lub_argv);
 
 	return res;

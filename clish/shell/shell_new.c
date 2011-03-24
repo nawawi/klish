@@ -76,7 +76,6 @@ clish_shell_init(clish_shell_t * this,
 	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
 
 	/* Initialize context */
-	this->context.completion_pargv = NULL;
 	clish_shell_iterator_init(&this->context.iter, CLISH_NSPACE_NONE);
 
 	/* Push non-NULL istream */

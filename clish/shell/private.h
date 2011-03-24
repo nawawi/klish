@@ -39,9 +39,6 @@ typedef struct {
  * The context structure
  */
 struct clish_context_s {
-	clish_pargv_t *completion_pargv;
-	unsigned completion_index;
-	unsigned completion_pindex;
 	clish_shell_iterator_t iter; /* used for iterating commands */
 };
 
@@ -116,3 +113,5 @@ void clish_shell_tinyrl_history(clish_shell_t * instance, unsigned int *limit);
 tinyrl_t *clish_shell_tinyrl_new(FILE * instream,
 	FILE * outstream, unsigned stifle);
 void clish_shell_tinyrl_delete(tinyrl_t * instance);
+void clish_shell_param_generator(clish_shell_t * instance, lub_argv_t *matches,
+	const clish_command_t * cmd, const char *line, unsigned offset);

@@ -40,144 +40,80 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 }
 
 /*--------------------------------------------------------- */
-static char *clish_shell_param_generator(clish_shell_t * this,
-	const clish_command_t * cmd, const char *line,
-	unsigned offset, unsigned state)
+const clish_command_t *clish_shell_getfirst_command(clish_shell_t * this,
+	const char *line, clish_nspace_visibility_t field)
+{
+	clish_shell_iterator_init(&this->context.iter, field);
+
+	/* find the first command for which this is a prefix */
+	return clish_shell_getnext_command(this, line);
+}
+
+/*--------------------------------------------------------- */
+const clish_command_t *clish_shell_getnext_command(clish_shell_t * this,
+	const char *line)
+{
+	return clish_shell_find_next_completion(this, line, &this->context.iter);
+}
+
+/*--------------------------------------------------------- */
+void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
+	const clish_command_t *cmd, const char *line, unsigned offset)
 {
 	char *result = NULL;
 	const char *name = clish_command__get_name(cmd);
 	char *text = lub_string_dup(&line[offset]);
-	unsigned index;
-	const clish_param_t *param = NULL;
 	clish_ptype_t *ptype;
-	unsigned idx;
-
+	unsigned idx = lub_argv_wordcount(name);
 	/* get the index of the current parameter */
-	index = lub_argv_wordcount(line) - lub_argv_wordcount(name);
+	unsigned index = lub_argv_wordcount(line) - idx;
 
 	if ((0 != index) || (line[offset - 1] == ' ')) {
-		if (0 == state) {
-			lub_argv_t *argv;
-			clish_pargv_t *pargv;
+		lub_argv_t *argv = lub_argv_new(line, 0);
+		clish_pargv_t *pargv = clish_pargv_create();
+		clish_pargv_t *completion_pargv = clish_pargv_create();
+		unsigned completion_index = 0;
+		const clish_param_t *param = NULL;
 
-			if ((0 != index) && (text[0] != '\0')) {
-				/* if there is some text for the parameter then adjust the index */
-				index--;
-			}
-			argv = lub_argv_new(line, 0);
-			idx = lub_argv_wordcount(name);
-			if (this->context.completion_pargv) {
-				clish_pargv_delete(this->context.completion_pargv);
-				this->context.completion_pargv = NULL;
-			}
-			this->context.completion_pargv = clish_pargv_create();
-			pargv = clish_pargv_create();
-			clish_pargv_parse(pargv, cmd, this->viewid, clish_command__get_paramv(cmd),
-				argv, &idx, this->context.completion_pargv, index + idx);
-			clish_pargv_delete(pargv);
-			lub_argv_delete(argv);
-			this->context.completion_index = 0;
-			this->context.completion_pindex = 0;
-		}
+		/* if there is some text for the parameter then adjust the index */
+		if ((0 != index) && (text[0] != '\0'))
+			index--;
 
-		while ((param = clish_pargv__get_param(this->context.completion_pargv,
-			this->context.completion_index++))) {
+		/* Parse command line to get completion pargv's */
+		clish_pargv_parse(pargv, cmd, this->viewid,
+			clish_command__get_paramv(cmd),
+			argv, &idx, completion_pargv, index + idx);
+		clish_pargv_delete(pargv);
+		lub_argv_delete(argv);
 
+		while ((param = clish_pargv__get_param(completion_pargv,
+			completion_index++))) {
 			if (param == clish_command__get_args(cmd)) {
 				/* The param is args so it has no completion */
+				result = NULL;
+			} else if (CLISH_PARAM_SWITCH ==
+				clish_param__get_mode(param)) {
+				/* The switch has no completion string */
 				result = NULL;
 			} else if (CLISH_PARAM_SUBCOMMAND ==
 				clish_param__get_mode(param)) {
 				/* The subcommand is identified by it's value */
-				result = lub_string_dup(clish_param__get_value(param));
-			} else if (CLISH_PARAM_SWITCH ==
-				   clish_param__get_mode(param)) {
-				/* The switch has no completion string */
-				result = NULL;
+				result = clish_param__get_value(param);
 			} else {
-				/* The common param. Let ptype do the work */
-				if ((ptype = clish_param__get_ptype(param))) {
-					result = clish_ptype_word_generator(ptype, text,
-						this->context.completion_pindex++);
-					if (!result)
-						this->context.completion_pindex = 0;
-					else
-						this->context.completion_index--;
-				} else {
+				/* The common PARAM. Let ptype do the work */
+				if ((ptype = clish_param__get_ptype(param)))
+					clish_ptype_word_generator(ptype,
+						matches, text);
+				else
 					result = NULL;
-				}
 			}
-
 			if (result)
-				break;
+				lub_argv_add(matches, result);
 		}
-
-	} else if (0 == state) {
-		/* simply return the command name */
-		result = lub_string_dup(clish_command__get_suffix(cmd));
+		clish_pargv_delete(completion_pargv);
 	}
 
-	if (!result) {
-		clish_pargv_delete(this->context.completion_pargv);
-		this->context.completion_pargv = NULL;
-		/* make sure we reset the line state */
-//		tinyrl_crlf(this->tinyrl);
-//		tinyrl_reset_line_state(this->tinyrl);
-//		tinyrl_completion_error_over(this->tinyrl);
-	}
 	lub_string_free(text);
-
-	return result;
-}
-
-/*--------------------------------------------------------- */
-static char *clish_shell_command_generator(clish_shell_t * this,
-	const char *line, unsigned offset, unsigned state)
-{
-	char *result = NULL;
-	const clish_command_t *cmd = NULL;
-	if (0 == state)
-		cmd = clish_shell_getfirst_command(this, line,
-			CLISH_NSPACE_COMPLETION);
-	else
-		cmd = clish_shell_getnext_command(this, line);
-	if (cmd)
-		result = lub_string_dup(clish_command__get_suffix(cmd));
-	/* keep the compiler happy */
-	offset = offset;
-
-	return result;
-}
-
-/*--------------------------------------------------------- */
-char *clish_shell_word_generator(clish_shell_t * this,
-	const char *line, unsigned offset, unsigned state)
-{
-	char *result = NULL;
-	const clish_command_t *cmd, *next = NULL;
-
-	/* try and resolve a command which is a prefix of the line */
-	cmd = clish_shell_resolve_command(this, line);
-	if (cmd) {
-		clish_shell_iterator_t iter;
-		/* see whether there is an extended extension */
-		clish_shell_iterator_init(&iter, CLISH_NSPACE_COMPLETION);
-		next = clish_shell_find_next_completion(this, line, &iter);
-	}
-	if (cmd && !next) {
-		/* this needs to be completed as a parameter */
-		result = clish_shell_param_generator(this, cmd, line, offset,
-			state);
-	} else {
-		/* this needs to be completed as a command */
-		result = clish_shell_command_generator(this, line, offset,
-			state);
-	}
-	/* reset the state from a help perspective */
-	if (0 == state)
-		this->state = SHELL_STATE_OK;
-
-	return result;
 }
 
 /*--------------------------------------------------------- */

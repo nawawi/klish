@@ -38,7 +38,7 @@ bool_t lub_system_argv_test(const lub_argv_t * argv)
 
 	/* Test it */
 	res = lub_system_test(str_argc, str_argv);
-	free(str_argv);
+	lub_argv__free_argv(str_argv);
 
 	return res;
 }

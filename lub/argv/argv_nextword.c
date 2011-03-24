@@ -8,7 +8,7 @@
 #include <stddef.h>
 /*--------------------------------------------------------- */
 const char *lub_argv_nextword(const char *string,
-			      size_t * len, size_t * offset, bool_t * quoted)
+	size_t * len, size_t * offset, bool_t * quoted)
 {
 	const char *word;
 	bool_t quote = BOOL_FALSE;
