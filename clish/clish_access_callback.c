@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <grp.h>
 
-#include "private.h"
+#include "internal.h"
 /*--------------------------------------------------------- */
 bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
 {

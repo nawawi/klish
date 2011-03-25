@@ -40,23 +40,6 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 }
 
 /*--------------------------------------------------------- */
-const clish_command_t *clish_shell_getfirst_command(clish_shell_t * this,
-	const char *line, clish_nspace_visibility_t field)
-{
-	clish_shell_iterator_init(&this->context.iter, field);
-
-	/* find the first command for which this is a prefix */
-	return clish_shell_getnext_command(this, line);
-}
-
-/*--------------------------------------------------------- */
-const clish_command_t *clish_shell_getnext_command(clish_shell_t * this,
-	const char *line)
-{
-	return clish_shell_find_next_completion(this, line, &this->context.iter);
-}
-
-/*--------------------------------------------------------- */
 void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 	const clish_command_t *cmd, const char *line, unsigned offset)
 {

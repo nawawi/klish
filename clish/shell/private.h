@@ -104,10 +104,6 @@ const clish_command_t *clish_shell_resolve_command(const clish_shell_t *
 	instance, const char *line);
 const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t *
 	instance, const char *line);
-const clish_command_t *clish_shell_getfirst_command(clish_shell_t * instance,
-	const char *line, clish_nspace_visibility_t field);
-const clish_command_t *clish_shell_getnext_command(clish_shell_t * instance,
-	const char *line);
 void clish_shell_insert_ptype(clish_shell_t * instance, clish_ptype_t * ptype);
 void clish_shell_tinyrl_history(clish_shell_t * instance, unsigned int *limit);
 tinyrl_t *clish_shell_tinyrl_new(FILE * instream,
@@ -115,3 +111,5 @@ tinyrl_t *clish_shell_tinyrl_new(FILE * instream,
 void clish_shell_tinyrl_delete(tinyrl_t * instance);
 void clish_shell_param_generator(clish_shell_t * instance, lub_argv_t *matches,
 	const clish_command_t * cmd, const char *line, unsigned offset);
+char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
+	const char *line, unsigned start, unsigned end);

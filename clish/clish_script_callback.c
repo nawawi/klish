@@ -18,7 +18,7 @@
 
 #include "lub/string.h"
 #include "konf/buf.h"
-#include "private.h"
+#include "internal.h"
 
 /*--------------------------------------------------------- */
 bool_t clish_script_callback(clish_shell_t * this,

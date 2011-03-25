@@ -269,8 +269,8 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 
 /*-------------------------------------------------------- */
 /* This is the completion function provided for CLISH */
-static tinyrl_completion_func_t clish_shell_tinyrl_completion;
-static char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
+tinyrl_completion_func_t clish_shell_tinyrl_completion;
+char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
 	const char *line, unsigned start, unsigned end)
 {
 	lub_argv_t *matches = lub_argv_new(NULL, 0);

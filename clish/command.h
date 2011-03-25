@@ -11,6 +11,7 @@ typedef struct clish_command_s clish_command_t;
 #include "clish/pargv.h"
 #include "clish/view.h"
 #include "clish/param.h"
+#include "clish/private.h"
 
 typedef enum {
 	CLISH_CONFIG_NONE,
@@ -43,8 +44,8 @@ clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2);
 void clish_command_delete(clish_command_t * instance);
 void
 clish_command_insert_param(clish_command_t * instance, clish_param_t * param);
-void clish_command_help(const clish_command_t * instance, const char *viewid,
-	const char *line);
+int clish_command_help(const clish_command_t * instance, help_argv_t *help,
+	const char *viewid, const char *line);
 void clish_command_dump(const clish_command_t * instance);
 
 /*-----------------

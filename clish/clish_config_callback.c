@@ -13,7 +13,7 @@
 #include <sys/un.h>
 #include <limits.h>
 
-#include "private.h"
+#include "internal.h"
 #include "konf/net.h"
 #include "konf/buf.h"
 #include "konf/query.h"

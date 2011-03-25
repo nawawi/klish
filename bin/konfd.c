@@ -34,6 +34,7 @@
 #include <grp.h>
 #endif
 
+#include "clish/internal.h"
 #include "clish/private.h"
 #include "konf/tree.h"
 #include "konf/query.h"

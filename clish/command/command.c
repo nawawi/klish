@@ -4,6 +4,7 @@
   * This file provides the implementation of a command definition  
   */
 #include "private.h"
+#include "clish/private.h"
 #include "clish/variable.h"
 #include "lub/bintree.h"
 #include "lub/string.h"
@@ -203,8 +204,8 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 }
 
 /*--------------------------------------------------------- */
-void clish_command_help(const clish_command_t * this, const char * viewid,
-	const char * line)
+int clish_command_help(const clish_command_t * this, help_argv_t *help,
+	const char * viewid, const char * line)
 {
 	const char *name = clish_command__get_name(this);
 	unsigned index = lub_argv_wordcount(line);
@@ -216,14 +217,10 @@ void clish_command_help(const clish_command_t * this, const char * viewid,
 	unsigned longest = 0;
 
 	if (0 == index)
-		return;
-
+		return 0;
 	/* Line has no any parameters */
-	if (strlen(line) <= strlen(name)) {
-		fprintf(stderr, "  %s  %s\n", name,
-			clish_command__get_text(this));
-		return;
-	}
+	if (strlen(line) <= strlen(name))
+		return 0;
 
 	if (line[strlen(line) - 1] != ' ')
 		index--;
@@ -253,12 +250,12 @@ void clish_command_help(const clish_command_t * this, const char * viewid,
 			clen = strlen(name);
 		if (clen > longest)
 			longest = clen;
+		clish_param_help(clish_pargv__get_param(last, i), help);
 	}
-	for (i = 0; i < cnt; i++)
-		clish_param_help(clish_pargv__get_param(last, i), longest + 1);
 	clish_pargv_delete(last);
-
 	lub_argv_delete(argv);
+
+	return longest;
 }
 
 /*--------------------------------------------------------- */

@@ -6,6 +6,7 @@
 #include "private.h"
 #include "lub/string.h"
 #include "clish/variable.h"
+#include "clish/private.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -146,10 +147,11 @@ char *clish_param_validate(const clish_param_t * this, const char *text)
 }
 
 /*--------------------------------------------------------- */
-void clish_param_help(const clish_param_t * this, size_t offset)
+void clish_param_help(const clish_param_t * this, help_argv_t *help)
 {
 	const char *range = clish_ptype__get_range(this->ptype);
 	const char *name;
+	char *str = NULL;
 
 	if (CLISH_PARAM_SWITCH == clish_param__get_mode(this)) {
 		unsigned rec_paramc = clish_param__get_param_count(this);
@@ -160,23 +162,27 @@ void clish_param_help(const clish_param_t * this, size_t offset)
 			cparam = clish_param__get_param(this, i);
 			if (!cparam)
 				break;
-			clish_param_help(cparam, offset);
+			clish_param_help(cparam, help);
 		}
 		return;
 	}
 
 	if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(this))
 		name = clish_param__get_value(this);
-	else {
+	else
 		if (!(name = clish_ptype__get_text(this->ptype)))
 			name = clish_ptype__get_name(this->ptype);
-	}
 
-	fprintf(stderr, "  %s %*c%s",
-		name, (int)(offset - strlen(name)), ' ', this->text);
-	if (NULL != range)
-		fprintf(stderr, " (%s)", range);
-	fprintf(stderr, "\n");
+	lub_string_cat(&str, this->text);
+	if (range) {
+		lub_string_cat(&str, " (");
+		lub_string_cat(&str, range);
+		lub_string_cat(&str, ")");
+	}
+	lub_argv_add(help->matches, name);
+	lub_argv_add(help->help, str);
+	lub_string_free(str);
+	lub_argv_add(help->detail, NULL);
 }
 
 /*--------------------------------------------------------- */
