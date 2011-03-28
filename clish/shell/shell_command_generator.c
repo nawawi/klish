@@ -50,7 +50,7 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 	/* get the index of the current parameter */
 	unsigned index = lub_argv_wordcount(line) - idx;
 
-	if ((0 != index) || (line[offset - 1] == ' ')) {
+	if ((0 != index) || (offset && line[offset - 1] == ' ')) {
 		lub_argv_t *argv = lub_argv_new(line, 0);
 		clish_pargv_t *pargv = clish_pargv_create();
 		clish_pargv_t *completion_pargv = clish_pargv_create();
