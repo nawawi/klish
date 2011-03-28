@@ -185,7 +185,7 @@ clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 		}
 
 		/* Set parameter value */
-		if (NULL != param) {
+		if (param) {
 			char *validated = NULL;
 			clish_paramv_t *rec_paramv =
 			    clish_param__get_paramv(param);
@@ -244,6 +244,12 @@ clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 				lub_string_free(validated);
 
 				/* Next command line argument */
+				/* Don't change idx if this is the last
+				   unfinished optional argument.
+				 */
+				if (!(clish_param__get_optional(param) &&
+					(*idx == need_index) &&
+					(need_index == (argc - 1))))
 				(*idx)++;
 
 				/* Walk through the nested parameters */

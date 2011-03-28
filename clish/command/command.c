@@ -250,7 +250,7 @@ int clish_command_help(const clish_command_t * this, help_argv_t *help,
 			clen = strlen(name);
 		if (clen > longest)
 			longest = clen;
-		clish_param_help(clish_pargv__get_param(last, i), help);
+		clish_param_help(param, help);
 	}
 	clish_pargv_delete(last);
 	lub_argv_delete(argv);
