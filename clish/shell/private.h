@@ -35,13 +35,6 @@ typedef struct {
 	char *viewid;
 } clish_shell_pwd_t;
 
-/*
- * The context structure
- */
-struct clish_context_s {
-	clish_shell_iterator_t iter; /* used for iterating commands */
-};
-
 struct clish_shell_s {
 	lub_bintree_t view_tree;	/* Maintain a tree of views      */
 	lub_bintree_t ptype_tree;	/* Maintain a tree of ptypes     */
@@ -60,7 +53,6 @@ struct clish_shell_s {
 	konf_client_t *client;
 	char * lockfile;
 	pthread_t pthread;
-	clish_context_t context;
 	char * default_shebang;
 	char * fifo_name; /* The name of temporary fifo file. */
 	bool_t interactive; /* Is shell interactive. */

@@ -75,9 +75,6 @@ clish_shell_init(clish_shell_t * this,
 		"Interactive flag", tmp_ptype);
 	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
 
-	/* Initialize context */
-	clish_shell_iterator_init(&this->context.iter, CLISH_NSPACE_NONE);
-
 	/* Push non-NULL istream */
 	if (istream)
 		clish_shell_push_fd(this, istream, stop_on_error);
