@@ -2,7 +2,7 @@
  * shell_help.c
  */
 #include "private.h"
-#include "clish/private.h"
+#include "clish/types.h"
 #include "lub/string.h"
 
 #include <stdio.h>
@@ -14,7 +14,7 @@
  * Provide a detailed list of the possible command completions
  */
 static int available_commands(clish_shell_t * this,
-	help_argv_t *help, const char *line)
+	clish_help_t *help, const char *line)
 {
 	size_t max_width = 0;
 	const clish_command_t *cmd;
@@ -28,7 +28,7 @@ static int available_commands(clish_shell_t * this,
 		width = strlen(name);
 		if (width > max_width)
 			max_width = width;
-		lub_argv_add(help->matches, name);
+		lub_argv_add(help->name, name);
 		lub_argv_add(help->help, clish_command__get_text(cmd));
 		lub_argv_add(help->detail, clish_command__get_detail(cmd));
 	}
@@ -39,12 +39,12 @@ static int available_commands(clish_shell_t * this,
 /*--------------------------------------------------------- */
 void clish_shell_help(clish_shell_t *this, const char *line)
 {
-	help_argv_t help;
+	clish_help_t help;
 	size_t max_width = 0;
 	const clish_command_t *cmd;
 	int i;
 
-	help.matches = lub_argv_new(NULL, 0);
+	help.name = lub_argv_new(NULL, 0);
 	help.help = lub_argv_new(NULL, 0);
 	help.detail = lub_argv_new(NULL, 0);
 
@@ -60,18 +60,18 @@ void clish_shell_help(clish_shell_t *this, const char *line)
 		if (width > max_width)
 			max_width = width;
 	}
-	if (lub_argv__get_count(help.matches) == 0)
+	if (lub_argv__get_count(help.name) == 0)
 		goto end;
 
 	/* Print help messages */
-	for (i = 0; i < lub_argv__get_count(help.matches); i++) {
+	for (i = 0; i < lub_argv__get_count(help.name); i++) {
 		fprintf(stderr, "  %-*s  %s\n", (int)max_width,
-			lub_argv__get_arg(help.matches, i),
+			lub_argv__get_arg(help.name, i),
 			lub_argv__get_arg(help.help, i));
 	}
 
 	/* Print details */
-	if ((lub_argv__get_count(help.matches) == 1) &&
+	if ((lub_argv__get_count(help.name) == 1) &&
 		(SHELL_STATE_HELPING == this->state)) {
 		const char *detail = lub_argv__get_arg(help.detail, 0);
 		if (detail)
@@ -85,7 +85,7 @@ void clish_shell_help(clish_shell_t *this, const char *line)
 		this->state = SHELL_STATE_HELPING;
 
 end:
-	lub_argv_delete(help.matches);
+	lub_argv_delete(help.name);
 	lub_argv_delete(help.help);
 	lub_argv_delete(help.detail);
 }

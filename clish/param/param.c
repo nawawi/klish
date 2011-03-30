@@ -5,8 +5,8 @@
  */
 #include "private.h"
 #include "lub/string.h"
+#include "clish/types.h"
 #include "clish/variable.h"
-#include "clish/private.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -147,7 +147,7 @@ char *clish_param_validate(const clish_param_t * this, const char *text)
 }
 
 /*--------------------------------------------------------- */
-void clish_param_help(const clish_param_t * this, help_argv_t *help)
+void clish_param_help(const clish_param_t * this, clish_help_t *help)
 {
 	const char *range = clish_ptype__get_range(this->ptype);
 	const char *name;
@@ -179,7 +179,7 @@ void clish_param_help(const clish_param_t * this, help_argv_t *help)
 		lub_string_cat(&str, range);
 		lub_string_cat(&str, ")");
 	}
-	lub_argv_add(help->matches, name);
+	lub_argv_add(help->name, name);
 	lub_argv_add(help->help, str);
 	lub_string_free(str);
 	lub_argv_add(help->detail, NULL);

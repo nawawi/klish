@@ -15,6 +15,7 @@ libclish_la_LIBADD = \
 	libkonf.la
 
 nobase_include_HEADERS += \
+	clish/types.h \
 	clish/command.h \
 	clish/param.h \
 	clish/pargv.h \

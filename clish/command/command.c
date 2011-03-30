@@ -4,7 +4,7 @@
   * This file provides the implementation of a command definition  
   */
 #include "private.h"
-#include "clish/private.h"
+#include "clish/types.h"
 #include "clish/variable.h"
 #include "lub/bintree.h"
 #include "lub/string.h"
@@ -204,7 +204,7 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 }
 
 /*--------------------------------------------------------- */
-int clish_command_help(const clish_command_t * this, help_argv_t *help,
+int clish_command_help(const clish_command_t * this, clish_help_t *help,
 	const char * viewid, const char * line)
 {
 	const char *name = clish_command__get_name(this);
@@ -276,8 +276,8 @@ clish_command_t *clish_command_choose_longest(clish_command_t * cmd1,
 }
 
 /*--------------------------------------------------------- */
-int
-clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2)
+int clish_command_diff(const clish_command_t * cmd1,
+	const clish_command_t * cmd2)
 {
 	if (NULL == cmd1) {
 		if (NULL != cmd2)

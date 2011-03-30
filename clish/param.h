@@ -18,9 +18,9 @@ the arguments which a user is inputing for a command.
 typedef struct clish_paramv_s clish_paramv_t;
 typedef struct clish_param_s clish_param_t;
 
+#include "clish/types.h"
 #include "clish/ptype.h"
 #include "clish/pargv.h"
-#include "clish/private.h"
 
 /**
  * The means by which the param is interpreted.
@@ -54,7 +54,7 @@ clish_param_t *clish_param_new(const char *name,
  * methods
  *----------------- */
 void clish_param_delete(clish_param_t * instance);
-void clish_param_help(const clish_param_t * instance, help_argv_t *help);
+void clish_param_help(const clish_param_t * instance, clish_help_t *help);
 void clish_param_help_arrow(const clish_param_t * instance, size_t offset);
 char *clish_param_validate(const clish_param_t * instance, const char *text);
 void clish_param_dump(const clish_param_t * instance);

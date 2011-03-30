@@ -666,13 +666,13 @@ AM_CXXFLAGS = -Wall $(DEBUG_CFLAGS)
 lib_LTLIBRARIES = libclish.la liblub.la $(am__append_2) libtinyrl.la \
 	libtinyxml.la libkonf.la
 lib_LIBRARIES = 
-nobase_include_HEADERS = clish/command.h clish/param.h clish/pargv.h \
-	clish/ptype.h clish/shell.h clish/variable.h clish/view.h \
-	clish/nspace.h clish/internal.h lub/argv.h lub/bintree.h \
-	lub/blockpool.h lub/ctype.h lub/dblockpool.h lub/c_decl.h \
-	lub/dump.h lub/heap.h lub/partition.h lub/string.h \
-	lub/size_fmt.h lub/test.h lub/types.h lub/system.h \
-	tinyrl/tinyrl.h tinyrl/history.h tinyrl/vt100.h \
+nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
+	clish/pargv.h clish/ptype.h clish/shell.h clish/variable.h \
+	clish/view.h clish/nspace.h clish/internal.h lub/argv.h \
+	lub/bintree.h lub/blockpool.h lub/ctype.h lub/dblockpool.h \
+	lub/c_decl.h lub/dump.h lub/heap.h lub/partition.h \
+	lub/string.h lub/size_fmt.h lub/test.h lub/types.h \
+	lub/system.h tinyrl/tinyrl.h tinyrl/history.h tinyrl/vt100.h \
 	tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h konf/query.h \
 	konf/buf.h konf/net.h
 EXTRA_DIST = bin/module.am clish/module.am lub/module.am \

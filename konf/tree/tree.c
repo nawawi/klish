@@ -311,8 +311,6 @@ int konf_tree_del_pattern(konf_tree_t *this,
 	/* Iterate configuration tree */
 	lub_bintree_iterator_init(&iter, &this->tree, conf);
 	do {
-		if (0 != regexec(&regexp, conf->line, 0, NULL, 0))
-			continue;
 		if ((0 != priority) &&
 			(priority != conf->priority))
 			continue;
@@ -320,6 +318,8 @@ int konf_tree_del_pattern(konf_tree_t *this,
 			(seq_num != conf->seq_num))
 			continue;
 		if (seq && (0 == seq_num) && (0 == conf->seq_num))
+			continue;
+		if (0 != regexec(&regexp, conf->line, 0, NULL, 0))
 			continue;
 		lub_bintree_remove(&this->tree, conf);
 		konf_tree_delete(conf);
