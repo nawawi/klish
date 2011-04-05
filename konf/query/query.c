@@ -30,6 +30,7 @@ konf_query_t *konf_query_new(void)
 	this->pwdc = 0;
 	this->pwd = NULL;
 	this->line = NULL;
+	this->lower_line = NULL;
 	this->path = NULL;
 	this->splitter = BOOL_TRUE;
 	this->unique = BOOL_TRUE;
@@ -63,6 +64,7 @@ void konf_query_free(konf_query_t *this)
 
 	lub_string_free(this->pattern);
 	lub_string_free(this->line);
+	lub_string_free(this->lower_line);
 	lub_string_free(this->path);
 	if (this->pwdc > 0) {
 		for (i = 0; i < this->pwdc; i++)
@@ -161,6 +163,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 			break;
 		case 'l':
 			this->line = lub_string_dup(optarg);
+			this->lower_line = lub_string_tolower(optarg);
 			break;
 		case 'f':
 			this->path = lub_string_dup(optarg);
@@ -256,6 +259,12 @@ const char * konf_query__get_pattern(konf_query_t *this)
 const char * konf_query__get_line(konf_query_t *this)
 {
 	return this->line;
+}
+
+/*-------------------------------------------------------- */
+const char * konf_query__get_lower_line(konf_query_t *this)
+{
+	return this->lower_line;
 }
 
 /*-------------------------------------------------------- */

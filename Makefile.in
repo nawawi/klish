@@ -63,7 +63,7 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(top_srcdir)/lub/heap/module.am \
 	$(top_srcdir)/lub/heap/posix/module.am \
 	$(top_srcdir)/lub/heap/vxworks/module.am \
-	$(top_srcdir)/lub/module.am \
+	$(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/module.am \
 	$(top_srcdir)/lub/partition/module.am \
 	$(top_srcdir)/lub/partition/posix/module.am \
 	$(top_srcdir)/lub/partition/vxworks/module.am \
@@ -258,7 +258,7 @@ am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
 	lub/bintree/bintree_iterator_previous.c \
 	lub/bintree/bintree_node_init.c lub/bintree/bintree_remove.c \
 	lub/bintree/bintree_splay.c lub/bintree/private.h \
-	lub/blockpool/blockpool_alloc.c \
+	lub/list/list.c lub/blockpool/blockpool_alloc.c \
 	lub/blockpool/blockpool__get_stats.c \
 	lub/blockpool/blockpool_free.c lub/blockpool/blockpool_init.c \
 	lub/blockpool/private.h lub/ctype/ctype_isspace.c \
@@ -393,7 +393,8 @@ am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/bintree/bintree_iterator_next.lo \
 	lub/bintree/bintree_iterator_previous.lo \
 	lub/bintree/bintree_node_init.lo lub/bintree/bintree_remove.lo \
-	lub/bintree/bintree_splay.lo lub/blockpool/blockpool_alloc.lo \
+	lub/bintree/bintree_splay.lo lub/list/list.lo \
+	lub/blockpool/blockpool_alloc.lo \
 	lub/blockpool/blockpool__get_stats.lo \
 	lub/blockpool/blockpool_free.lo \
 	lub/blockpool/blockpool_init.lo lub/ctype/ctype_isspace.lo \
@@ -669,12 +670,12 @@ lib_LIBRARIES =
 nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
 	clish/pargv.h clish/ptype.h clish/shell.h clish/variable.h \
 	clish/view.h clish/nspace.h clish/internal.h lub/argv.h \
-	lub/bintree.h lub/blockpool.h lub/ctype.h lub/dblockpool.h \
-	lub/c_decl.h lub/dump.h lub/heap.h lub/partition.h \
-	lub/string.h lub/size_fmt.h lub/test.h lub/types.h \
-	lub/system.h tinyrl/tinyrl.h tinyrl/history.h tinyrl/vt100.h \
-	tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h konf/query.h \
-	konf/buf.h konf/net.h
+	lub/bintree.h lub/list.h lub/blockpool.h lub/ctype.h \
+	lub/dblockpool.h lub/c_decl.h lub/dump.h lub/heap.h \
+	lub/partition.h lub/string.h lub/size_fmt.h lub/test.h \
+	lub/types.h lub/system.h tinyrl/tinyrl.h tinyrl/history.h \
+	tinyrl/vt100.h tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h \
+	konf/query.h konf/buf.h konf/net.h
 EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	lubheap/module.am tinyrl/module.am tinyxml/module.am \
 	test/module.am xml-examples/module.am konf/module.am \
@@ -683,7 +684,7 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	clish/pargv/module.am clish/ptype/module.am \
 	clish/shell/module.am clish/variable/module.am \
 	clish/view/module.am clish/nspace/module.am clish/README \
-	lub/argv/module.am lub/bintree/module.am \
+	lub/argv/module.am lub/bintree/module.am lub/list/module.am \
 	lub/blockpool/module.am lub/ctype/module.am \
 	lub/dblockpool/module.am lub/dump/module.am lub/heap/module.am \
 	lub/string/module.am lub/test/module.am lub/system/module.am \
@@ -784,7 +785,7 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/bintree/bintree_iterator_previous.c \
 	lub/bintree/bintree_node_init.c lub/bintree/bintree_remove.c \
 	lub/bintree/bintree_splay.c lub/bintree/private.h \
-	lub/blockpool/blockpool_alloc.c \
+	lub/list/list.c lub/blockpool/blockpool_alloc.c \
 	lub/blockpool/blockpool__get_stats.c \
 	lub/blockpool/blockpool_free.c lub/blockpool/blockpool_init.c \
 	lub/blockpool/private.h lub/ctype/ctype_isspace.c \
@@ -867,7 +868,7 @@ all: config.h
 .SUFFIXES: .c .cpp .lo .o .obj
 am--refresh:
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/variable/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lubheap/module.am $(top_srcdir)/lubheap/posix/module.am $(top_srcdir)/lubheap/vxworks/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/variable/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lubheap/module.am $(top_srcdir)/lubheap/posix/module.am $(top_srcdir)/lubheap/vxworks/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1234,6 +1235,14 @@ lub/bintree/bintree_remove.lo: lub/bintree/$(am__dirstamp) \
 	lub/bintree/$(DEPDIR)/$(am__dirstamp)
 lub/bintree/bintree_splay.lo: lub/bintree/$(am__dirstamp) \
 	lub/bintree/$(DEPDIR)/$(am__dirstamp)
+lub/list/$(am__dirstamp):
+	@$(MKDIR_P) lub/list
+	@: > lub/list/$(am__dirstamp)
+lub/list/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) lub/list/$(DEPDIR)
+	@: > lub/list/$(DEPDIR)/$(am__dirstamp)
+lub/list/list.lo: lub/list/$(am__dirstamp) \
+	lub/list/$(DEPDIR)/$(am__dirstamp)
 lub/blockpool/$(am__dirstamp):
 	@$(MKDIR_P) lub/blockpool
 	@: > lub/blockpool/$(am__dirstamp)
@@ -1917,6 +1926,8 @@ mostlyclean-compile:
 	-rm -f lub/heap/posix/heap_symShow.lo
 	-rm -f lub/heap/posix/sysheap_stubs.$(OBJEXT)
 	-rm -f lub/heap/posix/sysheap_stubs.lo
+	-rm -f lub/list/list.$(OBJEXT)
+	-rm -f lub/list/list.lo
 	-rm -f lub/partition/partition_check_memory.$(OBJEXT)
 	-rm -f lub/partition/partition_check_memory.lo
 	-rm -f lub/partition/partition_destroy_local_heap.$(OBJEXT)
@@ -2132,6 +2143,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_scan_data.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_symShow.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/sysheap_stubs.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lub/list/$(DEPDIR)/list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_check_memory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_destroy_local_heap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_disable_leak_detection.Plo@am__quote@
@@ -2597,6 +2609,7 @@ clean-libtool:
 	-rm -rf lub/dump/.libs lub/dump/_libs
 	-rm -rf lub/heap/.libs lub/heap/_libs
 	-rm -rf lub/heap/posix/.libs lub/heap/posix/_libs
+	-rm -rf lub/list/.libs lub/list/_libs
 	-rm -rf lub/partition/.libs lub/partition/_libs
 	-rm -rf lub/partition/posix/.libs lub/partition/posix/_libs
 	-rm -rf lub/string/.libs lub/string/_libs
@@ -2909,6 +2922,8 @@ distclean-generic:
 	-rm -f lub/heap/$(am__dirstamp)
 	-rm -f lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/heap/posix/$(am__dirstamp)
+	-rm -f lub/list/$(DEPDIR)/$(am__dirstamp)
+	-rm -f lub/list/$(am__dirstamp)
 	-rm -f lub/partition/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/partition/$(am__dirstamp)
 	-rm -f lub/partition/posix/$(DEPDIR)/$(am__dirstamp)
@@ -2943,7 +2958,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/variable/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) lubheap/posix/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/variable/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) lubheap/posix/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -2992,7 +3007,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/variable/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) lubheap/posix/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/variable/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) lubheap/posix/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

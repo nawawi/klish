@@ -1,9 +1,12 @@
 /*
  * string_nocasecmp.c
  */
-#include "private.h"
+#include <string.h>
+#include <ctype.h>
 
+#include "private.h"
 #include "lub/ctype.h"
+
 
 /*--------------------------------------------------------- */
 int lub_string_nocasecmp(const char *cs, const char *ct)
@@ -29,5 +32,20 @@ int lub_string_nocasecmp(const char *cs, const char *ct)
 	}
 	return result;
 }
+
+/*--------------------------------------------------------- */
+char *lub_string_tolower(const char *str)
+{
+	char *tmp = strdup(str);
+	char *p = tmp;
+
+	while (*p) {
+		*p = tolower(*p);
+		p++;
+	}
+
+	return tmp;
+}
+
 
 /*--------------------------------------------------------- */

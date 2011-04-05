@@ -17,7 +17,7 @@ Use it to implement config in memory.
 #include <stdio.h>
 
 #include "lub/types.h"
-#include "lub/bintree.h"
+#include "lub/list.h"
 
 typedef struct konf_tree_s konf_tree_t;
 
@@ -31,10 +31,7 @@ typedef struct konf_tree_s konf_tree_t;
 /*-----------------
  * meta functions
  *----------------- */
-konf_tree_t *konf_tree_new(const char * line, unsigned short priority);
-int konf_tree_bt_compare(const void *clientnode, const void *clientkey);
-void konf_tree_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
-size_t konf_tree_bt_offset(void);
+konf_tree_t *konf_tree_new(const char *line, unsigned short priority);
 
 /*-----------------
  * methods
@@ -48,6 +45,7 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * instance,
 konf_tree_t *konf_tree_find_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority, unsigned short sequence);
 int konf_tree_del_pattern(konf_tree_t * instance,
+	const char *line, bool_t unique,
 	const char *pattern, unsigned short priority,
 	bool_t seq, unsigned short seq_num);
 

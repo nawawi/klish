@@ -247,6 +247,9 @@ char *lub_string_decode(const char *string);
  */
 char *lub_string_encode(const char *string, const char *escape_chars);
 
+char *lub_string_tolower(const char *str);
+
+
 _END_C_DECL
 #endif				/* _lub_string_h */
 /** @} */

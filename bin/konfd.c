@@ -364,16 +364,18 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 	case KONF_QUERY_OP_SET:
 		if (konf_query__get_unique(query)) {
-			if (konf_tree_find_conf(iconf,
-				konf_query__get_line(query), 0, 0)) {
-				ret = KONF_QUERY_OP_OK;
-				break;
-			}
-			konf_tree_del_pattern(iconf,
+			int exist = 0;
+			exist = konf_tree_del_pattern(iconf,
+				konf_query__get_line(query),
+				konf_query__get_unique(query),
 				konf_query__get_pattern(query),
 				konf_query__get_priority(query),
 				konf_query__get_seq(query),
 				konf_query__get_seq_num(query));
+			if (exist) {
+				ret = KONF_QUERY_OP_OK;
+				break;
+			}
 		}
 		tmpconf = konf_tree_new_conf(iconf,
 			konf_query__get_line(query), konf_query__get_priority(query),
@@ -389,8 +391,12 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 	case KONF_QUERY_OP_UNSET:
 		konf_tree_del_pattern(iconf,
-			konf_query__get_pattern(query), konf_query__get_priority(query),
-			konf_query__get_seq(query), konf_query__get_seq_num(query));
+			NULL,
+			BOOL_TRUE,
+			konf_query__get_pattern(query),
+			konf_query__get_priority(query),
+			konf_query__get_seq(query),
+			konf_query__get_seq_num(query));
 		ret = KONF_QUERY_OP_OK;
 		break;
 

@@ -6,15 +6,15 @@
 
 #include "konf/tree.h"
 #include "lub/types.h"
-#include "lub/bintree.h"
+#include "lub/list.h"
 
 /*---------------------------------------------------------
  * PRIVATE TYPES
  *--------------------------------------------------------- */
 struct konf_tree_s {
-	lub_bintree_t tree;
-	lub_bintree_node_t bt_node;
+	lub_list_t *list;
 	char *line;
+	char *lower_line;
 	unsigned short priority;
 	unsigned short seq_num;
 	unsigned short sub_num;
