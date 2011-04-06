@@ -246,8 +246,7 @@ liblub_la_DEPENDENCIES =
 am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
 	lub/argv/argv__get_argv.c lub/argv/argv__get_count.c \
 	lub/argv/argv__get_offset.c lub/argv/argv__get_quoted.c \
-	lub/argv/argv_delete.c lub/argv/argv_new.c \
-	lub/argv/argv_nextword.c lub/argv/argv_wordcount.c \
+	lub/argv/argv_new.c lub/argv/argv_nextword.c \
 	lub/argv/private.h lub/bintree/bintree_dump.c \
 	lub/bintree/bintree_find.c lub/bintree/bintree_findfirst.c \
 	lub/bintree/bintree_findlast.c lub/bintree/bintree_findnext.c \
@@ -313,11 +312,11 @@ am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
 	lub/partition/posix/posix_partition.c \
 	lub/partition/posix/private.h lub/string/string_cat.c \
 	lub/string/string_catn.c lub/string/string_dup.c \
-	lub/string/string_dupn.c lub/string/string_free.c \
-	lub/string/string_nocasecmp.c lub/string/string_nocasestr.c \
-	lub/string/string_suffix.c lub/string/string_escape.c \
-	lub/string/private.h lub/test/test.c lub/system/test.c \
-	lub/system/system_test.c lub/system/private.h
+	lub/string/string_free.c lub/string/string_nocasecmp.c \
+	lub/string/string_nocasestr.c lub/string/string_suffix.c \
+	lub/string/string_escape.c lub/string/private.h \
+	lub/test/test.c lub/system/test.c lub/system/system_test.c \
+	lub/system/private.h
 @LUBHEAP_TRUE@am__objects_1 = lub/heap/cache.lo \
 @LUBHEAP_TRUE@	lub/heap/cache_bucket.lo lub/heap/context.lo \
 @LUBHEAP_TRUE@	lub/heap/heap__get_max_free.lo \
@@ -381,8 +380,7 @@ am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
 am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/argv/argv__get_argv.lo lub/argv/argv__get_count.lo \
 	lub/argv/argv__get_offset.lo lub/argv/argv__get_quoted.lo \
-	lub/argv/argv_delete.lo lub/argv/argv_new.lo \
-	lub/argv/argv_nextword.lo lub/argv/argv_wordcount.lo \
+	lub/argv/argv_new.lo lub/argv/argv_nextword.lo \
 	lub/bintree/bintree_dump.lo lub/bintree/bintree_find.lo \
 	lub/bintree/bintree_findfirst.lo \
 	lub/bintree/bintree_findlast.lo \
@@ -405,10 +403,10 @@ am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/dblockpool/dblockpool_init.lo lub/dump/dump.lo \
 	$(am__objects_1) lub/string/string_cat.lo \
 	lub/string/string_catn.lo lub/string/string_dup.lo \
-	lub/string/string_dupn.lo lub/string/string_free.lo \
-	lub/string/string_nocasecmp.lo lub/string/string_nocasestr.lo \
-	lub/string/string_suffix.lo lub/string/string_escape.lo \
-	lub/test/test.lo lub/system/test.lo lub/system/system_test.lo
+	lub/string/string_free.lo lub/string/string_nocasecmp.lo \
+	lub/string/string_nocasestr.lo lub/string/string_suffix.lo \
+	lub/string/string_escape.lo lub/test/test.lo \
+	lub/system/test.lo lub/system/system_test.lo
 liblub_la_OBJECTS = $(am_liblub_la_OBJECTS)
 liblubheap_la_LIBADD =
 am__liblubheap_la_SOURCES_DIST = lubheap/posix/sysheap.c
@@ -772,9 +770,8 @@ libclish_la_LIBADD = \
 
 liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/argv/argv__get_count.c lub/argv/argv__get_offset.c \
-	lub/argv/argv__get_quoted.c lub/argv/argv_delete.c \
-	lub/argv/argv_new.c lub/argv/argv_nextword.c \
-	lub/argv/argv_wordcount.c lub/argv/private.h \
+	lub/argv/argv__get_quoted.c lub/argv/argv_new.c \
+	lub/argv/argv_nextword.c lub/argv/private.h \
 	lub/bintree/bintree_dump.c lub/bintree/bintree_find.c \
 	lub/bintree/bintree_findfirst.c lub/bintree/bintree_findlast.c \
 	lub/bintree/bintree_findnext.c \
@@ -796,12 +793,11 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/dblockpool/dblockpool_init.c lub/dblockpool/private.h \
 	lub/dump/dump.c lub/dump/private.h $(am__append_1) \
 	lub/string/string_cat.c lub/string/string_catn.c \
-	lub/string/string_dup.c lub/string/string_dupn.c \
-	lub/string/string_free.c lub/string/string_nocasecmp.c \
-	lub/string/string_nocasestr.c lub/string/string_suffix.c \
-	lub/string/string_escape.c lub/string/private.h \
-	lub/test/test.c lub/system/test.c lub/system/system_test.c \
-	lub/system/private.h
+	lub/string/string_dup.c lub/string/string_free.c \
+	lub/string/string_nocasecmp.c lub/string/string_nocasestr.c \
+	lub/string/string_suffix.c lub/string/string_escape.c \
+	lub/string/private.h lub/test/test.c lub/system/test.c \
+	lub/system/system_test.c lub/system/private.h
 liblub_la_LIBADD = -lpthread
 @LUBHEAP_TRUE@liblubheap_la_SOURCES = lubheap/posix/sysheap.c
 libtinyrl_la_LIBADD = liblub.la
@@ -1193,13 +1189,9 @@ lub/argv/argv__get_offset.lo: lub/argv/$(am__dirstamp) \
 	lub/argv/$(DEPDIR)/$(am__dirstamp)
 lub/argv/argv__get_quoted.lo: lub/argv/$(am__dirstamp) \
 	lub/argv/$(DEPDIR)/$(am__dirstamp)
-lub/argv/argv_delete.lo: lub/argv/$(am__dirstamp) \
-	lub/argv/$(DEPDIR)/$(am__dirstamp)
 lub/argv/argv_new.lo: lub/argv/$(am__dirstamp) \
 	lub/argv/$(DEPDIR)/$(am__dirstamp)
 lub/argv/argv_nextword.lo: lub/argv/$(am__dirstamp) \
-	lub/argv/$(DEPDIR)/$(am__dirstamp)
-lub/argv/argv_wordcount.lo: lub/argv/$(am__dirstamp) \
 	lub/argv/$(DEPDIR)/$(am__dirstamp)
 lub/bintree/$(am__dirstamp):
 	@$(MKDIR_P) lub/bintree
@@ -1462,8 +1454,6 @@ lub/string/string_cat.lo: lub/string/$(am__dirstamp) \
 lub/string/string_catn.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
 lub/string/string_dup.lo: lub/string/$(am__dirstamp) \
-	lub/string/$(DEPDIR)/$(am__dirstamp)
-lub/string/string_dupn.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
 lub/string/string_free.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
@@ -1764,14 +1754,10 @@ mostlyclean-compile:
 	-rm -f lub/argv/argv__get_offset.lo
 	-rm -f lub/argv/argv__get_quoted.$(OBJEXT)
 	-rm -f lub/argv/argv__get_quoted.lo
-	-rm -f lub/argv/argv_delete.$(OBJEXT)
-	-rm -f lub/argv/argv_delete.lo
 	-rm -f lub/argv/argv_new.$(OBJEXT)
 	-rm -f lub/argv/argv_new.lo
 	-rm -f lub/argv/argv_nextword.$(OBJEXT)
 	-rm -f lub/argv/argv_nextword.lo
-	-rm -f lub/argv/argv_wordcount.$(OBJEXT)
-	-rm -f lub/argv/argv_wordcount.lo
 	-rm -f lub/bintree/bintree_dump.$(OBJEXT)
 	-rm -f lub/bintree/bintree_dump.lo
 	-rm -f lub/bintree/bintree_find.$(OBJEXT)
@@ -1960,8 +1946,6 @@ mostlyclean-compile:
 	-rm -f lub/string/string_catn.lo
 	-rm -f lub/string/string_dup.$(OBJEXT)
 	-rm -f lub/string/string_dup.lo
-	-rm -f lub/string/string_dupn.$(OBJEXT)
-	-rm -f lub/string/string_dupn.lo
 	-rm -f lub/string/string_escape.$(OBJEXT)
 	-rm -f lub/string/string_escape.lo
 	-rm -f lub/string/string_free.$(OBJEXT)
@@ -2062,10 +2046,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv__get_count.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv__get_offset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv__get_quoted.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv_delete.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv_new.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv_nextword.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/argv/$(DEPDIR)/argv_wordcount.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_find.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_findfirst.Plo@am__quote@
@@ -2160,7 +2142,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_cat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_catn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_dup.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_dupn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_escape.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_free.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_nocasecmp.Plo@am__quote@

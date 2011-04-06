@@ -38,7 +38,7 @@ konf_client_t *konf_client_new(const char *path)
 		return NULL;
 
 	this->sock = -1; /* socket is not created yet */
-	this->path = lub_string_dup(path);
+	this->path = strdup(path);
 
 	return this;
 }
@@ -50,7 +50,7 @@ void konf_client_free(konf_client_t *this)
 		return;
 	if (this->sock != -1)
 		konf_client_disconnect(this);
-	lub_string_free(this->path);
+	free(this->path);
 
 	free(this);
 }
@@ -125,10 +125,10 @@ konf_buf_t * konf_client_recv_data(konf_client_t * this, konf_buf_t *buf)
 			konf_buf_add(data, str, strlen(str) + 1);
 			if (strlen(str) == 0) {
 				processed = 1;
-				lub_string_free(str);
+				free(str);
 				break;
 			}
-			lub_string_free(str);
+			free(str);
 		}
 	} while ((!processed) && (konf_buf_read(buf)) > 0);
 	if (!processed) {
@@ -202,7 +202,7 @@ int konf_client_recv_answer(konf_client_t * this, konf_buf_t **data)
 		while ((str = konf_buf_parse(buf))) {
 			konf_buf_t *tmpdata = NULL;
 			retval = process_answer(this, str, buf, &tmpdata);
-			lub_string_free(str);
+			free(str);
 			if (retval < 0) {
 				konf_buf_delete(buf);
 				return retval;

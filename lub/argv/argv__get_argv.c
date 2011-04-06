@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "lub/string.h"
 #include "private.h"
@@ -50,9 +51,9 @@ char **lub_argv__get_argv(const lub_argv_t * this, const char *argv0)
 	result = malloc(sizeof(char *) * (this->argc + 1 + a));
 
 	if (argv0)
-		result[0] = lub_string_dup(argv0);
+		result[0] = strdup(argv0);
 	for (i = 0; i < this->argc; i++)
-		result[i + a] = lub_string_dup(this->argv[i].arg);
+		result[i + a] = strdup(this->argv[i].arg);
 	result[i + a] = NULL;
 
 	return result;
@@ -67,7 +68,7 @@ void lub_argv__free_argv(char **argv)
 		return;
 
 	for (i = 0; argv[i]; i++)
-		lub_string_free(argv[i]);
+		free(argv[i]);
 	free(argv);
 }
 

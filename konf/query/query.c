@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -54,7 +55,7 @@ void konf_query_add_pwd(konf_query_t *this, char *str)
 	assert(tmp);
 	this->pwd = tmp;
 	/* insert reference to the pwd component */
-	this->pwd[this->pwdc++] = lub_string_dup(str);
+	this->pwd[this->pwdc++] = strdup(str);
 }
 
 /*-------------------------------------------------------- */
@@ -62,13 +63,13 @@ void konf_query_free(konf_query_t *this)
 {
 	unsigned i;
 
-	lub_string_free(this->pattern);
-	lub_string_free(this->line);
-	lub_string_free(this->lower_line);
-	lub_string_free(this->path);
+	free(this->pattern);
+	free(this->line);
+	free(this->lower_line);
+	free(this->path);
 	if (this->pwdc > 0) {
 		for (i = 0; i < this->pwdc; i++)
-			lub_string_free(this->pwd[i]);
+			free(this->pwd[i]);
 		free(this->pwd);
 	}
 
@@ -159,14 +160,14 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 			break;
 			}
 		case 'r':
-			this->pattern = lub_string_dup(optarg);
+			this->pattern = strdup(optarg);
 			break;
 		case 'l':
-			this->line = lub_string_dup(optarg);
+			this->line = strdup(optarg);
 			this->lower_line = lub_string_tolower(optarg);
 			break;
 		case 'f':
-			this->path = lub_string_dup(optarg);
+			this->path = strdup(optarg);
 			break;
 		case 'i':
 			this->splitter = BOOL_FALSE;

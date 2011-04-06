@@ -44,7 +44,7 @@ static void konf_tree_init(konf_tree_t * this, const char *line,
 	unsigned short priority)
 {
 	/* set up defaults */
-	this->line = lub_string_dup(line);
+	this->line = strdup(line);
 	this->lower_line = lub_string_tolower(line);
 	this->priority = priority;
 	this->seq_num = 0;
@@ -73,9 +73,9 @@ static void konf_tree_fini(konf_tree_t * this)
 	lub_list_free(this->list);
 
 	/* free our memory */
-	lub_string_free(this->line);
+	free(this->line);
 	this->line = NULL;
-	lub_string_free(this->lower_line);
+	free(this->lower_line);
 	this->lower_line = NULL;
 }
 
@@ -235,11 +235,11 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 				break;
 		}
 		if (!strcmp(conf->lower_line, lower_line)) {
-			lub_string_free(lower_line);
+			free(lower_line);
 			return conf;
 		}
 	} while ((iter = lub_list_node__get_next(iter)));
-	lub_string_free(lower_line);
+	free(lower_line);
 
 	return NULL;
 }

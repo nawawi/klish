@@ -276,10 +276,10 @@ int main(int argc, char **argv)
 				while ((str = konf_buftree_parse(&bufs, i))) {
 					char *answer;
 					if (!(answer = process_query(i, conf, str)))
-						answer = lub_string_dup("-e");
-					lub_string_free(str);
+						answer = strdup("-e");
+					free(str);
 					answer_send(i, answer);
-					lub_string_free(answer);
+					free(answer);
 				}
 			}
 		}
@@ -528,8 +528,8 @@ struct options *opts_init(void)
 	opts = malloc(sizeof(*opts));
 	assert(opts);
 	opts->debug = 0; /* daemonize by default */
-	opts->socket_path = lub_string_dup(KONFD_SOCKET_PATH);
-	opts->pidfile = lub_string_dup(KONFD_PIDFILE);
+	opts->socket_path = strdup(KONFD_SOCKET_PATH);
+	opts->pidfile = strdup(KONFD_PIDFILE);
 	opts->chroot = NULL;
 	opts->uid = getuid();
 	opts->gid = getgid();
@@ -542,11 +542,11 @@ struct options *opts_init(void)
 void opts_free(struct options *opts)
 {
 	if (opts->socket_path)
-		lub_string_free(opts->socket_path);
+		free(opts->socket_path);
 	if (opts->pidfile)
-		lub_string_free(opts->pidfile);
+		free(opts->pidfile);
 	if (opts->chroot)
-		lub_string_free(opts->chroot);
+		free(opts->chroot);
 	free(opts);
 }
 
@@ -581,19 +581,19 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 		switch (opt) {
 		case 's':
 			if (opts->socket_path)
-				lub_string_free(opts->socket_path);
-			opts->socket_path = lub_string_dup(optarg);
+				free(opts->socket_path);
+			opts->socket_path = strdup(optarg);
 			break;
 		case 'p':
 			if (opts->pidfile)
-				lub_string_free(opts->pidfile);
-			opts->pidfile = lub_string_dup(optarg);
+				free(opts->pidfile);
+			opts->pidfile = strdup(optarg);
 			break;
 		case 'r':
 #ifdef HAVE_CHROOT
 			if (opts->chroot)
-				lub_string_free(opts->chroot);
-			opts->chroot = lub_string_dup(optarg);
+				free(opts->chroot);
+			opts->chroot = strdup(optarg);
 #else
 			syslog(LOG_ERR, "The --chroot option is not supported\n");
 			return -1;

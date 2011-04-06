@@ -69,7 +69,25 @@ void lub_argv_add(lub_argv_t * this, const char *text)
 	arg = realloc(this->argv, sizeof(lub_arg_t) * (this->argc + 1));
 	assert(arg);
 	this->argv = arg;
-	(this->argv[this->argc++]).arg = lub_string_dup(text);
+	(this->argv[this->argc++]).arg = strdup(text);
+}
+
+/*--------------------------------------------------------- */
+static void lub_argv_fini(lub_argv_t * this)
+{
+	unsigned i;
+
+	for (i = 0; i < this->argc; i++)
+		free(this->argv[i].arg);
+	free(this->argv);
+	this->argv = NULL;
+}
+
+/*--------------------------------------------------------- */
+void lub_argv_delete(lub_argv_t * this)
+{
+	lub_argv_fini(this);
+	free(this);
 }
 
 /*--------------------------------------------------------- */
