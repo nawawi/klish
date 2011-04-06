@@ -151,18 +151,29 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 }
 
 /*-------------------------------------------------------- */
-static int normalize_seq(konf_tree_t * this, unsigned short priority)
+static int normalize_seq(konf_tree_t * this, unsigned short priority,
+	lub_list_node_t *start)
 {
 	unsigned short cnt = 1;
 	konf_tree_t *conf = NULL;
 	lub_list_node_t *iter;
 	unsigned short cur_pri;
 
-	/* If tree is empty */
-	if (!(iter = lub_list__get_head(this->list)))
+	if (start) {
+		lub_list_node_t *prev;
+		iter = start;
+		if ((prev = lub_list_node__get_prev(iter))) {
+			conf = (konf_tree_t *)lub_list_node__get_data(prev);
+			cnt = konf_tree__get_seq_num(conf) + 1;
+		}
+	} else {
+		iter = lub_list__get_head(this->list);
+	}
+	/* If list is empty */
+	if (!iter)
 		return 0;
 
-	/* Iterate and set dirty */
+	/* Iterate and renum */
 	do {
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		cur_pri = konf_tree__get_priority(conf);
@@ -183,6 +194,7 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 	const char *line, unsigned short priority,
 	bool_t seq, unsigned short seq_num)
 {
+	lub_list_node_t *node;
 	/* Allocate the memory for a new child element */
 	konf_tree_t *newconf = konf_tree_new(line, priority);
 	assert(newconf);
@@ -194,11 +206,11 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 		konf_tree__set_sub_num(newconf, KONF_ENTRY_NEW);
 	}
 
-	/* Insert it into the binary tree for this conf */
-	lub_list_add(this->list, newconf);
+	/* Insert it into the list */
+	node = lub_list_add(this->list, newconf);
 
 	if (seq) {
-		normalize_seq(this, priority);
+		normalize_seq(this, priority, node);
 		konf_tree__set_sub_num(newconf, KONF_ENTRY_OK);
 	}
 
@@ -297,7 +309,7 @@ int konf_tree_del_pattern(konf_tree_t *this,
 	regfree(&regexp);
 
 	if (seq && (del_cnt != 0))
-		normalize_seq(this, priority);
+		normalize_seq(this, priority, NULL);
 
 	return res;
 }
