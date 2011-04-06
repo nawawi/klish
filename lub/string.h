@@ -232,6 +232,7 @@ void lub_string_free(
  * - The result string must be freed after using.
  */
 char *lub_string_decode(const char *string);
+char *lub_string_ndecode(const char *string, unsigned int len);
 
 /**
  * This operation encode the string using escape.

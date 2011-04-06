@@ -17,7 +17,7 @@
 static const char *default_escape_chars = "`|$<>&()#;";
 
 /*--------------------------------------------------------- */
-char *lub_string_decode(const char *string)
+char *lub_string_ndecode(const char *string, unsigned int len)
 {
 	const char *s = string;
 	char *res, *p;
@@ -27,9 +27,9 @@ char *lub_string_decode(const char *string)
 		return NULL;
 
 	/* Allocate enough memory for result */
-	p = res = malloc(strlen(string) + 1);
+	p = res = malloc(len + 1);
 
-	while (*s) {
+	while (*s && (s < (string +len))) {
 		if (!esc) {
 			if ('\\' == *s)
 				esc = 1;
@@ -56,11 +56,13 @@ char *lub_string_decode(const char *string)
 	}
 	*p = '\0';
 
-	/* Optimize the memory allocated for result */
-	p = lub_string_dup(res);
-	free(res);
+	return res;
+}
 
-	return p;
+/*--------------------------------------------------------- */
+inline char *lub_string_decode(const char *string)
+{
+	return lub_string_ndecode(string, strlen(string));
 }
 
 /*----------------------------------------------------------- */

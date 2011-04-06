@@ -1,11 +1,12 @@
 /*
  * argv_nextword.c
  */
+#include <stddef.h>
+#include <ctype.h>
+
 #include "private.h"
 #include "lub/types.h"
-#include "lub/ctype.h"
 
-#include <stddef.h>
 /*--------------------------------------------------------- */
 const char *lub_argv_nextword(const char *string,
 	size_t * len, size_t * offset, bool_t * quoted)
@@ -16,7 +17,7 @@ const char *lub_argv_nextword(const char *string,
 	*quoted = BOOL_FALSE;
 
 	/* find the start of a word (not including an opening quote) */
-	while (*string && lub_ctype_isspace(*string)) {
+	while (*string && isspace(*string)) {
 		string++;
 		(*offset)++;
 	}
@@ -44,7 +45,7 @@ const char *lub_argv_nextword(const char *string,
 			}
 			continue;
 		}
-		if ((BOOL_FALSE == quote) && lub_ctype_isspace(*string)) {
+		if ((BOOL_FALSE == quote) && isspace(*string)) {
 			/* end of word */
 			break;
 		}
