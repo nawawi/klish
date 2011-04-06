@@ -81,6 +81,7 @@ lub_list_node_t *lub_list_iterator_next(lub_list_node_t *node);
 lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *node);
 lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
 void lub_list_del(lub_list_t *list, lub_list_node_t *node);
+inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src);
 
 #endif				/* _lub_list_h */
 

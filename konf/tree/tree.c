@@ -197,8 +197,10 @@ konf_tree_t *konf_tree_new_conf(konf_tree_t * this,
 	/* Insert it into the binary tree for this conf */
 	lub_list_add(this->list, newconf);
 
-	if (seq)
+	if (seq) {
 		normalize_seq(this, priority);
+		konf_tree__set_sub_num(newconf, KONF_ENTRY_OK);
+	}
 
 	return newconf;
 }
@@ -210,6 +212,7 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	konf_tree_t *conf;
 	lub_list_node_t *iter;
 	int check_pri = 0;
+	char *lower_line;
 
 	/* If list is empty */
 	if (!(iter = lub_list__get_head(this->list)))
@@ -218,6 +221,7 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	if ((0 != priority) && (0 != seq_num))
 		check_pri = 1;
 	/* Iterate non-empty tree */
+	lower_line = lub_string_tolower(line);
 	do {
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if (check_pri) {
@@ -230,9 +234,12 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 			if (seq_num < conf->seq_num)
 				break;
 		}
-		if (0 == lub_string_nocasecmp(conf->line, line))
-				return conf;
+		if (!strcmp(conf->lower_line, lower_line)) {
+			lub_string_free(lower_line);
+			return conf;
+		}
 	} while ((iter = lub_list_node__get_next(iter)));
+	lub_string_free(lower_line);
 
 	return NULL;
 }
@@ -246,6 +253,7 @@ int konf_tree_del_pattern(konf_tree_t *this,
 	int res = 0;
 	konf_tree_t *conf;
 	lub_list_node_t *iter;
+	lub_list_node_t *tmp;
 	regex_t regexp;
 	int del_cnt = 0; /* how many strings were deleted */
 
@@ -260,6 +268,7 @@ int konf_tree_del_pattern(konf_tree_t *this,
 	regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
 
 	/* Iterate configuration tree */
+	tmp = lub_list_node_new(NULL);
 	do {
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if ((0 != priority) &&
@@ -278,8 +287,12 @@ int konf_tree_del_pattern(konf_tree_t *this,
 		}
 		lub_list_del(this->list, iter);
 		konf_tree_delete(conf);
+		lub_list_node_copy(tmp, iter);
+		lub_list_node_free(iter);
+		iter = tmp;
 		del_cnt++;
 	} while ((iter = lub_list_node__get_next(iter)));
+	lub_list_node_free(tmp);
 
 	regfree(&regexp);
 

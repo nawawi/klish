@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "private.h"
 
@@ -164,4 +165,8 @@ void lub_list_del(lub_list_t *this, lub_list_node_t *node)
 		this->tail = node->prev;
 }
 
+inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src)
+{
+	memcpy(dst, src, sizeof(lub_list_node_t));
+}
 /*--------------------------------------------------------- */
