@@ -13,7 +13,7 @@
 
 <COMMAND name="!"
 	help="Comments">
-	<ACTION>true</ACTION>
+	<ACTION builtin="clish_nop"/>
 </COMMAND>
 
 </CLISH_MODULE>
