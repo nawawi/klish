@@ -24,7 +24,8 @@ static clish_shell_builtin_fn_t
     clish_source,
     clish_source_nostop,
     clish_history,
-    clish_nested_up;
+    clish_nested_up,
+    clish_nop;
 
 static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_close", clish_close},
@@ -33,6 +34,7 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_source_nostop", clish_source_nostop},
 	{"clish_history", clish_history},
 	{"clish_nested_up", clish_nested_up},
+	{"clish_nop", clish_nop},
 	{NULL, NULL}
 };
 
@@ -374,6 +376,15 @@ static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * ar
 	lub_string_free(this->viewid);
 	this->viewid = viewid ? lub_string_dup(viewid) : NULL;
 
+	return BOOL_TRUE;
+}
+
+/*----------------------------------------------------------- */
+/*
+ * Builtin: NOP function
+ */
+static bool_t clish_nop(const clish_shell_t * shell, const lub_argv_t * argv)
+{
 	return BOOL_TRUE;
 }
 
