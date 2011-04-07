@@ -227,7 +227,7 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	char *lower_line;
 
 	/* If list is empty */
-	if (!(iter = lub_list__get_head(this->list)))
+	if (!(iter = lub_list__get_tail(this->list)))
 		return NULL;
 
 	if ((0 != priority) && (0 != seq_num))
@@ -237,20 +237,20 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	do {
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if (check_pri) {
-			if (priority > conf->priority)
-				continue;
 			if (priority < conf->priority)
-				break;
-			if (seq_num > conf->seq_num)
 				continue;
+			if (priority > conf->priority)
+				break;
 			if (seq_num < conf->seq_num)
+				continue;
+			if (seq_num > conf->seq_num)
 				break;
 		}
 		if (!strcmp(conf->lower_line, lower_line)) {
 			free(lower_line);
 			return conf;
 		}
-	} while ((iter = lub_list_node__get_next(iter)));
+	} while ((iter = lub_list_node__get_prev(iter)));
 	free(lower_line);
 
 	return NULL;
