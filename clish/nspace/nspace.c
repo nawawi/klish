@@ -40,8 +40,10 @@ static void clish_nspace_fini(clish_nspace_t * this)
 	clish_command_t *cmd;
 
 	/* deallocate the memory for this instance */
-	lub_string_free(this->prefix);
-	this->prefix = NULL;
+	if (this->prefix) {
+		free(this->prefix);
+		regfree(&this->prefix_regex);
+	}
 	/* delete each command link held by this nspace */
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
 		/* remove the command from the tree */
@@ -145,11 +147,10 @@ void clish_nspace_delete(clish_nspace_t * this)
 }
 
 /*--------------------------------------------------------- */
-static const char *clish_nspace_after_prefix(const char *prefix,
+static const char *clish_nspace_after_prefix(const regex_t *prefix_regex,
 	const char *line, char **real_prefix)
 {
 	const char *in_line = NULL;
-	regex_t regexp;
 	regmatch_t pmatch[1];
 	int res;
 
@@ -157,9 +158,7 @@ static const char *clish_nspace_after_prefix(const char *prefix,
 		return NULL;
 
 	/* Compile regular expression */
-	regcomp(&regexp, prefix, REG_EXTENDED | REG_ICASE);
-	res = regexec(&regexp, line, 1, pmatch, 0);
-	regfree(&regexp);
+	res = regexec(prefix_regex, line, 1, pmatch, 0);
 	if (res || (0 != pmatch[0].rm_so))
 		return NULL;
 	/* Empty match */
@@ -177,14 +176,14 @@ clish_command_t *clish_nspace_find_command(clish_nspace_t * this, const char *na
 {
 	clish_command_t *cmd = NULL, *retval = NULL;
 	clish_view_t *view = clish_nspace__get_view(this);
-	const char *prefix = clish_nspace__get_prefix(this);
 	const char *in_line;
 	char *real_prefix = NULL;
 
-	if (!prefix)
+	if (!clish_nspace__get_prefix(this))
 		return clish_view_find_command(view, name, this->inherit);
 
-	if (!(in_line = clish_nspace_after_prefix(prefix, name, &real_prefix)))
+	if (!(in_line = clish_nspace_after_prefix(
+		clish_nspace__get_prefix_regex(this), name, &real_prefix)))
 		return NULL;
 
 	/* If prefix is followed by space */
@@ -212,16 +211,16 @@ const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t * this,
 {
 	const clish_command_t *cmd = NULL, *retval = NULL;
 	clish_view_t *view = clish_nspace__get_view(this);
-	const char *prefix = clish_nspace__get_prefix(this);
 	const char *in_iter = "";
 	const char *in_line;
 	char *real_prefix = NULL;
 
-	if (!prefix)
+	if (!clish_nspace__get_prefix(this))
 		return clish_view_find_next_completion(view, iter_cmd,
 			line, field, this->inherit);
 
-	if (!(in_line = clish_nspace_after_prefix(prefix, line, &real_prefix)))
+	if (!(in_line = clish_nspace_after_prefix(
+		clish_nspace__get_prefix_regex(this), line, &real_prefix)))
 		return NULL;
 
 	if (in_line[0] != '\0') {
@@ -281,12 +280,21 @@ void clish_nspace__set_prefix(clish_nspace_t * this, const char *prefix)
 {
 	assert(!this->prefix);
 	this->prefix = lub_string_dup(prefix);
+	regcomp(&this->prefix_regex, prefix, REG_EXTENDED | REG_ICASE);
 }
 
 /*--------------------------------------------------------- */
 const char *clish_nspace__get_prefix(const clish_nspace_t * this)
 {
 	return this->prefix;
+}
+
+/*--------------------------------------------------------- */
+const regex_t *clish_nspace__get_prefix_regex(const clish_nspace_t * this)
+{
+	if (!this->prefix)
+		return NULL;
+	return &this->prefix_regex;
 }
 
 /*--------------------------------------------------------- */

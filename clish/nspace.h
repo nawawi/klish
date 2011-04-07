@@ -24,6 +24,8 @@ typedef enum {
 	CLISH_NSPACE_CHELP
 } clish_nspace_visibility_t;
 
+#include <regex.h>
+
 #include "clish/view.h"
 
 /*=====================================
@@ -49,6 +51,7 @@ void clish_nspace_clean_proxy(clish_nspace_t * instance);
  * attributes
  *----------------- */
 const char *clish_nspace__get_prefix(const clish_nspace_t * instance);
+const regex_t *clish_nspace__get_prefix_regex(const clish_nspace_t * instance);
 bool_t clish_nspace__get_help(const clish_nspace_t * instance);
 bool_t clish_nspace__get_completion(const clish_nspace_t * instance);
 bool_t clish_nspace__get_context_help(const clish_nspace_t * instance);
