@@ -16,16 +16,17 @@ static void lub_argv_init(lub_argv_t * this, const char *line, size_t offset)
 	lub_arg_t *arg;
 	bool_t quoted;
 
-	if (!line) {
-		this->argv = NULL;
-		this->argc = 0;
+	this->argv = NULL;
+	this->argc = 0;
+	if (!line)
 		return;
-	}
 	/* first of all count the words in the line */
 	this->argc = lub_argv_wordcount(line);
+	if (0 == this->argc)
+		return;
 	/* allocate space to hold the vector */
 	arg = this->argv = malloc(sizeof(lub_arg_t) * this->argc);
-		assert(arg);
+	assert(arg);
 
 	/* then fill out the array with the words */
 	for (word = lub_argv_nextword(line, &len, &offset, &quoted);
