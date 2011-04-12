@@ -1,5 +1,5 @@
 /*
- * paramv.c
+ * pargv.c
  */
 #include "private.h"
 #include "lub/string.h"

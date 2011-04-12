@@ -215,6 +215,7 @@ int clish_command_help(const clish_command_t * this, clish_help_t *help,
 	unsigned i;
 	unsigned cnt = 0;
 	unsigned longest = 0;
+	clish_pargv_status_t status;
 
 	if (0 == index)
 		return 0;
@@ -230,7 +231,7 @@ int clish_command_help(const clish_command_t * this, clish_help_t *help,
 	/* get the parameter definition */
 	last = clish_pargv_create();
 	pargv = clish_pargv_create();
-	clish_pargv_parse(pargv, this, viewid, this->paramv,
+	status = clish_pargv_parse(pargv, this, viewid, this->paramv,
 		argv, &idx, last, index);
 	clish_pargv_delete(pargv);
 	cnt = clish_pargv__get_count(last);
@@ -254,6 +255,13 @@ int clish_command_help(const clish_command_t * this, clish_help_t *help,
 	}
 	clish_pargv_delete(last);
 	lub_argv_delete(argv);
+
+	/* Add <cr> if command is completed */
+	if (CLISH_LINE_OK == status) {
+		lub_argv_add(help->name, "<cr>");
+		lub_argv_add(help->help, NULL);
+		lub_argv_add(help->detail, NULL);
+	}
 
 	return longest;
 }

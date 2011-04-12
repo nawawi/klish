@@ -67,7 +67,8 @@ void clish_shell_help(clish_shell_t *this, const char *line)
 	for (i = 0; i < lub_argv__get_count(help.name); i++) {
 		fprintf(stderr, "  %-*s  %s\n", (int)max_width,
 			lub_argv__get_arg(help.name, i),
-			lub_argv__get_arg(help.help, i));
+			lub_argv__get_arg(help.help, i) ?
+			lub_argv__get_arg(help.help, i) : "");
 	}
 
 	/* Print details */
