@@ -67,34 +67,6 @@ int clish_pargv_insert(clish_pargv_t * this,
 	return 0;
 }
 
-#if 0
-/*--------------------------------------------------------- */
-static void set_defaults(clish_pargv_t * this, const clish_command_t * cmd)
-{
-	unsigned index = 0;
-	const clish_param_t *param;
-
-	/* scan through all the parameters for this command */
-	while ((param = clish_command__get_param(cmd, index++))) {
-		const char *defval = clish_param__get_default(param);
-		if (NULL != defval) {
-			if ('\0' != *defval) {
-				/* add the translated value to the vector */
-				char *translated =
-				    clish_ptype_translate(clish_param__get_ptype
-							  (param),
-							  defval);
-				clish_pargv_insert(this, param, translated);
-				lub_string_free(translated);
-			} else {
-				/* insert the empty default */
-				clish_pargv_insert(this, param, defval);
-			}
-		}
-	}
-}
-#endif
-
 /*--------------------------------------------------------- */
 clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 	const clish_command_t * cmd,
@@ -120,15 +92,13 @@ clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 		up_level = 1;
 
 	while (index < paramc) {
-		const char *arg;
+		const char *arg = NULL;
 		clish_param_t *param = clish_paramv__get_param(paramv,index);
 		clish_param_t *cparam = NULL;
 		int is_switch = 0;
 
 		/* Use real arg or PARAM's default value as argument */
-		if (*idx >= argc)
-			arg = clish_param__get_default(param);
-		else
+		if (*idx < argc)
 			arg = lub_argv__get_arg(argv, *idx);
 
 		/* Is parameter in "switch" mode? */

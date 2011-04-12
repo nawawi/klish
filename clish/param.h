@@ -93,6 +93,10 @@ void clish_paramv_insert(clish_paramv_t * instance, clish_param_t * param);
 clish_param_t *clish_paramv__get_param(const clish_paramv_t * instance,
 				unsigned index);
 const unsigned clish_paramv__get_count(const clish_paramv_t * instance);
+clish_param_t *clish_paramv_find_param(const clish_paramv_t * instance,
+	const char *name);
+const char *clish_paramv_find_default(const clish_paramv_t * instance,
+	const char *name);
 
 #endif				/* _clish_param_h */
 /** @} clish_param */

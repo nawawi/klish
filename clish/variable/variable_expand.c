@@ -110,7 +110,12 @@ static char *context_retrieve(const context_t * this, const char *name)
 		if (parg)
 			tmp = clish_parg__get_value(parg);
 	}
-
+	/* try and substitute the param's default */
+	if (!tmp) {
+		if (this && this->cmd)
+			tmp = clish_paramv_find_default(
+				clish_command__get_paramv(this->cmd), name);
+	}
 	/* try and substitute a viewId variable */
 	if (!tmp) {
 		if (this && this->viewid)

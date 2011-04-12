@@ -291,6 +291,36 @@ clish_param_t *clish_paramv__get_param(const clish_paramv_t * this,
 }
 
 /*--------------------------------------------------------- */
+clish_param_t *clish_paramv_find_param(const clish_paramv_t * this,
+	const char *name)
+{
+	clish_param_t *res = NULL;
+	unsigned int i;
+
+	for (i = 0; i < this->paramc; i++) {
+		if (!strcmp(clish_param__get_name(this->paramv[i]), name))
+			return this->paramv[i];
+		if ((res = clish_paramv_find_param(
+			clish_param__get_paramv(this->paramv[i]), name)))
+			return res;
+	}
+
+	return res;
+}
+
+/*--------------------------------------------------------- */
+const char *clish_paramv_find_default(const clish_paramv_t * this,
+	const char *name)
+{
+	clish_param_t *res = clish_paramv_find_param(this, name);
+
+	if (res)
+		return clish_param__get_default(res);
+
+	return NULL;
+}
+
+/*--------------------------------------------------------- */
 const unsigned clish_paramv__get_count(const clish_paramv_t * this)
 {
 	return this->paramc;
