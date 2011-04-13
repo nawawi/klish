@@ -45,7 +45,7 @@ void clish_command_delete(clish_command_t * instance);
 void
 clish_command_insert_param(clish_command_t * instance, clish_param_t * param);
 int clish_command_help(const clish_command_t * instance, clish_help_t *help,
-	const char *viewid, const char *line);
+	const char *viewid, const char *line, size_t *max_width);
 void clish_command_dump(const clish_command_t * instance);
 
 /*-----------------

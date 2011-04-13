@@ -13,27 +13,28 @@
 /*
  * Provide a detailed list of the possible command completions
  */
-static int available_commands(clish_shell_t * this,
-	clish_help_t *help, const char *line)
+static void available_commands(clish_shell_t * this,
+	clish_help_t *help, const char *line, size_t *max_width)
 {
-	size_t max_width = 0;
 	const clish_command_t *cmd;
 	clish_shell_iterator_t iter;
 
+	if (max_width)
+		*max_width = 0;
 	/* Search for COMMAND completions */
 	clish_shell_iterator_init(&iter, CLISH_NSPACE_HELP);
 	while ((cmd = clish_shell_find_next_completion(this, line, &iter))) {
 		size_t width;
 		const char *name = clish_command__get_suffix(cmd);
-		width = strlen(name);
-		if (width > max_width)
-			max_width = width;
+		if (max_width) {
+			width = strlen(name);
+			if (width > *max_width)
+				*max_width = width;
+		}
 		lub_argv_add(help->name, name);
 		lub_argv_add(help->help, clish_command__get_text(cmd));
 		lub_argv_add(help->detail, clish_command__get_detail(cmd));
 	}
-
-	return max_width;
 }
 
 /*--------------------------------------------------------- */
@@ -49,16 +50,24 @@ void clish_shell_help(clish_shell_t *this, const char *line)
 	help.detail = lub_argv_new(NULL, 0);
 
 	/* Get COMMAND completions */
-	max_width = available_commands(this, &help, line);
+	available_commands(this, &help, line, &max_width);
 
 	/* Resolve a command */
 	cmd = clish_shell_resolve_command(this, line);
 	/* Search for PARAM completion */
 	if (cmd) {
 		size_t width = 0;
-		width = clish_command_help(cmd, &help, this->viewid, line);
+		int status;
+		status = clish_command_help(cmd, &help, this->viewid,
+			line, &width);
 		if (width > max_width)
 			max_width = width;
+		/* Add <cr> if command is completed */
+		if (!status) {
+			lub_argv_add(help.name, "<cr>");
+			lub_argv_add(help.help, NULL);
+			lub_argv_add(help.detail, NULL);
+		}
 	}
 	if (lub_argv__get_count(help.name) == 0)
 		goto end;

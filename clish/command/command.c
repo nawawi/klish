@@ -205,7 +205,7 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 
 /*--------------------------------------------------------- */
 int clish_command_help(const clish_command_t * this, clish_help_t *help,
-	const char * viewid, const char * line)
+	const char * viewid, const char * line, size_t *max_width)
 {
 	const char *name = clish_command__get_name(this);
 	unsigned index = lub_argv_wordcount(line);
@@ -214,14 +214,11 @@ int clish_command_help(const clish_command_t * this, clish_help_t *help,
 	clish_pargv_t *last, *pargv;
 	unsigned i;
 	unsigned cnt = 0;
-	unsigned longest = 0;
-	clish_pargv_status_t status;
+	clish_pargv_status_t status = CLISH_LINE_OK;
 
+	/* Empty line */
 	if (0 == index)
-		return 0;
-	/* Line has no any parameters */
-	if (strlen(line) <= strlen(name))
-		return 0;
+		return -1;
 
 	if (line[strlen(line) - 1] != ' ')
 		index--;
@@ -249,21 +246,19 @@ int clish_command_help(const clish_command_t * this, clish_help_t *help,
 			name = clish_ptype__get_text(clish_param__get_ptype(param));
 		if (name)
 			clen = strlen(name);
-		if (clen > longest)
-			longest = clen;
+		if (max_width && (clen > *max_width))
+			*max_width = clen;
 		clish_param_help(param, help);
 	}
 	clish_pargv_delete(last);
 	lub_argv_delete(argv);
 
-	/* Add <cr> if command is completed */
-	if (CLISH_LINE_OK == status) {
-		lub_argv_add(help->name, "<cr>");
-		lub_argv_add(help->help, NULL);
-		lub_argv_add(help->detail, NULL);
-	}
+	/* It's a completed command */
+	if (CLISH_LINE_OK == status)
+		return 0;
 
-	return longest;
+	/* Incompleted command */
+	return -1;
 }
 
 /*--------------------------------------------------------- */
