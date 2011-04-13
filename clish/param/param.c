@@ -1,7 +1,7 @@
 /*
  * param.c
  *
- * This file provides the implementation of the "param" class  
+ * This file provides the implementation of the "param" class
  */
 #include "private.h"
 #include "lub/string.h"
