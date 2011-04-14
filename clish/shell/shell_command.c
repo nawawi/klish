@@ -6,6 +6,7 @@
 #include "private.h"
 #include "lub/string.h"
 #include "lub/argv.h"
+
 /*-------------------------------------------------------- */
 void
 clish_shell_iterator_init(clish_shell_iterator_t * iter,
@@ -13,6 +14,38 @@ clish_shell_iterator_init(clish_shell_iterator_t * iter,
 {
 	iter->last_cmd = NULL;
 	iter->field = field;
+}
+
+/*--------------------------------------------------------- */
+const clish_command_t *clish_shell_resolve_command(const clish_shell_t * this,
+	const char *line)
+{
+	clish_command_t *cmd, *result;
+
+	/* Search the current view */
+	result = clish_view_resolve_command(this->view, line, BOOL_TRUE);
+	/* Search the global view */
+	cmd = clish_view_resolve_command(this->global, line, BOOL_TRUE);
+
+	result = clish_command_choose_longest(result, cmd);
+
+	return result;
+}
+
+/*--------------------------------------------------------- */
+const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t * this,
+	const char *line)
+{
+	clish_command_t *cmd, *result;
+
+	/* Search the current view */
+	result = clish_view_resolve_prefix(this->view, line, BOOL_TRUE);
+	/* Search the global view */
+	cmd = clish_view_resolve_prefix(this->global, line, BOOL_TRUE);
+
+	result = clish_command_choose_longest(result, cmd);
+
+	return result;
 }
 
 /*-------------------------------------------------------- */

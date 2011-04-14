@@ -33,3 +33,9 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * this,
 }
 
 /*--------------------------------------------------------- */
+void clish_shell_insert_ptype(clish_shell_t * this, clish_ptype_t * ptype)
+{
+	(void)lub_bintree_insert(&this->ptype_tree, ptype);
+}
+
+/*--------------------------------------------------------- */

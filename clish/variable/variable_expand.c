@@ -94,7 +94,7 @@ static char *find_context_var(const context_t * this, const char *name)
 }
 
 /*--------------------------------------------------------- */
-static char *context_retrieve(const context_t * this, const char *name)
+static char *context_retrieve(const context_t *this, const char *name)
 {
 	char *result = NULL;
 	const char *tmp = NULL;

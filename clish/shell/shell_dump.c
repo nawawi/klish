@@ -9,6 +9,7 @@ void clish_shell_dump(clish_shell_t * this)
 {
 	clish_view_t *v;
 	clish_ptype_t *t;
+	clish_var_t *var;
 	lub_bintree_iterator_t iter;
 
 	lub_dump_printf("shell(%p)\n", this);
@@ -29,6 +30,14 @@ void clish_shell_dump(clish_shell_t * this)
 		t; t = lub_bintree_iterator_next(&iter)) {
 		clish_ptype_dump(t);
 	}
+
+	/* iterate the tree of vars */
+	var = lub_bintree_findfirst(&this->var_tree);
+	for (lub_bintree_iterator_init(&iter, &this->var_tree, var);
+		var; var = lub_bintree_iterator_next(&iter)) {
+		clish_var_dump(var);
+	}
+
 	lub_dump_undent();
 }
 

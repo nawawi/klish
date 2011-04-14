@@ -5,12 +5,12 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "lub/string.h"
 
 /*-------------------------------------------------------- */
-static void
-clish_shell_init(clish_shell_t * this,
+static void clish_shell_init(clish_shell_t * this,
 	const clish_shell_hooks_t * hooks,
 	void *cookie, FILE * istream,
 	FILE * ostream,
@@ -27,6 +27,11 @@ clish_shell_init(clish_shell_t * this,
 	lub_bintree_init(&this->ptype_tree,
 		clish_ptype_bt_offset(),
 		clish_ptype_bt_compare, clish_ptype_bt_getkey);
+
+	/* initialise the tree of vars */
+	lub_bintree_init(&this->var_tree,
+		clish_var_bt_offset(),
+		clish_var_bt_compare, clish_var_bt_getkey);
 
 	assert((NULL != hooks) && (NULL != hooks->script_fn));
 
@@ -80,6 +85,69 @@ clish_shell_init(clish_shell_t * this,
 		clish_shell_push_fd(this, istream, stop_on_error);
 }
 
+/*--------------------------------------------------------- */
+static void clish_shell_fini(clish_shell_t * this)
+{
+	clish_view_t *view;
+	clish_ptype_t *ptype;
+	clish_var_t *var;
+	unsigned i;
+
+	/* delete each VIEW held  */
+	while ((view = lub_bintree_findfirst(&this->view_tree))) {
+		lub_bintree_remove(&this->view_tree, view);
+		clish_view_delete(view);
+	}
+
+	/* delete each PTYPE held  */
+	while ((ptype = lub_bintree_findfirst(&this->ptype_tree))) {
+		lub_bintree_remove(&this->ptype_tree, ptype);
+		clish_ptype_delete(ptype);
+	}
+
+	/* delete each VAR held  */
+	while ((var = lub_bintree_findfirst(&this->var_tree))) {
+		lub_bintree_remove(&this->var_tree, var);
+		clish_var_delete(var);
+	}
+
+	/* free the textual details */
+	lub_string_free(this->overview);
+	lub_string_free(this->viewid);
+
+	/* remove the startup command */
+	if (this->startup)
+		clish_command_delete(this->startup);
+	/* clean up the file stack */
+	while (BOOL_TRUE == clish_shell_pop_file(this));
+	/* delete the tinyrl object */
+	clish_shell_tinyrl_delete(this->tinyrl);
+
+	/* finalize each of the pwd strings */
+	for (i = 0; i < this->cfg_pwdc; i++) {
+		lub_string_free(this->cfg_pwdv[i]->line);
+		lub_string_free(this->cfg_pwdv[i]->viewid);
+		free(this->cfg_pwdv[i]);
+	}
+	/* free the pwd vector */
+	free(this->cfg_pwdv);
+	this->cfg_pwdc = 0;
+	this->cfg_pwdv = NULL;
+	konf_client_free(this->client);
+
+	/* Free internal params */
+	clish_param_delete(this->param_depth);
+	clish_param_delete(this->param_pwd);
+	clish_param_delete(this->param_interactive);
+
+	lub_string_free(this->lockfile);
+	lub_string_free(this->default_shebang);
+	if (this->fifo_name) {
+		unlink(this->fifo_name);
+		lub_string_free(this->fifo_name);
+	}
+}
+
 /*-------------------------------------------------------- */
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 	void *cookie,
@@ -100,6 +168,17 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 	}
 
 	return this;
+}
+
+/*--------------------------------------------------------- */
+void clish_shell_delete(clish_shell_t * this)
+{
+	/* now call the client finalisation */
+	if (this->client_hooks->fini_fn)
+		this->client_hooks->fini_fn(this);
+	clish_shell_fini(this);
+
+	free(this);
 }
 
 /*-------------------------------------------------------- */

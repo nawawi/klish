@@ -25,14 +25,18 @@ struct clish_xml_cb_s {
 
 // forward declare the handler functions
 static PROCESS_FN
-    process_clish_module,
-    process_startup,
-    process_view,
-    process_command,
-    process_param,
-    process_action,
-    process_ptype,
-    process_overview, process_detail, process_namespace, process_config;
+	process_clish_module,
+	process_startup,
+	process_view,
+	process_command,
+	process_param,
+	process_action,
+	process_ptype,
+	process_overview,
+	process_detail,
+	process_namespace,
+	process_config,
+	process_var;
 
 static clish_xml_cb_t xml_elements[] = {
 	{"CLISH_MODULE", process_clish_module},
@@ -46,6 +50,7 @@ static clish_xml_cb_t xml_elements[] = {
 	{"DETAIL", process_detail},
 	{"NAMESPACE", process_namespace},
 	{"CONFIG", process_config},
+	{"VAR", process_var},
 	{NULL, NULL}
 };
 
@@ -84,8 +89,7 @@ static void process_node(clish_shell_t * shell, TiXmlNode * node, void *parent)
 }
 
 ///////////////////////////////////////
-static void
-process_children(clish_shell_t * shell,
+static void process_children(clish_shell_t * shell,
 	TiXmlElement * element, void *parent = NULL)
 {
 	for (TiXmlNode * node = element->FirstChild();
@@ -631,7 +635,35 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	if (cfg_depth)
 		clish_command__set_cfg_depth(cmd, cfg_depth);
+}
 
+///////////////////////////////////////
+static void process_var(clish_shell_t * shell, TiXmlElement * element, void *)
+{
+	clish_var_t *var = NULL;
+	const char *name = element->Attribute("name");
+	const char *dynamic = element->Attribute("dynamic");
+	const char *value = element->Attribute("value");
+
+	assert(name);
+	/* Check if this var doesn't already exist */
+	var = clish_shell_find_var(shell, name);
+	if (var) {
+		printf("DUPLICATE VAR: %s\n", name);
+		assert(!var);
+	}
+
+	/* Create var instance */
+	var = clish_var_new(name);
+	clish_shell_insert_var(shell, var);
+
+	if (dynamic && (lub_string_nocasecmp(dynamic, "true") == 0))
+		clish_var__set_dynamic(var, BOOL_TRUE);
+
+	if (value)
+		clish_var__set_value(var, value);
+
+	process_children(shell, element, var);
 }
 
 ///////////////////////////////////////

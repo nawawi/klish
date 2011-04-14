@@ -1,11 +1,12 @@
 /*
  * shell.h - private interface to the shell class
  */
+#include "lub/bintree.h"
+#include "tinyrl/tinyrl.h"
 #include "clish/shell.h"
 #include "clish/pargv.h"
 #include "clish/variable.h"
-#include "lub/bintree.h"
-#include "tinyrl/tinyrl.h"
+#include "clish/var.h"
 
 /*-------------------------------------
  * PRIVATE TYPES
@@ -36,8 +37,9 @@ typedef struct {
 } clish_shell_pwd_t;
 
 struct clish_shell_s {
-	lub_bintree_t view_tree;	/* Maintain a tree of views      */
-	lub_bintree_t ptype_tree;	/* Maintain a tree of ptypes     */
+	lub_bintree_t view_tree; /* Maintain a tree of views */
+	lub_bintree_t ptype_tree; /* Maintain a tree of ptypes */
+	lub_bintree_t var_tree; /* Maintain a tree of global variables */
 	const clish_shell_hooks_t *client_hooks;	/* Client callback hooks         */
 	void *client_cookie;	/* Client callback cookie        */
 	clish_view_t *global;	/* Reference to the global view. */

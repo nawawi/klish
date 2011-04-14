@@ -18,10 +18,10 @@
 #include "lub/c_decl.h"
 #include "lub/types.h"
 #include "lub/argv.h"
-
 #include "tinyrl/tinyrl.h"
-
-#include "view.h"
+#include "clish/view.h"
+#include "clish/ptype.h"
+#include "clish/var.h"
 #include "konf/net.h"
 
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
@@ -327,10 +327,9 @@ bool_t clish_shell_line(clish_shell_t * instance, const char *prompt,
 	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str);
 bool_t clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
 bool_t clish_shell_readline(clish_shell_t *instance, char ** out);
-void clish_shell_set_context(clish_shell_t * instance, const char *viewname);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
-/** 
+/**
  * Push the specified file handle on to the stack of file handles
  * for this shell. The specified file will become the source of 
  * commands, until it is exhausted.
@@ -343,6 +342,8 @@ bool_t clish_shell_push_file(clish_shell_t * instance, const char * fname,
 	bool_t stop_on_error);
 bool_t clish_shell_push_fd(clish_shell_t * instance, FILE * file,
 	bool_t stop_on_error);
+void clish_shell_insert_var(clish_shell_t *instance, clish_var_t *var);
+clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
 
 /*-----------------
  * attributes

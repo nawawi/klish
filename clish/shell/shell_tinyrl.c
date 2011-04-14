@@ -502,4 +502,10 @@ void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
 	tinyrl__set_utf8(this->tinyrl, utf8);
 }
 
+/*--------------------------------------------------------- */
+tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * this)
+{
+	return this->tinyrl;
+}
+
 /*-------------------------------------------------------- */

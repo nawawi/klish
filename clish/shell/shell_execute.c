@@ -415,4 +415,10 @@ const char * clish_shell__get_fifo(clish_shell_t * this)
 	return this->fifo_name;
 }
 
+/*--------------------------------------------------------- */
+void *clish_shell__get_client_cookie(const clish_shell_t * this)
+{
+	return this->client_cookie;
+}
+
 /*----------------------------------------------------------- */

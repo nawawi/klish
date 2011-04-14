@@ -16,12 +16,12 @@
     <xs:element name="PARAM" type="param_t"/>
     <xs:element name="NAMESPACE" type="namespace_t"/>
     <xs:element name="CONFIG" type="config_t"/>
-
+    <xs:element name="VAR" type="var_t"/>
 
     <!--
-*********************************************************** 
+***********************************************************
 * The common simple types
-*********************************************************** 
+***********************************************************
 -->
     <xs:simpleType name="bool_t">
         <xs:restriction base="xs:string">
@@ -31,11 +31,11 @@
     </xs:simpleType>
 
     <!--
-*********************************************************** 
+***********************************************************
 * <CLISH_MODULE> is the top level container.
 * Any commands which are defined within this tag are global in scope 
 * i.e. they are visible from all views.
-*********************************************************** 
+***********************************************************
 -->
     <xs:complexType name="clish_module_t">
         <xs:sequence>
@@ -45,6 +45,7 @@
             <xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="VAR" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
     <!--
@@ -61,7 +62,7 @@
 * <PTYPE> is used to define the syntax for a parameter type.
 *
 * name    - a textual name for this type. This name can be used to
-*         reference this type within a <PARAM? ptype attribute. 
+*         reference this type within a <PARAM? ptype attribute.
 *
 * help    - a textual string which describes the syntax of this type.
 *         When a parameter is filled out incorrectly on the CLI, this
@@ -76,12 +77,12 @@
 *
 *               "integer"          - A numeric definition "min..max"
 *
-*               "select"           - A list of possible values. 
-*               The syntax of the string is of the form: 
+*               "select"           - A list of possible values.
+*               The syntax of the string is of the form:
 *                 "valueOne(ONE) valueTwo(TWO) valueThree(THREE)"
 *               where the text before the parethesis defines the syntax 
 *               that the user must use, and the value within the parenthesis 
-*               is the result expanded as a parameter value. 
+*               is the result expanded as a parameter value.
 *
 * preprocess  - An optional directive to process the value entered before
 *               validating it. This can greatly simplify the regular expressions
@@ -115,8 +116,8 @@
 
     <xs:complexType name="ptype_t">
         <xs:attributeGroup ref="menu_item_g"/>
-        <xs:attribute name="pattern"     type="xs:string"/>
-        <xs:attribute name="method"      type="ptype_method_e"      use="optional" default="regexp"/>
+        <xs:attribute name="pattern" type="xs:string"/>
+        <xs:attribute name="method" type="ptype_method_e" use="optional" default="regexp"/>
         <xs:attribute name="preprocess" type="ptype_preprocess_e" use="optional" default="none"/>
     </xs:complexType>
     <!--
@@ -199,7 +200,7 @@
 * [viewid]       - defined the new value of the ${VIEWID} variable to
 *                be used if a transition to a new view occurs. By default
 *                the viewid will retain it's current value.
-* 
+*
 * [access]       - defines the user group/level to which execution of this 
 *                command is restricted. By default there is no restriction.
 *                The exact interpretation of this field is dependant on the
@@ -269,7 +270,7 @@
 *
 * [optional]- Specify whether parameter is optional. The allowed values
 *           is "true" or "false". It false by default.
-* 
+*
 * [default] - defines a default value for a parameter. Any parameters
 *           at the end of command line which have default values need 
 *           not explicitly be entered.
@@ -315,8 +316,8 @@
     <!--
 ********************************************************
 * <ACTION> specifies the action to be taken for
-* a command. 
-* 
+* a command.
+*
 * The textual contents of the tag are variable expanded
 * (environment, dynamic and parameter) the the resulting
 * text is interpreted by the client's script interpreter.
@@ -347,7 +348,7 @@
     <!--
 ********************************************************
 * <OVERVIEW> specifies a textual description of the shell.
-* 
+*
 * This should provide instructions about key bindings and
 * escape sequences which can be used in the CLI.
 *
@@ -361,7 +362,7 @@
     <!--
 ********************************************************
 * <DETAIL> specifies a textual description.
-* 
+*
 * This may be used within the scope of a <COMMAND> 
 * element, in which case it would typically contain 
 * detailed usage instructions including examples.
@@ -442,3 +443,20 @@
     </xs:complexType>
 
 </xs:schema>
+
+<!--
+*******************************************************
+* <VAR> Specify the variable.
+*
+*
+*
+********************************************************
+-->
+    <xs:complexType name="var_t">
+        <xs:sequence>
+            <xs:element ref="ACTION" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="menu_item_g"/>
+        <xs:attribute name="value" type="xs:string" use="optional"/>
+        <xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
+    </xs:complexType>
