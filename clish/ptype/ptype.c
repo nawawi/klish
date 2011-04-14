@@ -21,11 +21,10 @@ static char *clish_ptype_select__get_name(const clish_ptype_t * this,
 	char *result = NULL;
 	const char *arg = lub_argv__get_arg(this->u.select.items, index);
 	if (arg) {
-		size_t name_len = 0;
+		size_t name_len = strlen(arg);
 		const char *lbrk = strchr(arg, '(');
 		if (lbrk)
 			name_len = (size_t) (lbrk - arg);
-		assert(name_len < strlen(arg));	/* check for syntax error */
 		result = lub_string_dupn(arg, name_len);
 	}
 	return result;
@@ -40,14 +39,13 @@ static char *clish_ptype_select__get_value(const clish_ptype_t * this,
 	if (arg) {
 		const char *lbrk = strchr(arg, '(');
 		const char *rbrk = strchr(arg, ')');
-		const char *value = NULL;
-		size_t value_len = 0;
+		const char *value = arg;
+		size_t value_len = strlen(arg);
 		if (lbrk) {
 			value = lbrk + 1;
 			if (rbrk)
 				value_len = (size_t) (rbrk - value);
 		}
-		assert(value_len < strlen(arg));	/* check for syntax error */
 		result = lub_string_dupn(value, value_len);
 	}
 	return result;
