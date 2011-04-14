@@ -21,7 +21,6 @@ EXTRA_DIST              =  \
     bin/module.am          \
     clish/module.am        \
     lub/module.am          \
-    lubheap/module.am      \
     tinyrl/module.am       \
     tinyxml/module.am      \
     test/module.am         \
@@ -34,12 +33,9 @@ EXTRA_DIST              =  \
     CHANGES                \
     ISSUES
 
-
-
 include $(top_srcdir)/bin/module.am
 include $(top_srcdir)/clish/module.am
 include $(top_srcdir)/lub/module.am
-include $(top_srcdir)/lubheap/module.am
 include $(top_srcdir)/tinyrl/module.am
 include $(top_srcdir)/tinyxml/module.am
 include $(top_srcdir)/test/module.am

@@ -1,5 +1,0 @@
-EXTRA_DIST  +=                   \
-    lubheap/vxworks/memLib.c     \
-    lubheap/vxworks/memPartLib.c \
-    lubheap/vxworks/memShow.c    \
-    lubheap/vxworks/private.h
