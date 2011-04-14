@@ -33,7 +33,6 @@ EXTRA_DIST += \
 	clish/pargv/module.am \
 	clish/ptype/module.am \
 	clish/shell/module.am \
-	clish/variable/module.am \
 	clish/view/module.am \
 	clish/nspace/module.am \
 	clish/var/module.am \
@@ -44,7 +43,6 @@ include $(top_srcdir)/clish/param/module.am
 include $(top_srcdir)/clish/pargv/module.am
 include $(top_srcdir)/clish/ptype/module.am
 include $(top_srcdir)/clish/shell/module.am
-include $(top_srcdir)/clish/variable/module.am
 include $(top_srcdir)/clish/view/module.am
 include $(top_srcdir)/clish/nspace/module.am
 include $(top_srcdir)/clish/var/module.am

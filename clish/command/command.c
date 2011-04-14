@@ -18,11 +18,13 @@
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static void
-clish_command_init(clish_command_t * this, const char *name, const char *text)
+clish_command_init(clish_command_t * this, const char *name, const char *text,
+	clish_var_expand_fn_t *fn)
 {
 	/* initialise the node part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
+	this->var_expand_fn = fn;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -131,12 +133,13 @@ void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 }
 
 /*--------------------------------------------------------- */
-clish_command_t *clish_command_new(const char *name, const char *help)
+clish_command_t *clish_command_new(const char *name, const char *help,
+	clish_var_expand_fn_t *fn)
 {
 	clish_command_t *this = malloc(sizeof(clish_command_t));
 
 	if (this)
-		clish_command_init(this, name, help);
+		clish_command_init(this, name, help, fn);
 
 	return this;
 }
@@ -332,10 +335,9 @@ void clish_command__set_detail(clish_command_t * this, const char *detail)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_action(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+char *clish_command__get_action(const clish_command_t * this, void *context)
 {
-	return clish_variable_expand(this->action, viewid, this, pargv);
+	return this->var_expand_fn(this->action, context);
 }
 
 /*--------------------------------------------------------- */
@@ -371,10 +373,9 @@ void clish_command__force_viewid(clish_command_t * this, const char *viewid)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_viewid(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+char *clish_command__get_viewid(const clish_command_t * this, void *context)
 {
-	return clish_variable_expand(this->viewid, viewid, this, pargv);
+	return this->var_expand_fn(this->viewid, context);
 }
 
 /*--------------------------------------------------------- */
@@ -497,10 +498,9 @@ void clish_command__set_pattern(clish_command_t * this, const char *pattern)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_pattern(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+char *clish_command__get_pattern(const clish_command_t * this, void *context)
 {
-	return clish_variable_expand(this->pattern, viewid, this, pargv);
+	return this->var_expand_fn(this->pattern, context);
 }
 
 /*--------------------------------------------------------- */
@@ -511,10 +511,9 @@ void clish_command__set_file(clish_command_t * this, const char *file)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_file(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+char *clish_command__get_file(const clish_command_t *this, void *context)
 {
-	return clish_variable_expand(this->file, viewid, this, pargv);
+	return this->var_expand_fn(this->file, context);
 }
 
 /*--------------------------------------------------------- */
@@ -537,8 +536,7 @@ void clish_command__set_seq(clish_command_t * this, const char * seq)
 }
 
 /*--------------------------------------------------------- */
-unsigned short clish_command__get_seq(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+unsigned short clish_command__get_seq(const clish_command_t *this, void *context)
 {
 	unsigned short num = 0;
 	char *str;
@@ -546,7 +544,7 @@ unsigned short clish_command__get_seq(const clish_command_t * this,
 	if (!this->seq)
 		return 0;
 
-	str = clish_variable_expand(this->seq, viewid, this, pargv);
+	str = this->var_expand_fn(this->seq, context);
 	if (str && (*str != '\0')) {
 		long val = 0;
 		char *endptr;
@@ -608,8 +606,7 @@ void clish_command__set_cfg_depth(clish_command_t * this, const char * cfg_depth
 }
 
 /*--------------------------------------------------------- */
-unsigned clish_command__get_cfg_depth(const clish_command_t * this,
-	const char *viewid, clish_pargv_t * pargv)
+unsigned clish_command__get_cfg_depth(const clish_command_t *this, void *context)
 {
 	unsigned num = 0;
 	char *str;
@@ -617,7 +614,7 @@ unsigned clish_command__get_cfg_depth(const clish_command_t * this,
 	if (!this->cfg_depth)
 		return clish_command__get_depth(this);
 
-	str = clish_variable_expand(this->cfg_depth, viewid, this, pargv);
+	str = this->var_expand_fn(this->cfg_depth, context);
 	if (str && (*str != '\0')) {
 		long val = 0;
 		char *endptr;

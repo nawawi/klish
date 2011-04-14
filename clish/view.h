@@ -26,6 +26,7 @@ typedef enum {
 
 #include "clish/command.h"
 #include "clish/nspace.h"
+#include "clish/var.h"
 
 /*=====================================
  * VIEW INTERFACE
@@ -33,7 +34,8 @@ typedef enum {
 /*-----------------
  * meta functions
  *----------------- */
-clish_view_t *clish_view_new(const char *name, const char *prompt);
+clish_view_t *clish_view_new(const char *name, const char *prompt,
+	clish_var_expand_fn_t *fn);
 int clish_view_bt_compare(const void *clientnode, const void *clientkey);
 void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t clish_view_bt_offset(void);
@@ -60,7 +62,7 @@ void clish_view_clean_proxy(clish_view_t * instance);
  *----------------- */
 const char *clish_view__get_name(const clish_view_t * instance);
 void clish_view__set_prompt(clish_view_t * instance, const char *prompt);
-char *clish_view__get_prompt(const clish_view_t * instance, const char *viewid);
+char *clish_view__get_prompt(const clish_view_t *instance, void *context);
 const unsigned clish_view__get_nspace_count(const clish_view_t * instance);
 clish_nspace_t *clish_view__get_nspace(const clish_view_t * instance,
 				       unsigned index);

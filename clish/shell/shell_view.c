@@ -14,7 +14,7 @@ clish_view_t *clish_shell_find_create_view(clish_shell_t * this,
 
 	if (NULL == view) {
 		/* create a view */
-		view = clish_view_new(name, prompt);
+		view = clish_view_new(name, prompt, clish_shell_expand);
 		assert(view);
 		clish_shell_insert_view(this, view);
 	} else {

@@ -326,7 +326,7 @@ clish_shell_execute(clish_shell_t * this,
 			this->viewid, pargv);
 		if (view) {
 			/* Save the current config PWD */
-			char *line = clish_variable__get_line(cmd, pargv);
+			char *line = clish_shell__get_line(cmd, pargv);
 			clish_shell__set_pwd(this,
 				clish_command__get_depth(cmd),
 				line, this->view, this->viewid);

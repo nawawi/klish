@@ -1,8 +1,8 @@
 /*
  * shell_tinyrl.c
- * 
+ *
  * This is a specialisation of the tinyrl_t class which maps the readline
- * functionality to the CLISH envrionment.
+ * functionality to the CLISH environment.
  */
 #include "private.h"
 
@@ -18,14 +18,6 @@
 
 #include "lub/string.h"
 
-/* This is used to hold context during tinyrl callbacks */
-typedef struct _context context_t;
-struct _context {
-	clish_shell_t *shell;
-	const clish_command_t *cmd;
-	clish_pargv_t *pargv;
-};
-
 /*-------------------------------------------------------- */
 static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 {
@@ -36,7 +28,7 @@ static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 		result = tinyrl_insert_text(this, "?");
 	} else {
 		/* get the context */
-		context_t *context = tinyrl__get_context(this);
+		clish_context_t *context = tinyrl__get_context(this);
 
 		tinyrl_crlf(this);
 		clish_shell_help(context->shell, tinyrl__get_line(this));
@@ -100,7 +92,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
  */
 static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 {
-//	context_t *context = tinyrl__get_context(this);
+/*	context_t *context = tinyrl__get_context(this); */
 	tinyrl_match_e status;
 
 	/* first of all perform any history expansion */
@@ -111,12 +103,12 @@ static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 	case TINYRL_NO_MATCH:
 		if (BOOL_FALSE == tinyrl_is_completion_error_over(this)) {
 			/* The user hasn't even entered a valid prefix!!! */
-//			tinyrl_crlf(this);
-//			clish_shell_help(context->shell,
-//				tinyrl__get_line(this));
-//			tinyrl_crlf(this);
-//			tinyrl_reset_line_state(this);
-		}
+/*			tinyrl_crlf(this);
+			clish_shell_help(context->shell,
+				tinyrl__get_line(this));
+			tinyrl_crlf(this);
+			tinyrl_reset_line_state(this);
+*/		}
 		break;
 	default:
 		/* the default completion function will have prompted for completions as
@@ -132,7 +124,7 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	tinyrl_match_e status;
-	context_t *context = tinyrl__get_context(this);
+	clish_context_t *context = tinyrl__get_context(this);
 	const char *line = tinyrl__get_line(this);
 	clish_pargv_status_t arg_status;
 	const clish_command_t *cmd = NULL;
@@ -196,7 +188,7 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 /*-------------------------------------------------------- */
 static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
 {
-	context_t *context = tinyrl__get_context(this);
+	clish_context_t *context = tinyrl__get_context(this);
 	const clish_command_t *cmd = NULL;
 	const char *line = tinyrl__get_line(this);
 	bool_t result = BOOL_FALSE;
@@ -274,7 +266,7 @@ char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
 	const char *line, unsigned start, unsigned end)
 {
 	lub_argv_t *matches = lub_argv_new(NULL, 0);
-	context_t *context = tinyrl__get_context(tinyrl);
+	clish_context_t *context = tinyrl__get_context(tinyrl);
 	clish_shell_t *this = context->shell;
 	clish_shell_iterator_t iter;
 	const clish_command_t *cmd = NULL;
@@ -379,7 +371,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	char *prompt = NULL;
 	const clish_view_t *view;
 	char *str;
-	context_t con;
+	clish_context_t con;
 	tinyrl_history_t *history;
 	int lerror = 0;
 
@@ -398,8 +390,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-	prompt = clish_view__get_prompt(view,
-		clish_shell__get_viewid(this));
+	prompt = clish_view__get_prompt(view, &con);
 	assert(prompt);
 
 	/* Push the specified line or interactive line */

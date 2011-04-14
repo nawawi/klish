@@ -12,8 +12,9 @@ struct clish_view_s {
 	lub_bintree_node_t bt_node;
 	char *name;
 	char *prompt;
-	unsigned nspacec;
+	unsigned int nspacec;
 	clish_nspace_t **nspacev;
-	unsigned depth;
+	unsigned int depth;
 	clish_view_restore_t restore;
+	clish_var_expand_fn_t *var_expand_fn;
 };

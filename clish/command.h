@@ -26,7 +26,8 @@ typedef enum {
 /*-----------------
  * meta functions
  *----------------- */
-clish_command_t *clish_command_new(const char *name, const char *help);
+clish_command_t *clish_command_new(const char *name, const char *help,
+	clish_var_expand_fn_t *fn);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
 clish_command_t * clish_command_alias_to_link(clish_command_t * instance);
@@ -58,11 +59,9 @@ const char *clish_command__get_detail(const clish_command_t * instance);
 const char *clish_command__get_builtin(const clish_command_t * instance);
 const char *clish_command__get_escape_chars(const clish_command_t * instance);
 const clish_param_t *clish_command__get_args(const clish_command_t * instance);
-char *clish_command__get_action(const clish_command_t * instance,
-	const char *viewid, clish_pargv_t * pargv);
+char *clish_command__get_action(const clish_command_t * instance, void *context);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
-char *clish_command__get_viewid(const clish_command_t * instance,
-	const char *viewid, clish_pargv_t * pargv);
+char *clish_command__get_viewid(const clish_command_t *instance, void *context);
 const unsigned clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);
@@ -91,25 +90,21 @@ void clish_command__set_priority(clish_command_t * instance, unsigned short prio
 unsigned short clish_command__get_priority(const clish_command_t * instance);
 void
 clish_command__set_pattern(clish_command_t * instance, const char *pattern);
-char *clish_command__get_pattern(const clish_command_t * instance,
-	const char * viewid, clish_pargv_t * pargv);
+char *clish_command__get_pattern(const clish_command_t *instance, void *context);
 void clish_command__set_file(clish_command_t * instance, const char *file);
-char *clish_command__get_file(const clish_command_t * instance,
-	const char * viewid, clish_pargv_t * pargv);
+char *clish_command__get_file(const clish_command_t *instance, void *context);
 void clish_command__set_splitter(clish_command_t * instance, bool_t splitter);
 bool_t clish_command__get_splitter(const clish_command_t * instance);
 const char * clish_command__is_seq(const clish_command_t * instance);
 void clish_command__set_seq(clish_command_t * instance, const char * seq_num);
-unsigned short clish_command__get_seq(const clish_command_t * instance,
-	const char *viewid, clish_pargv_t * pargv);
+unsigned short clish_command__get_seq(const clish_command_t * instance, void *context);
 clish_view_restore_t clish_command__get_restore(const clish_command_t * instance);
 bool_t clish_command__get_unique(const clish_command_t * instance);
 void clish_command__set_unique(clish_command_t * instance, bool_t unique);
 const clish_command_t * clish_command__get_orig(const clish_command_t * instance);
 const clish_command_t * clish_command__get_cmd(const clish_command_t * instance);
 void clish_command__set_cfg_depth(clish_command_t * instance, const char * cfg_depth);
-unsigned clish_command__get_cfg_depth(const clish_command_t * instance,
-	const char *viewid, clish_pargv_t * pargv);
+unsigned clish_command__get_cfg_depth(const clish_command_t *instance, void *context);
 bool_t clish_command__get_lock(const clish_command_t * instance);
 void clish_command__set_lock(clish_command_t * instance, bool_t lock);
 const char * clish_command__get_shebang(const clish_command_t * instance);

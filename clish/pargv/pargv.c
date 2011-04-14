@@ -70,7 +70,7 @@ int clish_pargv_insert(clish_pargv_t * this,
 /*--------------------------------------------------------- */
 clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 	const clish_command_t * cmd,
-	const char *viewid,
+	void *context,
 	clish_paramv_t * paramv,
 	const lub_argv_t * argv,
 	unsigned *idx, clish_pargv_t * last, unsigned need_index)
@@ -107,8 +107,7 @@ clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 
 		/* Check the 'test' conditions */
 		if (param) {
-			char *str = clish_param__get_test(param,
-				viewid, cmd, this);
+			char *str = clish_param__get_test(param, context);
 			if (str && !lub_system_line_test(str)) {
 				lub_string_free(str);
 				index++;
@@ -225,7 +224,7 @@ clish_pargv_status_t clish_pargv_parse(clish_pargv_t * this,
 				/* Walk through the nested parameters */
 				if (rec_paramc) {
 					retval = clish_pargv_parse(this, cmd,
-						viewid, rec_paramv,
+						context, rec_paramv,
 						argv, idx, last, need_index);
 					if (CLISH_LINE_OK != retval)
 						return retval;

@@ -23,9 +23,11 @@
 static int send_request(konf_client_t * client, char *command);
 
 /*--------------------------------------------------------- */
-bool_t clish_config_callback(const clish_shell_t * this,
-	const clish_command_t * cmd, clish_pargv_t * pargv)
+bool_t clish_config_callback(clish_context_t *context)
 {
+	clish_shell_t *this = context->shell;
+	const clish_command_t *cmd = context->cmd;
+	clish_pargv_t *pargv = context->pargv;
 	char *command = NULL;
 	konf_client_t *client;
 	konf_buf_t *buf = NULL;
@@ -54,7 +56,7 @@ bool_t clish_config_callback(const clish_shell_t * this,
 		lub_string_cat(&command, "-s");
 
 		/* Add entered line */
-		str = clish_variable__get_line(cmd, pargv);
+		str = clish_shell__get_line(cmd, pargv);
 		lub_string_cat(&command, " -l \"");
 		lub_string_cat(&command, str);
 		lub_string_cat(&command, "\"");
@@ -80,7 +82,7 @@ bool_t clish_config_callback(const clish_shell_t * this,
 		lub_string_cat(&command, "-d");
 
 		/* Add filename */
-		str = clish_command__get_file(cmd, viewid, pargv);
+		str = clish_command__get_file(cmd, context);
 		if (str) {
 			lub_string_cat(&command, " -f \"");
 			if (str[0] != '\0')
@@ -98,7 +100,7 @@ bool_t clish_config_callback(const clish_shell_t * this,
 
 	/* Add pattern */
 	if ((CLISH_CONFIG_SET == op) || (CLISH_CONFIG_UNSET == op)) {
-		str = clish_command__get_pattern(cmd, viewid, pargv);
+		str = clish_command__get_pattern(cmd, context);
 		if (!str) {
 			lub_string_free(command);
 			return BOOL_FALSE;
@@ -120,15 +122,14 @@ bool_t clish_config_callback(const clish_shell_t * this,
 	/* Add sequence */
 	if (clish_command__is_seq(cmd)) {
 		snprintf(tmp, sizeof(tmp) - 1, " -q %u",
-			clish_command__get_seq(cmd,
-			viewid, pargv));
+			clish_command__get_seq(cmd, context));
 		tmp[sizeof(tmp) - 1] = '\0';
 		lub_string_cat(&command, tmp);
 	}
 
 	/* Add pwd */
 	str = clish_shell__get_pwd_full(this,
-		clish_command__get_cfg_depth(cmd, viewid, pargv));
+		clish_command__get_cfg_depth(cmd, context));
 	if (str) {
 		lub_string_cat(&command, " ");
 		lub_string_cat(&command, str);

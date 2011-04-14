@@ -21,9 +21,11 @@
 #include "internal.h"
 
 /*--------------------------------------------------------- */
-bool_t clish_script_callback(clish_shell_t * this,
-	const clish_command_t * cmd, const char *script, char ** out)
+bool_t clish_script_callback(clish_context_t *context,
+	const char *script, char ** out)
 {
+	clish_shell_t *this = context->shell;
+	const clish_command_t *cmd = context->cmd;
 	const char * shebang = NULL;
 	pid_t cpid;
 	int res;
@@ -149,8 +151,8 @@ bool_t clish_script_callback(clish_shell_t * this,
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_dryrun_callback(clish_shell_t * this,
-	const clish_command_t * cmd, const char *script, char ** out)
+bool_t clish_dryrun_callback(clish_context_t *context,
+	const char *script, char ** out)
 {
 #ifdef DEBUG
 	fprintf(stderr, "DRY-RUN: %s\n", script);

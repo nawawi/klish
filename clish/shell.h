@@ -27,8 +27,15 @@
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
 #define CLISH_LOCK_WAIT 20
 
-typedef struct clish_context_s clish_context_t;
 typedef struct clish_shell_s clish_shell_t;
+
+/* This is used to hold context during callbacks */
+struct clish_context_s {
+	clish_shell_t *shell;
+	const clish_command_t *cmd;
+	clish_pargv_t *pargv;
+};
+typedef struct clish_context_s clish_context_t;
 
 typedef enum {
 	SHELL_STATE_INITIALISING,
@@ -137,17 +144,7 @@ typedef void clish_shell_cmd_line_fn_t(
   *   command will be honored. i.e. the CLI will switch to the new view
   */
 typedef bool_t clish_shell_script_fn_t(
-	/** 
-         * The shell instance which invoked this call
-         */
-	clish_shell_t * instance,
-	/** 
-         * The command which invoked this call
-         */
-	const clish_command_t * cmd,
-	/** 
-         * The script to be evaluated
-         */
+	clish_context_t *context,
 	const char *script,
 	char ** out);
 
@@ -156,18 +153,7 @@ typedef bool_t clish_shell_script_fn_t(
   * 
   */
 typedef bool_t clish_shell_config_fn_t(
-	/** 
-         * The shell instance which invoked this call
-         */
-					      const clish_shell_t * instance,
-	/** 
-         * The command
-         */
-					      const clish_command_t * cmd,
-	/** 
-         * Argument vector
-         */
-					      clish_pargv_t * pargv);
+	clish_context_t *context);
 
  /**
   * A hook function used to control access for the current user.
@@ -344,6 +330,8 @@ bool_t clish_shell_push_fd(clish_shell_t * instance, FILE * file,
 	bool_t stop_on_error);
 void clish_shell_insert_var(clish_shell_t *instance, clish_var_t *var);
 clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
+char *clish_shell_expand_var(const char *name, void *context);
+char *clish_shell_expand(const char *str, void *context);
 
 /*-----------------
  * attributes
@@ -385,15 +373,13 @@ void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewna
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
 void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);
 const char * clish_shell__get_default_shebang(const clish_shell_t * instance);
-char * clish_shell__expand_text(const clish_shell_t *instance,
-	clish_command_t *cmd, clish_pargv_t *pargv, const char *text);
-char * clish_shell__expand_variable(const clish_shell_t *instance,
-	clish_command_t *cmd, clish_pargv_t *pargv, const char *var);
 const char * clish_shell__get_fifo(clish_shell_t * instance);
 void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
 bool_t clish_shell__get_interactive(const clish_shell_t * instance);
 bool_t clish_shell__get_utf8(const clish_shell_t * instance);
 void clish_shell__set_utf8(clish_shell_t * instance, bool_t utf8);
+char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
+char *clish_shell__get_params(const clish_command_t * cmd, clish_pargv_t * pargv);
 
 _END_C_DECL
 

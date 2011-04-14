@@ -16,14 +16,14 @@
 /*---------------------------------------------------------
  * PRIVATE METHODS
  *--------------------------------------------------------- */
-static void
-clish_param_init(clish_param_t * this,
-	const char *name, const char *text, clish_ptype_t * ptype)
+static void clish_param_init(clish_param_t *this, const char *name,
+	const char *text, clish_ptype_t *ptype, clish_var_expand_fn_t *fn)
 {
 	/* initialise the help part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
 	this->ptype = ptype;
+	this->var_expand_fn = fn;
 
 	/* set up defaults */
 	this->defval = NULL;
@@ -57,13 +57,13 @@ static void clish_param_fini(clish_param_t * this)
 /*---------------------------------------------------------
  * PUBLIC META FUNCTIONS
  *--------------------------------------------------------- */
-clish_param_t *clish_param_new(const char *name,
-	const char *text, clish_ptype_t * ptype)
+clish_param_t *clish_param_new(const char *name, const char *text,
+	clish_ptype_t *ptype, clish_var_expand_fn_t *fn)
 {
 	clish_param_t *this = malloc(sizeof(clish_param_t));
 
 	if (this)
-		clish_param_init(this, name, text, ptype);
+		clish_param_init(this, name, text, ptype, fn);
 	return this;
 }
 
@@ -361,12 +361,9 @@ void clish_param__set_test(clish_param_t * this, const char *test)
 }
 
 /*--------------------------------------------------------- */
-char *clish_param__get_test(const clish_param_t * this,
-	const char * viewid, const clish_command_t * cmd,
-	clish_pargv_t * pargv)
+char *clish_param__get_test(const clish_param_t * this, void *context)
 {
 	if (!this->test)
 		return NULL;
-	return clish_variable_expand(this->test, viewid, cmd, pargv);
+	return this->var_expand_fn(this->test, context);
 }
-
