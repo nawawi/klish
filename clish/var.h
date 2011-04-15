@@ -7,6 +7,7 @@
 typedef struct clish_var_s clish_var_t;
 
 typedef char *clish_var_expand_fn_t(const char *str, void *context);
+char *clish_var_expand_default(const char *str, void *context);
 
 /*=====================================
  * VAR INTERFACE

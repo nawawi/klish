@@ -13,7 +13,7 @@
 /*
  * Provide a detailed list of the possible command completions
  */
-static void available_commands(clish_shell_t * this,
+static void available_commands(clish_shell_t *this,
 	clish_help_t *help, const char *line, size_t *max_width)
 {
 	const clish_command_t *cmd;
@@ -38,6 +38,69 @@ static void available_commands(clish_shell_t * this,
 }
 
 /*--------------------------------------------------------- */
+static int available_params(clish_shell_t *this,
+	clish_help_t *help, const clish_command_t *cmd,
+	const char *line, size_t *max_width)
+{
+	unsigned index = lub_argv_wordcount(line);
+	unsigned idx = lub_argv_wordcount(clish_command__get_name(cmd));
+	lub_argv_t *argv;
+	clish_pargv_t *completion, *pargv;
+	unsigned i;
+	unsigned cnt = 0;
+	clish_pargv_status_t status = CLISH_LINE_OK;
+	clish_context_t context;
+
+	/* Empty line */
+	if (0 == index)
+		return -1;
+
+	if (line[strlen(line) - 1] != ' ')
+		index--;
+
+	argv = lub_argv_new(line, 0);
+
+	/* get the parameter definition */
+	completion = clish_pargv_new();
+	pargv = clish_pargv_new();
+	context.shell = this;
+	context.cmd = cmd;
+	context.pargv = pargv;
+	status = clish_pargv_parse(pargv, cmd, &context,
+		clish_command__get_paramv(cmd),
+		argv, &idx, completion, index);
+	clish_pargv_delete(pargv);
+	cnt = clish_pargv__get_count(completion);
+
+	/* Calculate the longest name */
+	for (i = 0; i < cnt; i++) {
+		const clish_param_t *param;
+		const char *name;
+		unsigned clen = 0;
+
+		param = clish_pargv__get_param(completion, i);
+		if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(param))
+			name = clish_param__get_value(param);
+		else
+			name = clish_ptype__get_text(clish_param__get_ptype(param));
+		if (name)
+			clen = strlen(name);
+		if (max_width && (clen > *max_width))
+			*max_width = clen;
+		clish_param_help(param, help);
+	}
+	clish_pargv_delete(completion);
+	lub_argv_delete(argv);
+
+	/* It's a completed command */
+	if (CLISH_LINE_OK == status)
+		return 0;
+
+	/* Incompleted command */
+	return -1;
+}
+
+/*--------------------------------------------------------- */
 void clish_shell_help(clish_shell_t *this, const char *line)
 {
 	clish_help_t help;
@@ -58,8 +121,7 @@ void clish_shell_help(clish_shell_t *this, const char *line)
 	if (cmd) {
 		size_t width = 0;
 		int status;
-		status = clish_command_help(cmd, &help, this->viewid,
-			line, &width);
+		status = available_params(this, &help, cmd, line, &width);
 		if (width > max_width)
 			max_width = width;
 		/* Add <cr> if command is completed */

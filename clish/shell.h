@@ -307,8 +307,7 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
 	clish_ptype_preprocess_e preprocess);
 int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
-bool_t clish_shell_execute(clish_shell_t * instance,
-	const clish_command_t * cmd, clish_pargv_t * pargv, char ** out);
+bool_t clish_shell_execute(clish_context_t *context, char **out);
 bool_t clish_shell_line(clish_shell_t * instance, const char *prompt,
 	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str);
 bool_t clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);

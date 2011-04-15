@@ -61,7 +61,7 @@ static void clish_shell_init(clish_shell_t * this,
 		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 	assert(tmp_ptype);
 	this->param_depth = clish_param_new("__cur_depth",
-		"Current depth", tmp_ptype);
+		"Current depth", tmp_ptype, clish_shell_expand);
 	clish_param__set_hidden(this->param_depth, BOOL_TRUE);
 	/* Current pwd */
 	tmp_ptype = clish_shell_find_create_ptype(this,
@@ -69,7 +69,7 @@ static void clish_shell_init(clish_shell_t * this,
 		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 	assert(tmp_ptype);
 	this->param_pwd = clish_param_new("__cur_pwd",
-		"Current path", tmp_ptype);
+		"Current path", tmp_ptype, clish_shell_expand);
 	clish_param__set_hidden(this->param_pwd, BOOL_TRUE);
 	/* Interactive */
 	tmp_ptype = clish_shell_find_create_ptype(this,
@@ -77,7 +77,7 @@ static void clish_shell_init(clish_shell_t * this,
 		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 	assert(tmp_ptype);
 	this->param_interactive = clish_param_new("__interactive",
-		"Interactive flag", tmp_ptype);
+		"Interactive flag", tmp_ptype, clish_shell_expand);
 	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
 
 	/* Push non-NULL istream */

@@ -9,15 +9,27 @@
 
 /*----------------------------------------------------------- */
 clish_pargv_status_t clish_shell_parse(
-	const clish_shell_t * this, const char *line,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv)
+	clish_shell_t *this, const char *line,
+	const clish_command_t **ret_cmd, clish_pargv_t **pargv)
 {
 	clish_pargv_status_t result = CLISH_BAD_CMD;
+	clish_context_t context;
+	const clish_command_t *cmd;
 
-	*cmd = clish_shell_resolve_command(this, line);
+	*ret_cmd = cmd = clish_shell_resolve_command(this, line);
+	if (!cmd)
+		return result;
+
 	/* Now construct the parameters for the command */
-	if (*cmd)
-		*pargv = clish_pargv_new(*cmd, this->viewid, line, 0, &result);
+	*pargv = clish_pargv_new();
+	context.shell = this;
+	context.cmd = cmd;
+	context.pargv = *pargv;
+	result = clish_pargv_analyze(*pargv, cmd, &context, line, 0);
+	if (CLISH_LINE_OK != result) {
+		clish_pargv_delete(*pargv);
+		*pargv = NULL;
+	}
 	if (*pargv) {
 		char str[100];
 		char * tmp;

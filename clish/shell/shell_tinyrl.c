@@ -366,12 +366,12 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
+bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 {
 	char *prompt = NULL;
 	const clish_view_t *view;
 	char *str;
-	clish_context_t con;
+	clish_context_t context;
 	tinyrl_history_t *history;
 	int lerror = 0;
 
@@ -383,21 +383,21 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	}
 
 	/* Set up the context for tinyrl */
-	con.cmd = NULL;
-	con.pargv = NULL;
-	con.shell = this;
+	context.cmd = NULL;
+	context.pargv = NULL;
+	context.shell = this;
 
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-	prompt = clish_view__get_prompt(view, &con);
+	prompt = clish_view__get_prompt(view, &context);
 	assert(prompt);
 
 	/* Push the specified line or interactive line */
 	if (line)
-		str = tinyrl_forceline(this->tinyrl, prompt, &con, line);
+		str = tinyrl_forceline(this->tinyrl, prompt, &context, line);
 	else
-		str = tinyrl_readline(this->tinyrl, prompt, &con);
+		str = tinyrl_readline(this->tinyrl, prompt, &context);
 	lerror = errno;
 	lub_string_free(prompt);
 	if (!str) {
@@ -426,17 +426,17 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char ** out)
 	free(str);
 
 	/* Execute the provided command */
-	if (con.cmd && con.pargv) {
-		if (!clish_shell_execute(this, con.cmd, con.pargv, out)) {
+	if (context.cmd && context.pargv) {
+		if (!clish_shell_execute(&context, out)) {
 			this->state = SHELL_STATE_SCRIPT_ERROR;
-			if (con.pargv)
-				clish_pargv_delete(con.pargv);
+			if (context.pargv)
+				clish_pargv_delete(context.pargv);
 			return BOOL_FALSE;
 		}
 	}
 
-	if (con.pargv)
-		clish_pargv_delete(con.pargv);
+	if (context.pargv)
+		clish_pargv_delete(context.pargv);
 
 	return BOOL_TRUE;
 }

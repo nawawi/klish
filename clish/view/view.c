@@ -47,7 +47,7 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	this->nspacev = NULL;
 	this->depth = 0;
 	this->restore = CLISH_RESTORE_NONE;
-	this->var_expand_fn = fn;
+	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -124,7 +124,8 @@ clish_command_t *clish_view_new_command(clish_view_t * this,
 	const char *name, const char *help)
 {
 	/* allocate the memory for a new parameter definition */
-	clish_command_t *cmd = clish_command_new(name, help);
+	clish_command_t *cmd = clish_command_new(name, help,
+		this->var_expand_fn);
 	assert(cmd);
 
 	/* if this is a command other than the startup command... */
@@ -189,8 +190,7 @@ clish_command_t *clish_view_resolve_command(clish_view_t * this,
 	clish_command_t *result = clish_view_resolve_prefix(this, line, inherit);
 
 	if (result) {
-		char *action = clish_command__get_action(result, NULL, NULL);
-		if (!action && (NULL == clish_command__get_builtin(result)) &&
+		if (!clish_command__get_action(result) && (NULL == clish_command__get_builtin(result)) &&
 			(CLISH_CONFIG_NONE == clish_command__get_cfg_op(result)) &&
 			(NULL == clish_command__get_view(result))) {
 			/* if this doesn't do anything we've
@@ -198,8 +198,6 @@ clish_command_t *clish_view_resolve_command(clish_view_t * this,
 			 */
 			result = NULL;
 		}
-		/* cleanup */
-		lub_string_free(action);
 	}
 	return result;
 }

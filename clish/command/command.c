@@ -24,7 +24,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 	/* initialise the node part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
-	this->var_expand_fn = fn;
+	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -207,61 +207,9 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 }
 
 /*--------------------------------------------------------- */
-int clish_command_help(const clish_command_t * this, clish_help_t *help,
-	const char * viewid, const char * line, size_t *max_width)
+int clish_command_help(const clish_command_t *this)
 {
-	const char *name = clish_command__get_name(this);
-	unsigned index = lub_argv_wordcount(line);
-	unsigned idx = lub_argv_wordcount(name);
-	lub_argv_t *argv;
-	clish_pargv_t *last, *pargv;
-	unsigned i;
-	unsigned cnt = 0;
-	clish_pargv_status_t status = CLISH_LINE_OK;
-
-	/* Empty line */
-	if (0 == index)
-		return -1;
-
-	if (line[strlen(line) - 1] != ' ')
-		index--;
-
-	argv = lub_argv_new(line, 0);
-
-	/* get the parameter definition */
-	last = clish_pargv_create();
-	pargv = clish_pargv_create();
-	status = clish_pargv_parse(pargv, this, viewid, this->paramv,
-		argv, &idx, last, index);
-	clish_pargv_delete(pargv);
-	cnt = clish_pargv__get_count(last);
-
-	/* Calculate the longest name */
-	for (i = 0; i < cnt; i++) {
-		const clish_param_t *param;
-		const char *name;
-		unsigned clen = 0;
-
-		param = clish_pargv__get_param(last, i);
-		if (CLISH_PARAM_SUBCOMMAND == clish_param__get_mode(param))
-			name = clish_param__get_value(param);
-		else
-			name = clish_ptype__get_text(clish_param__get_ptype(param));
-		if (name)
-			clen = strlen(name);
-		if (max_width && (clen > *max_width))
-			*max_width = clen;
-		clish_param_help(param, help);
-	}
-	clish_pargv_delete(last);
-	lub_argv_delete(argv);
-
-	/* It's a completed command */
-	if (CLISH_LINE_OK == status)
-		return 0;
-
-	/* Incompleted command */
-	return -1;
+	return 0;
 }
 
 /*--------------------------------------------------------- */
@@ -335,7 +283,13 @@ void clish_command__set_detail(clish_command_t * this, const char *detail)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_action(const clish_command_t * this, void *context)
+char *clish_command__get_action(const clish_command_t *this)
+{
+	return this->action;
+}
+
+/*--------------------------------------------------------- */
+char *clish_command__expand_action(const clish_command_t *this, void *context)
 {
 	return this->var_expand_fn(this->action, context);
 }

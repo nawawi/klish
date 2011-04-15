@@ -266,7 +266,8 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			CLISH_PTYPE_REGEXP,
 			CLISH_PTYPE_NONE);
 		assert(tmp);
-		param = clish_param_new(args_name, args_help, tmp);
+		param = clish_param_new(args_name, args_help, tmp,
+			clish_shell_expand);
 		clish_command__set_args(cmd, param);
 	}
 	// define the view which this command changes to
@@ -374,7 +375,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 				CLISH_PTYPE_NONE);
 			assert(tmp);
 		}
-		param = clish_param_new(name, help, tmp);
+		param = clish_param_new(name, help, tmp, clish_shell_expand);
 
 		/* If prefix is set clish will emulate old optional
 		 * command syntax over newer optional command mechanism.
@@ -396,7 +397,8 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 					ptype_name, "Option", "[^\\]+",
 					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 			assert(tmp);
-			opt_param = clish_param_new(prefix, help, tmp);
+			opt_param = clish_param_new(prefix, help, tmp,
+				clish_shell_expand);
 			clish_param__set_mode(opt_param,
 					      CLISH_PARAM_SUBCOMMAND);
 			clish_param__set_optional(opt_param, BOOL_TRUE);

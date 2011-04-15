@@ -57,8 +57,7 @@ static bool_t clish_close(const clish_shell_t * shell, const lub_argv_t * argv)
  thread. Whether the script continues after command, but not script, 
  errors depends on the value of the stop_on_error flag.
 */
-static bool_t
-clish_source_internal(const clish_shell_t * shell,
+static bool_t clish_source_internal(const clish_shell_t * shell,
 	const lub_argv_t * argv, bool_t stop_on_error)
 {
 	bool_t result = BOOL_FALSE;
@@ -177,10 +176,11 @@ void clish_shell_cleanup_script(void *script)
 }
 
 /*----------------------------------------------------------- */
-bool_t
-clish_shell_execute(clish_shell_t * this,
-	const clish_command_t * cmd, clish_pargv_t * pargv, char ** out)
+bool_t clish_shell_execute(clish_context_t *context, char **out)
 {
+	clish_shell_t *this = context->shell;
+	const clish_command_t *cmd = context->cmd;
+	clish_pargv_t *pargv = context->pargv;
 	bool_t result = BOOL_TRUE;
 	const char *builtin;
 	char *script;
@@ -265,7 +265,7 @@ clish_shell_execute(clish_shell_t * this,
 
 	/* Execute ACTION */
 	builtin = clish_command__get_builtin(cmd);
-	script = clish_command__get_action(cmd, this->viewid, pargv);
+	script = clish_command__expand_action(cmd, context);
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
 		script);
@@ -290,7 +290,7 @@ clish_shell_execute(clish_shell_t * this,
 			lub_argv_delete(argv);
 	} else if (script) {
 		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(this, cmd, script, out);
+		result = this->client_hooks->script_fn(context, script, out);
 	}
 	pthread_cleanup_pop(1);
 
@@ -311,7 +311,7 @@ clish_shell_execute(clish_shell_t * this,
 
 	/* Call config callback */
 	if ((BOOL_TRUE == result) && this->client_hooks->config_fn)
-		this->client_hooks->config_fn(this, cmd, pargv);
+		this->client_hooks->config_fn(context);
 
 	/* Unlock the lockfile */
 	if (lock_fd != -1) {
@@ -322,8 +322,7 @@ clish_shell_execute(clish_shell_t * this,
 	/* Move into the new view */
 	if (BOOL_TRUE == result) {
 		clish_view_t *view = clish_command__get_view(cmd);
-		char *viewid = clish_command__get_viewid(cmd,
-			this->viewid, pargv);
+		char *viewid = clish_command__get_viewid(cmd, context);
 		if (view) {
 			/* Save the current config PWD */
 			char *line = clish_shell__get_line(cmd, pargv);

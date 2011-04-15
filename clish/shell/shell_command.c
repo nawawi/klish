@@ -82,11 +82,12 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 	unsigned idx = lub_argv_wordcount(name);
 	/* get the index of the current parameter */
 	unsigned index = lub_argv_wordcount(line) - idx;
+	clish_context_t context;
 
 	if ((0 != index) || (offset && line[offset - 1] == ' ')) {
 		lub_argv_t *argv = lub_argv_new(line, 0);
-		clish_pargv_t *pargv = clish_pargv_create();
-		clish_pargv_t *completion_pargv = clish_pargv_create();
+		clish_pargv_t *pargv = clish_pargv_new();
+		clish_pargv_t *completion = clish_pargv_new();
 		unsigned completion_index = 0;
 		const clish_param_t *param = NULL;
 
@@ -95,13 +96,16 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 			index--;
 
 		/* Parse command line to get completion pargv's */
-		clish_pargv_parse(pargv, cmd, this->viewid,
+		context.shell = this;
+		context.cmd = cmd;
+		context.pargv = pargv;
+		clish_pargv_parse(pargv, cmd, &context,
 			clish_command__get_paramv(cmd),
-			argv, &idx, completion_pargv, index + idx);
+			argv, &idx, completion, index + idx);
 		clish_pargv_delete(pargv);
 		lub_argv_delete(argv);
 
-		while ((param = clish_pargv__get_param(completion_pargv,
+		while ((param = clish_pargv__get_param(completion,
 			completion_index++))) {
 			char *result;
 			/* The param is args so it has no completion */
@@ -121,7 +125,7 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 			if ((ptype = clish_param__get_ptype(param)))
 				clish_ptype_word_generator(ptype, matches, text);
 		}
-		clish_pargv_delete(completion_pargv);
+		clish_pargv_delete(completion);
 	}
 
 	lub_string_free(text);

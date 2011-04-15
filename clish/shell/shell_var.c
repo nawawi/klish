@@ -265,12 +265,15 @@ char *clish_shell__get_line(const clish_command_t *cmd, clish_pargv_t *pargv)
 /*--------------------------------------------------------- */
 char *clish_shell_expand_var(const char *name, void *context)
 {
-	clish_shell_context_t *this = (clish_context_t *)context;
+	clish_context_t *this = (clish_context_t *)context;
 	char *result = NULL;
 	const char *tmp = NULL;
 	const char *escape_chars = NULL;
 	char *string = NULL;
 	assert(name);
+
+	if (!this)
+		return lub_string_dup(name);
 
 	/* try and substitute a parameter value */
 	if (this && this->pargv) {

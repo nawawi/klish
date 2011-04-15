@@ -30,8 +30,8 @@ static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
 
 	/* initialise the tree of commands links for this nspace */
 	lub_bintree_init(&this->tree,
-		 clish_command_bt_offset(),
-		 clish_command_bt_compare, clish_command_bt_getkey);
+		clish_command_bt_offset(),
+		clish_command_bt_compare, clish_command_bt_getkey);
 }
 
 /*--------------------------------------------------------- */
@@ -67,7 +67,7 @@ clish_command_t * clish_nspace_create_prefix_cmd(clish_nspace_t * this,
 		this->prefix_cmd = NULL;
 	}
 
-	return (this->prefix_cmd = clish_command_new(name, help));
+	return (this->prefix_cmd = clish_command_new(name, help, NULL));
 }
 
 /*--------------------------------------------------------- */

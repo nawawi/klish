@@ -22,7 +22,7 @@
 
 /*--------------------------------------------------------- */
 bool_t clish_script_callback(clish_context_t *context,
-	const char *script, char ** out)
+	const char *script, char **out)
 {
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;

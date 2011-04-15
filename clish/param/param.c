@@ -23,7 +23,7 @@ static void clish_param_init(clish_param_t *this, const char *name,
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
 	this->ptype = ptype;
-	this->var_expand_fn = fn;
+	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* set up defaults */
 	this->defval = NULL;

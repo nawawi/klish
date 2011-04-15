@@ -42,15 +42,14 @@ clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2);
 /*-----------------
  * methods
  *----------------- */
-void clish_command_delete(clish_command_t * instance);
-void
-clish_command_insert_param(clish_command_t * instance, clish_param_t * param);
-int clish_command_help(const clish_command_t * instance, clish_help_t *help,
-	const char *viewid, const char *line, size_t *max_width);
-void clish_command_dump(const clish_command_t * instance);
+void clish_command_delete(clish_command_t *instance);
+void clish_command_insert_param(clish_command_t *instance,
+	clish_param_t *param);
+int clish_command_help(const clish_command_t *instance);
+void clish_command_dump(const clish_command_t *instance);
 
 /*-----------------
- * attributes 
+ * attributes
  *----------------- */
 const char *clish_command__get_name(const clish_command_t * instance);
 const char *clish_command__get_suffix(const clish_command_t * instance);
@@ -59,7 +58,8 @@ const char *clish_command__get_detail(const clish_command_t * instance);
 const char *clish_command__get_builtin(const clish_command_t * instance);
 const char *clish_command__get_escape_chars(const clish_command_t * instance);
 const clish_param_t *clish_command__get_args(const clish_command_t * instance);
-char *clish_command__get_action(const clish_command_t * instance, void *context);
+char *clish_command__get_action(const clish_command_t *instance);
+char *clish_command__expand_action(const clish_command_t *instance, void *context);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
 char *clish_command__get_viewid(const clish_command_t *instance, void *context);
 const unsigned clish_command__get_param_count(const clish_command_t * instance);
