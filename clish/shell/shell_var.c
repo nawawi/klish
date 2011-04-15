@@ -265,45 +265,54 @@ char *clish_shell__get_line(const clish_command_t *cmd, clish_pargv_t *pargv)
 /*--------------------------------------------------------- */
 char *clish_shell_expand_var(const char *name, void *context)
 {
-	clish_context_t *this = (clish_context_t *)context;
+	clish_context_t *con = (clish_context_t *)context;
+	clish_shell_t *this;
+	const clish_command_t *cmd;
+	clish_pargv_t *pargv;
 	char *result = NULL;
 	const char *tmp = NULL;
 	const char *escape_chars = NULL;
 	char *string = NULL;
 	assert(name);
 
-	if (!this)
+	if (!context)
 		return lub_string_dup(name);
+	this = con->shell;
+	cmd = con->cmd;
+	pargv = con->pargv;
 
 	/* try and substitute a parameter value */
-	if (this && this->pargv) {
-		const clish_parg_t *parg =
-			clish_pargv_find_arg(this->pargv, name);
+	if (pargv) {
+		const clish_parg_t *parg = clish_pargv_find_arg(pargv, name);
 		/* substitute the command line value */
 		if (parg)
 			tmp = clish_parg__get_value(parg);
 	}
 	/* try and substitute the param's default */
-	if (!tmp) {
-		if (this && this->cmd)
-			tmp = clish_paramv_find_default(
-				clish_command__get_paramv(this->cmd), name);
-	}
+	if (!tmp && cmd)
+		tmp = clish_paramv_find_default(
+			clish_command__get_paramv(cmd), name);
 	/* try and substitute a viewId variable */
-	if (!tmp) {
-		if (this && this->shell->viewid)
-			tmp = string = find_viewid_var(name, this->shell->viewid);
-	}
+	if (!tmp && this && this->viewid)
+		tmp = string = find_viewid_var(name, this->viewid);
 	/* try and substitute context fixed variable */
 	if (!tmp)
-		tmp = string = find_context_var(name, this);
+		tmp = string = find_context_var(name, context);
+	/* try and substitute a global var value */
+	if (!tmp && this) {
+		clish_var_t *var = clish_shell_find_var(this, name);
+		/* substitute the command line value */
+		if (var)
+			tmp = string = clish_shell_expand(
+				clish_var__get_value(var), context);
+	}
 	/* get the contents of an environment variable */
 	if (!tmp)
 		tmp = getenv(name);
 
 	/* override the escape characters */
-	if (this && this->cmd)
-		escape_chars = clish_command__get_escape_chars(this->cmd);
+	if (cmd)
+		escape_chars = clish_command__get_escape_chars(cmd);
 	result = lub_string_encode(tmp, escape_chars);
 	/* free the dynamic memory */
 	if (string)
