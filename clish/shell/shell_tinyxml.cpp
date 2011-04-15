@@ -470,7 +470,13 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 static void
 process_action(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
-	clish_command_t *cmd = (clish_command_t *) parent;
+	clish_command_t *cmd = NULL;
+	clish_var_t *var = NULL;
+
+	if (!lub_string_nocasecmp(element->Parent()->Value(), "VAR"))
+		var = (clish_var_t *)parent;
+	else
+		cmd = (clish_command_t *)parent;
 
 	if (cmd) {
 		// read the following text element
