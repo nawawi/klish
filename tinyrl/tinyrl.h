@@ -81,6 +81,7 @@ extern void tinyrl_delete(tinyrl_t * instance);
 extern tinyrl_history_t *tinyrl__get_history(const tinyrl_t * instance);
 
 extern const char *tinyrl__get_prompt(const tinyrl_t * instance);
+extern void tinyrl__set_prompt(tinyrl_t *instance, const char *prompt);
 
 extern void tinyrl_done(tinyrl_t * instance);
 

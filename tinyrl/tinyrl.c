@@ -390,11 +390,9 @@ static void tinyrl_fini(tinyrl_t * this)
 
 	/* free up any dynamic strings */
 	lub_string_free(this->buffer);
-	this->buffer = NULL;
 	lub_string_free(this->kill_string);
-	this->kill_string = NULL;
 	lub_string_free(this->last_buffer);
-	this->last_buffer = NULL;
+	lub_string_free(this->prompt);
 }
 
 /*-------------------------------------------------------- */
@@ -694,11 +692,10 @@ static char *internal_readline(tinyrl_t * this,
 	this->buffer = lub_string_dup("");
 	this->buffer_size = strlen(this->buffer);
 	this->line = this->buffer;
-	this->prompt = prompt;
-	this->prompt_size = strlen(prompt);
+	tinyrl__set_prompt(this, prompt);
 	this->context = context;
 
-	if ((BOOL_TRUE == this->isatty) && (!str)) {
+	if (this->isatty && !str) {
 		/* set the terminal into raw input mode */
 		tty_set_raw_mode(this);
 		tinyrl_reset_line_state(this);
@@ -1309,6 +1306,18 @@ FILE *tinyrl__get_ostream(const tinyrl_t * this)
 const char *tinyrl__get_prompt(const tinyrl_t * this)
 {
 	return this->prompt;
+}
+
+/*-------------------------------------------------------- */
+void tinyrl__set_prompt(tinyrl_t *this, const char *prompt)
+{
+	if (this->prompt) {
+		lub_string_free(this->prompt);
+		this->prompt_size = 0;
+	}
+	this->prompt = lub_string_dup(prompt);
+	if (this->prompt)
+		this->prompt_size = strlen(this->prompt);
 }
 
 /*-------------------------------------------------------- */

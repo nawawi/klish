@@ -7,7 +7,7 @@
 struct _tinyrl {
 	const char *line;
 	unsigned max_line_length;
-	const char *prompt;
+	char *prompt;
 	size_t prompt_size;
 	char *buffer;
 	size_t buffer_size;

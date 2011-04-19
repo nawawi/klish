@@ -12,5 +12,6 @@ struct clish_var_s {
 	char *name;
 	bool_t dynamic;
 	char *value;
+	char *saved; /* Saved value of static variable */
 	clish_action_t *action;
 };

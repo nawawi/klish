@@ -34,5 +34,7 @@ bool_t clish_var__get_dynamic(const clish_var_t *instance);
 void clish_var__set_value(clish_var_t *instance, const char *value);
 char *clish_var__get_value(const clish_var_t *instance);
 clish_action_t *clish_var__get_action(const clish_var_t *instance);
+void clish_var__set_saved(clish_var_t *instance, const char *value);
+char *clish_var__get_saved(const clish_var_t *instance);
 
 #endif /* _clish_var_h */

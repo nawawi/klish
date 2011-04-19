@@ -116,28 +116,46 @@ static char *find_global_var(const char *name, clish_context_t *context)
 	clish_shell_t *this = context->shell;
 	clish_var_t *var = clish_shell_find_var(this, name);
 	clish_action_t *action;
-	char *value = NULL;
-	char *script = NULL;
+	char *value;
+	char *script;
+	bool_t dynamic;
+	char *res = NULL;
 
 	if (!var)
 		return NULL;
 
-	/* Try the value field */
-	value = clish_var__get_value(var);
-	if (value)
-		return clish_shell_expand(value, context);
-	action = clish_var__get_action(var);
-	script = clish_action__get_script(action);
-	if (script) {
-		char *out = NULL;
-		if (!clish_shell_exec_action(action, context, &out)) {
-			lub_string_free(out);
-			return NULL;
-		}
-		return out;
+	/* Try to get saved value for static var */
+	dynamic = clish_var__get_dynamic(var);
+	if (!dynamic) {
+		char *saved = clish_var__get_saved(var);
+		if (saved)
+			return lub_string_dup(saved);
 	}
 
-	return NULL;
+	/* Try to expand value field */
+	value = clish_var__get_value(var);
+	if (value)
+		res = clish_shell_expand(value, context);
+
+	/* Try to execute ACTION */
+	if (!res) {
+		action = clish_var__get_action(var);
+		script = clish_action__get_script(action);
+		if (script) {
+			char *out = NULL;
+			if (!clish_shell_exec_action(action, context, &out)) {
+				lub_string_free(out);
+				return NULL;
+			}
+			res = out;
+		}
+	}
+
+	/* Save value for static var */
+	if (!dynamic && res)
+		clish_var__set_saved(var, res);
+
+	return res;
 }
 
 /*--------------------------------------------------------- */

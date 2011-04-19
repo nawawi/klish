@@ -19,6 +19,22 @@
 #include "lub/string.h"
 
 /*-------------------------------------------------------- */
+static void clish_shell_renew_prompt(tinyrl_t *this)
+{
+	clish_context_t *context = tinyrl__get_context(this);
+	char *prompt = NULL;
+	const clish_view_t *view;
+
+	/* Obtain the prompt */
+	view = clish_shell__get_view(context->shell);
+	assert(view);
+	prompt = clish_view__get_prompt(view, context);
+	assert(prompt);
+	tinyrl__set_prompt(this, prompt);
+	lub_string_free(prompt);
+}
+
+/*-------------------------------------------------------- */
 static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_TRUE;
@@ -186,12 +202,15 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 }
 
 /*-------------------------------------------------------- */
-static bool_t clish_shell_tinyrl_key_enter(tinyrl_t * this, int key)
+static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 {
 	clish_context_t *context = tinyrl__get_context(this);
 	const clish_command_t *cmd = NULL;
 	const char *line = tinyrl__get_line(this);
 	bool_t result = BOOL_FALSE;
+
+	/* Renew prompt */
+	clish_shell_renew_prompt(this);
 
 	/* nothing to pass simply move down the screen */
 	if (!*line) {
