@@ -12,6 +12,7 @@ typedef struct clish_command_s clish_command_t;
 #include "clish/pargv.h"
 #include "clish/view.h"
 #include "clish/param.h"
+#include "clish/action.h"
 
 typedef enum {
 	CLISH_CONFIG_NONE,
@@ -55,20 +56,16 @@ const char *clish_command__get_name(const clish_command_t * instance);
 const char *clish_command__get_suffix(const clish_command_t * instance);
 const char *clish_command__get_text(const clish_command_t * instance);
 const char *clish_command__get_detail(const clish_command_t * instance);
-const char *clish_command__get_builtin(const clish_command_t * instance);
 const char *clish_command__get_escape_chars(const clish_command_t * instance);
 const clish_param_t *clish_command__get_args(const clish_command_t * instance);
-char *clish_command__get_action(const clish_command_t *instance);
-char *clish_command__expand_action(const clish_command_t *instance, void *context);
+clish_action_t *clish_command__get_action(const clish_command_t *instance);
+char *clish_command__expand_script(const clish_command_t *instance, void *context);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
 char *clish_command__get_viewid(const clish_command_t *instance, void *context);
 const unsigned clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);
 clish_paramv_t *clish_command__get_paramv(const clish_command_t * instance);
-void clish_command__set_action(clish_command_t * instance, const char *action);
-void
-clish_command__set_builtin(clish_command_t * instance, const char *builtin);
 void
 clish_command__set_escape_chars(clish_command_t * instance,
 	const char *escape_chars);
@@ -107,8 +104,6 @@ void clish_command__set_cfg_depth(clish_command_t * instance, const char * cfg_d
 unsigned clish_command__get_cfg_depth(const clish_command_t *instance, void *context);
 bool_t clish_command__get_lock(const clish_command_t * instance);
 void clish_command__set_lock(clish_command_t * instance, bool_t lock);
-const char * clish_command__get_shebang(const clish_command_t * instance);
-void clish_command__set_shebang(clish_command_t * instance, const char * shebang);
 
 void clish_command__set_alias(clish_command_t * instance, const char * alias);
 const char * clish_command__get_alias(const clish_command_t * instance);

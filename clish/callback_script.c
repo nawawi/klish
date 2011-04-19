@@ -46,7 +46,7 @@ bool_t clish_script_callback(clish_context_t *context,
 		return BOOL_TRUE;
 
 	/* Find out shebang */
-	shebang = clish_command__get_shebang(cmd);
+	shebang = clish_action__get_shebang(clish_command__get_action(cmd));
 	if (!shebang)
 		shebang = clish_shell__get_default_shebang(this);
 	assert(shebang);

@@ -36,7 +36,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 	this->paramv = clish_paramv_new();
 	this->viewid = NULL;
 	this->view = NULL;
-	this->action = NULL;
+	this->action = clish_action_new();
 	this->detail = NULL;
 	this->escape_chars = NULL;
 	this->args = NULL;
@@ -44,10 +44,6 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 	this->lock = BOOL_TRUE;
 	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
-
-	/* ACTION params */
-	this->builtin = NULL;
-	this->shebang = NULL;
 
 	/* CONFIG params */
 	this->cfg_op = CLISH_CONFIG_NONE;
@@ -64,9 +60,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 static void clish_command_fini(clish_command_t * this)
 {
 	lub_string_free(this->name);
-	this->name = NULL;
 	lub_string_free(this->text);
-	this->text = NULL;
 
 	/* Link need not full cleanup */
 	if (this->link)
@@ -76,34 +70,16 @@ static void clish_command_fini(clish_command_t * this)
 	clish_paramv_delete(this->paramv);
 
 	lub_string_free(this->alias);
-	this->alias = NULL;
 	lub_string_free(this->viewid);
-	this->viewid = NULL;
-	lub_string_free(this->action);
-	this->action = NULL;
+	clish_action_delete(this->action);
 	lub_string_free(this->detail);
-	this->detail = NULL;
-	lub_string_free(this->builtin);
-	this->builtin = NULL;
-	lub_string_free(this->shebang);
-	this->shebang = NULL;
 	lub_string_free(this->escape_chars);
-	this->escape_chars = NULL;
-
-	if (this->args) {
+	if (this->args)
 		clish_param_delete(this->args);
-		this->args = NULL;
-	}
-
-	this->pview = NULL;
 	lub_string_free(this->pattern);
-	this->pattern = NULL;
 	lub_string_free(this->file);
-	this->file = NULL;
 	lub_string_free(this->seq);
-	this->seq = NULL;
 	lub_string_free(this->cfg_depth);
-	this->cfg_depth = NULL;
 }
 
 /*---------------------------------------------------------
@@ -263,13 +239,6 @@ const char *clish_command__get_text(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-void clish_command__set_action(clish_command_t * this, const char *action)
-{
-	assert(NULL == this->action);
-	this->action = lub_string_dup(action);
-}
-
-/*--------------------------------------------------------- */
 const char *clish_command__get_detail(const clish_command_t * this)
 {
 	return this->detail;
@@ -283,15 +252,16 @@ void clish_command__set_detail(clish_command_t * this, const char *detail)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_action(const clish_command_t *this)
+clish_action_t *clish_command__get_action(const clish_command_t *this)
 {
 	return this->action;
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__expand_action(const clish_command_t *this, void *context)
+char *clish_command__expand_script(const clish_command_t *this, void *context)
 {
-	return this->var_expand_fn(this->action, context);
+	return this->var_expand_fn(clish_action__get_script(this->action),
+		context);
 }
 
 /*--------------------------------------------------------- */
@@ -343,19 +313,6 @@ const clish_param_t *clish_command__get_param(const clish_command_t * this,
 const char *clish_command__get_suffix(const clish_command_t * this)
 {
 	return lub_string_suffix(this->name);
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_builtin(clish_command_t * this, const char *builtin)
-{
-	assert(NULL == this->builtin);
-	this->builtin = lub_string_dup(builtin);
-}
-
-/*--------------------------------------------------------- */
-const char *clish_command__get_builtin(const clish_command_t * this)
-{
-	return this->builtin;
 }
 
 /*--------------------------------------------------------- */
@@ -598,24 +555,6 @@ bool_t clish_command__get_lock(const clish_command_t * this)
 void clish_command__set_lock(clish_command_t * this, bool_t lock)
 {
 	this->lock = lock;
-}
-
-/*--------------------------------------------------------- */
-const char * clish_command__get_shebang(const clish_command_t * this)
-{
-	return this->shebang;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_shebang(clish_command_t * this, const char * shebang)
-{
-	const char *prog = shebang;
-	const char *prefix = "#!";
-
-	assert(!this->shebang);
-	if (lub_string_nocasestr(shebang, prefix) == shebang)
-		prog += strlen(prefix);
-	this->shebang = lub_string_dup(prog);
 }
 
 /*--------------------------------------------------------- */

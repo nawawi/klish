@@ -264,8 +264,8 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Execute ACTION */
-	builtin = clish_command__get_builtin(cmd);
-	script = clish_command__expand_action(cmd, context);
+	builtin = clish_action__get_builtin(clish_command__get_action(cmd));
+	script = clish_command__expand_script(cmd, context);
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
 		script);

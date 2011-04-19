@@ -1,8 +1,10 @@
 /*
  * command_dump.c
  */
-#include "private.h"
+
 #include "lub/dump.h"
+#include "clish/action.h"
+#include "private.h"
 
 /*--------------------------------------------------------- */
 void clish_command_dump(const clish_command_t * this)
@@ -19,13 +21,10 @@ void clish_command_dump(const clish_command_t * this)
 	lub_dump_printf("alias       : %s\n", this->alias);
 	lub_dump_printf("alias_view  : %s\n",
 		this->alias_view ? clish_view__get_name(this->alias_view) : "(null)");
-	lub_dump_printf("action      : %s\n",
-			this->action ? this->action : "(null)");
+	clish_action_dump(this->action);
 	lub_dump_printf("paramc      : %d\n", clish_paramv__get_count(this->paramv));
 	lub_dump_printf("detail      : %s\n",
 			this->detail ? this->detail : "(null)");
-	lub_dump_printf("builtin     : %s\n",
-			this->builtin ? this->builtin : "(null)");
 	switch (this->cfg_op) {
 	case CLISH_CONFIG_NONE:
 		cfg_op = "NONE";

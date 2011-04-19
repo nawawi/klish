@@ -1,6 +1,8 @@
 /*
  * command.h
  */
+
+#include "clish/action.h"
 #include "clish/command.h"
 
 /*---------------------------------------------------------
@@ -11,13 +13,13 @@ struct clish_command_s {
 	char *name;
 	char *text;
 	clish_paramv_t *paramv;
-	char *action;
+	clish_action_t *action;
 	clish_view_t *view;
 	char *viewid;
 	char *detail;
 	char *escape_chars;
 	clish_param_t *args;
-	const struct clish_command_s * link;
+	const struct clish_command_s *link;
 	clish_view_t *alias_view;
 	char *alias;
 	clish_view_t *pview;
@@ -25,10 +27,6 @@ struct clish_command_s {
 	bool_t interrupt;
 	bool_t dynamic; /* Is command dynamically created */
 	clish_var_expand_fn_t *var_expand_fn;
-
-	/* ACTION params: */
-	char *builtin;
-	char *shebang;
 
 	/* CONFIG params:
 	 * TODO: create special structure for CONFIG params.

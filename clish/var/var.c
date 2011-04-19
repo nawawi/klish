@@ -19,6 +19,7 @@ static void clish_var_init(clish_var_t *this, const char *name)
 	this->name = lub_string_dup(name);
 	this->dynamic = BOOL_FALSE;
 	this->value = NULL;
+	this->action = clish_action_new();
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -29,6 +30,7 @@ static void clish_var_fini(clish_var_t *this)
 {
 	lub_string_free(this->name);
 	lub_string_free(this->value);
+	clish_action_delete(this->action);
 }
 
 /*---------------------------------------------------------
@@ -116,4 +118,10 @@ void clish_var__set_value(clish_var_t *this, const char *value)
 char *clish_var__get_value(const clish_var_t *this)
 {
 	return this->value;
+}
+
+/*--------------------------------------------------------- */
+clish_action_t *clish_var__get_action(const clish_var_t *this)
+{
+	return this->action;
 }

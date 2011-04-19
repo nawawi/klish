@@ -7,6 +7,7 @@
 #include "clish/pargv.h"
 #include "clish/variable.h"
 #include "clish/var.h"
+#include "clish/action.h"
 
 /*-------------------------------------
  * PRIVATE TYPES

@@ -184,21 +184,24 @@ clish_command_t *clish_view_resolve_prefix(clish_view_t * this,
 }
 
 /*--------------------------------------------------------- */
-clish_command_t *clish_view_resolve_command(clish_view_t * this,
+clish_command_t *clish_view_resolve_command(clish_view_t *this,
 	const char *line, bool_t inherit)
 {
 	clish_command_t *result = clish_view_resolve_prefix(this, line, inherit);
 
 	if (result) {
-		if (!clish_command__get_action(result) && (NULL == clish_command__get_builtin(result)) &&
+		clish_action_t *action = clish_command__get_action(result);
+		if (!clish_action__get_script(action) &&
+			(!clish_action__get_builtin(action)) &&
 			(CLISH_CONFIG_NONE == clish_command__get_cfg_op(result)) &&
-			(NULL == clish_command__get_view(result))) {
+			(!clish_command__get_view(result))) {
 			/* if this doesn't do anything we've
-			 * not resolved a command 
+			 * not resolved a command
 			 */
 			result = NULL;
 		}
 	}
+
 	return result;
 }
 

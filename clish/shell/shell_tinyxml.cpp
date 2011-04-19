@@ -470,31 +470,26 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 static void
 process_action(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
-	clish_command_t *cmd = NULL;
-	clish_var_t *var = NULL;
+	clish_action_t *action = NULL;
+	TiXmlNode *text = element->FirstChild();
+	const char *builtin = element->Attribute("builtin");
+	const char *shebang = element->Attribute("shebang");
 
 	if (!lub_string_nocasecmp(element->Parent()->Value(), "VAR"))
-		var = (clish_var_t *)parent;
+		action = clish_var__get_action((clish_var_t *)parent);
 	else
-		cmd = (clish_command_t *)parent;
+		action = clish_command__get_action((clish_command_t *)parent);
+	assert(action);
 
-	if (cmd) {
-		// read the following text element
-		TiXmlNode *text = element->FirstChild();
-		const char *builtin = element->Attribute("builtin");
-		const char *shebang = element->Attribute("shebang");
-
-		if (text) {
-			assert(TiXmlNode::TEXT == text->Type());
-			// store the action
-			clish_command__set_action(cmd, text->Value());
-		}
+	if (text) {
+		assert(TiXmlNode::TEXT == text->Type());
 		// store the action
-		if (builtin)
-			clish_command__set_builtin(cmd, builtin);
-		if (shebang)
-			clish_command__set_shebang(cmd, shebang);
+		clish_action__set_script(action, text->Value());
 	}
+	if (builtin)
+		clish_action__set_builtin(action, builtin);
+	if (shebang)
+		clish_action__set_shebang(action, shebang);
 }
 
 ////////////////////////////////////////

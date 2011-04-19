@@ -3,6 +3,7 @@
 
 #include "lub/types.h"
 #include "lub/bintree.h"
+#include "clish/action.h"
 
 typedef struct clish_var_s clish_var_t;
 
@@ -32,5 +33,6 @@ void clish_var__set_dynamic(clish_var_t *instance, bool_t defval);
 bool_t clish_var__get_dynamic(const clish_var_t *instance);
 void clish_var__set_value(clish_var_t *instance, const char *value);
 char *clish_var__get_value(const clish_var_t *instance);
+clish_action_t *clish_var__get_action(const clish_var_t *instance);
 
 #endif /* _clish_var_h */

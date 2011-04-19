@@ -25,6 +25,7 @@ nobase_include_HEADERS += \
 	clish/view.h \
 	clish/nspace.h \
 	clish/var.h \
+	clish/action.h \
 	clish/internal.h
 
 EXTRA_DIST += \
@@ -36,6 +37,7 @@ EXTRA_DIST += \
 	clish/view/module.am \
 	clish/nspace/module.am \
 	clish/var/module.am \
+	clish/action/module.am \
 	clish/README
 
 include $(top_srcdir)/clish/command/module.am
@@ -46,3 +48,4 @@ include $(top_srcdir)/clish/shell/module.am
 include $(top_srcdir)/clish/view/module.am
 include $(top_srcdir)/clish/nspace/module.am
 include $(top_srcdir)/clish/var/module.am
+include $(top_srcdir)/clish/action/module.am
