@@ -111,6 +111,36 @@ static char *find_context_var(const char *name, clish_context_t *this)
 }
 
 /*--------------------------------------------------------- */
+static char *find_global_var(const char *name, clish_context_t *context)
+{
+	clish_shell_t *this = context->shell;
+	clish_var_t *var = clish_shell_find_var(this, name);
+	clish_action_t *action;
+	char *value = NULL;
+	char *script = NULL;
+
+	if (!var)
+		return NULL;
+
+	/* Try the value field */
+	value = clish_var__get_value(var);
+	if (value)
+		return clish_shell_expand(value, context);
+	action = clish_var__get_action(var);
+	script = clish_action__get_script(action);
+	if (script) {
+		char *out = NULL;
+		if (!clish_shell_exec_action(action, context, &out)) {
+			lub_string_free(out);
+			return NULL;
+		}
+		return out;
+	}
+
+	return NULL;
+}
+
+/*--------------------------------------------------------- */
 /*
  * return the next segment of text from the provided string
  * segments are delimited by variables within the string.
@@ -299,13 +329,8 @@ char *clish_shell_expand_var(const char *name, void *context)
 	if (!tmp)
 		tmp = string = find_context_var(name, context);
 	/* try and substitute a global var value */
-	if (!tmp && this) {
-		clish_var_t *var = clish_shell_find_var(this, name);
-		/* substitute the command line value */
-		if (var)
-			tmp = string = clish_shell_expand(
-				clish_var__get_value(var), context);
-	}
+	if (!tmp && this)
+		tmp = string = find_global_var(name, context);
 	/* get the contents of an environment variable */
 	if (!tmp)
 		tmp = getenv(name);

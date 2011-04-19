@@ -183,8 +183,6 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	clish_pargv_t *pargv = context->pargv;
 	clish_action_t *action;
 	bool_t result = BOOL_TRUE;
-	const char *builtin;
-	char *script;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
 	sigset_t old_sigs;
@@ -266,35 +264,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Execute ACTION */
-	builtin = clish_action__get_builtin(action);
-	script = clish_shell_expand(clish_action__get_script(action), context);
-	/* account for thread cancellation whilst running a script */
-	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
-		script);
-	if (builtin) {
-		clish_shell_builtin_fn_t *callback;
-		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
-
-		result = BOOL_FALSE;
-
-		/* search for an internal command */
-		callback = find_builtin_callback(clish_cmd_list, builtin);
-
-		if (!callback) {
-			/* search for a client command */
-			callback = find_builtin_callback(
-				this->client_hooks->cmd_list, builtin);
-		}
-		/* invoke the builtin callback */
-		if (callback)
-			result = callback(this, argv);
-		if (argv)
-			lub_argv_delete(argv);
-	} else if (script) {
-		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(context, script, out);
-	}
-	pthread_cleanup_pop(1);
+	result = clish_shell_exec_action(action, context, out);
 
 	/* Restore SIGINT and SIGQUIT */
 	if (!clish_command__get_interrupt(cmd)) {
@@ -341,6 +311,42 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 			this->viewid = viewid;
 		}
 	}
+
+	return result;
+}
+
+/*----------------------------------------------------------- */
+bool_t clish_shell_exec_action(clish_action_t *action,
+	clish_context_t *context, char **out)
+{
+	clish_shell_t *this = context->shell;
+	bool_t result = BOOL_TRUE;
+	const char *builtin;
+	char *script;
+
+	builtin = clish_action__get_builtin(action);
+	script = clish_shell_expand(clish_action__get_script(action), context);
+	if (builtin) {
+		clish_shell_builtin_fn_t *callback;
+		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
+		result = BOOL_FALSE;
+		/* search for an internal command */
+		callback = find_builtin_callback(clish_cmd_list, builtin);
+		if (!callback) {
+			/* search for a client command */
+			callback = find_builtin_callback(
+				this->client_hooks->cmd_list, builtin);
+		}
+		/* invoke the builtin callback */
+		if (callback)
+			result = callback(this, argv);
+		if (argv)
+			lub_argv_delete(argv);
+	} else if (script) {
+		/* now get the client to interpret the resulting script */
+		result = this->client_hooks->script_fn(context, script, out);
+	}
+	lub_string_free(script);
 
 	return result;
 }
