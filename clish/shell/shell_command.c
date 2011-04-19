@@ -99,7 +99,7 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 		context.shell = this;
 		context.cmd = cmd;
 		context.pargv = pargv;
-		clish_pargv_parse(pargv, cmd, &context,
+		clish_shell_parse_pargv(pargv, cmd, &context,
 			clish_command__get_paramv(cmd),
 			argv, &idx, completion, index + idx);
 		clish_pargv_delete(pargv);

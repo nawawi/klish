@@ -50,8 +50,7 @@ typedef enum {
  * meta functions
  *----------------- */
 clish_param_t *clish_param_new(const char *name,
-	const char *text, clish_ptype_t *ptype,
-	clish_var_expand_fn_t *fn);
+	const char *text, clish_ptype_t *ptype);
 /*-----------------
  * methods
  *----------------- */
@@ -84,7 +83,7 @@ char *clish_param__get_value(const clish_param_t * instance);
 void clish_param__set_hidden(clish_param_t * instance, bool_t hidden);
 bool_t clish_param__get_hidden(const clish_param_t * instance);
 void clish_param__set_test(clish_param_t * instance, const char *test);
-char *clish_param__get_test(const clish_param_t *instance, void *context);
+char *clish_param__get_test(const clish_param_t *instance);
 
 /* paramv methods */
 clish_paramv_t *clish_paramv_new(void);

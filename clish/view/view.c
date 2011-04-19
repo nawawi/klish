@@ -338,9 +338,9 @@ void clish_view__set_prompt(clish_view_t * this, const char *prompt)
 }
 
 /*--------------------------------------------------------- */
-char *clish_view__get_prompt(const clish_view_t *this, void *context)
+char *clish_view__get_prompt(const clish_view_t *this)
 {
-	return this->var_expand_fn(this->prompt, context);
+	return this->prompt;
 }
 
 /*--------------------------------------------------------- */

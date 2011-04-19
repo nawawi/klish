@@ -28,7 +28,7 @@ static void clish_shell_renew_prompt(tinyrl_t *this)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(context->shell);
 	assert(view);
-	prompt = clish_view__get_prompt(view, context);
+	prompt = clish_shell_expand(clish_view__get_prompt(view), context);
 	assert(prompt);
 	tinyrl__set_prompt(this, prompt);
 	lub_string_free(prompt);
@@ -409,7 +409,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-	prompt = clish_view__get_prompt(view, &context);
+	prompt = clish_shell_expand(clish_view__get_prompt(view), &context);
 	assert(prompt);
 
 	/* Push the specified line or interactive line */

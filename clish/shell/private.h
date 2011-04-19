@@ -93,6 +93,12 @@ clish_view_t *clish_shell_find_view(clish_shell_t * instance, const char *name);
 void clish_shell_insert_view(clish_shell_t * instance, clish_view_t * view);
 clish_pargv_status_t clish_shell_parse(clish_shell_t * instance,
 	const char *line, const clish_command_t ** cmd, clish_pargv_t ** pargv);
+clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
+	const clish_command_t *cmd,
+	void *context,
+	clish_paramv_t *paramv,
+	const lub_argv_t *argv,
+	unsigned *idx, clish_pargv_t *last, unsigned need_index);
 char *clish_shell_word_generator(clish_shell_t * instance,
 	const char *line, unsigned offset, unsigned state);
 const clish_command_t *clish_shell_resolve_command(const clish_shell_t *

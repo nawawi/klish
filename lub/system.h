@@ -8,6 +8,9 @@
 #include <stddef.h>
 
 #include "lub/c_decl.h"
+#include "lub/types.h"
+#include "lub/argv.h"
+
 _BEGIN_C_DECL bool_t lub_system_test(int argc, char **argv);
 bool_t lub_system_argv_test(const lub_argv_t * argv);
 bool_t lub_system_line_test(const char *line);

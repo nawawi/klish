@@ -17,13 +17,12 @@
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static void clish_param_init(clish_param_t *this, const char *name,
-	const char *text, clish_ptype_t *ptype, clish_var_expand_fn_t *fn)
+	const char *text, clish_ptype_t *ptype)
 {
 	/* initialise the help part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
 	this->ptype = ptype;
-	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* set up defaults */
 	this->defval = NULL;
@@ -58,12 +57,12 @@ static void clish_param_fini(clish_param_t * this)
  * PUBLIC META FUNCTIONS
  *--------------------------------------------------------- */
 clish_param_t *clish_param_new(const char *name, const char *text,
-	clish_ptype_t *ptype, clish_var_expand_fn_t *fn)
+	clish_ptype_t *ptype)
 {
 	clish_param_t *this = malloc(sizeof(clish_param_t));
 
 	if (this)
-		clish_param_init(this, name, text, ptype, fn);
+		clish_param_init(this, name, text, ptype);
 	return this;
 }
 
@@ -361,9 +360,7 @@ void clish_param__set_test(clish_param_t * this, const char *test)
 }
 
 /*--------------------------------------------------------- */
-char *clish_param__get_test(const clish_param_t * this, void *context)
+char *clish_param__get_test(const clish_param_t *this)
 {
-	if (!this->test)
-		return NULL;
-	return this->var_expand_fn(this->test, context);
+	return this->test;
 }

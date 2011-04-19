@@ -43,20 +43,9 @@ const clish_parg_t *clish_pargv_find_arg(clish_pargv_t * instance,
 	const char *name);
 int clish_pargv_insert(clish_pargv_t * instance,
 	const clish_param_t * param, const char *value);
-clish_pargv_status_t clish_pargv_analyze(clish_pargv_t *instance,
-	const clish_command_t * cmd,
-	void *context,
-	const char *line,
-	size_t offset);
-clish_pargv_status_t clish_pargv_parse(clish_pargv_t *instance,
-	const clish_command_t * cmd,
-	void *context,
-	clish_paramv_t *paramv,
-	const lub_argv_t *argv,
-	unsigned *idx, clish_pargv_t *last, unsigned need_index);
 void clish_pargv_dump(const clish_pargv_t * instance);
 /*-----------------
- * attributes 
+ * attributes
  *----------------- */
 unsigned clish_pargv__get_count(clish_pargv_t * instance);
 clish_parg_t *clish_pargv__get_parg(clish_pargv_t * instance, unsigned index);

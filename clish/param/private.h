@@ -23,5 +23,4 @@ struct clish_param_s {
 	bool_t optional;
 	bool_t hidden;
 	char *test; /* the condition */
-	clish_var_expand_fn_t *var_expand_fn;
 };
