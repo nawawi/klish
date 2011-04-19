@@ -43,6 +43,7 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(srcdir)/config.h.in $(top_srcdir)/bin/module.am \
 	$(top_srcdir)/clish/action/module.am \
 	$(top_srcdir)/clish/command/module.am \
+	$(top_srcdir)/clish/config/module.am \
 	$(top_srcdir)/clish/module.am \
 	$(top_srcdir)/clish/nspace/module.am \
 	$(top_srcdir)/clish/param/module.am \
@@ -220,7 +221,9 @@ am_libclish_la_OBJECTS = clish/libclish_la-callback_access.lo \
 	clish/nspace/libclish_la-nspace_dump.lo \
 	clish/var/libclish_la-var.lo clish/var/libclish_la-var_dump.lo \
 	clish/action/libclish_la-action.lo \
-	clish/action/libclish_la-action_dump.lo
+	clish/action/libclish_la-action_dump.lo \
+	clish/config/libclish_la-config.lo \
+	clish/config/libclish_la-config_dump.lo
 libclish_la_OBJECTS = $(am_libclish_la_OBJECTS)
 libkonf_la_DEPENDENCIES = liblub.la
 am_libkonf_la_OBJECTS = konf/tree/tree.lo konf/tree/tree_dump.lo \
@@ -645,8 +648,8 @@ lib_LTLIBRARIES = libclish.la liblub.la libtinyrl.la libtinyxml.la \
 	libkonf.la
 lib_LIBRARIES = 
 nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
-	clish/pargv.h clish/ptype.h clish/shell.h clish/variable.h \
-	clish/view.h clish/nspace.h clish/var.h clish/action.h \
+	clish/pargv.h clish/ptype.h clish/shell.h clish/view.h \
+	clish/nspace.h clish/var.h clish/action.h clish/config.h \
 	clish/internal.h lub/argv.h lub/bintree.h lub/list.h \
 	lub/blockpool.h lub/ctype.h lub/dblockpool.h lub/c_decl.h \
 	lub/dump.h lub/heap.h lub/partition.h lub/string.h \
@@ -661,8 +664,9 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	clish/param/module.am clish/pargv/module.am \
 	clish/ptype/module.am clish/shell/module.am \
 	clish/view/module.am clish/nspace/module.am \
-	clish/var/module.am clish/action/module.am clish/README \
-	lub/argv/module.am lub/bintree/module.am lub/list/module.am \
+	clish/var/module.am clish/action/module.am \
+	clish/config/module.am clish/README lub/argv/module.am \
+	lub/bintree/module.am lub/list/module.am \
 	lub/blockpool/module.am lub/ctype/module.am \
 	lub/dblockpool/module.am lub/dump/module.am lub/heap/module.am \
 	lub/string/module.am lub/test/module.am lub/system/module.am \
@@ -726,7 +730,9 @@ libclish_la_SOURCES = clish/callback_access.c clish/callback_script.c \
 	clish/nspace/nspace.c clish/nspace/nspace_dump.c \
 	clish/nspace/private.h clish/var/var.c clish/var/var_dump.c \
 	clish/var/private.h clish/action/action.c \
-	clish/action/action_dump.c clish/action/private.h
+	clish/action/action_dump.c clish/action/private.h \
+	clish/config/config.c clish/config/config_dump.c \
+	clish/config/private.h
 libclish_la_CFLAGS = @LUB_CFLAGS@ @LUBHEAP_CFLAGS@ $(DEBUG_CFLAGS)
 libclish_la_LIBADD = \
 	liblub.la \
@@ -829,7 +835,7 @@ all: config.h
 .SUFFIXES: .c .cpp .lo .o .obj
 am--refresh:
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1070,6 +1076,16 @@ clish/action/libclish_la-action.lo: clish/action/$(am__dirstamp) \
 	clish/action/$(DEPDIR)/$(am__dirstamp)
 clish/action/libclish_la-action_dump.lo: clish/action/$(am__dirstamp) \
 	clish/action/$(DEPDIR)/$(am__dirstamp)
+clish/config/$(am__dirstamp):
+	@$(MKDIR_P) clish/config
+	@: > clish/config/$(am__dirstamp)
+clish/config/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) clish/config/$(DEPDIR)
+	@: > clish/config/$(DEPDIR)/$(am__dirstamp)
+clish/config/libclish_la-config.lo: clish/config/$(am__dirstamp) \
+	clish/config/$(DEPDIR)/$(am__dirstamp)
+clish/config/libclish_la-config_dump.lo: clish/config/$(am__dirstamp) \
+	clish/config/$(DEPDIR)/$(am__dirstamp)
 libclish.la: $(libclish_la_OBJECTS) $(libclish_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libclish_la_OBJECTS) $(libclish_la_LIBADD) $(LIBS)
 konf/tree/$(am__dirstamp):
@@ -1581,6 +1597,10 @@ mostlyclean-compile:
 	-rm -f clish/command/libclish_la-command.lo
 	-rm -f clish/command/libclish_la-command_dump.$(OBJEXT)
 	-rm -f clish/command/libclish_la-command_dump.lo
+	-rm -f clish/config/libclish_la-config.$(OBJEXT)
+	-rm -f clish/config/libclish_la-config.lo
+	-rm -f clish/config/libclish_la-config_dump.$(OBJEXT)
+	-rm -f clish/config/libclish_la-config_dump.lo
 	-rm -f clish/libclish_la-callback_access.$(OBJEXT)
 	-rm -f clish/libclish_la-callback_access.lo
 	-rm -f clish/libclish_la-callback_config.$(OBJEXT)
@@ -1906,6 +1926,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@clish/action/$(DEPDIR)/libclish_la-action_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/command/$(DEPDIR)/libclish_la-command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/command/$(DEPDIR)/libclish_la-command_dump.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@clish/config/$(DEPDIR)/libclish_la-config.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@clish/config/$(DEPDIR)/libclish_la-config_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/nspace/$(DEPDIR)/libclish_la-nspace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/nspace/$(DEPDIR)/libclish_la-nspace_dump.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@clish/param/$(DEPDIR)/libclish_la-param.Plo@am__quote@
@@ -2317,6 +2339,20 @@ clish/action/libclish_la-action_dump.lo: clish/action/action_dump.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/action/libclish_la-action_dump.lo `test -f 'clish/action/action_dump.c' || echo '$(srcdir)/'`clish/action/action_dump.c
 
+clish/config/libclish_la-config.lo: clish/config/config.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -MT clish/config/libclish_la-config.lo -MD -MP -MF clish/config/$(DEPDIR)/libclish_la-config.Tpo -c -o clish/config/libclish_la-config.lo `test -f 'clish/config/config.c' || echo '$(srcdir)/'`clish/config/config.c
+@am__fastdepCC_TRUE@	$(am__mv) clish/config/$(DEPDIR)/libclish_la-config.Tpo clish/config/$(DEPDIR)/libclish_la-config.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='clish/config/config.c' object='clish/config/libclish_la-config.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/config/libclish_la-config.lo `test -f 'clish/config/config.c' || echo '$(srcdir)/'`clish/config/config.c
+
+clish/config/libclish_la-config_dump.lo: clish/config/config_dump.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -MT clish/config/libclish_la-config_dump.lo -MD -MP -MF clish/config/$(DEPDIR)/libclish_la-config_dump.Tpo -c -o clish/config/libclish_la-config_dump.lo `test -f 'clish/config/config_dump.c' || echo '$(srcdir)/'`clish/config/config_dump.c
+@am__fastdepCC_TRUE@	$(am__mv) clish/config/$(DEPDIR)/libclish_la-config_dump.Tpo clish/config/$(DEPDIR)/libclish_la-config_dump.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='clish/config/config_dump.c' object='clish/config/libclish_la-config_dump.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/config/libclish_la-config_dump.lo `test -f 'clish/config/config_dump.c' || echo '$(srcdir)/'`clish/config/config_dump.c
+
 test/test_lubMallocTest-mallocTest.o: test/mallocTest.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_lubMallocTest_CFLAGS) $(CFLAGS) -MT test/test_lubMallocTest-mallocTest.o -MD -MP -MF test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo -c -o test/test_lubMallocTest-mallocTest.o `test -f 'test/mallocTest.c' || echo '$(srcdir)/'`test/mallocTest.c
 @am__fastdepCC_TRUE@	$(am__mv) test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo test/$(DEPDIR)/test_lubMallocTest-mallocTest.Po
@@ -2406,6 +2442,7 @@ clean-libtool:
 	-rm -rf clish/.libs clish/_libs
 	-rm -rf clish/action/.libs clish/action/_libs
 	-rm -rf clish/command/.libs clish/command/_libs
+	-rm -rf clish/config/.libs clish/config/_libs
 	-rm -rf clish/nspace/.libs clish/nspace/_libs
 	-rm -rf clish/param/.libs clish/param/_libs
 	-rm -rf clish/pargv/.libs clish/pargv/_libs
@@ -2701,6 +2738,8 @@ distclean-generic:
 	-rm -f clish/action/$(am__dirstamp)
 	-rm -f clish/command/$(DEPDIR)/$(am__dirstamp)
 	-rm -f clish/command/$(am__dirstamp)
+	-rm -f clish/config/$(DEPDIR)/$(am__dirstamp)
+	-rm -f clish/config/$(am__dirstamp)
 	-rm -f clish/nspace/$(DEPDIR)/$(am__dirstamp)
 	-rm -f clish/nspace/$(am__dirstamp)
 	-rm -f clish/param/$(DEPDIR)/$(am__dirstamp)
@@ -2773,7 +2812,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -2822,7 +2861,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

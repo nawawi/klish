@@ -21,11 +21,11 @@ nobase_include_HEADERS += \
 	clish/pargv.h \
 	clish/ptype.h \
 	clish/shell.h \
-	clish/variable.h \
 	clish/view.h \
 	clish/nspace.h \
 	clish/var.h \
 	clish/action.h \
+	clish/config.h \
 	clish/internal.h
 
 EXTRA_DIST += \
@@ -38,6 +38,7 @@ EXTRA_DIST += \
 	clish/nspace/module.am \
 	clish/var/module.am \
 	clish/action/module.am \
+	clish/config/module.am \
 	clish/README
 
 include $(top_srcdir)/clish/command/module.am
@@ -49,3 +50,4 @@ include $(top_srcdir)/clish/view/module.am
 include $(top_srcdir)/clish/nspace/module.am
 include $(top_srcdir)/clish/var/module.am
 include $(top_srcdir)/clish/action/module.am
+include $(top_srcdir)/clish/config/module.am

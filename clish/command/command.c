@@ -37,6 +37,7 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 	this->viewid = NULL;
 	this->view = NULL;
 	this->action = clish_action_new();
+	this->config = clish_config_new();
 	this->detail = NULL;
 	this->escape_chars = NULL;
 	this->args = NULL;
@@ -44,16 +45,6 @@ clish_command_init(clish_command_t * this, const char *name, const char *text,
 	this->lock = BOOL_TRUE;
 	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
-
-	/* CONFIG params */
-	this->cfg_op = CLISH_CONFIG_NONE;
-	this->priority = 0; /* medium priority by default */
-	this->pattern = NULL;
-	this->file = NULL;
-	this->splitter = BOOL_TRUE;
-	this->seq = NULL;
-	this->unique = BOOL_TRUE;
-	this->cfg_depth = NULL;
 }
 
 /*--------------------------------------------------------- */
@@ -72,14 +63,11 @@ static void clish_command_fini(clish_command_t * this)
 	lub_string_free(this->alias);
 	lub_string_free(this->viewid);
 	clish_action_delete(this->action);
+	clish_config_delete(this->config);
 	lub_string_free(this->detail);
 	lub_string_free(this->escape_chars);
 	if (this->args)
 		clish_param_delete(this->args);
-	lub_string_free(this->pattern);
-	lub_string_free(this->file);
-	lub_string_free(this->seq);
-	lub_string_free(this->cfg_depth);
 }
 
 /*---------------------------------------------------------
@@ -258,6 +246,12 @@ clish_action_t *clish_command__get_action(const clish_command_t *this)
 }
 
 /*--------------------------------------------------------- */
+clish_config_t *clish_command__get_config(const clish_command_t *this)
+{
+	return this->config;
+}
+
+/*--------------------------------------------------------- */
 void clish_command__set_view(clish_command_t * this, clish_view_t * view)
 {
 	assert(NULL == this->view);
@@ -369,112 +363,6 @@ unsigned clish_command__get_depth(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-void
-clish_command__set_cfg_op(clish_command_t * this,
-	clish_config_operation_t operation)
-{
-	this->cfg_op = operation;
-}
-
-/*--------------------------------------------------------- */
-clish_config_operation_t clish_command__get_cfg_op(const clish_command_t * this)
-{
-	return this->cfg_op;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_priority(clish_command_t * this, unsigned short priority)
-{
-	this->priority = priority;
-}
-
-/*--------------------------------------------------------- */
-unsigned short clish_command__get_priority(const clish_command_t * this)
-{
-	return this->priority;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_pattern(clish_command_t * this, const char *pattern)
-{
-	assert(NULL == this->pattern);
-	this->pattern = lub_string_dup(pattern);
-}
-
-/*--------------------------------------------------------- */
-char *clish_command__get_pattern(const clish_command_t * this, void *context)
-{
-	return this->var_expand_fn(this->pattern, context);
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_file(clish_command_t * this, const char *file)
-{
-	assert(!this->file);
-	this->file = lub_string_dup(file);
-}
-
-/*--------------------------------------------------------- */
-char *clish_command__get_file(const clish_command_t *this, void *context)
-{
-	return this->var_expand_fn(this->file, context);
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_command__get_splitter(const clish_command_t * this)
-{
-	return this->splitter;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_splitter(clish_command_t * this, bool_t splitter)
-{
-	this->splitter = splitter;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_seq(clish_command_t * this, const char * seq)
-{
-	assert(!this->seq);
-	this->seq = lub_string_dup(seq);
-}
-
-/*--------------------------------------------------------- */
-unsigned short clish_command__get_seq(const clish_command_t *this, void *context)
-{
-	unsigned short num = 0;
-	char *str;
-
-	if (!this->seq)
-		return 0;
-
-	str = this->var_expand_fn(this->seq, context);
-	if (str && (*str != '\0')) {
-		long val = 0;
-		char *endptr;
-
-		val = strtol(str, &endptr, 0);
-		if (endptr == str)
-			num = 0;
-		else if (val > 0xffff)
-			num = 0xffff;
-		else if (val < 0)
-			num = 0;
-		else
-			num = (unsigned short)val;
-	}
-	lub_string_free(str);
-
-	return num;
-}
-
-/*--------------------------------------------------------- */
-const char * clish_command__is_seq(const clish_command_t * this)
-{
-	return this->seq;
-}
-
-/*--------------------------------------------------------- */
 clish_view_restore_t clish_command__get_restore(const clish_command_t * this)
 {
 	if (!this->pview)
@@ -483,59 +371,11 @@ clish_view_restore_t clish_command__get_restore(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_command__get_unique(const clish_command_t * this)
-{
-	return this->unique;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_unique(clish_command_t * this, bool_t unique)
-{
-	this->unique = unique;
-}
-
-/*--------------------------------------------------------- */
 const clish_command_t * clish_command__get_orig(const clish_command_t * this)
 {
 	if (this->link)
 		return clish_command__get_orig(this->link);
 	return this;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_cfg_depth(clish_command_t * this, const char * cfg_depth)
-{
-	assert(!this->cfg_depth);
-	this->cfg_depth = lub_string_dup(cfg_depth);
-}
-
-/*--------------------------------------------------------- */
-unsigned clish_command__get_cfg_depth(const clish_command_t *this, void *context)
-{
-	unsigned num = 0;
-	char *str;
-
-	if (!this->cfg_depth)
-		return clish_command__get_depth(this);
-
-	str = this->var_expand_fn(this->cfg_depth, context);
-	if (str && (*str != '\0')) {
-		long val = 0;
-		char *endptr;
-
-		val = strtol(str, &endptr, 0);
-		if (endptr == str)
-			num = 0;
-		else if (val > 0xffff)
-			num = 0xffff;
-		else if (val < 0)
-			num = 0;
-		else
-			num = (unsigned)val;
-	}
-	lub_string_free(str);
-
-	return num;
 }
 
 /*--------------------------------------------------------- */

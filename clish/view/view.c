@@ -191,9 +191,10 @@ clish_command_t *clish_view_resolve_command(clish_view_t *this,
 
 	if (result) {
 		clish_action_t *action = clish_command__get_action(result);
+		clish_config_t *config = clish_command__get_config(result);
 		if (!clish_action__get_script(action) &&
 			(!clish_action__get_builtin(action)) &&
-			(CLISH_CONFIG_NONE == clish_command__get_cfg_op(result)) &&
+			(CLISH_CONFIG_NONE == clish_config__get_op(config)) &&
 			(!clish_command__get_view(result))) {
 			/* if this doesn't do anything we've
 			 * not resolved a command

@@ -2,7 +2,6 @@
  * command.h
  */
 
-#include "clish/action.h"
 #include "clish/command.h"
 
 /*---------------------------------------------------------
@@ -14,6 +13,7 @@ struct clish_command_s {
 	char *text;
 	clish_paramv_t *paramv;
 	clish_action_t *action;
+	clish_config_t *config;
 	clish_view_t *view;
 	char *viewid;
 	char *detail;
@@ -27,16 +27,4 @@ struct clish_command_s {
 	bool_t interrupt;
 	bool_t dynamic; /* Is command dynamically created */
 	clish_var_expand_fn_t *var_expand_fn;
-
-	/* CONFIG params:
-	 * TODO: create special structure for CONFIG params.
-	 */
-	clish_config_operation_t cfg_op;
-	unsigned short priority;
-	char *pattern;
-	char *file;
-	bool_t splitter;
-	char *seq;
-	bool_t unique;
-	char *cfg_depth;
 };

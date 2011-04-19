@@ -566,10 +566,12 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 static void
 process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 {
-	clish_command_t *cmd = (clish_command_t *) parent;
+	clish_command_t *cmd = (clish_command_t *)parent;
+	clish_config_t *config;
 
 	if (!cmd)
 		return;
+	config = clish_command__get_config(cmd);
 
 	// read the following text element
 	const char *operation = element->Attribute("operation");
@@ -579,18 +581,18 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *splitter = element->Attribute("splitter");
 	const char *seq = element->Attribute("sequence");
 	const char *unique = element->Attribute("unique");
-	const char *cfg_depth = element->Attribute("depth");
+	const char *depth = element->Attribute("depth");
 
 	if (operation && !lub_string_nocasecmp(operation, "unset"))
-		clish_command__set_cfg_op(cmd, CLISH_CONFIG_UNSET);
+		clish_config__set_op(config, CLISH_CONFIG_UNSET);
 	else if (operation && !lub_string_nocasecmp(operation, "none"))
-		clish_command__set_cfg_op(cmd, CLISH_CONFIG_NONE);
+		clish_config__set_op(config, CLISH_CONFIG_NONE);
 	else if (operation && !lub_string_nocasecmp(operation, "dump"))
-		clish_command__set_cfg_op(cmd, CLISH_CONFIG_DUMP);
+		clish_config__set_op(config, CLISH_CONFIG_DUMP);
 	else {
-		clish_command__set_cfg_op(cmd, CLISH_CONFIG_SET);
+		clish_config__set_op(config, CLISH_CONFIG_SET);
 		/* The priority if no clearly specified */
-		clish_command__set_priority(cmd, 0x7f00);
+		clish_config__set_priority(config, 0x7f00);
 	}
 
 	if (priority && (*priority != '\0')) {
@@ -607,35 +609,35 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			pri = 0;
 		else
 			pri = (unsigned short)val;
-		clish_command__set_priority(cmd, pri);
+		clish_config__set_priority(config, pri);
 	}
 
 	if (pattern)
-		clish_command__set_pattern(cmd, pattern);
+		clish_config__set_pattern(config, pattern);
 	else
-		clish_command__set_pattern(cmd, "^${__cmd}");
+		clish_config__set_pattern(config, "^${__cmd}");
 
 	if (file)
-		clish_command__set_file(cmd, file);
+		clish_config__set_file(config, file);
 
 	if (splitter && (lub_string_nocasecmp(splitter, "false") == 0))
-		clish_command__set_splitter(cmd, BOOL_FALSE);
+		clish_config__set_splitter(config, BOOL_FALSE);
 	else
-		clish_command__set_splitter(cmd, BOOL_TRUE);
+		clish_config__set_splitter(config, BOOL_TRUE);
 
 	if (unique && (lub_string_nocasecmp(unique, "false") == 0))
-		clish_command__set_unique(cmd, BOOL_FALSE);
+		clish_config__set_unique(config, BOOL_FALSE);
 	else
-		clish_command__set_unique(cmd, BOOL_TRUE);
+		clish_config__set_unique(config, BOOL_TRUE);
 
 	if (seq)
-		clish_command__set_seq(cmd, seq);
+		clish_config__set_seq(config, seq);
 	else
 		/* The entries without sequence cannot be non-unique */
-		clish_command__set_unique(cmd, BOOL_TRUE);
+		clish_config__set_unique(config, BOOL_TRUE);
 
-	if (cfg_depth)
-		clish_command__set_cfg_depth(cmd, cfg_depth);
+	if (depth)
+		clish_config__set_depth(config, depth);
 }
 
 ///////////////////////////////////////
