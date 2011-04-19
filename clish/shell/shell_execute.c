@@ -181,6 +181,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
 	clish_pargv_t *pargv = context->pargv;
+	clish_action_t *action;
 	bool_t result = BOOL_TRUE;
 	const char *builtin;
 	char *script;
@@ -190,6 +191,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	struct sigaction old_sigint, old_sigquit;
 
 	assert(cmd);
+	action = clish_command__get_action(cmd);
 
 	/* Pre-change view if the command is from another depth/view */
         {
@@ -264,8 +266,8 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Execute ACTION */
-	builtin = clish_action__get_builtin(clish_command__get_action(cmd));
-	script = clish_command__expand_script(cmd, context);
+	builtin = clish_action__get_builtin(action);
+	script = clish_shell_expand(clish_action__get_script(action), context);
 	/* account for thread cancellation whilst running a script */
 	pthread_cleanup_push((void (*)(void *))clish_shell_cleanup_script,
 		script);

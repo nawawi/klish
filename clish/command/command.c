@@ -258,13 +258,6 @@ clish_action_t *clish_command__get_action(const clish_command_t *this)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__expand_script(const clish_command_t *this, void *context)
-{
-	return this->var_expand_fn(clish_action__get_script(this->action),
-		context);
-}
-
-/*--------------------------------------------------------- */
 void clish_command__set_view(clish_command_t * this, clish_view_t * view)
 {
 	assert(NULL == this->view);
