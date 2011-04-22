@@ -442,8 +442,6 @@
         <xs:attribute name="depth" type="xs:string" use="optional"/>
     </xs:complexType>
 
-</xs:schema>
-
 <!--
 *******************************************************
 * <VAR> Specify the variable.
@@ -460,3 +458,5 @@
         <xs:attribute name="value" type="xs:string" use="optional"/>
         <xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
     </xs:complexType>
+
+</xs:schema>
