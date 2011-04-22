@@ -102,7 +102,6 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 		clish_shell_parse_pargv(pargv, cmd, &context,
 			clish_command__get_paramv(cmd),
 			argv, &idx, completion, index + idx);
-		clish_pargv_delete(pargv);
 		lub_argv_delete(argv);
 
 		while ((param = clish_pargv__get_param(completion,
@@ -121,11 +120,25 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 				if (result)
 					lub_argv_add(matches, result);
 			}
+			/* The 'completion' field of PARAM */
+			if (clish_param__get_completion(param)) {
+				char *str, *q;
+				char *saveptr;
+				str = clish_shell_expand(
+					clish_param__get_completion(param), &context);
+				for (q = strtok_r(str, " \n", &saveptr);
+					q; q = strtok_r(NULL, " \n", &saveptr)) {
+					if (q == strstr(q, text))
+						lub_argv_add(matches, q);
+				}
+				lub_string_free(str);
+			}
 			/* The common PARAM. Let ptype do the work */
 			if ((ptype = clish_param__get_ptype(param)))
 				clish_ptype_word_generator(ptype, matches, text);
 		}
 		clish_pargv_delete(completion);
+		clish_pargv_delete(pargv);
 	}
 
 	lub_string_free(text);

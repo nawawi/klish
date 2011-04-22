@@ -12,7 +12,7 @@ clish_view_t *clish_shell_find_create_view(clish_shell_t * this,
 {
 	clish_view_t *view = lub_bintree_find(&this->view_tree, name);
 
-	if (NULL == view) {
+	if (!view) {
 		/* create a view */
 		view = clish_view_new(name, prompt);
 		assert(view);

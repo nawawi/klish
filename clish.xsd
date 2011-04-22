@@ -312,6 +312,7 @@
         <xs:attribute name="value" type="xs:string" use="optional"/>
         <xs:attribute name="hidden" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="test" type="xs:string" use="optional"/>
+        <xs:attribute name="completion" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 ********************************************************

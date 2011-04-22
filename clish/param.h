@@ -84,6 +84,8 @@ void clish_param__set_hidden(clish_param_t * instance, bool_t hidden);
 bool_t clish_param__get_hidden(const clish_param_t * instance);
 void clish_param__set_test(clish_param_t * instance, const char *test);
 char *clish_param__get_test(const clish_param_t *instance);
+void clish_param__set_completion(clish_param_t *instance, const char *completion);
+char *clish_param__get_completion(const clish_param_t *instance);
 
 /* paramv methods */
 clish_paramv_t *clish_paramv_new(void);

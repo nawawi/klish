@@ -31,6 +31,7 @@ static void clish_param_init(clish_param_t *this, const char *name,
 	this->value = NULL;
 	this->hidden = BOOL_FALSE;
 	this->test = NULL;
+	this->completion = NULL;
 
 	this->paramv = clish_paramv_new();
 }
@@ -40,15 +41,11 @@ static void clish_param_fini(clish_param_t * this)
 {
 	/* deallocate the memory for this instance */
 	lub_string_free(this->defval);
-	this->defval = NULL;
 	lub_string_free(this->name);
-	this->name = NULL;
 	lub_string_free(this->text);
-	this->text = NULL;
 	lub_string_free(this->value);
-	this->value = NULL;
 	lub_string_free(this->test);
-	this->test = NULL;
+	lub_string_free(this->completion);
 
 	clish_paramv_delete(this->paramv);
 }
@@ -363,4 +360,17 @@ void clish_param__set_test(clish_param_t * this, const char *test)
 char *clish_param__get_test(const clish_param_t *this)
 {
 	return this->test;
+}
+
+/*--------------------------------------------------------- */
+void clish_param__set_completion(clish_param_t *this, const char *completion)
+{
+	assert(!this->completion);
+	this->completion = lub_string_dup(completion);
+}
+
+/*--------------------------------------------------------- */
+char *clish_param__get_completion(const clish_param_t *this)
+{
+	return this->completion;
 }

@@ -344,9 +344,9 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	clish_command_t *cmd = NULL;
 	clish_param_t *p_param = NULL;
 	if (0 == lub_string_nocasecmp(element->Parent()->Value(), "PARAM"))
-		p_param = (clish_param_t *) parent;
+		p_param = (clish_param_t *)parent;
 	else
-		cmd = (clish_command_t *) parent;
+		cmd = (clish_command_t *)parent;
 
 	if (cmd || p_param) {
 		assert((!cmd) || (cmd != shell->startup));
@@ -360,6 +360,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *value = element->Attribute("value");
 		const char *hidden = element->Attribute("hidden");
 		const char *test = element->Attribute("test");
+		const char *completion = element->Attribute("completion");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -398,7 +399,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			assert(tmp);
 			opt_param = clish_param_new(prefix, help, tmp);
 			clish_param__set_mode(opt_param,
-					      CLISH_PARAM_SUBCOMMAND);
+				CLISH_PARAM_SUBCOMMAND);
 			clish_param__set_optional(opt_param, BOOL_TRUE);
 
 			if (test)
@@ -451,6 +452,8 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 		if (test && !prefix)
 			clish_param__set_test(param, test);
+		if (completion)
+			clish_param__set_completion(param, completion);
 
 		if (cmd)
 			// add the parameter to the command
@@ -460,7 +463,6 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			clish_param_insert_param(p_param, param);
 
 		process_children(shell, element, param);
-
 	}
 }
 
