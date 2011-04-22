@@ -294,7 +294,8 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	/* Move into the new view */
 	if (BOOL_TRUE == result) {
 		clish_view_t *view = clish_command__get_view(cmd);
-		char *viewid = clish_command__get_viewid(cmd, context);
+		char *viewid = clish_shell_expand(
+			clish_command__get_viewid(cmd), context);
 		if (view) {
 			/* Save the current config PWD */
 			char *line = clish_shell__get_line(cmd, pargv);

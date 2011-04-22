@@ -47,13 +47,6 @@ int clish_var_bt_compare(const void *clientnode, const void *clientkey)
 }
 
 /*-------------------------------------------------------- */
-clish_var_expand_fn_t clish_var_expand_default;
-inline char *clish_var_expand_default(const char *str, void *context)
-{
-	return lub_string_dup(str);
-}
-
-/*-------------------------------------------------------- */
 void clish_var_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 {
 	const clish_var_t *this = clientnode;

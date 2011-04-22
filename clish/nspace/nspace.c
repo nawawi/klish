@@ -67,7 +67,7 @@ clish_command_t * clish_nspace_create_prefix_cmd(clish_nspace_t * this,
 		this->prefix_cmd = NULL;
 	}
 
-	return (this->prefix_cmd = clish_command_new(name, help, NULL));
+	return (this->prefix_cmd = clish_command_new(name, help));
 }
 
 /*--------------------------------------------------------- */

@@ -21,8 +21,7 @@ typedef struct clish_command_s clish_command_t;
 /*-----------------
  * meta functions
  *----------------- */
-clish_command_t *clish_command_new(const char *name, const char *help,
-	clish_var_expand_fn_t *fn);
+clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
 clish_command_t * clish_command_alias_to_link(clish_command_t * instance);
@@ -54,7 +53,7 @@ const char *clish_command__get_escape_chars(const clish_command_t * instance);
 const clish_param_t *clish_command__get_args(const clish_command_t * instance);
 clish_action_t *clish_command__get_action(const clish_command_t *instance);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
-char *clish_command__get_viewid(const clish_command_t *instance, void *context);
+char *clish_command__get_viewid(const clish_command_t *instance);
 const unsigned clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);

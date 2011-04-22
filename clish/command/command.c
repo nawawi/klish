@@ -18,13 +18,11 @@
  * PRIVATE METHODS
  *--------------------------------------------------------- */
 static void
-clish_command_init(clish_command_t * this, const char *name, const char *text,
-	clish_var_expand_fn_t *fn)
+clish_command_init(clish_command_t *this, const char *name, const char *text)
 {
 	/* initialise the node part */
 	this->name = lub_string_dup(name);
 	this->text = lub_string_dup(text);
-	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -97,13 +95,12 @@ void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 }
 
 /*--------------------------------------------------------- */
-clish_command_t *clish_command_new(const char *name, const char *help,
-	clish_var_expand_fn_t *fn)
+clish_command_t *clish_command_new(const char *name, const char *help)
 {
 	clish_command_t *this = malloc(sizeof(clish_command_t));
 
 	if (this)
-		clish_command_init(this, name, help, fn);
+		clish_command_init(this, name, help);
 
 	return this;
 }
@@ -284,9 +281,9 @@ void clish_command__force_viewid(clish_command_t * this, const char *viewid)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_viewid(const clish_command_t * this, void *context)
+char *clish_command__get_viewid(const clish_command_t * this)
 {
-	return this->var_expand_fn(this->viewid, context);
+	return this->viewid;
 }
 
 /*--------------------------------------------------------- */

@@ -37,8 +37,7 @@ void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 /*---------------------------------------------------------
  * PRIVATE METHODS
  *--------------------------------------------------------- */
-static void clish_view_init(clish_view_t * this, const char *name, const char *prompt,
-	clish_var_expand_fn_t *fn)
+static void clish_view_init(clish_view_t * this, const char *name, const char *prompt)
 {
 	/* set up defaults */
 	this->name = lub_string_dup(name);
@@ -47,7 +46,6 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	this->nspacev = NULL;
 	this->depth = 0;
 	this->restore = CLISH_RESTORE_NONE;
-	this->var_expand_fn = fn ? fn : clish_var_expand_default;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -100,13 +98,12 @@ size_t clish_view_bt_offset(void)
 }
 
 /*--------------------------------------------------------- */
-clish_view_t *clish_view_new(const char *name, const char *prompt,
-	clish_var_expand_fn_t *fn)
+clish_view_t *clish_view_new(const char *name, const char *prompt)
 {
 	clish_view_t *this = malloc(sizeof(clish_view_t));
 
 	if (this)
-		clish_view_init(this, name, prompt, fn);
+		clish_view_init(this, name, prompt);
 	return this;
 }
 
@@ -124,8 +121,7 @@ clish_command_t *clish_view_new_command(clish_view_t * this,
 	const char *name, const char *help)
 {
 	/* allocate the memory for a new parameter definition */
-	clish_command_t *cmd = clish_command_new(name, help,
-		this->var_expand_fn);
+	clish_command_t *cmd = clish_command_new(name, help);
 	assert(cmd);
 
 	/* if this is a command other than the startup command... */

@@ -34,8 +34,7 @@ typedef enum {
 /*-----------------
  * meta functions
  *----------------- */
-clish_view_t *clish_view_new(const char *name, const char *prompt,
-	clish_var_expand_fn_t *fn);
+clish_view_t *clish_view_new(const char *name, const char *prompt);
 int clish_view_bt_compare(const void *clientnode, const void *clientkey);
 void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t clish_view_bt_offset(void);

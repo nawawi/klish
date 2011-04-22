@@ -26,5 +26,4 @@ struct clish_command_s {
 	bool_t lock;
 	bool_t interrupt;
 	bool_t dynamic; /* Is command dynamically created */
-	clish_var_expand_fn_t *var_expand_fn;
 };
