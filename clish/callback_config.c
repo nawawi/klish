@@ -54,7 +54,6 @@ bool_t clish_config_callback(clish_context_t *context)
 	char *command = NULL;
 	konf_client_t *client;
 	konf_buf_t *buf = NULL;
-	const char *viewid = NULL;
 	char *str = NULL;
 	char tmp[PATH_MAX + 100];
 	clish_config_op_t op;
@@ -67,7 +66,6 @@ bool_t clish_config_callback(clish_context_t *context)
 	if (!client)
 		return BOOL_TRUE;
 
-	viewid = clish_shell__get_viewid(this);
 	config = clish_command__get_config(cmd);
 	op = clish_config__get_op(config);
 
