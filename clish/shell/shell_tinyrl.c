@@ -441,7 +441,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 	}
 	/* Let the client know the command line has been entered */
 	if (this->client_hooks->cmd_line_fn)
-		this->client_hooks->cmd_line_fn(this, str);
+		this->client_hooks->cmd_line_fn(&context, str);
 	free(str);
 
 	/* Execute the provided command */

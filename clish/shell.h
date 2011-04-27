@@ -116,7 +116,7 @@ typedef void clish_shell_cmd_line_fn_t(
 	/** 
          * The shell instance which invoked this call
          */
-					      const clish_shell_t * instance,
+					      clish_context_t *context,
 	/** 
          * The text of the command line entered
          */
@@ -205,7 +205,7 @@ typedef bool_t clish_shell_builtin_fn_t(
 	/** 
          * The shell instance which invoked this call
          */
-					       const clish_shell_t * instance,
+					       clish_context_t *context,
 	/** 
          * A vector of textual command line arguments.
          */

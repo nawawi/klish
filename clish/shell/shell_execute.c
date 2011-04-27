@@ -40,10 +40,10 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 
 /*----------------------------------------------------------- */
 /* Terminate the current shell session */
-static bool_t clish_close(const clish_shell_t * shell, const lub_argv_t * argv)
+static bool_t clish_close(clish_context_t *context, const lub_argv_t * argv)
 {
 	/* the exception proves the rule... */
-	clish_shell_t *this = (clish_shell_t *) shell;
+	clish_shell_t *this = (clish_shell_t *)context->shell;
 
 	argv = argv; /* not used */
 	this->state = SHELL_STATE_CLOSING;
@@ -57,7 +57,7 @@ static bool_t clish_close(const clish_shell_t * shell, const lub_argv_t * argv)
  thread. Whether the script continues after command, but not script, 
  errors depends on the value of the stop_on_error flag.
 */
-static bool_t clish_source_internal(const clish_shell_t * shell,
+static bool_t clish_source_internal(clish_context_t *context,
 	const lub_argv_t * argv, bool_t stop_on_error)
 {
 	bool_t result = BOOL_FALSE;
@@ -65,7 +65,7 @@ static bool_t clish_source_internal(const clish_shell_t * shell,
 	struct stat fileStat;
 
 	/* the exception proves the rule... */
-	clish_shell_t *this = (clish_shell_t *) shell;
+	clish_shell_t *this = (clish_shell_t *)context->shell;
 
 	/*
 	 * Check file specified is not a directory 
@@ -90,9 +90,9 @@ static bool_t clish_source_internal(const clish_shell_t * shell,
  thread. Invoking a script in this way will cause the script to
  stop on the first error
 */
-static bool_t clish_source(const clish_shell_t * shell, const lub_argv_t * argv)
+static bool_t clish_source(clish_context_t *context, const lub_argv_t * argv)
 {
-	return (clish_source_internal(shell, argv, BOOL_TRUE));
+	return (clish_source_internal(context, argv, BOOL_TRUE));
 }
 
 /*----------------------------------------------------------- */
@@ -102,9 +102,9 @@ static bool_t clish_source(const clish_shell_t * shell, const lub_argv_t * argv)
  continue after command, but not script, errors.
 */
 static bool_t
-clish_source_nostop(const clish_shell_t * shell, const lub_argv_t * argv)
+clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
 {
-	return (clish_source_internal(shell, argv, BOOL_FALSE));
+	return (clish_source_internal(context, argv, BOOL_FALSE));
 }
 
 /*----------------------------------------------------------- */
@@ -112,18 +112,20 @@ clish_source_nostop(const clish_shell_t * shell, const lub_argv_t * argv)
  Show the shell overview
 */
 static bool_t
-clish_overview(const clish_shell_t * this, const lub_argv_t * argv)
+clish_overview(clish_context_t *context, const lub_argv_t * argv)
 {
+	clish_shell_t *this = context->shell;
 	argv = argv; /* not used */
 
-	tinyrl_printf(this->tinyrl, "%s\n", this->overview);
+	tinyrl_printf(this->tinyrl, "%s\n", context->shell->overview);
 
 	return BOOL_TRUE;
 }
 
 /*----------------------------------------------------------- */
-static bool_t clish_history(const clish_shell_t * this, const lub_argv_t * argv)
+static bool_t clish_history(clish_context_t *context, const lub_argv_t * argv)
 {
+	clish_shell_t *this = context->shell;
 	tinyrl_history_t *history = tinyrl__get_history(this->tinyrl);
 	tinyrl_history_iterator_t iter;
 	const tinyrl_history_entry_t *entry;
@@ -340,7 +342,7 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 		}
 		/* invoke the builtin callback */
 		if (callback)
-			result = callback(this, argv);
+			result = callback(context, argv);
 		if (argv)
 			lub_argv_delete(argv);
 	} else if (script) {
@@ -356,14 +358,14 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 /*
  * Find out the previous view in the stack and go to it
  */
-static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * argv)
+static bool_t clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
 {
-	clish_shell_t *this = (clish_shell_t *) shell;
+	clish_shell_t *this = context->shell;
 	clish_view_t *view = NULL;
 	char *viewid = NULL;
 	int depth = 0;
 
-	if (!shell)
+	if (!this)
 		return BOOL_FALSE;
 
 	argv = argv; /* not used */
@@ -391,7 +393,7 @@ static bool_t clish_nested_up(const clish_shell_t * shell, const lub_argv_t * ar
 /*
  * Builtin: NOP function
  */
-static bool_t clish_nop(const clish_shell_t * shell, const lub_argv_t * argv)
+static bool_t clish_nop(clish_context_t *context, const lub_argv_t * argv)
 {
 	return BOOL_TRUE;
 }
