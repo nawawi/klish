@@ -421,7 +421,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 	lub_string_free(prompt);
 	if (!str) {
 		switch (lerror) {
-		case ENODATA:
+		case ENOENT:
 			this->state = SHELL_STATE_EOF;
 			break;
 		case EBADMSG:

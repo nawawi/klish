@@ -726,7 +726,7 @@ static char *internal_readline(tinyrl_t * this,
 				/* time to finish the session */
 				this->done = BOOL_TRUE;
 				this->line = NULL;
-				lerrno = ENODATA;
+				lerrno = ENOENT;
 			}
 		}
 		/* restores the terminal mode */
@@ -754,7 +754,7 @@ static char *internal_readline(tinyrl_t * this,
 				/* time to finish the session */
 				crlf = 0;
 				this->line = NULL;
-				lerrno = ENODATA;
+				lerrno = ENOENT;
 			}
 		}
 
