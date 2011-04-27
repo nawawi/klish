@@ -12,13 +12,13 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <limits.h>
+#include <string.h>
 
 #include "internal.h"
 #include "konf/net.h"
 #include "konf/buf.h"
 #include "konf/query.h"
 #include "lub/string.h"
-#include "clish/variable.h"
 
 static int send_request(konf_client_t * client, char *command);
 

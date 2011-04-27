@@ -6,7 +6,6 @@
 #include "private.h"
 #include "lub/string.h"
 #include "clish/types.h"
-#include "clish/variable.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -201,7 +200,7 @@ clish_paramv_t *clish_param__get_paramv(clish_param_t * this)
 }
 
 /*--------------------------------------------------------- */
-const unsigned clish_param__get_param_count(const clish_param_t * this)
+unsigned int clish_param__get_param_count(const clish_param_t * this)
 {
 	return clish_paramv__get_count(this->paramv);
 }
@@ -317,7 +316,7 @@ const char *clish_paramv_find_default(const clish_paramv_t * this,
 }
 
 /*--------------------------------------------------------- */
-const unsigned clish_paramv__get_count(const clish_paramv_t * this)
+unsigned int clish_paramv__get_count(const clish_paramv_t * this)
 {
 	return this->paramc;
 }

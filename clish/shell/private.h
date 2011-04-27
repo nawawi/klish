@@ -5,7 +5,6 @@
 #include "tinyrl/tinyrl.h"
 #include "clish/shell.h"
 #include "clish/pargv.h"
-#include "clish/variable.h"
 #include "clish/var.h"
 #include "clish/action.h"
 

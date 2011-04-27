@@ -4,7 +4,6 @@
  * This file provides the implementation of a view class
  */
 #include "private.h"
-#include "clish/variable.h"
 #include "lub/argv.h"
 #include "lub/string.h"
 #include "lub/ctype.h"
@@ -353,7 +352,7 @@ clish_nspace_t *clish_view__get_nspace(const clish_view_t * this,
 }
 
 /*--------------------------------------------------------- */
-const unsigned clish_view__get_nspace_count(const clish_view_t * this)
+unsigned int clish_view__get_nspace_count(const clish_view_t * this)
 {
 	return this->nspacec;
 }

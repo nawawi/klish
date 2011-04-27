@@ -5,7 +5,6 @@
   */
 #include "private.h"
 #include "clish/types.h"
-#include "clish/variable.h"
 #include "lub/bintree.h"
 #include "lub/string.h"
 
@@ -328,7 +327,7 @@ const clish_param_t *clish_command__get_args(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-const unsigned clish_command__get_param_count(const clish_command_t * this)
+unsigned int clish_command__get_param_count(const clish_command_t * this)
 {
 	return clish_paramv__get_count(this->paramv);
 }

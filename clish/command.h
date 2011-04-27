@@ -54,7 +54,7 @@ const clish_param_t *clish_command__get_args(const clish_command_t * instance);
 clish_action_t *clish_command__get_action(const clish_command_t *instance);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
 char *clish_command__get_viewid(const clish_command_t *instance);
-const unsigned clish_command__get_param_count(const clish_command_t * instance);
+unsigned int clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);
 clish_paramv_t *clish_command__get_paramv(const clish_command_t * instance);
