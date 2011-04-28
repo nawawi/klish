@@ -104,7 +104,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 
 		/* Check the 'test' conditions */
 		if (param) {
-			char *str = clish_shell_expand(clish_param__get_test(param), context);
+			char *str = clish_shell_expand(clish_param__get_test(param), SHELL_VAR_ACTION, context);
 			if (str && !lub_system_line_test(str)) {
 				lub_string_free(str);
 				index++;

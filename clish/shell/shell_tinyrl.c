@@ -28,7 +28,7 @@ static void clish_shell_renew_prompt(tinyrl_t *this)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(context->shell);
 	assert(view);
-	prompt = clish_shell_expand(clish_view__get_prompt(view), context);
+	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, context);
 	assert(prompt);
 	tinyrl__set_prompt(this, prompt);
 	lub_string_free(prompt);
@@ -118,7 +118,7 @@ static tinyrl_match_e clish_shell_tinyrl_complete(tinyrl_t * this)
 	switch (status) {
 	case TINYRL_NO_MATCH:
 		if (BOOL_FALSE == tinyrl_is_completion_error_over(this)) {
-			/* The user hasn't even entered a valid prefix!!! */
+			/* The user hasn't even entered a valid prefix! */
 /*			tinyrl_crlf(this);
 			clish_shell_help(context->shell,
 				tinyrl__get_line(this));
@@ -409,7 +409,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-	prompt = clish_shell_expand(clish_view__get_prompt(view), &context);
+	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, &context);
 	assert(prompt);
 
 	/* Push the specified line or interactive line */

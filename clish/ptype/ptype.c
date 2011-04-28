@@ -283,7 +283,7 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 		/* test the regular expression against the string */
 		/*lint -e64 Type mismatch (arg. no. 4) */
 		/*
-		 * lint seems to equate regmatch_t[] as being of type regmatch_t !!!
+		 * lint seems to equate regmatch_t[] as being of type regmatch_t !
 		 */
 		if (0 != regexec(&this->u.regexp, result, 0, NULL, 0)) {
 			lub_string_free(result);

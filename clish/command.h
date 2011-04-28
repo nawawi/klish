@@ -50,6 +50,7 @@ const char *clish_command__get_suffix(const clish_command_t * instance);
 const char *clish_command__get_text(const clish_command_t * instance);
 const char *clish_command__get_detail(const clish_command_t * instance);
 const char *clish_command__get_escape_chars(const clish_command_t * instance);
+const char *clish_command__get_regex_chars(const clish_command_t * instance);
 const clish_param_t *clish_command__get_args(const clish_command_t * instance);
 clish_action_t *clish_command__get_action(const clish_command_t *instance);
 clish_view_t *clish_command__get_view(const clish_command_t * instance);
@@ -58,8 +59,9 @@ unsigned int clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);
 clish_paramv_t *clish_command__get_paramv(const clish_command_t * instance);
-void
-clish_command__set_escape_chars(clish_command_t * instance,
+void clish_command__set_escape_chars(clish_command_t * instance,
+	const char *escape_chars);
+void clish_command__set_regex_chars(clish_command_t * instance,
 	const char *escape_chars);
 void clish_command__set_args(clish_command_t * instance, clish_param_t * args);
 void clish_command__set_detail(clish_command_t * instance, const char *detail);

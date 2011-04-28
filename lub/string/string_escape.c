@@ -6,15 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * These are the escape characters which are used by default when 
- * expanding variables. These characters will be backslash escaped
- * to prevent them from being interpreted in a script.
- *
- * This is a security feature to prevent users from arbitarily setting
- * parameters to contain special sequences.
- */
-static const char *default_escape_chars = "`|$<>&()#;";
+const char *lub_string_esc_default = "`|$<>&()#;\\\"";
+const char *lub_string_esc_regex = "^$.*+[](){}";
 
 /*--------------------------------------------------------- */
 char *lub_string_ndecode(const char *string, unsigned int len)
@@ -75,9 +68,9 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 	char *result = NULL;
 	const char *p;
 
-	if (NULL == escape_chars) {
-		escape_chars = default_escape_chars;
-	}
+	if (!escape_chars)
+		escape_chars = lub_string_esc_default;
+
 	for (p = string; p && *p; p++) {
 		/* find any special characters and prefix them with '\' */
 		size_t len = strcspn(p, escape_chars);

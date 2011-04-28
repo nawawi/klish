@@ -125,7 +125,7 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 				char *str, *q;
 				char *saveptr;
 				str = clish_shell_expand(
-					clish_param__get_completion(param), &context);
+					clish_param__get_completion(param), SHELL_VAR_ACTION, &context);
 				for (q = strtok_r(str, " \n", &saveptr);
 					q; q = strtok_r(NULL, " \n", &saveptr)) {
 					if (q == strstr(q, text))

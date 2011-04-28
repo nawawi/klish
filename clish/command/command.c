@@ -37,6 +37,7 @@ clish_command_init(clish_command_t *this, const char *name, const char *text)
 	this->config = clish_config_new();
 	this->detail = NULL;
 	this->escape_chars = NULL;
+	this->regex_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
 	this->lock = BOOL_TRUE;
@@ -63,6 +64,7 @@ static void clish_command_fini(clish_command_t * this)
 	clish_config_delete(this->config);
 	lub_string_free(this->detail);
 	lub_string_free(this->escape_chars);
+	lub_string_free(this->regex_chars);
 	if (this->args)
 		clish_param_delete(this->args);
 }
@@ -303,7 +305,7 @@ void
 clish_command__set_escape_chars(clish_command_t * this,
 	const char *escape_chars)
 {
-	assert(NULL == this->escape_chars);
+	assert(!this->escape_chars);
 	this->escape_chars = lub_string_dup(escape_chars);
 }
 
@@ -311,6 +313,20 @@ clish_command__set_escape_chars(clish_command_t * this,
 const char *clish_command__get_escape_chars(const clish_command_t * this)
 {
 	return this->escape_chars;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_regex_chars(clish_command_t *this,
+	const char *escape_chars)
+{
+	assert(!this->regex_chars);
+	this->regex_chars = lub_string_dup(escape_chars);
+}
+
+/*--------------------------------------------------------- */
+const char *clish_command__get_regex_chars(const clish_command_t *this)
+{
+	return this->regex_chars;
 }
 
 /*--------------------------------------------------------- */

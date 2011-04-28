@@ -52,7 +52,7 @@ static char *find_viewid_var(const char *name, const char *viewid)
 	/* now perform the matching */
 	/*lint -e64 Type mismatch (arg. no. 4) */
 	/*
-	 * lint seems to equate regmatch_t[] as being of type regmatch_t !!!
+	 * lint seems to equate regmatch_t[] as being of type regmatch_t !
 	 */
 	status = regexec(&regex, viewid, 2, pmatches, 0);
 	/*lint +e64 */
@@ -111,7 +111,7 @@ static char *find_context_var(const char *name, clish_context_t *this)
 }
 
 /*--------------------------------------------------------- */
-static char *find_global_var(const char *name, clish_context_t *context)
+static char *find_global_var(const char *name, clish_shell_var_t vtype, clish_context_t *context)
 {
 	clish_shell_t *this = context->shell;
 	clish_var_t *var = clish_shell_find_var(this, name);
@@ -135,7 +135,7 @@ static char *find_global_var(const char *name, clish_context_t *context)
 	/* Try to expand value field */
 	value = clish_var__get_value(var);
 	if (value)
-		res = clish_shell_expand(value, context);
+		res = clish_shell_expand(value, vtype, context);
 
 	/* Try to execute ACTION */
 	if (!res) {
@@ -163,7 +163,7 @@ static char *find_global_var(const char *name, clish_context_t *context)
  * return the next segment of text from the provided string
  * segments are delimited by variables within the string.
  */
-static char *expand_nextsegment(const char **string, clish_context_t *this)
+static char *expand_nextsegment(const char **string, clish_shell_var_t vtype, clish_context_t *this)
 {
 	const char *p = *string;
 	char *result = NULL;
@@ -199,7 +199,7 @@ static char *expand_nextsegment(const char **string, clish_context_t *this)
 				 */
 				for (q = strtok_r(text, ":", &saveptr);
 					q; q = strtok_r(NULL, ":", &saveptr)) {
-					char *var = clish_shell_expand_var(q, this);
+					char *var = clish_shell_expand_var(q, vtype, this);
 
 					/* copy the expansion or the raw word */
 					lub_string_cat(&result, var ? var : q);
@@ -242,12 +242,12 @@ static char *expand_nextsegment(const char **string, clish_context_t *this)
  * subtituting each occurance of a "${FRED}" type variable sub-string
  * with the appropriate value.
  */
-char *clish_shell_expand(const char *str, void *context)
+char *clish_shell_expand(const char *str, clish_shell_var_t vtype, void *context)
 {
 	char *seg, *result = NULL;
 
 	/* read each segment and extend the result */
-	while ((seg = expand_nextsegment(&str, context))) {
+	while ((seg = expand_nextsegment(&str, vtype, context))) {
 		lub_string_cat(&result, seg);
 		lub_string_free(seg);
 	}
@@ -311,7 +311,7 @@ char *clish_shell__get_line(const clish_command_t *cmd, clish_pargv_t *pargv)
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell_expand_var(const char *name, void *context)
+char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *context)
 {
 	clish_context_t *con = (clish_context_t *)context;
 	clish_shell_t *this;
@@ -348,18 +348,28 @@ char *clish_shell_expand_var(const char *name, void *context)
 		tmp = string = find_context_var(name, context);
 	/* try and substitute a global var value */
 	if (!tmp && this)
-		tmp = string = find_global_var(name, context);
+		tmp = string = find_global_var(name, vtype, context);
 	/* get the contents of an environment variable */
 	if (!tmp)
 		tmp = getenv(name);
 
-	/* override the escape characters */
+	/* Escape special characters */
+	if (SHELL_VAR_REGEX == vtype) {
+		char *tstr;
+		if (cmd)
+			escape_chars = clish_command__get_regex_chars(cmd);
+		if (!escape_chars)
+			escape_chars = lub_string_esc_regex;
+		tstr = lub_string_encode(tmp, escape_chars);
+		lub_string_free(string);
+		tmp = string = tstr;
+	}
+	escape_chars = NULL;
 	if (cmd)
 		escape_chars = clish_command__get_escape_chars(cmd);
 	result = lub_string_encode(tmp, escape_chars);
 	/* free the dynamic memory */
-	if (string)
-		lub_string_free(string);
+	lub_string_free(string);
 
 	return result;
 }

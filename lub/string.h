@@ -219,6 +219,17 @@ void lub_string_free(
          */
 			    char *string);
 
+/*
+ * These are the escape characters which are used by default when 
+ * expanding variables. These characters will be backslash escaped
+ * to prevent them from being interpreted in a script.
+ *
+ * This is a security feature to prevent users from arbitarily setting
+ * parameters to contain special sequences.
+ */
+extern const char *lub_string_esc_default;
+extern const char *lub_string_esc_regex;
+
 /**
  * This operation decode the escaped string.
  *

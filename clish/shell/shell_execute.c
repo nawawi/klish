@@ -284,7 +284,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Call config callback */
-	if ((BOOL_TRUE == result) && this->client_hooks->config_fn)
+	if (result && this->client_hooks->config_fn)
 		this->client_hooks->config_fn(context);
 
 	/* Unlock the lockfile */
@@ -294,10 +294,10 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Move into the new view */
-	if (BOOL_TRUE == result) {
+	if (result) {
 		clish_view_t *view = clish_command__get_view(cmd);
 		char *viewid = clish_shell_expand(
-			clish_command__get_viewid(cmd), context);
+			clish_command__get_viewid(cmd), SHELL_VAR_ACTION, context);
 		if (view) {
 			/* Save the current config PWD */
 			char *line = clish_shell__get_line(cmd, pargv);
@@ -328,7 +328,7 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 	char *script;
 
 	builtin = clish_action__get_builtin(action);
-	script = clish_shell_expand(clish_action__get_script(action), context);
+	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
 	if (builtin) {
 		clish_shell_builtin_fn_t *callback;
 		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
