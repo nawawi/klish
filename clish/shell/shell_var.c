@@ -334,7 +334,7 @@ char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *co
 			if (space) {
 				char *q = NULL;
 				char *tstr;
-				tstr = lub_string_encode(tmp, "\"\\");
+				tstr = lub_string_encode(tmp, lub_string_esc_quoted);
 				lub_string_cat(&q, "\"");
 				lub_string_cat(&q, tstr);
 				lub_string_free(tstr);

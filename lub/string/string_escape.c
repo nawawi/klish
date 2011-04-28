@@ -8,6 +8,7 @@
 
 const char *lub_string_esc_default = "`|$<>&()#;\"\\";
 const char *lub_string_esc_regex = "^$.*+[](){}";
+const char *lub_string_esc_quoted = "\\\"";
 
 /*--------------------------------------------------------- */
 char *lub_string_ndecode(const char *string, unsigned int len)

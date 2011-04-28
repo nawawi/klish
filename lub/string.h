@@ -229,6 +229,7 @@ void lub_string_free(
  */
 extern const char *lub_string_esc_default;
 extern const char *lub_string_esc_regex;
+extern const char *lub_string_esc_quoted;
 
 /**
  * This operation decode the escaped string.
