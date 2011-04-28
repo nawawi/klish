@@ -49,7 +49,6 @@ bool_t clish_config_callback(clish_context_t *context)
 {
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
-	clish_pargv_t *pargv = context->pargv;
 	clish_config_t *config;
 	char *command = NULL;
 	konf_client_t *client;
@@ -79,7 +78,7 @@ bool_t clish_config_callback(clish_context_t *context)
 		lub_string_cat(&command, "-s");
 
 		/* Add entered line */
-		str = clish_shell__get_line(cmd, pargv);
+		str = clish_shell__get_line(context);
 		lub_string_cat(&command, " -l \"");
 		lub_string_cat(&command, str);
 		lub_string_cat(&command, "\"");

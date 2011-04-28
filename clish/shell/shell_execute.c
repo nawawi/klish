@@ -182,7 +182,6 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 {
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
-	clish_pargv_t *pargv = context->pargv;
 	clish_action_t *action;
 	bool_t result = BOOL_TRUE;
 	char *lock_path = clish_shell__get_lockfile(this);
@@ -300,7 +299,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 			clish_command__get_viewid(cmd), SHELL_VAR_ACTION, context);
 		if (view) {
 			/* Save the current config PWD */
-			char *line = clish_shell__get_line(cmd, pargv);
+			char *line = clish_shell__get_line(context);
 			clish_shell__set_pwd(this,
 				clish_command__get_depth(cmd),
 				line, this->view, this->viewid);

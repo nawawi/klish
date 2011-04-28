@@ -88,10 +88,10 @@ static char *find_context_var(const char *name, clish_context_t *this)
 			clish_command__get_orig(this->cmd)));
 	} else if (!lub_string_nocasecmp(name, "__line")) {
 		if (this->pargv)
-			result = clish_shell__get_line(this->cmd, this->pargv);
+			result = clish_shell__get_line(this);
 	} else if (!lub_string_nocasecmp(name, "__params")) {
 		if (this->pargv)
-			result = clish_shell__get_params(this->cmd, this->pargv);
+			result = clish_shell__get_params(this);
 	} else if (lub_string_nocasestr(name, "__prefix") == name) {
 		int idx = 0;
 		int pnum = 0;
@@ -256,8 +256,9 @@ char *clish_shell_expand(const char *str, clish_shell_var_t vtype, void *context
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell__get_params(const clish_command_t *cmd, clish_pargv_t *pargv)
+char *clish_shell__get_params(clish_context_t *context)
 {
+	clish_pargv_t *pargv = context->pargv;
 	char *line = NULL;
 	unsigned i, cnt;
 	const clish_param_t *param;
@@ -268,29 +269,22 @@ char *clish_shell__get_params(const clish_command_t *cmd, clish_pargv_t *pargv)
 
 	cnt = clish_pargv__get_count(pargv);
 	for (i = 0; i < cnt; i++) {
-		const char *tmp;
-		char *space = NULL;
 		param = clish_pargv__get_param(pargv, i);
 		if (clish_param__get_hidden(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
-		tmp = clish_parg__get_value(parg);
-		space = strchr(tmp, ' ');
-		if (line)
-			lub_string_cat(&line, " ");
-		if (space)
-			lub_string_cat(&line, "\\\"");
-		lub_string_cat(&line, tmp);
-		if (space)
-			lub_string_cat(&line, "\\\"");
+		line = clish_shell_expand_var(clish_parg__get_name(parg),
+			SHELL_VAR_ACTION, context);
 	}
 
 	return line;
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell__get_line(const clish_command_t *cmd, clish_pargv_t *pargv)
+char *clish_shell__get_line(clish_context_t *context)
 {
+	const clish_command_t *cmd = context->cmd;
+	clish_pargv_t *pargv = context->pargv;
 	char *line = NULL;
 	char *params = NULL;
 
@@ -300,7 +294,7 @@ char *clish_shell__get_line(const clish_command_t *cmd, clish_pargv_t *pargv)
 	if (!pargv)
 		return line;
 
-	params = clish_shell__get_params(cmd, pargv);
+	params = clish_shell__get_params(context);
 	if (params) {
 		lub_string_cat(&line, " ");
 		lub_string_cat(&line, params);
@@ -333,8 +327,21 @@ char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *co
 	if (pargv) {
 		const clish_parg_t *parg = clish_pargv_find_arg(pargv, name);
 		/* substitute the command line value */
-		if (parg)
+		if (parg) {
+			char *space = NULL;
 			tmp = clish_parg__get_value(parg);
+			space = strchr(tmp, ' ');
+			if (space) {
+				char *q = NULL;
+				char *tstr;
+				tstr = lub_string_encode(tmp, "\"\\");
+				lub_string_cat(&q, "\"");
+				lub_string_cat(&q, tstr);
+				lub_string_free(tstr);
+				lub_string_cat(&q, "\"");
+				tmp = string = q;
+			}
+		}
 	}
 	/* try and substitute the param's default */
 	if (!tmp && cmd)

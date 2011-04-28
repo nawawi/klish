@@ -359,7 +359,6 @@ clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
 				 unsigned index);
 char *clish_shell__get_pwd_viewid(const clish_shell_t * instance,
 				 unsigned index);
-char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 FILE *clish_shell__get_istream(const clish_shell_t * instance);
 FILE *clish_shell__get_ostream(const clish_shell_t * instance);
@@ -385,8 +384,8 @@ void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
 bool_t clish_shell__get_interactive(const clish_shell_t * instance);
 bool_t clish_shell__get_utf8(const clish_shell_t * instance);
 void clish_shell__set_utf8(clish_shell_t * instance, bool_t utf8);
-char *clish_shell__get_line(const clish_command_t * cmd, clish_pargv_t * pargv);
-char *clish_shell__get_params(const clish_command_t * cmd, clish_pargv_t * pargv);
+char *clish_shell__get_line(clish_context_t *context);
+char *clish_shell__get_params(clish_context_t *context);
 
 _END_C_DECL
 
