@@ -337,8 +337,8 @@ bool_t clish_shell_push_fd(clish_shell_t * instance, FILE * file,
 	bool_t stop_on_error);
 void clish_shell_insert_var(clish_shell_t *instance, clish_var_t *var);
 clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
-char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *context);
-char *clish_shell_expand(const char *str, clish_shell_var_t vtype, void *context);
+char *clish_shell_expand_var(const char *name, clish_context_t *context);
+char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context_t *context);
 
 /*-----------------
  * attributes

@@ -111,7 +111,7 @@ static char *find_context_var(const char *name, clish_context_t *this)
 }
 
 /*--------------------------------------------------------- */
-static char *find_global_var(const char *name, clish_shell_var_t vtype, clish_context_t *context)
+static char *find_global_var(const char *name, clish_context_t *context)
 {
 	clish_shell_t *this = context->shell;
 	clish_var_t *var = clish_shell_find_var(this, name);
@@ -135,7 +135,7 @@ static char *find_global_var(const char *name, clish_shell_var_t vtype, clish_co
 	/* Try to expand value field */
 	value = clish_var__get_value(var);
 	if (value)
-		res = clish_shell_expand(value, vtype, context);
+		res = clish_shell_expand(value, SHELL_VAR_NONE,  context);
 
 	/* Try to execute ACTION */
 	if (!res) {
@@ -163,76 +163,101 @@ static char *find_global_var(const char *name, clish_shell_var_t vtype, clish_co
  * return the next segment of text from the provided string
  * segments are delimited by variables within the string.
  */
-static char *expand_nextsegment(const char **string, clish_shell_var_t vtype, clish_context_t *this)
+static char *expand_nextsegment(const char **string, const char *escape_chars,
+	clish_context_t *this)
 {
 	const char *p = *string;
 	char *result = NULL;
 	size_t len = 0;
 
-	if (p) {
-		if (*p && (p[0] == '$') && (p[1] == '{')) {
-			/* start of a variable */
-			const char *tmp;
-			p += 2;
-			tmp = p;
+	if (!p)
+		return NULL;
 
+	if (*p && (p[0] == '$') && (p[1] == '{')) {
+		/* start of a variable */
+		const char *tmp;
+		p += 2;
+		tmp = p;
+
+		/*
+		 * find the end of the variable 
+		 */
+		while (*p && p++[0] != '}')
+			len++;
+
+		/* ignore non-terminated variables */
+		if (p[-1] == '}') {
+			bool_t valid = BOOL_FALSE;
+			char *text, *q;
+			char *saveptr;
+
+			/* get the variable text */
+			text = lub_string_dupn(tmp, len);
 			/*
-			 * find the end of the variable 
+			 * tokenise this INTO ':' separated words
+			 * and either expand or duplicate into the result string.
+			 * Only return a result if at least 
+			 * of the words is an expandable variable
 			 */
-			while (*p && p++[0] != '}') {
-				len++;
-			}
+			for (q = strtok_r(text, ":", &saveptr);
+				q; q = strtok_r(NULL, ":", &saveptr)) {
+				char *var = clish_shell_expand_var(q, this);
 
-			/* ignore non-terminated variables */
-			if (p[-1] == '}') {
-				bool_t valid = BOOL_FALSE;
-				char *text, *q;
-				char *saveptr;
-
-				/* get the variable text */
-				text = lub_string_dupn(tmp, len);
-				/*
-				 * tokenise this INTO ':' separated words
-				 * and either expand or duplicate into the result string.
-				 * Only return a result if at least 
-				 * of the words is an expandable variable
-				 */
-				for (q = strtok_r(text, ":", &saveptr);
-					q; q = strtok_r(NULL, ":", &saveptr)) {
-					char *var = clish_shell_expand_var(q, vtype, this);
-
-					/* copy the expansion or the raw word */
-					lub_string_cat(&result, var ? var : q);
-
-					/* record any expansions */
-					if (var)
-						valid = BOOL_TRUE;
+				/* Escape special chars */
+				if (var && escape_chars) {
+					char *tstr = lub_string_encode(var, escape_chars);
 					lub_string_free(var);
+					var = tstr;
 				}
-
-				if (!valid) {
-					/* not a valid variable expansion */
-					lub_string_free(result);
-					result = lub_string_dup("");
-				}
-
-				/* finished with the variable text */
-				lub_string_free(text);
+		/* substitute the command line value */
+/*		if (parg) {
+			char *space = NULL;
+			tmp = clish_parg__get_value(parg);
+			space = strchr(tmp, ' ');
+			if (space) {
+				char *q = NULL;
+				char *tstr;
+				tstr = lub_string_encode(tmp, lub_string_esc_quoted);
+				lub_string_cat(&q, "\"");
+				lub_string_cat(&q, tstr);
+				lub_string_free(tstr);
+				lub_string_cat(&q, "\"");
+				tmp = string = q;
 			}
-		} else {
-			/* find the start of a variable */
-			while (*p) {
-				if ((p[0] == '$') && (p[1] == '{'))
-					break;
-				len++;
-				p++;
-			}
-			if (len > 0)
-				result = lub_string_dupn(*string, len);
 		}
-		/* move the string pointer on for next time... */
-		*string = p;
+*/
+				/* copy the expansion or the raw word */
+				lub_string_cat(&result, var ? var : q);
+
+				/* record any expansions */
+				if (var)
+					valid = BOOL_TRUE;
+				lub_string_free(var);
+			}
+
+			if (!valid) {
+				/* not a valid variable expansion */
+				lub_string_free(result);
+				result = lub_string_dup("");
+			}
+
+			/* finished with the variable text */
+			lub_string_free(text);
+		}
+	} else {
+		/* find the start of a variable */
+		while (*p) {
+			if ((p[0] == '$') && (p[1] == '{'))
+				break;
+			len++;
+			p++;
+		}
+		if (len > 0)
+			result = lub_string_dupn(*string, len);
 	}
+	/* move the string pointer on for next time... */
+	*string = p;
+
 	return result;
 }
 
@@ -242,12 +267,27 @@ static char *expand_nextsegment(const char **string, clish_shell_var_t vtype, cl
  * subtituting each occurance of a "${FRED}" type variable sub-string
  * with the appropriate value.
  */
-char *clish_shell_expand(const char *str, clish_shell_var_t vtype, void *context)
+char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context_t *context)
 {
 	char *seg, *result = NULL;
+	const char *escape_chars = NULL;
+	const clish_command_t *cmd = context->cmd;
+
+	/* Escape special characters */
+	if (SHELL_VAR_REGEX == vtype) {
+		if (cmd)
+			escape_chars = clish_command__get_regex_chars(cmd);
+		if (!escape_chars)
+			escape_chars = lub_string_esc_regex;
+	} else if (SHELL_VAR_ACTION == vtype) {
+		if (cmd)
+			escape_chars = clish_command__get_escape_chars(cmd);
+		if (!escape_chars)
+			escape_chars = lub_string_esc_default;
+	}
 
 	/* read each segment and extend the result */
-	while ((seg = expand_nextsegment(&str, vtype, context))) {
+	while ((seg = expand_nextsegment(&str, escape_chars, context))) {
 		lub_string_cat(&result, seg);
 		lub_string_free(seg);
 	}
@@ -273,8 +313,7 @@ char *clish_shell__get_params(clish_context_t *context)
 		if (clish_param__get_hidden(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
-		line = clish_shell_expand_var(clish_parg__get_name(parg),
-			SHELL_VAR_ACTION, context);
+		line = clish_shell_expand_var(clish_parg__get_name(parg), context);
 	}
 
 	return line;
@@ -305,43 +344,26 @@ char *clish_shell__get_line(clish_context_t *context)
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *context)
+char *clish_shell_expand_var(const char *name, clish_context_t *context)
 {
-	clish_context_t *con = (clish_context_t *)context;
 	clish_shell_t *this;
 	const clish_command_t *cmd;
 	clish_pargv_t *pargv;
-	char *result = NULL;
 	const char *tmp = NULL;
-	const char *escape_chars = NULL;
 	char *string = NULL;
-	assert(name);
 
+	assert(name);
 	if (!context)
-		return lub_string_dup(name);
-	this = con->shell;
-	cmd = con->cmd;
-	pargv = con->pargv;
+		return NULL;
+	this = context->shell;
+	cmd = context->cmd;
+	pargv = context->pargv;
 
 	/* try and substitute a parameter value */
 	if (pargv) {
 		const clish_parg_t *parg = clish_pargv_find_arg(pargv, name);
-		/* substitute the command line value */
-		if (parg) {
-			char *space = NULL;
+		if (parg)
 			tmp = clish_parg__get_value(parg);
-			space = strchr(tmp, ' ');
-			if (space) {
-				char *q = NULL;
-				char *tstr;
-				tstr = lub_string_encode(tmp, lub_string_esc_quoted);
-				lub_string_cat(&q, "\"");
-				lub_string_cat(&q, tstr);
-				lub_string_free(tstr);
-				lub_string_cat(&q, "\"");
-				tmp = string = q;
-			}
-		}
 	}
 	/* try and substitute the param's default */
 	if (!tmp && cmd)
@@ -355,30 +377,14 @@ char *clish_shell_expand_var(const char *name, clish_shell_var_t vtype, void *co
 		tmp = string = find_context_var(name, context);
 	/* try and substitute a global var value */
 	if (!tmp && this)
-		tmp = string = find_global_var(name, vtype, context);
+		tmp = string = find_global_var(name, context);
 	/* get the contents of an environment variable */
 	if (!tmp)
 		tmp = getenv(name);
 
-	/* Escape special characters */
-	if (SHELL_VAR_REGEX == vtype) {
-		char *tstr;
-		if (cmd)
-			escape_chars = clish_command__get_regex_chars(cmd);
-		if (!escape_chars)
-			escape_chars = lub_string_esc_regex;
-		tstr = lub_string_encode(tmp, escape_chars);
-		lub_string_free(string);
-		tmp = string = tstr;
-	}
-	escape_chars = NULL;
-	if (cmd)
-		escape_chars = clish_command__get_escape_chars(cmd);
-	result = lub_string_encode(tmp, escape_chars);
-	/* free the dynamic memory */
-	lub_string_free(string);
-
-	return result;
+	if (string)
+		return string;
+	return lub_string_dup(tmp);
 }
 
 /*----------------------------------------------------------- */
