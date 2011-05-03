@@ -54,9 +54,11 @@ bool_t clish_config_callback(clish_context_t *context)
 	konf_client_t *client;
 	konf_buf_t *buf = NULL;
 	char *str = NULL;
+	char *tstr;
 	char tmp[PATH_MAX + 100];
 	clish_config_op_t op;
 	unsigned int num;
+	const char *escape_chars = lub_string_esc_quoted;
 
 	if (!this)
 		return BOOL_TRUE;
@@ -78,7 +80,9 @@ bool_t clish_config_callback(clish_context_t *context)
 		lub_string_cat(&command, "-s");
 
 		/* Add entered line */
-		str = clish_shell__get_line(context);
+		tstr = clish_shell__get_line(context);
+		str = lub_string_encode(tstr, escape_chars);
+		lub_string_free(tstr);
 		lub_string_cat(&command, " -l \"");
 		lub_string_cat(&command, str);
 		lub_string_cat(&command, "\"");
@@ -122,11 +126,13 @@ bool_t clish_config_callback(clish_context_t *context)
 
 	/* Add pattern */
 	if ((CLISH_CONFIG_SET == op) || (CLISH_CONFIG_UNSET == op)) {
-		str = clish_shell_expand(clish_config__get_pattern(config), SHELL_VAR_REGEX, context);
-		if (!str) {
+		tstr = clish_shell_expand(clish_config__get_pattern(config), SHELL_VAR_REGEX, context);
+		if (!tstr) {
 			lub_string_free(command);
 			return BOOL_FALSE;
 		}
+		str = lub_string_encode(tstr, escape_chars);
+		lub_string_free(tstr);
 		lub_string_cat(&command, " -r \"");
 		lub_string_cat(&command, str);
 		lub_string_cat(&command, "\"");

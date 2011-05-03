@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "lub/string.h"
 #include "private.h"
@@ -201,37 +202,59 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 			 */
 			for (q = strtok_r(text, ":", &saveptr);
 				q; q = strtok_r(NULL, ":", &saveptr)) {
-				char *var = clish_shell_expand_var(q, this);
+				char *var;
+				int mod_quote = 0; /* quoute modifier */
+				int mod_esc = 0; /* escape modifier */
+				char *space;
+
+				/* Search for modifiers */
+				while (*q && !isalpha(*q)) {
+					if ('#' == *q) {
+						mod_quote = 1;
+						mod_esc = 1;
+					} else if ('\\' == *q)
+						mod_esc = 1;
+					else
+						break;
+					q++;
+				}
+
+				/* Get clean variable value */
+				var = clish_shell_expand_var(q, this);
+				if (!var) {
+					lub_string_cat(&result, q);
+					continue;
+				}
+				valid = BOOL_TRUE;
+
+				/* Quoting */
+				if (mod_quote)
+					space = strchr(var, ' ');
+				if (mod_quote && space)
+					lub_string_cat(&result, "\"");
+
+				/* Internal escaping */
+				if (mod_esc) {
+					char *tstr = lub_string_encode(var,
+						lub_string_esc_quoted);
+					lub_string_free(var);
+					var = tstr;
+				}
 
 				/* Escape special chars */
-				if (var && escape_chars) {
+				if (escape_chars) {
 					char *tstr = lub_string_encode(var, escape_chars);
 					lub_string_free(var);
 					var = tstr;
 				}
-		/* substitute the command line value */
-/*		if (parg) {
-			char *space = NULL;
-			tmp = clish_parg__get_value(parg);
-			space = strchr(tmp, ' ');
-			if (space) {
-				char *q = NULL;
-				char *tstr;
-				tstr = lub_string_encode(tmp, lub_string_esc_quoted);
-				lub_string_cat(&q, "\"");
-				lub_string_cat(&q, tstr);
-				lub_string_free(tstr);
-				lub_string_cat(&q, "\"");
-				tmp = string = q;
-			}
-		}
-*/
-				/* copy the expansion or the raw word */
-				lub_string_cat(&result, var ? var : q);
 
-				/* record any expansions */
-				if (var)
-					valid = BOOL_TRUE;
+				/* copy the expansion or the raw word */
+				lub_string_cat(&result, var);
+
+				/* Quoting */
+				if (mod_quote && space)
+					lub_string_cat(&result, "\"");
+
 				lub_string_free(var);
 			}
 
@@ -303,6 +326,7 @@ char *clish_shell__get_params(clish_context_t *context)
 	unsigned i, cnt;
 	const clish_param_t *param;
 	const clish_parg_t *parg;
+	char *request = NULL;
 
 	if (!pargv)
 		return NULL;
@@ -313,8 +337,15 @@ char *clish_shell__get_params(clish_context_t *context)
 		if (clish_param__get_hidden(param))
 			continue;
 		parg = clish_pargv__get_parg(pargv, i);
-		line = clish_shell_expand_var(clish_parg__get_name(parg), context);
+		if (request)
+			lub_string_cat(&request, " ");
+		lub_string_cat(&request, "${#");
+		lub_string_cat(&request, clish_parg__get_name(parg));
+		lub_string_cat(&request, "}");
 	}
+
+	line = clish_shell_expand(request, SHELL_VAR_NONE, context);
+	lub_string_free(request);
 
 	return line;
 }

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *lub_string_esc_default = "`|$<>&()#;\"\\";
+const char *lub_string_esc_default = "`|$<>&()#;";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
 
@@ -70,7 +70,7 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 	const char *p;
 
 	if (!escape_chars)
-		escape_chars = lub_string_esc_default;
+		lub_string_dup(string);
 
 	for (p = string; p && *p; p++) {
 		/* find any special characters and prefix them with '\' */
