@@ -372,6 +372,8 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 				konf_query__get_priority(query),
 				konf_query__get_seq(query),
 				konf_query__get_seq_num(query));
+			if (exist < 0)
+				break;
 			if (exist > 0) {
 				ret = KONF_QUERY_OP_OK;
 				break;
