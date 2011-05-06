@@ -327,7 +327,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	konf_tree_t *tmpconf;
 	konf_query_t *query;
 	char *retval = NULL;
-	konf_query_op_t ret;
+	konf_query_op_t ret = KONF_QUERY_OP_ERROR;
 
 #ifdef DEBUG
 	fprintf(stderr, "----------------------\n");
@@ -372,7 +372,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 				konf_query__get_priority(query),
 				konf_query__get_seq(query),
 				konf_query__get_seq_num(query));
-			if (exist) {
+			if (exist > 0) {
 				ret = KONF_QUERY_OP_OK;
 				break;
 			}
@@ -380,35 +380,32 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		tmpconf = konf_tree_new_conf(iconf,
 			konf_query__get_line(query), konf_query__get_priority(query),
 			konf_query__get_seq(query), konf_query__get_seq_num(query));
-		if (!tmpconf) {
-			ret = KONF_QUERY_OP_ERROR;
+		if (!tmpconf)
 			break;
-		}
 		konf_tree__set_splitter(tmpconf, konf_query__get_splitter(query));
 		konf_tree__set_depth(tmpconf, konf_query__get_pwdc(query));
 		ret = KONF_QUERY_OP_OK;
 		break;
 
 	case KONF_QUERY_OP_UNSET:
-		konf_tree_del_pattern(iconf,
+		if (konf_tree_del_pattern(iconf,
 			NULL,
 			BOOL_TRUE,
 			konf_query__get_pattern(query),
 			konf_query__get_priority(query),
 			konf_query__get_seq(query),
-			konf_query__get_seq_num(query));
+			konf_query__get_seq_num(query)) < 0)
+			break;
 		ret = KONF_QUERY_OP_OK;
 		break;
 
 	case KONF_QUERY_OP_DUMP:
 		if (dump_running_config(sock, iconf, query))
-			ret = KONF_QUERY_OP_ERROR;
-		else
-			ret = KONF_QUERY_OP_OK;
+			break;
+		ret = KONF_QUERY_OP_OK;
 		break;
 
 	default:
-		ret = KONF_QUERY_OP_ERROR;
 		break;
 	}
 
