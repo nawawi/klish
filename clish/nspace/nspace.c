@@ -278,9 +278,12 @@ clish_view_t *clish_nspace__get_view(const clish_nspace_t * this)
 /*--------------------------------------------------------- */
 void clish_nspace__set_prefix(clish_nspace_t * this, const char *prefix)
 {
+	int res = 0;
+
 	assert(!this->prefix);
+	res = regcomp(&this->prefix_regex, prefix, REG_EXTENDED | REG_ICASE);
+	assert(!res);
 	this->prefix = lub_string_dup(prefix);
-	regcomp(&this->prefix_regex, prefix, REG_EXTENDED | REG_ICASE);
 }
 
 /*--------------------------------------------------------- */

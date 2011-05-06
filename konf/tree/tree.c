@@ -135,7 +135,8 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 
 	/* regexp compilation */
 	if (pattern)
-		regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
+		if (regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE) != 0)
+			return;
 
 	/* iterate child elements */
 	for(iter = lub_list__get_head(this->list);
@@ -277,7 +278,8 @@ int konf_tree_del_pattern(konf_tree_t *this,
 		return 0;
 
 	/* Compile regular expression */
-	regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE);
+	if (regcomp(&regexp, pattern, REG_EXTENDED | REG_ICASE) != 0)
+		return -1;
 
 	/* Iterate configuration tree */
 	tmp = lub_list_node_new(NULL);
