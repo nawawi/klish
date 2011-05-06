@@ -431,6 +431,10 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		break;
 	};
 
+#ifdef DEBUG
+	fprintf(stderr, "ANSWER: %s\n", retval);
+#endif
+
 	return retval;
 }
 
