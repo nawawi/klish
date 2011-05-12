@@ -23,7 +23,7 @@ const clish_command_t *clish_shell_resolve_command(const clish_shell_t * this,
 	clish_command_t *cmd, *result;
 
 	/* Search the current view */
-	result = clish_view_resolve_command(this->view, line, BOOL_TRUE);
+	result = clish_view_resolve_command(clish_shell__get_view(this), line, BOOL_TRUE);
 	/* Search the global view */
 	cmd = clish_view_resolve_command(this->global, line, BOOL_TRUE);
 
@@ -39,7 +39,7 @@ const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t * this,
 	clish_command_t *cmd, *result;
 
 	/* Search the current view */
-	result = clish_view_resolve_prefix(this->view, line, BOOL_TRUE);
+	result = clish_view_resolve_prefix(clish_shell__get_view(this), line, BOOL_TRUE);
 	/* Search the global view */
 	cmd = clish_view_resolve_prefix(this->global, line, BOOL_TRUE);
 
@@ -55,7 +55,7 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
 	const clish_command_t *result, *cmd;
 
 	/* ask the local view for next command */
-	result = clish_view_find_next_completion(this->view,
+	result = clish_view_find_next_completion(clish_shell__get_view(this),
 		iter->last_cmd, line, iter->field, BOOL_TRUE);
 	/* ask the global view for next command */
 	cmd = clish_view_find_next_completion(this->global,

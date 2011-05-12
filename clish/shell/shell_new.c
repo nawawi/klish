@@ -38,16 +38,15 @@ static void clish_shell_init(clish_shell_t * this,
 	/* set up defaults */
 	this->client_hooks = hooks;
 	this->client_cookie = cookie;
-	this->view = NULL;
-	this->viewid = NULL;
 	this->global = NULL;
 	this->startup = NULL;
 	this->state = SHELL_STATE_INITIALISING;
 	this->overview = NULL;
 	this->tinyrl = clish_shell_tinyrl_new(istream, ostream, 0);
 	this->current_file = NULL;
-	this->cfg_pwdv = NULL;
-	this->cfg_pwdc = 0;
+	this->pwdv = NULL;
+	this->pwdc = 0;
+	this->depth = -1; /* Current depth is undefined */
 	this->client = NULL;
 	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 	this->default_shebang = lub_string_dup("/bin/sh");
@@ -113,7 +112,6 @@ static void clish_shell_fini(clish_shell_t * this)
 
 	/* free the textual details */
 	lub_string_free(this->overview);
-	lub_string_free(this->viewid);
 
 	/* remove the startup command */
 	if (this->startup)
@@ -124,15 +122,12 @@ static void clish_shell_fini(clish_shell_t * this)
 	clish_shell_tinyrl_delete(this->tinyrl);
 
 	/* finalize each of the pwd strings */
-	for (i = 0; i < this->cfg_pwdc; i++) {
-		lub_string_free(this->cfg_pwdv[i]->line);
-		lub_string_free(this->cfg_pwdv[i]->viewid);
-		free(this->cfg_pwdv[i]);
+	for (i = 0; i < this->pwdc; i++) {
+		clish_shell__fini_pwd(this->pwdv[i]);
+		free(this->pwdv[i]);
 	}
 	/* free the pwd vector */
-	free(this->cfg_pwdv);
-	this->cfg_pwdc = 0;
-	this->cfg_pwdv = NULL;
+	free(this->pwdv);
 	konf_client_free(this->client);
 
 	/* Free internal params */

@@ -38,17 +38,19 @@ void clish_shell_insert_view(clish_shell_t * this, clish_view_t * view)
 }
 
 /*--------------------------------------------------------- */
-const clish_view_t *clish_shell__get_view(const clish_shell_t * this)
+clish_view_t *clish_shell__get_view(const clish_shell_t * this)
 {
 	assert(this);
-	return this->view;
+	if (this->depth < 0)
+		return NULL;
+	return this->pwdv[this->depth]->view;
 }
 
 /*--------------------------------------------------------- */
 unsigned clish_shell__get_depth(const clish_shell_t * this)
 {
 	assert(this);
-	return clish_view__get_depth(this->view);
+	return this->depth;
 }
 
 /*--------------------------------------------------------- */

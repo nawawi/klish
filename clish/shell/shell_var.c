@@ -10,63 +10,36 @@
 #include "lub/string.h"
 #include "private.h"
 
-/*--------------------------------------------------------- */
-void clish_shell_insert_var(clish_shell_t *this, clish_var_t *var)
-{
-	(void)lub_bintree_insert(&this->var_tree, var);
-}
-
-/*--------------------------------------------------------- */
-clish_var_t *clish_shell_find_var(clish_shell_t *this, const char *name)
-{
-	return lub_bintree_find(&this->var_tree, name);
-}
-
-/*--------------------------------------------------------- */
-const char *clish_shell__get_viewid(const clish_shell_t *this)
-{
-	assert(this);
-	return this->viewid;
-}
-
 /*----------------------------------------------------------- */
 /*
  * search the current viewid string for a variable
  */
-static char *find_viewid_var(const char *name, const char *viewid)
+void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
+	clish_context_t *context)
 {
-	char *result = NULL;
-	regex_t regex;
-	int status;
-	char *pattern = NULL;
-	regmatch_t pmatches[2];
+	char *expanded;
+	char *q, *saveptr;
 
-	/* build up the pattern to match */
-	lub_string_cat(&pattern, name);
-	lub_string_cat(&pattern, "[ ]*=([^;]*)");
+	expanded = clish_shell_expand(viewid, SHELL_VAR_NONE, context);
+	if (!expanded)
+		return;
 
-	/* compile the regular expression to find this variable */
-	status = regcomp(&regex, pattern, REG_EXTENDED);
-	assert(0 == status);
-	lub_string_free(pattern);
+	for (q = strtok_r(expanded, ";", &saveptr);
+		q; q = strtok_r(NULL, ";", &saveptr)) {
+		char *value;
+		clish_var_t *var;
 
-	/* now perform the matching */
-	/*lint -e64 Type mismatch (arg. no. 4) */
-	/*
-	 * lint seems to equate regmatch_t[] as being of type regmatch_t !
-	 */
-	status = regexec(&regex, viewid, 2, pmatches, 0);
-	/*lint +e64 */
-	if (0 == status) {
-		regoff_t len = pmatches[1].rm_eo - pmatches[1].rm_so;
-		const char *value = &viewid[pmatches[1].rm_so];
-		/* found a match */
-		result = lub_string_dupn(value, (unsigned)len);
+		value = strchr(q, '=');
+		if (!value)
+			continue;
+		*value = '\0';
+		value++;
+		/* Create var instance */
+		var = clish_var_new(q);
+		lub_bintree_insert(tree, var);
+		clish_var__set_value(var, value);
 	}
-	/* release the regular expression */
-	regfree(&regex);
-
-	return result;
+	lub_string_free(expanded);
 }
 
 /*----------------------------------------------------------- */
@@ -112,10 +85,9 @@ static char *find_context_var(const char *name, clish_context_t *this)
 }
 
 /*--------------------------------------------------------- */
-static char *find_global_var(const char *name, clish_context_t *context)
+static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *context)
 {
-	clish_shell_t *this = context->shell;
-	clish_var_t *var = clish_shell_find_var(this, name);
+	clish_var_t *var = lub_bintree_find(tree, name);
 	clish_action_t *action;
 	char *value;
 	char *script;
@@ -157,6 +129,21 @@ static char *find_global_var(const char *name, clish_context_t *context)
 		clish_var__set_saved(var, res);
 
 	return res;
+}
+
+/*--------------------------------------------------------- */
+static char *find_global_var(const char *name, clish_context_t *context)
+{
+	return find_var(name, &context->shell->var_tree, context);
+}
+
+/*--------------------------------------------------------- */
+static char *find_viewid_var(const char *name, clish_context_t *context)
+{
+	int depth = clish_shell__get_depth(context->shell);
+	if (depth < 0)
+		return NULL;
+	return find_var(name, &context->shell->pwdv[depth]->viewid, context);
 }
 
 /*--------------------------------------------------------- */
@@ -401,8 +388,8 @@ char *clish_shell_expand_var(const char *name, clish_context_t *context)
 		tmp = clish_paramv_find_default(
 			clish_command__get_paramv(cmd), name);
 	/* try and substitute a viewId variable */
-	if (!tmp && this && this->viewid)
-		tmp = string = find_viewid_var(name, this->viewid);
+	if (!tmp && this)
+		tmp = string = find_viewid_var(name, context);
 	/* try and substitute context fixed variable */
 	if (!tmp)
 		tmp = string = find_context_var(name, context);

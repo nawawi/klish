@@ -33,7 +33,7 @@ struct clish_shell_file_s {
 typedef struct {
 	char *line;
 	clish_view_t *view;
-	char *viewid;
+	lub_bintree_t viewid;
 } clish_shell_pwd_t;
 
 struct clish_shell_s {
@@ -43,20 +43,19 @@ struct clish_shell_s {
 	const clish_shell_hooks_t *client_hooks;	/* Client callback hooks         */
 	void *client_cookie;	/* Client callback cookie        */
 	clish_view_t *global;	/* Reference to the global view. */
-	clish_view_t *view;	/* Reference to the current view. */
 	clish_command_t *startup;	/* This is the startup command   */
 	clish_shell_state_t state;	/* The current state               */
 	char *overview;		/* Overview text for this shell.  */
-	char *viewid;		/* The current view ID string     */
 	tinyrl_t *tinyrl;	/* Tiny readline instance          */
 	clish_shell_file_t *current_file;	/* file currently in use for input */
-	clish_shell_pwd_t **cfg_pwdv;	/* Levels for the config file structure */
-	unsigned cfg_pwdc;
+	clish_shell_pwd_t **pwdv;	/* Levels for the config file structure */
+	unsigned int pwdc;
+	int depth;
 	konf_client_t *client;
-	char * lockfile;
+	char *lockfile;
 	pthread_t pthread;
-	char * default_shebang;
-	char * fifo_name; /* The name of temporary fifo file. */
+	char *default_shebang;
+	char *fifo_name; /* The name of temporary fifo file. */
 	bool_t interactive; /* Is shell interactive. */
 
 	/* Static params for var expanding. The refactoring is needed. */
@@ -113,3 +112,7 @@ void clish_shell_param_generator(clish_shell_t * instance, lub_argv_t *matches,
 	const clish_command_t * cmd, const char *line, unsigned offset);
 char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
 	const char *line, unsigned start, unsigned end);
+void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
+	clish_context_t *context);
+void clish_shell__init_pwd(clish_shell_pwd_t *pwd);
+void clish_shell__fini_pwd(clish_shell_pwd_t *pwd);

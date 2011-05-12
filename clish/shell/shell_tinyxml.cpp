@@ -652,7 +652,7 @@ static void process_var(clish_shell_t * shell, TiXmlElement * element, void *)
 
 	assert(name);
 	/* Check if this var doesn't already exist */
-	var = clish_shell_find_var(shell, name);
+	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
 	if (var) {
 		printf("DUPLICATE VAR: %s\n", name);
 		assert(!var);
@@ -660,7 +660,7 @@ static void process_var(clish_shell_t * shell, TiXmlElement * element, void *)
 
 	/* Create var instance */
 	var = clish_var_new(name);
-	clish_shell_insert_var(shell, var);
+	lub_bintree_insert(&shell->var_tree, var);
 
 	if (dynamic && (lub_string_nocasecmp(dynamic, "true") == 0))
 		clish_var__set_dynamic(var, BOOL_TRUE);

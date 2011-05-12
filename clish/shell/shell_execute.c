@@ -101,8 +101,7 @@ static bool_t clish_source(clish_context_t *context, const lub_argv_t * argv)
  thread. Invoking a script in this way will cause the script to
  continue after command, but not script, errors.
 */
-static bool_t
-clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
+static bool_t clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
 {
 	return (clish_source_internal(context, argv, BOOL_FALSE));
 }
@@ -188,33 +187,21 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	int lock_fd = -1;
 	sigset_t old_sigs;
 	struct sigaction old_sigint, old_sigquit;
+	clish_view_t *cur_view = clish_shell__get_view(this);
 
 	assert(cmd);
 	action = clish_command__get_action(cmd);
 
 	/* Pre-change view if the command is from another depth/view */
         {
-		clish_view_t *view = NULL;
-		char *viewid = NULL;
 		clish_view_restore_t restore = clish_command__get_restore(cmd);
-
 		if ((CLISH_RESTORE_VIEW == restore) &&
-			(clish_command__get_pview(cmd) != this->view))
-			view = clish_command__get_pview(cmd);
-		else if ((CLISH_RESTORE_DEPTH == restore) &&
-			(clish_command__get_depth(cmd) <
-			clish_view__get_depth(this->view))) {
-			view = clish_shell__get_pwd_view(this,
-				clish_command__get_depth(cmd));
-			viewid = clish_shell__get_pwd_viewid(this,
-				clish_command__get_depth(cmd));
-		}
-
-		if (view) {
-			this->view = view;
-			/* cleanup */
-			lub_string_free(this->viewid);
-			this->viewid = lub_string_dup(viewid);
+			(clish_command__get_pview(cmd) != cur_view)) {
+			clish_view_t *view = clish_command__get_pview(cmd);
+			clish_shell__set_pwd(this, NULL, view, NULL, context);
+		} else if ((CLISH_RESTORE_DEPTH == restore) &&
+			(clish_command__get_depth(cmd) < this->depth)) {
+			this->depth = clish_command__get_depth(cmd);
 		}
 	}
 
@@ -295,22 +282,12 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	/* Move into the new view */
 	if (result) {
 		clish_view_t *view = clish_command__get_view(cmd);
-		char *viewid = clish_shell_expand(
-			clish_command__get_viewid(cmd), SHELL_VAR_ACTION, context);
+		/* Save the PWD */
 		if (view) {
-			/* Save the current config PWD */
 			char *line = clish_shell__get_line(context);
-			clish_shell__set_pwd(this,
-				clish_command__get_depth(cmd),
-				line, this->view, this->viewid);
+			clish_shell__set_pwd(this, line, view,
+				clish_command__get_viewid(cmd), context);
 			lub_string_free(line);
-			/* Change view */
-			this->view = view;
-		}
-		if (viewid || view) {
-			/* cleanup */
-			lub_string_free(this->viewid);
-			this->viewid = viewid;
 		}
 	}
 
@@ -360,30 +337,18 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 static bool_t clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
 {
 	clish_shell_t *this = context->shell;
-	clish_view_t *view = NULL;
-	char *viewid = NULL;
-	int depth = 0;
 
 	if (!this)
 		return BOOL_FALSE;
 
 	argv = argv; /* not used */
-	depth = clish_view__get_depth(this->view);
 
 	/* If depth=0 than exit */
-	if (0 == depth) {
+	if (0 == this->depth) {
 		this->state = SHELL_STATE_CLOSING;
 		return BOOL_TRUE;
 	}
-
-	depth--;
-	view = clish_shell__get_pwd_view(this, depth);
-	viewid = clish_shell__get_pwd_viewid(this, depth);
-	if (!view)
-		return BOOL_FALSE;
-	this->view = view;
-	lub_string_free(this->viewid);
-	this->viewid = viewid ? lub_string_dup(viewid) : NULL;
+	this->depth--;
 
 	return BOOL_TRUE;
 }

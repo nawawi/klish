@@ -343,22 +343,20 @@ char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context
 /*-----------------
  * attributes
  *----------------- */
-const clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
+clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
 unsigned clish_shell__get_depth(const clish_shell_t * instance);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
 const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
 void *clish_shell__get_client_cookie(const clish_shell_t * instance);
 void
-clish_shell__set_pwd(clish_shell_t * instance, unsigned index,
-	const char * line, clish_view_t * view, char * viewid);
+clish_shell__set_pwd(clish_shell_t *instance, const char * line,
+	clish_view_t * view, char * viewid, clish_context_t *context);
 char *clish_shell__get_pwd_line(const clish_shell_t * instance,
-				 unsigned index);
+	 unsigned int index);
 char *clish_shell__get_pwd_full(const clish_shell_t * instance, unsigned depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
-				 unsigned index);
-char *clish_shell__get_pwd_viewid(const clish_shell_t * instance,
-				 unsigned index);
+	unsigned int index);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 FILE *clish_shell__get_istream(const clish_shell_t * instance);
 FILE *clish_shell__get_ostream(const clish_shell_t * instance);

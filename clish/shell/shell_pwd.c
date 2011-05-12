@@ -8,49 +8,70 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-void
-clish_shell__set_pwd(clish_shell_t * this, unsigned index,
-	const char * line, clish_view_t * view, char * viewid)
+void clish_shell__init_pwd(clish_shell_pwd_t *pwd)
+{
+	pwd->line = NULL;
+	pwd->view = NULL;
+	/* initialise the tree of vars */
+	lub_bintree_init(&pwd->viewid,
+		clish_var_bt_offset(),
+		clish_var_bt_compare, clish_var_bt_getkey);
+}
+
+/*--------------------------------------------------------- */
+void clish_shell__fini_pwd(clish_shell_pwd_t *pwd)
+{
+	clish_var_t *var;
+
+	lub_string_free(pwd->line);
+	pwd->view = NULL;
+	/* delete each VAR held  */
+	while ((var = lub_bintree_findfirst(&pwd->viewid))) {
+		lub_bintree_remove(&pwd->viewid, var);
+		clish_var_delete(var);
+	}
+}
+
+/*--------------------------------------------------------- */
+void clish_shell__set_pwd(clish_shell_t *this,
+	const char *line, clish_view_t *view, char *viewid, clish_context_t *context)
 {
 	clish_shell_pwd_t **tmp;
 	size_t new_size = 0;
 	unsigned i;
+	unsigned int index = clish_view__get_depth(view);
 
 	/* Create new element */
-	if (index >= this->cfg_pwdc) {
+	if (index >= this->pwdc) {
 		new_size = (index + 1) * sizeof(clish_shell_pwd_t *);
 		/* resize the pwd vector */
-		tmp = realloc(this->cfg_pwdv, new_size);
+		tmp = realloc(this->pwdv, new_size);
 		assert(tmp);
-		this->cfg_pwdv = tmp;
+		this->pwdv = tmp;
 		/* Initialize new elements */
-		for (i = this->cfg_pwdc; i <= index; i++) {
-			clish_shell_pwd_t *pwd;
-
-			pwd = malloc(sizeof(*pwd));
+		for (i = this->pwdc; i <= index; i++) {
+			clish_shell_pwd_t *pwd = malloc(sizeof(*pwd));
 			assert(pwd);
-			pwd->line = NULL;
-			pwd->view = NULL;
-			pwd->viewid = NULL;
-			this->cfg_pwdv[i] = pwd;
+			clish_shell__init_pwd(pwd);
+			this->pwdv[i] = pwd;
 		}
-		this->cfg_pwdc = index + 1;
+		this->pwdc = index + 1;
 	}
 
-	lub_string_free(this->cfg_pwdv[index]->line);
-	this->cfg_pwdv[index]->line = line ? lub_string_dup(line) : NULL;
-	this->cfg_pwdv[index]->view = view;
-	lub_string_free(this->cfg_pwdv[index]->viewid);
-	this->cfg_pwdv[index]->viewid = viewid ? lub_string_dup(viewid) : NULL;
+	clish_shell__fini_pwd(this->pwdv[index]);
+	this->pwdv[index]->line = line ? lub_string_dup(line) : NULL;
+	this->pwdv[index]->view = view;
+	clish_shell__expand_viewid(viewid, &this->pwdv[index]->viewid, context);
+	this->depth = index;
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell__get_pwd_line(const clish_shell_t * this, unsigned index)
+char *clish_shell__get_pwd_line(const clish_shell_t *this, unsigned int index)
 {
-	if (index >= this->cfg_pwdc)
+	if (index >= this->pwdc)
 		return NULL;
 
-	return this->cfg_pwdv[index]->line;
+	return this->pwdv[index]->line;
 }
 
 /*--------------------------------------------------------- */
@@ -59,7 +80,7 @@ char *clish_shell__get_pwd_full(const clish_shell_t * this, unsigned depth)
 	char *pwd = NULL;
 	unsigned i;
 
-	for (i = 0; i < depth; i++) {
+	for (i = 1; i <= depth; i++) {
 		const char *str =
 			clish_shell__get_pwd_line(this, i);
 		/* Cannot get full path */
@@ -78,21 +99,12 @@ char *clish_shell__get_pwd_full(const clish_shell_t * this, unsigned depth)
 }
 
 /*--------------------------------------------------------- */
-clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned index)
+clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned int index)
 {
-	if (index >= this->cfg_pwdc)
+	if (index >= this->pwdc)
 		return NULL;
 
-	return this->cfg_pwdv[index]->view;
-}
-
-/*--------------------------------------------------------- */
-char *clish_shell__get_pwd_viewid(const clish_shell_t * this, unsigned index)
-{
-	if (index >= this->cfg_pwdc)
-		return NULL;
-
-	return this->cfg_pwdv[index]->viewid;
+	return this->pwdv[index]->view;
 }
 
 /*--------------------------------------------------------- */
