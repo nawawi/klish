@@ -2,20 +2,27 @@
 #include <stdlib.h>
 # include <unistd.h>
 # include <fcntl.h>
+#include <string.h>
 
 #include "private.h"
 
 typedef struct {
-	const char terminator;
+	const char* sequence;
 	tinyrl_vt100_escape_t code;
 } vt100_decode_t;
 
 /* This table maps the vt100 escape codes to an enumeration */
 static vt100_decode_t cmds[] = {
-	{'A', tinyrl_vt100_CURSOR_UP},
-	{'B', tinyrl_vt100_CURSOR_DOWN},
-	{'C', tinyrl_vt100_CURSOR_RIGHT},
-	{'D', tinyrl_vt100_CURSOR_LEFT},
+	{"[A", tinyrl_vt100_CURSOR_UP},
+	{"[B", tinyrl_vt100_CURSOR_DOWN},
+	{"[C", tinyrl_vt100_CURSOR_RIGHT},
+	{"[D", tinyrl_vt100_CURSOR_LEFT},
+	{"[H", tinyrl_vt100_HOME},
+	{"[F", tinyrl_vt100_END},
+	{"[2~", tinyrl_vt100_INSERT},
+	{"[3~", tinyrl_vt100_DELETE},
+	{"[5~", tinyrl_vt100_PGUP},
+	{"[6~", tinyrl_vt100_PGDOWN},
 };
 
 /*--------------------------------------------------------- */
@@ -66,16 +73,19 @@ tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
 			break;
 		}
 	}
-	/* terminate the string (for debug purposes) */
+	/* terminate the string */
 	*p = '\0';
 
 	/* restore the blocking status */
 	_tinyrl_vt100_setInputBlocking(this);
 
 	if (tinyrl_vt100_UNKNOWN != result) {
+		p = sequence;
+		result = tinyrl_vt100_UNKNOWN;
+
 		/* now decode the sequence */
 		for (i = 0; i < sizeof(cmds) / sizeof(vt100_decode_t); i++) {
-			if (cmds[i].terminator == c) {
+			if (strcmp(cmds[i].sequence, p) == 0) {
 				/* found the code in the lookup table */
 				result = cmds[i].code;
 				break;

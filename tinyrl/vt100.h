@@ -67,14 +67,17 @@ _BEGIN_C_DECL typedef struct _tinyrl_vt100 tinyrl_vt100_t;
  * This enumeration is used to identify the types of escape code 
  */
 typedef enum {
-	tinyrl_vt100_UNKNOWN,  /**< Undefined escape sequence */
-	tinyrl_vt100_CURSOR_UP,/**< Move the cursor up        */
-	tinyrl_vt100_CURSOR_DOWN,
-			       /**< Move the cursor down      */
-	tinyrl_vt100_CURSOR_LEFT,
-			       /**< Move the cursor left      */
-	tinyrl_vt100_CURSOR_RIGHT
-			       /**< Move the cursor right     */
+	tinyrl_vt100_UNKNOWN, /**< Undefined escape sequence */
+	tinyrl_vt100_CURSOR_UP, /**< Move the cursor up */
+	tinyrl_vt100_CURSOR_DOWN, /**< Move the cursor down */
+	tinyrl_vt100_CURSOR_LEFT, /**< Move the cursor left */
+	tinyrl_vt100_CURSOR_RIGHT, /**< Move the cursor right */
+	tinyrl_vt100_HOME, /**< Move the cursor to the beginning of the line */
+	tinyrl_vt100_END, /**< Move the cursor to the end of the line */
+	tinyrl_vt100_INSERT, /**< No action at the moment */
+	tinyrl_vt100_DELETE, /**< Delete character on the right */
+	tinyrl_vt100_PGUP, /**< No action at the moment */
+	tinyrl_vt100_PGDOWN /**< No action at the moment */
 } tinyrl_vt100_escape_t;
 
 extern tinyrl_vt100_t *tinyrl_vt100_new(FILE * instream, FILE * outstream);

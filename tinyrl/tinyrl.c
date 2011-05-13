@@ -349,6 +349,19 @@ static bool_t tinyrl_key_escape(tinyrl_t * this, int key)
 	case tinyrl_vt100_CURSOR_RIGHT:
 		result = tinyrl_key_right(this, key);
 		break;
+	case tinyrl_vt100_HOME:
+		result = tinyrl_key_start_of_line(this,key);
+		break;
+	case tinyrl_vt100_END:
+		result = tinyrl_key_end_of_line(this,key);
+		break;
+	case tinyrl_vt100_DELETE:
+		result = tinyrl_key_delete(this,key);
+		break;
+
+	case tinyrl_vt100_INSERT:
+	case tinyrl_vt100_PGDOWN:
+	case tinyrl_vt100_PGUP:
 	case tinyrl_vt100_UNKNOWN:
 		break;
 	}
@@ -1344,6 +1357,12 @@ bool_t tinyrl_is_quoting(const tinyrl_t * this)
 		}
 	}
 	return result;
+}
+
+/*-------------------------------------------------------- */
+bool_t tinyrl_is_empty(const tinyrl_t *this)
+{
+	return (this->point == 0) ? BOOL_TRUE : BOOL_FALSE;
 }
 
 /*--------------------------------------------------------- */

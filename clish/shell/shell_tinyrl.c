@@ -146,7 +146,10 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 	const clish_command_t *cmd = NULL;
 	clish_pargv_t *pargv = NULL;
 
-	if (BOOL_TRUE == tinyrl_is_quoting(this)) {
+	if(BOOL_TRUE == tinyrl_is_empty(this)) {
+		/* ignore space at the begining of the line, don't display commands */
+		return BOOL_TRUE;
+	} else if (BOOL_TRUE == tinyrl_is_quoting(this)) {
 		/* if we are in the middle of a quote then simply enter a space */
 		result = BOOL_TRUE;
 	} else {

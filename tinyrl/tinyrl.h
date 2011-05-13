@@ -200,6 +200,16 @@ extern bool_t tinyrl_is_quoting(
          */
 				       const tinyrl_t * instance);
 /**
+ * Indicate whether the current insertion is empty or not
+ */
+extern bool_t
+	tinyrl_is_empty(
+		/**
+		 * The instance on which to operate
+		 */
+		const tinyrl_t *instance
+	);
+/**
  * Limit maximum line length
  */
 extern void tinyrl_limit_line_length(
