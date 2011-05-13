@@ -10,13 +10,14 @@ struct konf_query_s {
 	unsigned short priority;
 	bool_t seq; /* sequence aka auto priority */
 	unsigned short seq_num; /* sequence number */
-	unsigned pwdc;
+	unsigned int pwdc;
 	char **pwd;
 	char *line;
 	char *lower_line;
 	char *path;
 	bool_t splitter;
 	bool_t unique;
+	int depth;
 };
 
 #endif

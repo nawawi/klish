@@ -413,7 +413,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 
 #ifdef DEBUG
 	/* Print whole tree */
-	konf_tree_fprintf(conf, stderr, NULL, -1, BOOL_TRUE, 0);
+	konf_tree_fprintf(conf, stderr, NULL, -1, -1, BOOL_TRUE, 0);
 #endif
 
 	/* Free resources */
@@ -478,6 +478,7 @@ static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query)
 		fd,
 		konf_query__get_pattern(query),
 		konf_query__get_pwdc(query) - 1,
+		konf_query__get_depth(query),
 		konf_query__get_seq(query),
 		0);
 	if (!filename) {

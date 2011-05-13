@@ -104,8 +104,8 @@ void konf_tree_delete(konf_tree_t * this)
 }
 
 /*--------------------------------------------------------- */
-void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
-	const char *pattern, int top_depth,
+void konf_tree_fprintf(konf_tree_t *this, FILE *stream,
+	const char *pattern, int top_depth, int depth,
 	bool_t seq, unsigned char prev_pri_hi)
 {
 	konf_tree_t *conf;
@@ -114,7 +114,8 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 	regex_t regexp;
 
 	if (this->line && (*(this->line) != '\0') &&
-		(this->depth > top_depth)) {
+		(this->depth > top_depth) &&
+		((depth < 0 ) || (this->depth <= (top_depth + depth)))) {
 		char *space = NULL;
 		unsigned space_num = this->depth - top_depth - 1;
 		if (space_num > 0) {
@@ -144,7 +145,7 @@ void konf_tree_fprintf(konf_tree_t * this, FILE * stream,
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if (pattern && (0 != regexec(&regexp, conf->line, 0, NULL, 0)))
 			continue;
-		konf_tree_fprintf(conf, stream, NULL, top_depth, seq, pri);
+		konf_tree_fprintf(conf, stream, NULL, top_depth, depth, seq, pri);
 		pri = konf_tree__get_priority_hi(conf);
 	}
 	if (pattern)

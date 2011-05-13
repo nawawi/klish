@@ -38,6 +38,7 @@ void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
 		var = clish_var_new(q);
 		lub_bintree_insert(tree, var);
 		clish_var__set_value(var, value);
+printf("%s=%s\n", q, value);
 	}
 	lub_string_free(expanded);
 }

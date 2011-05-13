@@ -35,6 +35,7 @@ konf_query_t *konf_query_new(void)
 	this->path = NULL;
 	this->splitter = BOOL_TRUE;
 	this->unique = BOOL_TRUE;
+	this->depth = -1;
 
 	return this;
 }
@@ -83,7 +84,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	unsigned i = 0;
 	int pwdc = 0;
 
-	static const char *shortopts = "suoedtp:q:r:l:f:in";
+	static const char *shortopts = "suoedtp:q:r:l:f:inh:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"set",		0, NULL, 's'},
@@ -99,6 +100,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 		{"file",	1, NULL, 'f'},
 		{"splitter",	0, NULL, 'i'},
 		{"non-unique",	0, NULL, 'n'},
+		{"depth",	1, NULL, 'h'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -175,6 +177,19 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 		case 'n':
 			this->unique = BOOL_FALSE;
 			break;
+		case 'h':
+			{
+			long val = 0;
+			char *endptr;
+
+			val = strtol(optarg, &endptr, 0);
+			if (endptr == optarg)
+				break;
+			if ((val > 0xffff) || (val < 0))
+				break;
+			this->depth = (unsigned short)val;
+			break;
+			}
 		default:
 			break;
 		}
@@ -296,4 +311,10 @@ unsigned short konf_query__get_seq_num(konf_query_t *this)
 bool_t konf_query__get_unique(konf_query_t *this)
 {
 	return this->unique;
+}
+
+/*-------------------------------------------------------- */
+int konf_query__get_depth(konf_query_t *this)
+{
+	return this->depth;
 }

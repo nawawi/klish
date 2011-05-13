@@ -38,7 +38,8 @@ konf_tree_t *konf_tree_new(const char *line, unsigned short priority);
  *----------------- */
 void konf_tree_delete(konf_tree_t * instance);
 void konf_tree_fprintf(konf_tree_t * instance, FILE * stream,
-	const char *pattern, int depth, bool_t seq, unsigned char prev_pri_hi);
+	const char *pattern, int top_depth, int depth,
+	bool_t seq, unsigned char prev_pri_hi);
 konf_tree_t *konf_tree_new_conf(konf_tree_t * instance,
 	const char *line, unsigned short priority,
 	bool_t seq, unsigned short seq_num);
