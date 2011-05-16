@@ -42,6 +42,7 @@ void konf_query_dump(konf_query_t *this)
 	lub_dump_printf("pwdc      : %u\n", this->pwdc);
 	lub_dump_printf("splitter  : %s\n", this->splitter ? "true" : "false");
 	lub_dump_printf("unique    : %s\n", this->unique ? "true" : "false");
+	lub_dump_printf("depth     : %d\n", this->depth);
 
 	lub_dump_undent();
 }
