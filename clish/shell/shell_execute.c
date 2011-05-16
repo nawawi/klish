@@ -193,7 +193,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	action = clish_command__get_action(cmd);
 
 	/* Pre-change view if the command is from another depth/view */
-        {
+	{
 		clish_view_restore_t restore = clish_command__get_restore(cmd);
 		if ((CLISH_RESTORE_VIEW == restore) &&
 			(clish_command__get_pview(cmd) != cur_view)) {
