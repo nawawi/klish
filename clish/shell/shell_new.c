@@ -70,16 +70,7 @@ static void clish_shell_init(clish_shell_t * this,
 	this->param_pwd = clish_param_new("__cur_pwd",
 		"Current path", tmp_ptype);
 	clish_param__set_hidden(this->param_pwd, BOOL_TRUE);
-	/* Interactive */
-	tmp_ptype = clish_shell_find_create_ptype(this,
-		"__INTERACTIVE", "Interactive flag", "[01]",
-		CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
-	assert(tmp_ptype);
-	this->param_interactive = clish_param_new("__interactive",
-		"Interactive flag", tmp_ptype);
-	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
-
-	/* PTYPE for args */
+	/* Args */
 	tmp_ptype = clish_shell_find_create_ptype(this,
 		"internal_ARGS",
 		"Arguments", "[^\\]+",
@@ -141,7 +132,6 @@ static void clish_shell_fini(clish_shell_t * this)
 	/* Free internal params */
 	clish_param_delete(this->param_depth);
 	clish_param_delete(this->param_pwd);
-	clish_param_delete(this->param_interactive);
 
 	lub_string_free(this->lockfile);
 	lub_string_free(this->default_shebang);

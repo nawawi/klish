@@ -61,7 +61,6 @@ struct clish_shell_s {
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;
 	clish_param_t *param_pwd;
-	clish_param_t *param_interactive;
 };
 
 /**
