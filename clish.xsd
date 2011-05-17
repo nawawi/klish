@@ -156,6 +156,7 @@
         <xs:attribute name="prompt" type="xs:string" use="optional"/>
         <xs:attribute name="depth" type="xs:string" use="optional" default="0"/>
         <xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
+        <xs:attribute name="access" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 *******************************************************
@@ -413,6 +414,7 @@
         <xs:attribute name="completion" type="bool_t" use="optional" default="true"/>
         <xs:attribute name="context_help" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="inherit" type="bool_t" use="optional" default="true"/>
+        <xs:attribute name="access" type="xs:string" use="optional"/>
     </xs:complexType>
 
 <!--

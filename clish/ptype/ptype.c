@@ -550,6 +550,7 @@ void
 clish_ptype__set_preprocess(clish_ptype_t * this,
 	clish_ptype_preprocess_e preprocess)
 {
+	assert(!this->preprocess);
 	this->preprocess = preprocess;
 }
 

@@ -79,6 +79,14 @@ static void clish_shell_init(clish_shell_t * this,
 		"Interactive flag", tmp_ptype);
 	clish_param__set_hidden(this->param_interactive, BOOL_TRUE);
 
+	/* PTYPE for args */
+	tmp_ptype = clish_shell_find_create_ptype(this,
+		"internal_ARGS",
+		"Arguments", "[^\\]+",
+		CLISH_PTYPE_REGEXP,
+		CLISH_PTYPE_NONE);
+	assert(tmp_ptype);
+
 	/* Push non-NULL istream */
 	if (istream)
 		clish_shell_push_fd(this, istream, stop_on_error);

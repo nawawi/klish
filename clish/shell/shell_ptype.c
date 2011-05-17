@@ -1,9 +1,18 @@
 /*
  * shell_find_create_ptype.c
  */
-#include "private.h"
 
 #include <assert.h>
+
+#include "private.h"
+
+/*--------------------------------------------------------- */
+clish_ptype_t *clish_shell_find_ptype(clish_shell_t *this,
+	const char *name)
+{
+	return lub_bintree_find(&this->ptype_tree, name);
+}
+
 /*--------------------------------------------------------- */
 clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * this,
 	const char *name, const char *text, const char *pattern,

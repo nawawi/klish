@@ -33,11 +33,11 @@ bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
 	ngroups_max = sysconf(_SC_NGROUPS_MAX) + 1;
 	group_list = (gid_t *)malloc(ngroups_max * sizeof(gid_t));
 
-	/* get the groups for the current user */
+	/* Get the groups for the current user */
 	num_groups = getgroups(ngroups_max, group_list);
 	assert(num_groups != -1);
 
-	/* now check these against the access provided */
+	/* Now check these against the access provided */
 	/* The external loop goes trough the list of valid groups */
 	/* The allowed groups are indicated by a colon-separated (:) list. */
 	for (tmp_access = strtok_r(full_access, ":", &saveptr);

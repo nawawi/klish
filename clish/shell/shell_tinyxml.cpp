@@ -118,6 +118,18 @@ static void process_view(clish_shell_t * shell, TiXmlElement * element, void *)
 	const char *prompt = element->Attribute("prompt");
 	const char *depth = element->Attribute("depth");
 	const char *restore = element->Attribute("restore");
+	const char *access = element->Attribute("access");
+	bool allowed = true;
+
+	/* Check permissions */
+	if (access) {
+		allowed = false;
+		if (shell->client_hooks->access_fn)
+			allowed = shell->client_hooks->access_fn(shell, access)
+				? true : false;
+	}
+	if (!allowed)
+		return;
 
 	// re-use a view if it already exists
 	view = clish_shell_find_create_view(shell, name, prompt);
@@ -200,13 +212,12 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *interrupt = element->Attribute("interrupt");
 	const char *ref = element->Attribute("ref");
 
+	/* Check permissions */
 	if (access) {
-		allowed = false; // err on the side of caution
-		if (shell->client_hooks->access_fn) {
-			// get the client to authenticate
-			allowed = shell->client_hooks->access_fn(shell,
-				access) ? true : false;
-		}
+		allowed = false;
+		if (shell->client_hooks->access_fn)
+			allowed = shell->client_hooks->access_fn(shell, access)
+				? true : false;
 	}
 	if (!allowed)
 		return;
@@ -260,11 +271,7 @@ process_command(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		clish_ptype_t *tmp = NULL;
 
 		assert(args_help);
-		tmp = clish_shell_find_create_ptype(shell,
-			"internal_ARGS",
-			"Arguments", "[^\\]+",
-			CLISH_PTYPE_REGEXP,
-			CLISH_PTYPE_NONE);
+		tmp = clish_shell_find_ptype(shell, "internal_ARGS");
 		assert(tmp);
 		param = clish_param_new(args_name, args_help, tmp);
 		clish_command__set_args(cmd, param);
@@ -522,6 +529,17 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *completion = element->Attribute("completion");
 	const char *context_help = element->Attribute("context_help");
 	const char *inherit = element->Attribute("inherit");
+	const char *access = element->Attribute("access");
+	bool allowed = true;
+
+	if (access) {
+		allowed = false;
+		if (shell->client_hooks->access_fn)
+			allowed = shell->client_hooks->access_fn(shell, access)
+				? true : false;
+	}
+	if (!allowed)
+		return;
 
 	assert(view);
 	clish_view_t *ref_view = clish_shell_find_create_view(shell,
@@ -687,7 +705,9 @@ int clish_shell_xml_read(clish_shell_t * shell, const char *filename)
 		}
 		ret = 0;
 	} else {
-		printf("Unable to open %s\n", filename);
+		printf("Unable to open %s (%s at line %d, col %d)\n",
+		        filename, doc.ErrorDesc(),
+		        doc.ErrorRow(), doc.ErrorCol());
 	}
 	return ret;
 }
