@@ -26,24 +26,14 @@ static char *clish_shell_tilde_expand(const char *path)
 {
 	char *home_dir = getenv("HOME");
 	char *result = NULL;
-	const char *p = path;
-	const char *segment = path;
-	int count = 0;
+	char *tilde;
 
-	while (*p) {
-		if ('~' == *p) {
-			if (count) {
-				lub_string_catn(&result, segment, count);
-				segment += (count + 1);	/* skip the tilde in the path */
-				count = -1;
-			}
-			lub_string_cat(&result, home_dir);
-		}
-		count++;
-		p++;
+	while ((tilde = strchr(path, '~'))) {
+		lub_string_catn(&result, path, tilde - path);
+		lub_string_cat(&result, home_dir);
+		path = tilde + 1;
 	}
-	if (count)
-		lub_string_catn(&result, segment, count);
+	lub_string_cat(&result, path);
 
 	return result;
 }
@@ -57,7 +47,7 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 	char *saveptr;
 
 	/* use the default path */
-	if (NULL == path)
+	if (!path)
 		path = default_path;
 	/* take a copy of the path */
 	buffer = clish_shell_tilde_expand(path);
