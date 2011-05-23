@@ -209,16 +209,16 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 				 */
 				if (!(clish_param__get_optional(param) &&
 					(*idx == need_index) &&
-					(need_index == (argc - 1))))
-				(*idx)++;
-
-				/* Walk through the nested parameters */
-				if (rec_paramc) {
-					retval = clish_shell_parse_pargv(pargv, cmd,
-						context, rec_paramv,
-						argv, idx, last, need_index);
-					if (CLISH_LINE_OK != retval)
-						return retval;
+					(need_index == (argc - 1)))) {
+					(*idx)++;
+					/* Walk through the nested parameters */
+					if (rec_paramc) {
+						retval = clish_shell_parse_pargv(pargv, cmd,
+							context, rec_paramv,
+							argv, idx, last, need_index);
+						if (CLISH_LINE_OK != retval)
+							return retval;
+					}
 				}
 
 				/* Choose the next parameter */
