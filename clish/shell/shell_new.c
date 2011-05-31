@@ -116,7 +116,7 @@ static void clish_shell_fini(clish_shell_t * this)
 	if (this->startup)
 		clish_command_delete(this->startup);
 	/* clean up the file stack */
-	while (BOOL_TRUE == clish_shell_pop_file(this));
+	while (!clish_shell_pop_file(this));
 	/* delete the tinyrl object */
 	clish_shell_tinyrl_delete(this->tinyrl);
 

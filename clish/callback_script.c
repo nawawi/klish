@@ -1,7 +1,6 @@
 /*
  * clish_script_callback.c
  *
- *
  * Callback hook to action a shell script.
  */
 #include <stdio.h>
@@ -21,7 +20,7 @@
 #include "internal.h"
 
 /*--------------------------------------------------------- */
-bool_t clish_script_callback(clish_context_t *context,
+int clish_script_callback(clish_context_t *context,
 	const char *script, char **out)
 {
 	clish_shell_t *this = context->shell;
@@ -147,11 +146,11 @@ bool_t clish_script_callback(clish_context_t *context,
 #ifdef DEBUG
 	fprintf(stderr, "RETCODE: %d\n", WEXITSTATUS(res));
 #endif /* DEBUG */
-	return (0 == res) ? BOOL_TRUE : BOOL_FALSE;
+	return WEXITSTATUS(res);
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_dryrun_callback(clish_context_t *context,
+int clish_dryrun_callback(clish_context_t *context,
 	const char *script, char ** out)
 {
 #ifdef DEBUG
@@ -160,7 +159,7 @@ bool_t clish_dryrun_callback(clish_context_t *context,
 	if (out)
 		*out = NULL;
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*--------------------------------------------------------- */

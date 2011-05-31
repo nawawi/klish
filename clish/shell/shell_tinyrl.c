@@ -39,7 +39,7 @@ static bool_t clish_shell_tinyrl_key_help(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_TRUE;
 
-	if (BOOL_TRUE == tinyrl_is_quoting(this)) {
+	if (tinyrl_is_quoting(this)) {
 		/* if we are in the middle of a quote then simply enter a space */
 		result = tinyrl_insert_text(this, "?");
 	} else {
@@ -146,10 +146,10 @@ static bool_t clish_shell_tinyrl_key_space(tinyrl_t * this, int key)
 	const clish_command_t *cmd = NULL;
 	clish_pargv_t *pargv = NULL;
 
-	if(BOOL_TRUE == tinyrl_is_empty(this)) {
+	if(tinyrl_is_empty(this)) {
 		/* ignore space at the begining of the line, don't display commands */
 		return BOOL_TRUE;
-	} else if (BOOL_TRUE == tinyrl_is_quoting(this)) {
+	} else if (tinyrl_is_quoting(this)) {
 		/* if we are in the middle of a quote then simply enter a space */
 		result = BOOL_TRUE;
 	} else {
@@ -388,7 +388,7 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
+int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 {
 	char *prompt = NULL;
 	const clish_view_t *view;
@@ -401,7 +401,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 	this->state = SHELL_STATE_OK;
 	if (!line && !tinyrl__get_istream(this->tinyrl)) {
 		this->state = SHELL_STATE_SYSTEM_ERROR;
-		return BOOL_FALSE;
+		return -1;
 	}
 
 	/* Set up the context for tinyrl */
@@ -434,7 +434,7 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 			this->state = SHELL_STATE_SYSTEM_ERROR;
 			break;
 		};
-		return BOOL_FALSE;
+		return -1;
 	}
 
 	/* Deal with the history list */
@@ -449,28 +449,29 @@ bool_t clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 
 	/* Execute the provided command */
 	if (context.cmd && context.pargv) {
-		if (!clish_shell_execute(&context, out)) {
+		int res;
+		if ((res = clish_shell_execute(&context, out))) {
 			this->state = SHELL_STATE_SCRIPT_ERROR;
 			if (context.pargv)
 				clish_pargv_delete(context.pargv);
-			return BOOL_FALSE;
+			return res;
 		}
 	}
 
 	if (context.pargv)
 		clish_pargv_delete(context.pargv);
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_forceline(clish_shell_t *this, const char *line, char ** out)
+int clish_shell_forceline(clish_shell_t *this, const char *line, char **out)
 {
 	return clish_shell_execline(this, line, out);
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_readline(clish_shell_t *this, char ** out)
+int clish_shell_readline(clish_shell_t *this, char **out)
 {
 	return clish_shell_execline(this, NULL, out);
 }

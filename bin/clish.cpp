@@ -49,7 +49,7 @@ static void help(int status, const char *argv0);
 /*--------------------------------------------------------- */
 int main(int argc, char **argv)
 {
-	bool_t running;
+	int running;
 	int result = -1;
 	clish_shell_t * shell;
 
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 	}
 	/* Execute startup */
 	running = clish_shell_startup(shell);
-	if (!running) {
+	if (running) {
 		fprintf(stderr, "Cannot startup clish.\n");
 		clish_shell_delete(shell);
 		return -1;
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 	if (quiet)
 		fclose(outfd);
 
-	return result ? 0 : -1;
+	return result;
 }
 
 /*--------------------------------------------------------- */

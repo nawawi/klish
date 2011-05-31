@@ -7,7 +7,7 @@
 #include "lub/string.h"
 
 /*----------------------------------------------------------- */
-bool_t clish_shell_startup(clish_shell_t *this)
+int clish_shell_startup(clish_shell_t *this)
 {
 	const char *banner;
 	clish_context_t context;

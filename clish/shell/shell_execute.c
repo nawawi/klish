@@ -40,7 +40,7 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 
 /*----------------------------------------------------------- */
 /* Terminate the current shell session */
-static bool_t clish_close(clish_context_t *context, const lub_argv_t * argv)
+static int clish_close(clish_context_t *context, const lub_argv_t * argv)
 {
 	/* the exception proves the rule... */
 	clish_shell_t *this = (clish_shell_t *)context->shell;
@@ -48,7 +48,7 @@ static bool_t clish_close(clish_context_t *context, const lub_argv_t * argv)
 	argv = argv; /* not used */
 	this->state = SHELL_STATE_CLOSING;
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*----------------------------------------------------------- */
@@ -57,10 +57,10 @@ static bool_t clish_close(clish_context_t *context, const lub_argv_t * argv)
  thread. Whether the script continues after command, but not script, 
  errors depends on the value of the stop_on_error flag.
 */
-static bool_t clish_source_internal(clish_context_t *context,
+static int clish_source_internal(clish_context_t *context,
 	const lub_argv_t * argv, bool_t stop_on_error)
 {
-	bool_t result = BOOL_FALSE;
+	int result = -1;
 	const char *filename = lub_argv__get_arg(argv, 0);
 	struct stat fileStat;
 
@@ -81,7 +81,7 @@ static bool_t clish_source_internal(clish_context_t *context,
 			stop_on_error);
 	}
 
-	return result;
+	return result ? -1 : 0;
 }
 
 /*----------------------------------------------------------- */
@@ -90,7 +90,7 @@ static bool_t clish_source_internal(clish_context_t *context,
  thread. Invoking a script in this way will cause the script to
  stop on the first error
 */
-static bool_t clish_source(clish_context_t *context, const lub_argv_t * argv)
+static int clish_source(clish_context_t *context, const lub_argv_t * argv)
 {
 	return (clish_source_internal(context, argv, BOOL_TRUE));
 }
@@ -101,7 +101,7 @@ static bool_t clish_source(clish_context_t *context, const lub_argv_t * argv)
  thread. Invoking a script in this way will cause the script to
  continue after command, but not script, errors.
 */
-static bool_t clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
+static int clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
 {
 	return (clish_source_internal(context, argv, BOOL_FALSE));
 }
@@ -110,19 +110,18 @@ static bool_t clish_source_nostop(clish_context_t *context, const lub_argv_t * a
 /*
  Show the shell overview
 */
-static bool_t
-clish_overview(clish_context_t *context, const lub_argv_t * argv)
+static int clish_overview(clish_context_t *context, const lub_argv_t * argv)
 {
 	clish_shell_t *this = context->shell;
 	argv = argv; /* not used */
 
 	tinyrl_printf(this->tinyrl, "%s\n", context->shell->overview);
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*----------------------------------------------------------- */
-static bool_t clish_history(clish_context_t *context, const lub_argv_t * argv)
+static int clish_history(clish_context_t *context, const lub_argv_t * argv)
 {
 	clish_shell_t *this = context->shell;
 	tinyrl_history_t *history = tinyrl__get_history(this->tinyrl);
@@ -149,7 +148,7 @@ static bool_t clish_history(clish_context_t *context, const lub_argv_t * argv)
 			tinyrl_history_entry__get_index(entry),
 			tinyrl_history_entry__get_line(entry));
 	}
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*----------------------------------------------------------- */
@@ -177,12 +176,12 @@ void clish_shell_cleanup_script(void *script)
 }
 
 /*----------------------------------------------------------- */
-bool_t clish_shell_execute(clish_context_t *context, char **out)
+int clish_shell_execute(clish_context_t *context, char **out)
 {
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
 	clish_action_t *action;
-	bool_t result = BOOL_TRUE;
+	int result = 0;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
 	sigset_t old_sigs;
@@ -213,7 +212,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 		if (-1 == lock_fd) {
 			fprintf(stderr, "Can't open lockfile %s.\n",
 				lock_path);
-			return BOOL_FALSE; /* can't open file */
+			return -1; /* can't open file */
 		}
 		for (i = 0; i < CLISH_LOCK_WAIT; i++) {
 			res = flock(lock_fd, LOCK_EX | LOCK_NB);
@@ -232,7 +231,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 		}
 		if (res) {
 			fprintf(stderr, "Can't get lock.\n");
-			return BOOL_FALSE; /* can't get the lock */
+			return -1; /* can't get the lock */
 		}
 	}
 
@@ -270,7 +269,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Call config callback */
-	if (result && this->client_hooks->config_fn)
+	if (!result && this->client_hooks->config_fn)
 		this->client_hooks->config_fn(context);
 
 	/* Unlock the lockfile */
@@ -280,7 +279,7 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Move into the new view */
-	if (result) {
+	if (!result) {
 		clish_view_t *view = clish_command__get_view(cmd);
 		/* Save the PWD */
 		if (view) {
@@ -295,11 +294,11 @@ bool_t clish_shell_execute(clish_context_t *context, char **out)
 }
 
 /*----------------------------------------------------------- */
-bool_t clish_shell_exec_action(clish_action_t *action,
+int clish_shell_exec_action(clish_action_t *action,
 	clish_context_t *context, char **out)
 {
 	clish_shell_t *this = context->shell;
-	bool_t result = BOOL_TRUE;
+	int result = 0;
 	const char *builtin;
 	char *script;
 
@@ -308,7 +307,7 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 	if (builtin) {
 		clish_shell_builtin_fn_t *callback;
 		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
-		result = BOOL_FALSE;
+		result = -1;
 		/* search for an internal command */
 		callback = find_builtin_callback(clish_cmd_list, builtin);
 		if (!callback) {
@@ -334,36 +333,36 @@ bool_t clish_shell_exec_action(clish_action_t *action,
 /*
  * Find out the previous view in the stack and go to it
  */
-static bool_t clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
+static int clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
 {
 	clish_shell_t *this = context->shell;
 
 	if (!this)
-		return BOOL_FALSE;
+		return -1;
 
 	argv = argv; /* not used */
 
 	/* If depth=0 than exit */
 	if (0 == this->depth) {
 		this->state = SHELL_STATE_CLOSING;
-		return BOOL_TRUE;
+		return 0;
 	}
 	this->depth--;
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*----------------------------------------------------------- */
 /*
  * Builtin: NOP function
  */
-static bool_t clish_nop(clish_context_t *context, const lub_argv_t * argv)
+static int clish_nop(clish_context_t *context, const lub_argv_t * argv)
 {
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*----------------------------------------------------------- */
-const char * clish_shell__get_fifo(clish_shell_t * this)
+const char *clish_shell__get_fifo(clish_shell_t * this)
 {
 	char *name;
 	int res;

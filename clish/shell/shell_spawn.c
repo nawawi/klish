@@ -98,46 +98,46 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 }
 
 /*-------------------------------------------------------- */
-static bool_t _loop(clish_shell_t * this, bool_t is_thread)
+static int _loop(clish_shell_t * this, bool_t is_thread)
 {
-	bool_t running = BOOL_TRUE;
+	int running = 0;
 
 	assert(this);
 	if (!tinyrl__get_istream(this->tinyrl))
-		return BOOL_FALSE;
+		return -1;
 	/* Check the shell isn't closing down */
 	if (this && (SHELL_STATE_CLOSING == this->state))
-		return BOOL_TRUE;
+		return 0;
 
 	if (is_thread)
 		pthread_testcancel();
 	/* Loop reading and executing lines until the user quits */
-	while (running) {
+	while (!running) {
 		/* Get input from the stream */
 		running = clish_shell_readline(this, NULL);
-		if (!running) {
+		if (running) {
 			switch (this->state) {
 			case SHELL_STATE_SCRIPT_ERROR:
 			case SHELL_STATE_SYNTAX_ERROR:
 				/* Interactive session doesn't exit on error */
 				if (tinyrl__get_isatty(this->tinyrl) ||
 					!this->current_file->stop_on_error)
-					running = BOOL_TRUE;
+					running = 0;
 				break;
 			default:
 				break;
 			}
 		}
 		if (SHELL_STATE_CLOSING == this->state)
-			running = BOOL_FALSE;
-		if (!running)
+			running = -1;
+		if (running)
 			running = clish_shell_pop_file(this);
 		/* test for cancellation */
 		if (is_thread)
 			pthread_testcancel();
 	}
 
-	return BOOL_TRUE;
+	return 0;
 }
 
 /*-------------------------------------------------------- */
@@ -167,6 +167,8 @@ static void *clish_shell_thread(void *arg)
 {
 	clish_shell_t *this = arg;
 	int last_type;
+	int res = 0;
+	void *retval = 0;
 
 	/* make sure we can only be cancelled at controlled points */
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &last_type);
@@ -174,17 +176,18 @@ static void *clish_shell_thread(void *arg)
 	pthread_cleanup_push((void (*)(void *))clish_shell_thread_cleanup, this);
 
 	if (this)
-		_loop(this, BOOL_TRUE);
+		res = _loop(this, BOOL_TRUE);
 
 	/* be a good pthread citizen */
 	pthread_cleanup_pop(1);
 
-	return (void *)BOOL_TRUE;
+	retval = res ? (void *)-1 : NULL;
+	return retval;
 }
 
 /*-------------------------------------------------------- */
-int clish_shell_spawn(clish_shell_t * this,
-	const pthread_attr_t * attr)
+int clish_shell_spawn(clish_shell_t *this,
+	const pthread_attr_t *attr)
 {
 	if (!this)
 		return -1;
@@ -194,20 +197,20 @@ int clish_shell_spawn(clish_shell_t * this,
 }
 
 /*-------------------------------------------------------- */
-int clish_shell_wait(clish_shell_t * this)
+int clish_shell_wait(clish_shell_t *this)
 {
 	void *result = NULL;
 
 	if (!this)
-		return BOOL_FALSE;
+		return -1;
 	(void)pthread_join(this->pthread, &result);
 
-	return result ? BOOL_TRUE : BOOL_FALSE;
+	return result ? -1 : 0;
 }
 
 /*-------------------------------------------------------- */
-int clish_shell_spawn_and_wait(clish_shell_t * this,
-	const pthread_attr_t * attr)
+int clish_shell_spawn_and_wait(clish_shell_t *this,
+	const pthread_attr_t *attr)
 {
 	if (clish_shell_spawn(this, attr) < 0)
 		return -1;
@@ -216,7 +219,7 @@ int clish_shell_spawn_and_wait(clish_shell_t * this,
 }
 
 /*-------------------------------------------------------- */
-bool_t clish_shell_loop(clish_shell_t * this)
+int clish_shell_loop(clish_shell_t *this)
 {
 	return _loop(this, BOOL_FALSE);
 }

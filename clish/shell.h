@@ -142,17 +142,16 @@ typedef void clish_shell_cmd_line_fn_t(
   * that the call doesn't return until the script has been fully evaluated.
   * 
   * \return 
-  * - BOOL_TRUE  - if the script is executed without issue
-  * - BOOL_FALSE - if the script had an issue with execution.
+  * - Retval (int)
   *
   * \post
   * - If the script executes successfully then any "view" tag associated with the
   *   command will be honored. i.e. the CLI will switch to the new view
   */
-typedef bool_t clish_shell_script_fn_t(
+typedef int clish_shell_script_fn_t(
 	clish_context_t *context,
 	const char *script,
-	char ** out);
+	char **out);
 
 /**
   * A hook function used to control config file write
@@ -203,11 +202,10 @@ typedef bool_t clish_shell_access_fn_t(
   * clish_shell_builtin_cmds_t structure.
   *
   * \return
-  * - BOOL_TRUE  - if the command completes correctly
-  * - BOOL_FALSE - if the command fails.
+  * - Retval (int)
   *
   */
-typedef bool_t clish_shell_builtin_fn_t(
+typedef int clish_shell_builtin_fn_t(
 	/** 
          * The shell instance which invoked this call
          */
@@ -247,48 +245,6 @@ typedef struct {
  * meta functions
  *----------------- */
 
-#if 0
-int clish_shell_spawn_and_wait(const clish_shell_hooks_t * hooks, void *cookie);
- /**
-  * This operation causes a separate (POSIX) thread of execution to 
-  * be spawned. This thread becomes responsible for the CLI session.
-  * 
-  * This will be invoked from the context of the spawned shell's thread
-  * and will be called during the execution of a builting command.
-  * 
-  * A client may register any number of these callbacks in its 
-  * clish_shell_builtin_cmds_t structure.
-  *
-  * \return
-  * - BOOL_TRUE  - if the thread was successfully spawned
-  * - BOOL_FALSE - if the thread failed to be spawned
-  *
-  */
-bool_t clish_shell_spawn(
-	/** 
-         * A POSIX thread reference to fill out. This can be used
-         * to later control the spawned thread if necessary.
-         */
-				pthread_t * pthread,
-	/** 
-         * A POSIX thread attribute reference which will be used
-         * to define the thread which will be lanched. A value of
-         * NULL will use the system default.
-         */
-				const pthread_attr_t * attr,
-	/** 
-          * A reference to the clients hooks. These are used to 
-          * communicate back the client when client-specific actions
-          * are required.
-          */
-				const clish_shell_hooks_t * hooks,
-	/** 
-         * A client specific reference which can be obtained during
-         * a callback by invoking clish_shell__get_client_cookie()
-         */
-				void *cookie);
-#endif
-
 clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 	void *cookie,
 	FILE * istream,
@@ -300,7 +256,7 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 /*
  * Called to invoke the startup command for this shell
  */
-bool_t clish_shell_startup(clish_shell_t * instance);
+int clish_shell_startup(clish_shell_t * instance);
 void clish_shell_delete(clish_shell_t * instance);
 clish_view_t *clish_shell_find_create_view(clish_shell_t * instance,
 	const char *name,
@@ -315,13 +271,11 @@ clish_ptype_t *clish_shell_find_ptype(clish_shell_t *instance,
 	const char *name);
 int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
-bool_t clish_shell_exec_action(clish_action_t *action,
+int clish_shell_exec_action(clish_action_t *action,
 	clish_context_t *context, char **out);
-bool_t clish_shell_execute(clish_context_t *context, char **out);
-bool_t clish_shell_line(clish_shell_t * instance, const char *prompt,
-	const clish_command_t ** cmd, clish_pargv_t ** pargv, const char *str);
-bool_t clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
-bool_t clish_shell_readline(clish_shell_t *instance, char ** out);
+int clish_shell_execute(clish_context_t *context, char **out);
+int clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
+int clish_shell_readline(clish_shell_t *instance, char ** out);
 void clish_shell_dump(clish_shell_t * instance);
 void clish_shell_close(clish_shell_t * instance);
 /**
@@ -333,9 +287,9 @@ void clish_shell_close(clish_shell_t * instance);
  * BOOL_TRUE - the file was successfully associated with the shell.
  * BOOL_FALSE - there was insufficient resource to associate this file.
  */
-bool_t clish_shell_push_file(clish_shell_t * instance, const char * fname,
+int clish_shell_push_file(clish_shell_t * instance, const char * fname,
 	bool_t stop_on_error);
-bool_t clish_shell_push_fd(clish_shell_t * instance, FILE * file,
+int clish_shell_push_fd(clish_shell_t * instance, FILE * file,
 	bool_t stop_on_error);
 void clish_shell_insert_var(clish_shell_t *instance, clish_var_t *var);
 clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
@@ -371,7 +325,7 @@ int clish_shell_wait(clish_shell_t * instance);
 int clish_shell_spawn_and_wait(clish_shell_t * instance,
 	const pthread_attr_t * attr);
 void clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
-bool_t clish_shell_loop(clish_shell_t * instance);
+int clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
 	clish_shell_state_t state);

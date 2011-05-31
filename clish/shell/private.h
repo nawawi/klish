@@ -84,7 +84,7 @@ const clish_command_t *clish_shell_find_next_completion(const clish_shell_t *
  * BOOL_TRUE - the current file handle has been replaced.
  * BOOL_FALSE - there is only one handle on the stack which cannot be replaced.
  */
-bool_t clish_shell_pop_file(clish_shell_t * instance);
+int clish_shell_pop_file(clish_shell_t * instance);
 
 clish_view_t *clish_shell_find_view(clish_shell_t * instance, const char *name);
 void clish_shell_insert_view(clish_shell_t * instance, clish_view_t * view);
