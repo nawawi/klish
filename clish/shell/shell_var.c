@@ -121,7 +121,7 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 		script = clish_action__get_script(action);
 		if (script) {
 			char *out = NULL;
-			if (!clish_shell_exec_action(action, context, &out)) {
+			if (clish_shell_exec_action(action, context, &out)) {
 				lub_string_free(out);
 				return NULL;
 			}
