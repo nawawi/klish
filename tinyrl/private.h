@@ -8,7 +8,8 @@ struct _tinyrl {
 	const char *line;
 	unsigned max_line_length;
 	char *prompt;
-	size_t prompt_size;
+	size_t prompt_size; /* strlen() */
+	size_t prompt_len; /* Symbol positions */
 	char *buffer;
 	size_t buffer_size;
 	bool_t done;

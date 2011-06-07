@@ -1,8 +1,10 @@
 #undef __STRICT_ANSI__		/* we need to use fileno() */
 #include <stdlib.h>
-# include <unistd.h>
-# include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
+#include <sys/ioctl.h>
 
 #include "private.h"
 
@@ -155,11 +157,37 @@ int tinyrl_vt100_eof(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-unsigned tinyrl_vt100__get_width(const tinyrl_vt100_t * this)
+unsigned int tinyrl_vt100__get_width(const tinyrl_vt100_t *this)
 {
-	this = this;
-	/* hard code until we suss out how to do it properly */
+#ifdef TIOCGWINSZ
+	struct winsize ws;
+	int res;
+
+	ws.ws_col = 0;
+	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
+	if (res || !ws.ws_col)
+		return 80;
+	return ws.ws_col;
+#else
 	return 80;
+#endif
+}
+
+/*-------------------------------------------------------- */
+unsigned int tinyrl_vt100__get_height(const tinyrl_vt100_t *this)
+{
+#ifdef TIOCGWINSZ
+	struct winsize ws;
+	int res;
+
+	ws.ws_row = 0;
+	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
+	if (res || !ws.ws_row)
+		return 25;
+	return ws.ws_row;
+#else
+	return 25;
+#endif
 }
 
 /*-------------------------------------------------------- */
@@ -262,13 +290,15 @@ void tinyrl_vt100_clear_screen(const tinyrl_vt100_t * this)
 /*-------------------------------------------------------- */
 void tinyrl_vt100_cursor_save(const tinyrl_vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c7", KEY_ESC);
+	tinyrl_vt100_printf(this, "%c7", KEY_ESC); /* VT100 */
+/*	tinyrl_vt100_printf(this, "%c[s", KEY_ESC); */ /* ANSI */
 }
 
 /*-------------------------------------------------------- */
 void tinyrl_vt100_cursor_restore(const tinyrl_vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c8", KEY_ESC);
+	tinyrl_vt100_printf(this, "%c8", KEY_ESC); /* VT100 */
+/*	tinyrl_vt100_printf(this, "%c[u", KEY_ESC); */ /* ANSI */
 }
 
 /*-------------------------------------------------------- */
@@ -296,6 +326,24 @@ void tinyrl_vt100_cursor_down(const tinyrl_vt100_t * this, unsigned count)
 }
 
 /*-------------------------------------------------------- */
+void tinyrl_vt100_scroll_up(const tinyrl_vt100_t *this)
+{
+	tinyrl_vt100_printf(this, "%cD", KEY_ESC);
+}
+
+/*-------------------------------------------------------- */
+void tinyrl_vt100_scroll_down(const tinyrl_vt100_t *this)
+{
+	tinyrl_vt100_printf(this, "%cM", KEY_ESC);
+}
+
+/*-------------------------------------------------------- */
+void tinyrl_vt100_next_line(const tinyrl_vt100_t *this)
+{
+	tinyrl_vt100_printf(this, "%cE", KEY_ESC);
+}
+
+/*-------------------------------------------------------- */
 void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * this)
 {
 	tinyrl_vt100_printf(this, "%c[H", KEY_ESC);
@@ -305,6 +353,12 @@ void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * this)
 void tinyrl_vt100_erase(const tinyrl_vt100_t * this, unsigned count)
 {
 	tinyrl_vt100_printf(this, "%c[%dP", KEY_ESC, count);
+}
+
+/*-------------------------------------------------------- */
+void tinyrl_vt100_erase_down(const tinyrl_vt100_t * this)
+{
+	tinyrl_vt100_printf(this, "%c[J", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */

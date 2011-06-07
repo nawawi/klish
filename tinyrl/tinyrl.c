@@ -358,7 +358,6 @@ static bool_t tinyrl_key_escape(tinyrl_t * this, int key)
 	case tinyrl_vt100_DELETE:
 		result = tinyrl_key_delete(this,key);
 		break;
-
 	case tinyrl_vt100_INSERT:
 	case tinyrl_vt100_PGDOWN:
 	case tinyrl_vt100_PGUP:
@@ -506,7 +505,7 @@ int tinyrl_getchar(const tinyrl_t * this)
 /*----------------------------------------------------------------------- */
 static void tinyrl_internal_print(const tinyrl_t * this, const char *text)
 {
-	if (BOOL_TRUE == this->echo_enabled) {
+	if (this->echo_enabled) {
 		/* simply echo the line */
 		tinyrl_vt100_printf(this->term, "%s", text);
 	} else {
@@ -522,128 +521,57 @@ static void tinyrl_internal_print(const tinyrl_t * this, const char *text)
 }
 
 /*----------------------------------------------------------------------- */
+static void tinyrl_internal_position(tinyrl_t *this, size_t prompt_len,
+	size_t line_len, unsigned int width)
+{
+	int rows, cols;
+
+	rows = ((line_len + prompt_len) / width) - (prompt_len / width);
+	cols = ((line_len + prompt_len) % width) - (prompt_len % width);
+	if (cols > 0)
+		tinyrl_vt100_cursor_back(this->term, cols);
+	else if (cols < 0)
+		tinyrl_vt100_cursor_forward(this->term, -cols);
+	if (rows > 0)
+		tinyrl_vt100_cursor_up(this->term, rows);
+}
+
+/*----------------------------------------------------------------------- */
 void tinyrl_redisplay(tinyrl_t * this)
 {
-	int delta;
-	unsigned line_len, last_line_len, count;
-	line_len = strlen(this->line);
-	last_line_len = (this->last_buffer ? strlen(this->last_buffer) : 0);
+	unsigned int count;
+	unsigned int line_size = strlen(this->line);
+	unsigned int line_len = utf8_nsyms(this, this->line, line_size);
+	unsigned int width = tinyrl_vt100__get_width(this->term);
+	int cols;
 
-	do {
-		if (this->last_buffer) {
-			delta = (int)(line_len - last_line_len);
-			if (delta > 0) {
-				count = (unsigned)delta;
-				/* is the current line simply an extension of the previous one? */
-				if (0 == strncmp(this->line, this->last_buffer,
-					last_line_len)) {
-					/* output the line accounting for the echo behaviour */
-					tinyrl_internal_print(this,
-						&this->line[line_len - count]);
-					break;
-				}
-			} else if (delta < 0) {
-				/* is the current line simply a deletion of some characters from the end? */
-				if (0 == strncmp(this->line, this->last_buffer,
-					line_len)) {
-					if (this->echo_enabled
-						|| this->echo_char) {
-						int shift = (int)(this->last_point -
-							this->point);
-						/* just get the terminal to delete the characters */
-						if (shift > 0) {
-							count = utf8_nsyms(this,
-								this->last_buffer + this->point,
-								(unsigned)shift);
-							/* we've moved the cursor backwards */
-							tinyrl_vt100_cursor_back
-							    (this->term, count);
-						} else if (shift < 0) {
-							count = utf8_nsyms(this,
-								this->last_buffer + this->last_point,
-								(unsigned)-shift);
-							/* we've moved the cursor forwards */
-							tinyrl_vt100_cursor_forward
-							    (this->term, count);
-						}
-						/* now delete the characters */
-						count = utf8_nsyms(this,
-							this->last_buffer + line_len,
-							(unsigned)-delta);
-						tinyrl_vt100_erase(this->term,
-								   count);
-					}
-					break;
-				}
-			} else {
-				/* are the lines are the same content? */
-				if (0 == strcmp(this->line, this->last_buffer)) {
-					if (this->echo_enabled
-					    || this->echo_char) {
-						delta =
-						    (int)(this->point -
-							  this->last_point);
-						if (delta > 0) {
-							count = utf8_nsyms(this,
-								this->line + this->last_point,
-								(unsigned)delta);
-							/* move the point forwards */
-							tinyrl_vt100_cursor_forward
-							    (this->term, count);
-						} else if (delta < 0) {
-							count = utf8_nsyms(this,
-								this->line + this->point,
-								(unsigned)-delta);
-							/* move the cursor backwards */
-							tinyrl_vt100_cursor_back
-							    (this->term, count);
-						}
-					}
-					/* done for now */
-					break;
-				}
-			}
-		} else {
-			/* simply display the prompt and the line */
-			tinyrl_vt100_printf(this->term, "%s", this->prompt);
-			tinyrl_internal_print(this, this->line);
-			if (this->point < line_len) {
-				/* move the cursor to the insertion point */
-				count = utf8_nsyms(this,
-					this->line + this->point,
-					line_len - this->point);
-				tinyrl_vt100_cursor_back(this->term, count);
-			}
-			break;
-		}
-		/* 
-		 * to have got this far we must have edited the middle of a line.
-		 */
-		if (this->last_point) {
-			/* move to just after the prompt of the line */
-			count = utf8_nsyms(this, this->last_buffer, this->last_point);
-			tinyrl_vt100_cursor_back(this->term, count);
-		}
-		/* erase the previous line */
-		count = utf8_nsyms(this, this->last_buffer, last_line_len);
-		tinyrl_vt100_erase(this->term, count);
+	/* Prepare print position */
+	if (this->last_buffer) {
+		count = utf8_nsyms(this, this->last_buffer, this->last_point);
+		tinyrl_internal_position(this, this->prompt_len, count, width);
+		tinyrl_vt100_erase_down(this->term);
+	} else
+		tinyrl_vt100_printf(this->term, "%s", this->prompt);
 
-		/* output the line accounting for the echo behaviour */
-		tinyrl_internal_print(this, this->line);
+	/* Print current line */
+	tinyrl_internal_print(this, this->line);
+	/* Move the cursor to the insertion point */
+	cols = (this->prompt_len + line_len) % width;
+	if (!cols && line_size)
+		tinyrl_vt100_next_line(this->term);
+	if (this->point < line_size) {
+		unsigned int pre_len = utf8_nsyms(this,
+			this->line, this->point);
+		count = utf8_nsyms(this, this->line + this->point,
+			line_size - this->point);
+		tinyrl_internal_position(this, this->prompt_len + pre_len,
+			count, width);
+	}
 
-		delta = (int)(line_len - this->point);
-		if (delta) {
-			/* move the cursor back to the insertion point */
-			count = utf8_nsyms(this, this->line + this->point, delta);
-			tinyrl_vt100_cursor_back(this->term, count);
-		}
-	} /*lint -e717 */ while (0)	/*lint +e717 */
-	;
-
-	/* update the display */
+	/* Update the display */
 	(void)tinyrl_vt100_oflush(this->term);
 
-	/* set up the last line buffer */
+	/* Save the last line buffer */
 	lub_string_free(this->last_buffer);
 	this->last_buffer = lub_string_dup(this->line);
 	this->last_point = this->point;
@@ -1327,10 +1255,14 @@ void tinyrl__set_prompt(tinyrl_t *this, const char *prompt)
 	if (this->prompt) {
 		lub_string_free(this->prompt);
 		this->prompt_size = 0;
+		this->prompt_len = 0;
 	}
 	this->prompt = lub_string_dup(prompt);
-	if (this->prompt)
+	if (this->prompt) {
 		this->prompt_size = strlen(this->prompt);
+		this->prompt_len = utf8_nsyms(this, this->prompt,
+			this->prompt_size);
+	}
 }
 
 /*-------------------------------------------------------- */

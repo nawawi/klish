@@ -122,10 +122,14 @@ extern void
 tinyrl_vt100_cursor_up(const tinyrl_vt100_t * instance, unsigned count);
 extern void
 tinyrl_vt100_cursor_down(const tinyrl_vt100_t * instance, unsigned count);
+extern void tinyrl_vt100_scroll_up(const tinyrl_vt100_t *instance);
+extern void tinyrl_vt100_scroll_down(const tinyrl_vt100_t *instance);
+extern void tinyrl_vt100_next_line(const tinyrl_vt100_t *instance);
 extern void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * instance);
 extern void tinyrl_vt100_cursor_save(const tinyrl_vt100_t * instance);
 extern void tinyrl_vt100_cursor_restore(const tinyrl_vt100_t * instance);
 extern void tinyrl_vt100_erase(const tinyrl_vt100_t * instance, unsigned count);
+extern void tinyrl_vt100_erase_down(const tinyrl_vt100_t * instance);
 _END_C_DECL
 #endif				/* _tinyrl_vt100_h */
 /** @} tinyrl_vt100 */
