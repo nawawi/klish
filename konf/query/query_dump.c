@@ -34,8 +34,8 @@ void konf_query_dump(konf_query_t *this)
 	}
 	lub_dump_printf("operation : %s\n", op);
 	lub_dump_printf("pattern   : %s\n", this->pattern);
-	lub_dump_printf("priority  : %u\n", this->priority);
-	lub_dump_printf("sequence  : %u\n", this->seq);
+	lub_dump_printf("priority  : 0x%x\n", this->priority);
+	lub_dump_printf("sequence  : %u\n", this->seq ? "true" : "false");
 	lub_dump_printf("seq_num   : %u\n", this->seq_num);
 	lub_dump_printf("line      : %s\n", this->line);
 	lub_dump_printf("path      : %s\n", this->path);

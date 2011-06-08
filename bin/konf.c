@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 		goto err;
 	}
 #ifdef DEBUG
-	printf("REQUEST: %s\n", line);
+	fprintf(stderr, "REQUEST: %s\n", line);
 #endif
 
 	if (!(client = konf_client_new(socket_path))) {

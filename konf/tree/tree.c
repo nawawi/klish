@@ -166,7 +166,8 @@ static int normalize_seq(konf_tree_t * this, unsigned short priority,
 		iter = start;
 		if ((prev = lub_list_node__get_prev(iter))) {
 			conf = (konf_tree_t *)lub_list_node__get_data(prev);
-			cnt = konf_tree__get_seq_num(conf) + 1;
+			if (konf_tree__get_priority(conf) == priority)
+				cnt = konf_tree__get_seq_num(conf) + 1;
 		}
 	} else {
 		iter = lub_list__get_head(this->list);
