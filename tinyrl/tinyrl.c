@@ -549,16 +549,16 @@ void tinyrl_redisplay(tinyrl_t * this)
 	if (this->last_buffer) {
 		count = utf8_nsyms(this, this->last_buffer, this->last_point);
 		tinyrl_internal_position(this, this->prompt_len, count, width);
-		tinyrl_vt100_erase_down(this->term);
 	} else
 		tinyrl_vt100_printf(this->term, "%s", this->prompt);
 
 	/* Print current line */
 	tinyrl_internal_print(this, this->line);
-	/* Move the cursor to the insertion point */
 	cols = (this->prompt_len + line_len) % width;
 	if (!cols && line_size)
 		tinyrl_vt100_next_line(this->term);
+	tinyrl_vt100_erase_down(this->term);
+	/* Move the cursor to the insertion point */
 	if (this->point < line_size) {
 		unsigned int pre_len = utf8_nsyms(this,
 			this->line, this->point);
@@ -1054,7 +1054,7 @@ void tinyrl_replace_line(tinyrl_t * this, const char *text, int clear_undo)
 	clear_undo = clear_undo;
 
 	/* ensure there is sufficient space */
-	if (BOOL_TRUE == tinyrl_extend_line_buffer(this, new_len)) {
+	if (tinyrl_extend_line_buffer(this, new_len)) {
 
 		/* overwrite the current contents of the buffer */
 		strcpy(this->buffer, text);
