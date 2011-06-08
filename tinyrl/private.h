@@ -34,9 +34,10 @@ struct _tinyrl {
 	bool_t echo_enabled;
 	struct termios default_termios;
 	bool_t isatty;
-	char *last_buffer;	/* hold record of the previous 
-				   buffer for redisplay purposes */
-	unsigned last_point;	/* hold record of the previous 
-				   cursor position for redisplay purposes */
+	char *last_buffer;	/* hold record of the previous
+				buffer for redisplay purposes */
+	unsigned int last_point; /* hold record of the previous
+				cursor position for redisplay purposes */
+	unsigned int last_width; /* Last terminal width. For resize */
 	bool_t utf8;		/* Is the encoding UTF-8 */
 };

@@ -460,6 +460,7 @@ tinyrl_init(tinyrl_t * this,
 
 	/* create the vt100 terminal */
 	this->term = tinyrl_vt100_new(instream, outstream);
+	this->last_width = tinyrl_vt100__get_width(this->term);
 
 	/* create the history */
 	this->history = tinyrl_history_new(stifle);
@@ -548,13 +549,20 @@ void tinyrl_redisplay(tinyrl_t * this)
 	int cols;
 
 	/* Prepare print position */
-	if (this->last_buffer) {
+	if (this->last_buffer && (width == this->last_width)) {
+		/* If line and last line have the equal chars at begining */
 		eq_chars = lub_string_equal_part(this->line, this->last_buffer);
 		count = utf8_nsyms(this, this->last_buffer, this->last_point);
 		tinyrl_internal_position(this, this->prompt_len + eq_chars,
 			count - eq_chars, width);
-	} else
+	} else {
+		/* Prepare to resize */
+		if (width != this->last_width) {
+			tinyrl_vt100_next_line(this->term);
+			tinyrl_vt100_erase_down(this->term);
+		}
 		tinyrl_vt100_printf(this->term, "%s", this->prompt);
+	}
 
 	/* Print current line */
 	tinyrl_internal_print(this, this->line + eq_chars);
@@ -579,6 +587,7 @@ void tinyrl_redisplay(tinyrl_t * this)
 	lub_string_free(this->last_buffer);
 	this->last_buffer = lub_string_dup(this->line);
 	this->last_point = this->point;
+	this->last_width = width;
 }
 
 /*----------------------------------------------------------------------- */
