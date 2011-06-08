@@ -42,3 +42,21 @@ const char *lub_string_nocasestr(const char *cs, const char *ct)
 }
 
 /*--------------------------------------------------------- */
+unsigned int lub_string_equal_part(const char *str1, const char *str2)
+{
+	unsigned int cnt = 0;
+
+	if (!str1 || !str2)
+		return cnt;
+	while (*str1 && *str2) {
+		if (*str1 != *str2)
+			break;
+		cnt++;
+		str1++;
+		str2++;
+	}
+
+	return cnt;
+}
+
+/*--------------------------------------------------------- */

@@ -521,8 +521,8 @@ static void tinyrl_internal_print(const tinyrl_t * this, const char *text)
 }
 
 /*----------------------------------------------------------------------- */
-static void tinyrl_internal_position(tinyrl_t *this, size_t prompt_len,
-	size_t line_len, unsigned int width)
+static void tinyrl_internal_position(tinyrl_t *this, int prompt_len,
+	int line_len, unsigned int width)
 {
 	int rows, cols;
 
@@ -534,28 +534,32 @@ static void tinyrl_internal_position(tinyrl_t *this, size_t prompt_len,
 		tinyrl_vt100_cursor_forward(this->term, -cols);
 	if (rows > 0)
 		tinyrl_vt100_cursor_up(this->term, rows);
+	else if (rows < 0)
+		tinyrl_vt100_cursor_down(this->term, -rows);
 }
 
 /*----------------------------------------------------------------------- */
 void tinyrl_redisplay(tinyrl_t * this)
 {
-	unsigned int count;
 	unsigned int line_size = strlen(this->line);
 	unsigned int line_len = utf8_nsyms(this, this->line, line_size);
 	unsigned int width = tinyrl_vt100__get_width(this->term);
+	unsigned int count, eq_chars = 0;
 	int cols;
 
 	/* Prepare print position */
 	if (this->last_buffer) {
+		eq_chars = lub_string_equal_part(this->line, this->last_buffer);
 		count = utf8_nsyms(this, this->last_buffer, this->last_point);
-		tinyrl_internal_position(this, this->prompt_len, count, width);
+		tinyrl_internal_position(this, this->prompt_len + eq_chars,
+			count - eq_chars, width);
 	} else
 		tinyrl_vt100_printf(this->term, "%s", this->prompt);
 
 	/* Print current line */
-	tinyrl_internal_print(this, this->line);
+	tinyrl_internal_print(this, this->line + eq_chars);
 	cols = (this->prompt_len + line_len) % width;
-	if (!cols && line_size)
+	if (!cols && (line_size - eq_chars))
 		tinyrl_vt100_next_line(this->term);
 	tinyrl_vt100_erase_down(this->term);
 	/* Move the cursor to the insertion point */

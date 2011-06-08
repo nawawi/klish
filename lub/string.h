@@ -261,6 +261,7 @@ char *lub_string_ndecode(const char *string, unsigned int len);
 char *lub_string_encode(const char *string, const char *escape_chars);
 
 char *lub_string_tolower(const char *str);
+unsigned int lub_string_equal_part(const char *str1, const char *str2);
 
 
 _END_C_DECL
