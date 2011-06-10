@@ -550,11 +550,13 @@ void tinyrl_redisplay(tinyrl_t * this)
 
 	/* Prepare print position */
 	if (this->last_buffer && (width == this->last_width)) {
+		unsigned int eq_len = 0;
 		/* If line and last line have the equal chars at begining */
 		eq_chars = lub_string_equal_part(this->line, this->last_buffer);
+		eq_len = utf8_nsyms(this, this->last_buffer, eq_chars);
 		count = utf8_nsyms(this, this->last_buffer, this->last_point);
-		tinyrl_internal_position(this, this->prompt_len + eq_chars,
-			count - eq_chars, width);
+		tinyrl_internal_position(this, this->prompt_len + eq_len,
+			count - eq_len, width);
 	} else {
 		/* Prepare to resize */
 		if (width != this->last_width) {
@@ -656,8 +658,6 @@ static char *internal_readline(tinyrl_t * this,
 
 		while (!this->done) {
 			int key;
-			/* update the display */
-			tinyrl_redisplay(this);
 			/* get a key */
 			key = tinyrl_getchar(this);
 			/* has the input stream terminated? */
@@ -675,6 +675,12 @@ static char *internal_readline(tinyrl_t * this,
 						tinyrl_delete_text(this,
 							this->end - 1,
 							this->end);
+				} else {
+					/* Update the display if the key
+					is not first UTF8 byte */
+					if (!(this->utf8 &&
+						(UTF8_11 == (key & UTF8_MASK))))
+						tinyrl_redisplay(this);
 				}
 			} else {
 				/* time to finish the session */
