@@ -49,10 +49,23 @@ void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
 static char *find_context_var(const char *name, clish_context_t *this)
 {
 	char *result = NULL;
+	clish_shell_t *shell = this->shell;
 
-	if (!this->cmd)
+	if (!lub_string_nocasecmp(name, "__width")) {
+		char tmp[5];
+		snprintf(tmp, sizeof(tmp), "%u",
+			tinyrl__get_width(shell->tinyrl));
+		tmp[sizeof(tmp) - 1] = '\0';
+		result = strdup(tmp);
+	} else if (!lub_string_nocasecmp(name, "__height")) {
+		char tmp[5];
+		snprintf(tmp, sizeof(tmp), "%u",
+			tinyrl__get_height(shell->tinyrl));
+		tmp[sizeof(tmp) - 1] = '\0';
+		result = strdup(tmp);
+	} else if (!this->cmd) { /* The vars dependent on command */
 		return NULL;
-	if (!lub_string_nocasecmp(name, "__full_cmd")) {
+	} else if (!lub_string_nocasecmp(name, "__full_cmd")) {
 		result = lub_string_dup(clish_command__get_name(this->cmd));
 	} else if (!lub_string_nocasecmp(name, "__cmd")) {
 		result = lub_string_dup(clish_command__get_name(

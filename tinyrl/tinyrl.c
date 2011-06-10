@@ -1317,3 +1317,15 @@ void tinyrl_limit_line_length(tinyrl_t * this, unsigned length)
 }
 
 /*--------------------------------------------------------- */
+extern unsigned tinyrl__get_width(const tinyrl_t *this)
+{
+	return tinyrl_vt100__get_width(this->term);
+}
+
+/*--------------------------------------------------------- */
+extern unsigned tinyrl__get_height(const tinyrl_t *this)
+{
+	return tinyrl_vt100__get_height(this->term);
+}
+
+/*--------------------------------------------------------- */

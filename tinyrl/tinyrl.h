@@ -222,6 +222,9 @@ extern void tinyrl_limit_line_length(
          */
 					    unsigned length);
 
+extern unsigned tinyrl__get_width(const tinyrl_t *instance);
+extern unsigned tinyrl__get_height(const tinyrl_t *instance);
+
 _END_C_DECL
 #endif				/* _tinyrl_tinyrl_h */
 /** @} tinyrl_tinyrl */
