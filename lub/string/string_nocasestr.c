@@ -42,7 +42,8 @@ const char *lub_string_nocasestr(const char *cs, const char *ct)
 }
 
 /*--------------------------------------------------------- */
-unsigned int lub_string_equal_part(const char *str1, const char *str2)
+unsigned int lub_string_equal_part(const char *str1, const char *str2,
+	bool_t utf8)
 {
 	unsigned int cnt = 0;
 
@@ -55,6 +56,12 @@ unsigned int lub_string_equal_part(const char *str1, const char *str2)
 		str1++;
 		str2++;
 	}
+	if (!utf8)
+		return cnt;
+
+	/* UTF8 features */
+	if (cnt && (UTF8_11 == (*(str1 - 1) & UTF8_MASK)))
+		cnt--;
 
 	return cnt;
 }

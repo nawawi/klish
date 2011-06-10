@@ -276,7 +276,7 @@ static bool_t tinyrl_key_right(tinyrl_t * this, int key)
 }
 
 /*-------------------------------------------------------- */
-static bool_t tinyrl_key_backspace(tinyrl_t * this, int key)
+static bool_t tinyrl_key_backspace(tinyrl_t *this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	if (this->point) {
@@ -295,9 +295,9 @@ static bool_t tinyrl_key_delete(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
 	if (this->point < this->end) {
-		unsigned end = this->point;
-		utf8_point_left(this);
-		tinyrl_delete_text(this, this->point, end);
+		unsigned begin = this->point++;
+		utf8_point_right(this);
+		tinyrl_delete_text(this, begin, this->point - 1);
 		result = BOOL_TRUE;
 	}
 	/* keep the compiler happy */
@@ -552,7 +552,8 @@ void tinyrl_redisplay(tinyrl_t * this)
 	if (this->last_buffer && (width == this->last_width)) {
 		unsigned int eq_len = 0;
 		/* If line and last line have the equal chars at begining */
-		eq_chars = lub_string_equal_part(this->line, this->last_buffer);
+		eq_chars = lub_string_equal_part(this->line, this->last_buffer,
+			this->utf8);
 		eq_len = utf8_nsyms(this, this->last_buffer, eq_chars);
 		count = utf8_nsyms(this, this->last_buffer, this->last_point);
 		tinyrl_internal_position(this, this->prompt_len + eq_len,

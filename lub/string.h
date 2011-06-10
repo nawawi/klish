@@ -34,6 +34,12 @@ If a "const char *" is returned then the client has no responsiblity for releasi
 #include <stddef.h>
 
 #include "lub/c_decl.h"
+#include "lub/types.h"
+
+#define UTF8_MASK 0xC0
+#define UTF8_11   0xC0 /* First UTF8 byte */
+#define UTF8_10   0x80 /* Next UTF8 bytes */
+
 _BEGIN_C_DECL
 /**
  * This operation duplicates the specified string.
@@ -261,7 +267,8 @@ char *lub_string_ndecode(const char *string, unsigned int len);
 char *lub_string_encode(const char *string, const char *escape_chars);
 
 char *lub_string_tolower(const char *str);
-unsigned int lub_string_equal_part(const char *str1, const char *str2);
+unsigned int lub_string_equal_part(const char *str1, const char *str2,
+	bool_t utf8);
 
 
 _END_C_DECL

@@ -15,10 +15,6 @@ from a CLI in a "readline" like fashion.
 #include "lub/c_decl.h"
 #include "tinyrl/history.h"
 
-#define UTF8_MASK 0xC0
-#define UTF8_11   0xC0
-#define UTF8_10   0x80
-
 _BEGIN_C_DECL typedef struct _tinyrl tinyrl_t;
 typedef enum {
     /**
