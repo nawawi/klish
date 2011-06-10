@@ -208,7 +208,7 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 			for (q = strtok_r(text, ":", &saveptr);
 				q; q = strtok_r(NULL, ":", &saveptr)) {
 				char *var;
-				int mod_quote = 0; /* quoute modifier */
+				int mod_quote = 0; /* quote modifier */
 				int mod_esc = 0; /* escape modifier */
 				char *space;
 

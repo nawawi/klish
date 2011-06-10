@@ -70,7 +70,9 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 	const char *p;
 
 	if (!escape_chars)
-		lub_string_dup(string);
+		return lub_string_dup(string);
+	if (string && !(*string)) /* Empty string */
+		return lub_string_dup(string);
 
 	for (p = string; p && *p; p++) {
 		/* find any special characters and prefix them with '\' */
