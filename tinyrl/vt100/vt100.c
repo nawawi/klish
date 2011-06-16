@@ -5,6 +5,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h>
 
 #include "private.h"
 
@@ -121,9 +124,33 @@ tinyrl_vt100_vprintf(const tinyrl_vt100_t * this, const char *fmt, va_list args)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_getchar(const tinyrl_vt100_t * this)
+int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 {
-	return getc(this->istream);
+	int result = EOF;
+	int istream_fd;
+	fd_set rfds;
+	struct timeval tv;
+	int retval;
+
+	/* Just wait for the input if no timeout */
+	if (this->timeout <= 0)
+		return getc(this->istream);
+
+	/* Set timeout for the select() */
+	istream_fd = fileno(this->istream);
+	FD_ZERO(&rfds);
+	FD_SET(istream_fd, &rfds);
+	tv.tv_sec = this->timeout;
+	tv.tv_usec = 0;
+
+	retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv);
+
+	if (retval < 0)
+		return EOF;
+	else if (retval)
+		result = getc(this->istream);
+
+	return result;
 }
 
 /*-------------------------------------------------------- */
@@ -196,6 +223,7 @@ tinyrl_vt100_init(tinyrl_vt100_t * this, FILE * istream, FILE * ostream)
 {
 	this->istream = istream;
 	this->ostream = ostream;
+	this->timeout = -1; /* No timeout by default */
 }
 
 /*-------------------------------------------------------- */
@@ -353,6 +381,12 @@ void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * this)
 void tinyrl_vt100_erase(const tinyrl_vt100_t * this, unsigned count)
 {
 	tinyrl_vt100_printf(this, "%c[%dP", KEY_ESC, count);
+}
+
+/*-------------------------------------------------------- */
+void tinyrl_vt100__set_timeout(tinyrl_vt100_t *this, int timeout)
+{
+	this->timeout = timeout;
 }
 
 /*-------------------------------------------------------- */

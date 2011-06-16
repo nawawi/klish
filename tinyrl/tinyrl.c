@@ -1298,6 +1298,12 @@ void tinyrl__set_utf8(tinyrl_t * this, bool_t utf8)
 }
 
 /*-------------------------------------------------------- */
+void tinyrl__set_timeout(tinyrl_t *this, int timeout)
+{
+	tinyrl_vt100__set_timeout(this->term, timeout);
+}
+
+/*-------------------------------------------------------- */
 bool_t tinyrl_is_quoting(const tinyrl_t * this)
 {
 	bool_t result = BOOL_FALSE;

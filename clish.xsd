@@ -183,6 +183,7 @@
         <xs:attribute name="view" type="xs:string" use="required"/>
         <xs:attribute name="viewid" type="xs:string" use="optional"/>
         <xs:attribute name="default_shebang" type="xs:string" use="optional"/>
+        <xs:attribute name="timeout" type="xs:string" use="optional"/>
     </xs:complexType>
     <!--
 *******************************************************

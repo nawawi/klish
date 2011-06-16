@@ -10,9 +10,11 @@ extern "C" {
 #include "lub/ctype.h"
 }
 /*lint +libh(tinyxml/tinyxml.h) Add this to the library file list */
+#include <stdlib.h>
 #include "tinyxml/tinyxml.h"
 #include <string.h>
 #include <assert.h>
+
 typedef void (PROCESS_FN) (clish_shell_t * instance,
 	TiXmlElement * element, void *parent);
 
@@ -318,6 +320,7 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *view = element->Attribute("view");
 	const char *viewid = element->Attribute("viewid");
 	const char *default_shebang = element->Attribute("default_shebang");
+	const char *timeout = element->Attribute("timeout");
 
 	assert(!shell->startup);
 	assert(view);
@@ -337,6 +340,9 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
+
+	if (timeout)
+		clish_shell__set_timeout(shell, atoi(timeout));
 
 	// remember this command
 	shell->startup = cmd;
@@ -658,6 +664,7 @@ process_config(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	if (depth)
 		clish_config__set_depth(config, depth);
+
 }
 
 ///////////////////////////////////////

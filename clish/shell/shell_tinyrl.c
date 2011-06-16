@@ -516,6 +516,13 @@ void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
 	tinyrl__set_utf8(this->tinyrl, utf8);
 }
 
+/*-------------------------------------------------------- */
+void clish_shell__set_timeout(clish_shell_t *this, int timeout)
+{
+	assert(this);
+	tinyrl__set_timeout(this->tinyrl, timeout);
+}
+
 /*--------------------------------------------------------- */
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * this)
 {

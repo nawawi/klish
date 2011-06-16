@@ -97,6 +97,7 @@ extern int tinyrl_vt100_ieof(const tinyrl_vt100_t * instance);
 extern int tinyrl_vt100_getchar(const tinyrl_vt100_t * instance);
 extern unsigned tinyrl_vt100__get_width(const tinyrl_vt100_t * instance);
 extern unsigned tinyrl_vt100__get_height(const tinyrl_vt100_t * instance);
+extern void tinyrl_vt100__set_timeout(tinyrl_vt100_t *instance, int timeout);
 extern void
 tinyrl_vt100__set_istream(tinyrl_vt100_t * instance, FILE * istream);
 extern FILE *tinyrl_vt100__get_istream(const tinyrl_vt100_t * instance);
