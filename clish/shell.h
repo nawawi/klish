@@ -192,6 +192,9 @@ typedef bool_t clish_shell_access_fn_t(
          * current user must be a member to grant access to a command.  
          */
 					      const char *access);
+typedef int clish_shell_log_fn_t(
+	clish_context_t *context,
+	const char *line, int retcode);
  /**
   * A hook function used as a built in command callback
   * 
@@ -233,13 +236,14 @@ typedef struct {
  * They will populate an instance of this structure and pass it into the 
  */
 typedef struct {
-	clish_shell_init_fn_t *init_fn;	       /**< Initialisation call       */
-	clish_shell_access_fn_t *access_fn;    /**< Access control call       */
-	clish_shell_cmd_line_fn_t *cmd_line_fn;/**< Command line logging call */
-	clish_shell_script_fn_t *script_fn;    /**< script evaluation call    */
-	clish_shell_fini_fn_t *fini_fn;	       /**< Finalisation call         */
-	clish_shell_config_fn_t *config_fn;    /**< Config call               */
-	const clish_shell_builtin_t *cmd_list;/**< NULL terminated list      */
+	clish_shell_init_fn_t *init_fn;         /* Initialisation call */
+	clish_shell_access_fn_t *access_fn;     /* Access control call */
+	clish_shell_cmd_line_fn_t *cmd_line_fn; /* Command line logging call */
+	clish_shell_script_fn_t *script_fn;     /* script evaluation call */
+	clish_shell_fini_fn_t *fini_fn;         /* Finalisation call */
+	clish_shell_config_fn_t *config_fn;     /* Config call */
+	clish_shell_log_fn_t *log_fn;           /* Logging call */
+	const clish_shell_builtin_t *cmd_list;  /* NULL terminated list */
 } clish_shell_hooks_t;
 /*-----------------
  * meta functions

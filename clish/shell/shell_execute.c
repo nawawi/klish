@@ -187,6 +187,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	sigset_t old_sigs;
 	struct sigaction old_sigint, old_sigquit;
 	clish_view_t *cur_view = clish_shell__get_view(this);
+	char *line = clish_shell__get_line(context);
 
 	assert(cmd);
 	action = clish_command__get_action(cmd);
@@ -212,7 +213,8 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		if (-1 == lock_fd) {
 			fprintf(stderr, "Can't open lockfile %s.\n",
 				lock_path);
-			return -1; /* can't open file */
+			result = -1;
+			goto error; /* can't open file */
 		}
 		for (i = 0; i < CLISH_LOCK_WAIT; i++) {
 			res = flock(lock_fd, LOCK_EX | LOCK_NB);
@@ -231,7 +233,8 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		}
 		if (res) {
 			fprintf(stderr, "Can't get lock.\n");
-			return -1; /* can't get the lock */
+			result = -1;
+			goto error; /* can't get the lock */
 		}
 	}
 
@@ -272,6 +275,10 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	if (!result && this->client_hooks->config_fn)
 		this->client_hooks->config_fn(context);
 
+	/* Call logging callback */
+	if (this->client_hooks->log_fn)
+		this->client_hooks->log_fn(context, line, result);
+
 	/* Unlock the lockfile */
 	if (lock_fd != -1) {
 		flock(lock_fd, LOCK_UN);
@@ -282,13 +289,13 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	if (!result) {
 		clish_view_t *view = clish_command__get_view(cmd);
 		/* Save the PWD */
-		if (view) {
-			char *line = clish_shell__get_line(context);
+		if (view)
 			clish_shell__set_pwd(this, line, view,
 				clish_command__get_viewid(cmd), context);
-			lub_string_free(line);
-		}
 	}
+
+error:
+	lub_string_free(line);
 
 	return result;
 }

@@ -41,6 +41,7 @@ static clish_shell_hooks_t my_hooks = {
     clish_script_callback,
     NULL, /* don't worry about fini callback */
     clish_config_callback,
+    clish_log_callback,
     NULL  /* don't register any builtin functions */
 };
 

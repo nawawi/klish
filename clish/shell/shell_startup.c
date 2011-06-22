@@ -11,16 +11,23 @@ int clish_shell_startup(clish_shell_t *this)
 {
 	const char *banner;
 	clish_context_t context;
+	int res = 0;
 
 	assert(this->startup);
 	banner = clish_command__get_detail(this->startup);
 	if (banner)
 		tinyrl_printf(this->tinyrl, "%s\n", banner);
+
 	context.shell = this;
 	context.cmd = this->startup;
 	context.pargv = NULL;
+	/* Call log initialize */
+	if (this->client_hooks->log_fn)
+		this->client_hooks->log_fn(&context, NULL, 0);
+	/* Call startup script */
+	res = clish_shell_execute(&context, NULL);
 
-	return clish_shell_execute(&context, NULL);
+	return res;
 }
 
 /*----------------------------------------------------------- */
