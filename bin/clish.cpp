@@ -62,6 +62,7 @@ int main(int argc, char **argv)
 	bool_t quiet = BOOL_FALSE;
 	bool_t utf8 = BOOL_FALSE;
 	bool_t bit8 = BOOL_FALSE;
+	bool_t log = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8o";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -87,6 +88,7 @@ int main(int argc, char **argv)
 		{"quiet",	0, NULL, 'q'},
 		{"utf8",	0, NULL, 'u'},
 		{"8bit",	0, NULL, '8'},
+		{"log",		0, NULL, 'o'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -136,6 +138,9 @@ int main(int argc, char **argv)
 			break;
 		case '8':
 			bit8 = BOOL_TRUE;
+			break;
+		case 'o':
+			log = BOOL_TRUE;
 			break;
 		case 'd':
 			my_hooks.script_fn = clish_dryrun_callback;
@@ -207,6 +212,10 @@ int main(int argc, char **argv)
 		clish_shell__set_utf8(shell, BOOL_FALSE);
 #endif
 	}
+	/* Set logging */
+	if (log)
+		clish_shell__set_log(shell, log);
+
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (running) {
@@ -272,6 +281,7 @@ static void help(int status, const char *argv0)
 		printf("\t-i, --viewid\tSet the startup viewid.\n");
 		printf("\t-u, --utf8\tForce UTF-8 encoding.\n");
 		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
+		printf("\t-o, --log\tEnable command logging to syslog's local0.\n");
 	}
 }
 

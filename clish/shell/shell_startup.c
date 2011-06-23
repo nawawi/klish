@@ -22,7 +22,7 @@ int clish_shell_startup(clish_shell_t *this)
 	context.cmd = this->startup;
 	context.pargv = NULL;
 	/* Call log initialize */
-	if (this->client_hooks->log_fn)
+	if (clish_shell__get_log(this) && this->client_hooks->log_fn)
 		this->client_hooks->log_fn(&context, NULL, 0);
 	/* Call startup script */
 	res = clish_shell_execute(&context, NULL);

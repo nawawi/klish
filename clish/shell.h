@@ -346,6 +346,8 @@ void clish_shell__set_timeout(clish_shell_t *instance, int timeout);
 char *clish_shell__get_line(clish_context_t *context);
 char *clish_shell__get_full_line(clish_context_t *context);
 char *clish_shell__get_params(clish_context_t *context);
+void clish_shell__set_log(clish_shell_t *instance, bool_t log);
+bool_t clish_shell__get_log(const clish_shell_t *instance);
 
 _END_C_DECL
 

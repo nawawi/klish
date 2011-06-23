@@ -275,7 +275,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		this->client_hooks->config_fn(context);
 
 	/* Call logging callback */
-	if (this->client_hooks->log_fn) {
+	if (clish_shell__get_log(this) && this->client_hooks->log_fn) {
 		char *full_line = clish_shell__get_full_line(context);
 		this->client_hooks->log_fn(context, full_line, result);
 		lub_string_free(full_line);
@@ -402,6 +402,20 @@ const char *clish_shell__get_fifo(clish_shell_t * this)
 void *clish_shell__get_client_cookie(const clish_shell_t * this)
 {
 	return this->client_cookie;
+}
+
+/*-------------------------------------------------------- */
+void clish_shell__set_log(clish_shell_t *this, bool_t log)
+{
+	assert(this);
+	this->log = log;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell__get_log(const clish_shell_t *this)
+{
+	assert(this);
+	return this->log;
 }
 
 /*----------------------------------------------------------- */
