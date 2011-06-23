@@ -74,8 +74,9 @@ static char *find_context_var(const char *name, clish_context_t *this)
 		result = lub_string_dup(clish_command__get_name(
 			clish_command__get_orig(this->cmd)));
 	} else if (!lub_string_nocasecmp(name, "__line")) {
-		if (this->pargv)
-			result = clish_shell__get_line(this);
+		result = clish_shell__get_line(this);
+	} else if (!lub_string_nocasecmp(name, "__full_line")) {
+		result = clish_shell__get_full_line(this);
 	} else if (!lub_string_nocasecmp(name, "__params")) {
 		if (this->pargv)
 			result = clish_shell__get_params(this);
@@ -356,15 +357,18 @@ char *clish_shell__get_params(clish_context_t *context)
 }
 
 /*--------------------------------------------------------- */
-char *clish_shell__get_line(clish_context_t *context)
+static char *internal_get_line(clish_context_t *context, int cmd_type)
 {
 	const clish_command_t *cmd = context->cmd;
 	clish_pargv_t *pargv = context->pargv;
 	char *line = NULL;
 	char *params = NULL;
 
-	lub_string_cat(&line, clish_command__get_name(
-		clish_command__get_cmd(cmd)));
+	if (0 == cmd_type) /* __cmd */
+		lub_string_cat(&line, clish_command__get_name(
+			clish_command__get_cmd(cmd)));
+	else /* __full_cmd */
+		lub_string_cat(&line, clish_command__get_name(cmd));
 
 	if (!pargv)
 		return line;
@@ -377,6 +381,18 @@ char *clish_shell__get_line(clish_context_t *context)
 	lub_string_free(params);
 
 	return line;
+}
+
+/*--------------------------------------------------------- */
+char *clish_shell__get_line(clish_context_t *context)
+{
+	return internal_get_line(context, 0); /* __cmd */
+}
+
+/*--------------------------------------------------------- */
+char *clish_shell__get_full_line(clish_context_t *context)
+{
+	return internal_get_line(context, 1); /* __full_cmd */
 }
 
 /*--------------------------------------------------------- */

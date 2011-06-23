@@ -187,7 +187,6 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	sigset_t old_sigs;
 	struct sigaction old_sigint, old_sigquit;
 	clish_view_t *cur_view = clish_shell__get_view(this);
-	char *line = clish_shell__get_line(context);
 
 	assert(cmd);
 	action = clish_command__get_action(cmd);
@@ -276,8 +275,11 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		this->client_hooks->config_fn(context);
 
 	/* Call logging callback */
-	if (this->client_hooks->log_fn)
-		this->client_hooks->log_fn(context, line, result);
+	if (this->client_hooks->log_fn) {
+		char *full_line = clish_shell__get_full_line(context);
+		this->client_hooks->log_fn(context, full_line, result);
+		lub_string_free(full_line);
+	}
 
 	/* Unlock the lockfile */
 	if (lock_fd != -1) {
@@ -289,14 +291,15 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	if (!result) {
 		clish_view_t *view = clish_command__get_view(cmd);
 		/* Save the PWD */
-		if (view)
+		if (view) {
+			char *line = clish_shell__get_line(context);
 			clish_shell__set_pwd(this, line, view,
 				clish_command__get_viewid(cmd), context);
+			lub_string_free(line);
+		}
 	}
 
 error:
-	lub_string_free(line);
-
 	return result;
 }
 
