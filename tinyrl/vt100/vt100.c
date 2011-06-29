@@ -126,31 +126,40 @@ tinyrl_vt100_vprintf(const tinyrl_vt100_t * this, const char *fmt, va_list args)
 /*-------------------------------------------------------- */
 int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 {
-	int result = EOF;
+	unsigned char c;
 	int istream_fd;
 	fd_set rfds;
 	struct timeval tv;
 	int retval;
+	ssize_t res;
+
+	istream_fd = fileno(this->istream);
 
 	/* Just wait for the input if no timeout */
-	if (this->timeout <= 0)
-		return getc(this->istream);
+	if (this->timeout <= 0) {
+		res = read(istream_fd, &c, 1);
+		/* End of file */
+		if (!res)
+			return EOF;
+		return c;
+	}
 
 	/* Set timeout for the select() */
-	istream_fd = fileno(this->istream);
 	FD_ZERO(&rfds);
 	FD_SET(istream_fd, &rfds);
 	tv.tv_sec = this->timeout;
 	tv.tv_usec = 0;
-
 	retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv);
-
-	if (retval < 0)
+	/* Error or timeout */
+	if (retval <= 0)
 		return EOF;
-	else if (retval)
-		result = getc(this->istream);
 
-	return result;
+	res = read(istream_fd, &c, 1);
+	/* End of file */
+	if (!res)
+		return EOF;
+
+	return c;
 }
 
 /*-------------------------------------------------------- */
