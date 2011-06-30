@@ -40,6 +40,8 @@ static void clish_shell_init(clish_shell_t * this,
 	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
+	this->wdog = NULL;
+	this->wdog_timeout = 0;
 	this->state = SHELL_STATE_INITIALISING;
 	this->overview = NULL;
 	this->tinyrl = clish_shell_tinyrl_new(istream, ostream, 0);
@@ -113,9 +115,12 @@ static void clish_shell_fini(clish_shell_t * this)
 	/* free the textual details */
 	lub_string_free(this->overview);
 
-	/* remove the startup command */
+	/* Remove the startup command */
 	if (this->startup)
 		clish_command_delete(this->startup);
+	/* Remove the watchdog command */
+	if (this->wdog)
+		clish_command_delete(this->wdog);
 	/* clean up the file stack */
 	while (!clish_shell_pop_file(this));
 	/* delete the tinyrl object */

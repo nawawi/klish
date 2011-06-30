@@ -11,6 +11,7 @@ libclish_la_SOURCES += \
 	clish/shell/shell_file.c \
 	clish/shell/shell_spawn.c \
 	clish/shell/shell_startup.c \
+	clish/shell/shell_wdog.c \
 	clish/shell/shell_pwd.c \
 	clish/shell/shell_tinyrl.c \
 	clish/shell/shell_tinyxml.cpp \

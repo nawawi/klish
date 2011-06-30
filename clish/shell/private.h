@@ -40,15 +40,17 @@ struct clish_shell_s {
 	lub_bintree_t view_tree; /* Maintain a tree of views */
 	lub_bintree_t ptype_tree; /* Maintain a tree of ptypes */
 	lub_bintree_t var_tree; /* Maintain a tree of global variables */
-	const clish_shell_hooks_t *client_hooks;	/* Client callback hooks         */
-	void *client_cookie;	/* Client callback cookie        */
-	clish_view_t *global;	/* Reference to the global view. */
-	clish_command_t *startup;	/* This is the startup command   */
-	clish_shell_state_t state;	/* The current state               */
-	char *overview;		/* Overview text for this shell.  */
-	tinyrl_t *tinyrl;	/* Tiny readline instance          */
-	clish_shell_file_t *current_file;	/* file currently in use for input */
-	clish_shell_pwd_t **pwdv;	/* Levels for the config file structure */
+	const clish_shell_hooks_t *client_hooks; /* Client callback hooks */
+	void *client_cookie; /* Client callback cookie */
+	clish_view_t *global; /* Reference to the global view. */
+	clish_command_t *startup; /* This is the startup command */
+	clish_command_t *wdog; /* This is the watchdog command */
+	unsigned int wdog_timeout; /* This is the watchdog timeout */
+	clish_shell_state_t state; /* The current state */
+	char *overview; /* Overview text for this shell */
+	tinyrl_t *tinyrl; /* Tiny readline instance */
+	clish_shell_file_t *current_file; /* file currently in use for input */
+	clish_shell_pwd_t **pwdv; /* Levels for the config file structure */
 	unsigned int pwdc;
 	int depth;
 	konf_client_t *client;
@@ -116,3 +118,4 @@ void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
 	clish_context_t *context);
 void clish_shell__init_pwd(clish_shell_pwd_t *pwd);
 void clish_shell__fini_pwd(clish_shell_pwd_t *pwd);
+int clish_shell_timeout_fn(tinyrl_t *tinyrl);

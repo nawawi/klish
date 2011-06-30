@@ -348,6 +348,10 @@ char *clish_shell__get_full_line(clish_context_t *context);
 char *clish_shell__get_params(clish_context_t *context);
 void clish_shell__set_log(clish_shell_t *instance, bool_t log);
 bool_t clish_shell__get_log(const clish_shell_t *instance);
+int clish_shell_wdog(clish_shell_t *instance);
+void clish_shell__set_wdog_timeout(clish_shell_t *instance,
+	unsigned int timeout);
+unsigned int clish_shell__get_wdog_timeout(const clish_shell_t *instance);
 
 _END_C_DECL
 

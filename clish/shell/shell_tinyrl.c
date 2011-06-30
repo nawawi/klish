@@ -353,6 +353,9 @@ static void clish_shell_tinyrl_init(tinyrl_t * this)
 	/* bind the <SPACE> key to auto-complete if necessary */
 	status = tinyrl_bind_key(this, ' ', clish_shell_tinyrl_key_space);
 	assert(status);
+
+	/* Assign timeout callback */
+	tinyrl__set_timeout_fn(this, clish_shell_timeout_fn);
 }
 
 /*-------------------------------------------------------- */

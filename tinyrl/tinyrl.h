@@ -55,6 +55,9 @@ typedef int tinyrl_hook_func_t(tinyrl_t * instance);
 
 typedef char **tinyrl_completion_func_t(tinyrl_t * instance,
 	const char *text, unsigned start, unsigned end);
+
+typedef int tinyrl_timeout_fn_t(tinyrl_t *instance);
+
 /**
  * \return
  * - BOOL_TRUE if the action associated with the key has
@@ -109,6 +112,8 @@ extern bool_t tinyrl__get_utf8(const tinyrl_t * instance);
 extern void tinyrl__set_utf8(tinyrl_t * instance, bool_t utf8);
 
 extern void tinyrl__set_timeout(tinyrl_t *instance, int timeout);
+extern void tinyrl__set_timeout_fn(tinyrl_t *instance,
+	tinyrl_timeout_fn_t *fn);
 
 extern char *tinyrl_readline(tinyrl_t * instance,
 			     const char *prompt, void *context);

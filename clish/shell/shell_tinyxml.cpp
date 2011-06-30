@@ -38,7 +38,8 @@ static PROCESS_FN
 	process_detail,
 	process_namespace,
 	process_config,
-	process_var;
+	process_var,
+	process_wdog;
 
 static clish_xml_cb_t xml_elements[] = {
 	{"CLISH_MODULE", process_clish_module},
@@ -53,6 +54,7 @@ static clish_xml_cb_t xml_elements[] = {
 	{"NAMESPACE", process_namespace},
 	{"CONFIG", process_config},
 	{"VAR", process_var},
+	{"WATCHDOG", process_wdog},
 	{NULL, NULL}
 };
 
@@ -694,6 +696,30 @@ static void process_var(clish_shell_t * shell, TiXmlElement * element, void *)
 		clish_var__set_value(var, value);
 
 	process_children(shell, element, var);
+}
+
+///////////////////////////////////////
+static void process_wdog(clish_shell_t *shell,
+	TiXmlElement *element, void *parent)
+{
+	clish_view_t *v = (clish_view_t *)parent;
+	clish_command_t *cmd = NULL;
+	const char *timeout = element->Attribute("timeout");
+
+	assert(!shell->wdog);
+	assert(timeout);
+
+	/* create a command with NULL help */
+	cmd = clish_view_new_command(v, "watchdog", NULL);
+	clish_command__set_lock(cmd, BOOL_FALSE);
+
+	/* Set watchdog timeout */
+	clish_shell__set_wdog_timeout(shell, atoi(timeout));
+
+	/* Remember this command */
+	shell->wdog = cmd;
+
+	process_children(shell, element, cmd);
 }
 
 ///////////////////////////////////////

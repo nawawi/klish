@@ -109,6 +109,13 @@ static void changed_line(tinyrl_t * this)
 }
 
 /*----------------------------------------------------------------------- */
+static int tinyrl_timeout_default(tinyrl_t *this)
+{
+	/* Return -1 to close session on timeout */
+	return -1;
+}
+
+/*----------------------------------------------------------------------- */
 static bool_t tinyrl_key_default(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
@@ -445,6 +452,7 @@ tinyrl_init(tinyrl_t * this,
 	this->point = 0;
 	this->end = 0;
 	this->attempted_completion_function = complete_fn;
+	this->timeout_fn = tinyrl_timeout_default;
 	this->state = 0;
 	this->kill_string = NULL;
 	this->echo_char = '\0';
@@ -638,7 +646,7 @@ static char *internal_readline(tinyrl_t * this,
 	const char *prompt, void *context, const char *str)
 {
 	FILE *istream = tinyrl_vt100__get_istream(this->term);
-	int crlf = 1;		/* Enable crlf if result is NULL */
+	int crlf = 1; /* Enable crlf if result is NULL */
 	char *result = NULL;
 	int lerrno = 0;
 
@@ -662,7 +670,7 @@ static char *internal_readline(tinyrl_t * this,
 			/* get a key */
 			key = tinyrl_getchar(this);
 			/* has the input stream terminated? */
-			if (EOF != key) {
+			if (key >= 0) { /* Real key pressed */
 				/* call the handler for this key */
 				if (!this->handlers[key](this, key))
 					tinyrl_ding(this);
@@ -683,7 +691,10 @@ static char *internal_readline(tinyrl_t * this,
 						(UTF8_11 == (key & UTF8_MASK))))
 						tinyrl_redisplay(this);
 				}
-			} else {
+			} else { /* Error || EOF || Timeout */
+				if ((VT100_TIMEOUT == key) &&
+					!this->timeout_fn(this))
+					continue;
 				/* time to finish the session */
 				this->done = BOOL_TRUE;
 				this->line = NULL;
@@ -1301,6 +1312,12 @@ void tinyrl__set_utf8(tinyrl_t * this, bool_t utf8)
 void tinyrl__set_timeout(tinyrl_t *this, int timeout)
 {
 	tinyrl_vt100__set_timeout(this->term, timeout);
+}
+
+void tinyrl__set_timeout_fn(tinyrl_t *this,
+	tinyrl_timeout_fn_t *fn)
+{
+	this->timeout_fn = fn;
 }
 
 /*-------------------------------------------------------- */

@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/select.h>
+#include <errno.h>
 
 #include "private.h"
 
@@ -137,10 +138,13 @@ int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 
 	/* Just wait for the input if no timeout */
 	if (this->timeout <= 0) {
-		res = read(istream_fd, &c, 1);
-		/* End of file */
+		while (((res = read(istream_fd, &c, 1)) < 0) &&
+			(EAGAIN == errno));
+		/* EOF or error */
+		if (res < 0)
+			return VT100_ERR;
 		if (!res)
-			return EOF;
+			return VT100_EOF;
 		return c;
 	}
 
@@ -149,15 +153,20 @@ int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 	FD_SET(istream_fd, &rfds);
 	tv.tv_sec = this->timeout;
 	tv.tv_usec = 0;
-	retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv);
+	while (((retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv)) < 0) &&
+		(EAGAIN == errno));
 	/* Error or timeout */
-	if (retval <= 0)
-		return EOF;
+	if (retval < 0)
+		return VT100_ERR;
+	if (!retval)
+		return VT100_TIMEOUT;
 
 	res = read(istream_fd, &c, 1);
-	/* End of file */
+	/* EOF or error */
+	if (res < 0)
+		return VT100_ERR;
 	if (!res)
-		return EOF;
+		return VT100_EOF;
 
 	return c;
 }

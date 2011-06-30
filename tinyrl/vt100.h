@@ -80,6 +80,11 @@ typedef enum {
 	tinyrl_vt100_PGDOWN /**< No action at the moment */
 } tinyrl_vt100_escape_t;
 
+/* Return values from vt100_getchar() */
+#define VT100_EOF	-1
+#define VT100_TIMEOUT	-2
+#define VT100_ERR	-3
+
 extern tinyrl_vt100_t *tinyrl_vt100_new(FILE * instream, FILE * outstream);
 extern void tinyrl_vt100_delete(tinyrl_vt100_t * instance);
 
