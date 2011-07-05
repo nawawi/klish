@@ -44,8 +44,10 @@ struct clish_shell_s {
 	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */
+	unsigned int idle_timeout; /* This is the idle timeout */
 	clish_command_t *wdog; /* This is the watchdog command */
 	unsigned int wdog_timeout; /* This is the watchdog timeout */
+	bool_t wdog_active; /* If watchdog is active now */
 	clish_shell_state_t state; /* The current state */
 	char *overview; /* Overview text for this shell */
 	tinyrl_t *tinyrl; /* Tiny readline instance */
@@ -119,3 +121,4 @@ void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
 void clish_shell__init_pwd(clish_shell_pwd_t *pwd);
 void clish_shell__fini_pwd(clish_shell_pwd_t *pwd);
 int clish_shell_timeout_fn(tinyrl_t *tinyrl);
+int clish_shell_keypress_fn(tinyrl_t *tinyrl, int key);

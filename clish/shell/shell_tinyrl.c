@@ -356,6 +356,8 @@ static void clish_shell_tinyrl_init(tinyrl_t * this)
 
 	/* Assign timeout callback */
 	tinyrl__set_timeout_fn(this, clish_shell_timeout_fn);
+	/* Assign keypress callback */
+	tinyrl__set_keypress_fn(this, clish_shell_keypress_fn);
 }
 
 /*-------------------------------------------------------- */
@@ -523,7 +525,7 @@ void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
 void clish_shell__set_timeout(clish_shell_t *this, int timeout)
 {
 	assert(this);
-	tinyrl__set_timeout(this->tinyrl, timeout);
+	this->idle_timeout = timeout;
 }
 
 /*--------------------------------------------------------- */

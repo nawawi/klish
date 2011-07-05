@@ -474,7 +474,6 @@
         <xs:sequence>
             <xs:element ref="ACTION" minOccurs="1"/>
         </xs:sequence>
-        <xs:attribute name="timeout" type="xs:string" use="required"/>
     </xs:complexType>
 
 

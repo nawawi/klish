@@ -453,6 +453,7 @@ tinyrl_init(tinyrl_t * this,
 	this->end = 0;
 	this->attempted_completion_function = complete_fn;
 	this->timeout_fn = tinyrl_timeout_default;
+	this->keypress_fn = NULL;
 	this->state = 0;
 	this->kill_string = NULL;
 	this->echo_char = '\0';
@@ -671,7 +672,10 @@ static char *internal_readline(tinyrl_t * this,
 			key = tinyrl_getchar(this);
 			/* has the input stream terminated? */
 			if (key >= 0) { /* Real key pressed */
-				/* call the handler for this key */
+				/* Common callback for any key */
+				if (this->keypress_fn)
+					this->keypress_fn(this, key);
+				/* Call the handler for this key */
 				if (!this->handlers[key](this, key))
 					tinyrl_ding(this);
 				if (this->done) {
@@ -1314,10 +1318,18 @@ void tinyrl__set_timeout(tinyrl_t *this, int timeout)
 	tinyrl_vt100__set_timeout(this->term, timeout);
 }
 
+/*-------------------------------------------------------- */
 void tinyrl__set_timeout_fn(tinyrl_t *this,
 	tinyrl_timeout_fn_t *fn)
 {
 	this->timeout_fn = fn;
+}
+
+/*-------------------------------------------------------- */
+void tinyrl__set_keypress_fn(tinyrl_t *this,
+	tinyrl_keypress_fn_t *fn)
+{
+	this->keypress_fn = fn;
 }
 
 /*-------------------------------------------------------- */

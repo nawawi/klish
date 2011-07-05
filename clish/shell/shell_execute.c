@@ -25,7 +25,8 @@ static clish_shell_builtin_fn_t
     clish_source_nostop,
     clish_history,
     clish_nested_up,
-    clish_nop;
+    clish_nop,
+    clish_wdog;
 
 static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_close", clish_close},
@@ -35,6 +36,7 @@ static clish_shell_builtin_t clish_cmd_list[] = {
 	{"clish_history", clish_history},
 	{"clish_nested_up", clish_nested_up},
 	{"clish_nop", clish_nop},
+	{"clish_wdog", clish_wdog},
 	{NULL, NULL}
 };
 
@@ -187,6 +189,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	sigset_t old_sigs;
 	struct sigaction old_sigint, old_sigquit;
 	clish_view_t *cur_view = clish_shell__get_view(this);
+	unsigned int saved_wdog_timeout = this->wdog_timeout;
 
 	assert(cmd);
 	action = clish_command__get_action(cmd);
@@ -299,6 +302,14 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		}
 	}
 
+	/* Set appropriate timeout. Workaround: Don't turn on  watchdog
+	on the "set watchdog <timeout>" command itself. */
+	if (this->wdog_timeout && saved_wdog_timeout) {
+		tinyrl__set_timeout(this->tinyrl, this->wdog_timeout);
+		this->wdog_active = BOOL_TRUE;
+	} else
+		tinyrl__set_timeout(this->tinyrl, this->idle_timeout);
+
 error:
 	return result;
 }
@@ -343,7 +354,7 @@ int clish_shell_exec_action(clish_action_t *action,
 /*
  * Find out the previous view in the stack and go to it
  */
-static int clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
+static int clish_nested_up(clish_context_t *context, const lub_argv_t *argv)
 {
 	clish_shell_t *this = context->shell;
 
@@ -366,8 +377,28 @@ static int clish_nested_up(clish_context_t *context, const lub_argv_t * argv)
 /*
  * Builtin: NOP function
  */
-static int clish_nop(clish_context_t *context, const lub_argv_t * argv)
+static int clish_nop(clish_context_t *context, const lub_argv_t *argv)
 {
+	return 0;
+}
+
+/*----------------------------------------------------------- */
+/*
+ * Builtin: Set watchdog timeout. The "0" to turn watchdog off.
+ */
+static int clish_wdog(clish_context_t *context, const lub_argv_t *argv)
+{
+	const char *arg = lub_argv__get_arg(argv, 0);
+	clish_shell_t *this = context->shell;
+
+	/* Turn off watchdog if no args */
+	if (!arg || ('\0' == *arg)) {
+		this->wdog_timeout = 0;
+		return 0;
+	}
+
+	this->wdog_timeout = (unsigned int)atoi(arg);
+
 	return 0;
 }
 

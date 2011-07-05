@@ -40,8 +40,10 @@ static void clish_shell_init(clish_shell_t * this,
 	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
+	this->idle_timeout = 0; /* No idle timeout by default */
 	this->wdog = NULL;
-	this->wdog_timeout = 0;
+	this->wdog_timeout = 0; /* No watchdog timeout by default */
+	this->wdog_active = BOOL_FALSE;
 	this->state = SHELL_STATE_INITIALISING;
 	this->overview = NULL;
 	this->tinyrl = clish_shell_tinyrl_new(istream, ostream, 0);

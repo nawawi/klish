@@ -19,6 +19,7 @@ struct _tinyrl {
 	unsigned end;
 	tinyrl_completion_func_t *attempted_completion_function;
 	tinyrl_timeout_fn_t *timeout_fn; /* timeout callback */
+	tinyrl_keypress_fn_t *keypress_fn; /* keypress callback */
 	int state;
 #define RL_STATE_COMPLETING (0x00000001)
 	char *kill_string;

@@ -704,17 +704,12 @@ static void process_wdog(clish_shell_t *shell,
 {
 	clish_view_t *v = (clish_view_t *)parent;
 	clish_command_t *cmd = NULL;
-	const char *timeout = element->Attribute("timeout");
 
 	assert(!shell->wdog);
-	assert(timeout);
 
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "watchdog", NULL);
 	clish_command__set_lock(cmd, BOOL_FALSE);
-
-	/* Set watchdog timeout */
-	clish_shell__set_wdog_timeout(shell, atoi(timeout));
 
 	/* Remember this command */
 	shell->wdog = cmd;
