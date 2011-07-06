@@ -47,6 +47,7 @@
             <xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="VAR" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="WATCHDOG" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
     <!--
