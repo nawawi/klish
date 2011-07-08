@@ -307,7 +307,9 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	if (this->wdog_timeout && saved_wdog_timeout) {
 		tinyrl__set_timeout(this->tinyrl, this->wdog_timeout);
 		this->wdog_active = BOOL_TRUE;
-		fprintf(stderr, "The watchdog is active. Press any key to stop it.\n");
+		fprintf(stderr, "Warning: The watchdog is active. Timeout is %u "
+			"seconds.\nWarning: Press any key to stop watchdog.\n",
+			this->wdog_timeout);
 	} else
 		tinyrl__set_timeout(this->tinyrl, this->idle_timeout);
 

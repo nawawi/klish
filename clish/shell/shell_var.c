@@ -63,6 +63,11 @@ static char *find_context_var(const char *name, clish_context_t *this)
 			tinyrl__get_height(shell->tinyrl));
 		tmp[sizeof(tmp) - 1] = '\0';
 		result = strdup(tmp);
+	} else if (!lub_string_nocasecmp(name, "__watchdog_timeout")) {
+		char tmp[5];
+		snprintf(tmp, sizeof(tmp), "%u", shell->wdog_timeout);
+		tmp[sizeof(tmp) - 1] = '\0';
+		result = strdup(tmp);
 	} else if (!this->cmd) { /* The vars dependent on command */
 		return NULL;
 	} else if (!lub_string_nocasecmp(name, "__full_cmd")) {
