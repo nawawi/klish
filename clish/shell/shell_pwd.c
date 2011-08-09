@@ -38,13 +38,18 @@ void clish_shell__set_pwd(clish_shell_t *this,
 {
 	clish_shell_pwd_t **tmp;
 	size_t new_size = 0;
-	unsigned i;
+	unsigned int i;
 	unsigned int index = clish_view__get_depth(view);
+	clish_shell_pwd_t *newpwd;
 
 	/* Create new element */
+	newpwd = malloc(sizeof(*newpwd));
+	assert(newpwd);
+	clish_shell__init_pwd(newpwd);
+
+	/* Resize the pwd vector */
 	if (index >= this->pwdc) {
 		new_size = (index + 1) * sizeof(clish_shell_pwd_t *);
-		/* resize the pwd vector */
 		tmp = realloc(this->pwdv, new_size);
 		assert(tmp);
 		this->pwdv = tmp;
@@ -58,10 +63,13 @@ void clish_shell__set_pwd(clish_shell_t *this,
 		this->pwdc = index + 1;
 	}
 
+	/* Fill the new pwd entry */
+	newpwd->line = line ? lub_string_dup(line) : NULL;
+	newpwd->view = view;
+	clish_shell__expand_viewid(viewid, &newpwd->viewid, context);
 	clish_shell__fini_pwd(this->pwdv[index]);
-	this->pwdv[index]->line = line ? lub_string_dup(line) : NULL;
-	this->pwdv[index]->view = view;
-	clish_shell__expand_viewid(viewid, &this->pwdv[index]->viewid, context);
+	free(this->pwdv[index]);
+	this->pwdv[index] = newpwd;
 	this->depth = index;
 }
 
