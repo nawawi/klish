@@ -45,6 +45,8 @@ bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
 		/* The internal loop goes trough the system group list */
 		for (i = 0; i < num_groups; i++) {
 			struct group *ptr = lub_db_getgrgid(group_list[i]);
+			if (!ptr)
+				continue;
 			if (0 == strcmp(ptr->gr_name, tmp_access)) {
 				/* The current user is permitted to use this command */
 				allowed = BOOL_TRUE;

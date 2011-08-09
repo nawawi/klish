@@ -15,7 +15,11 @@ struct passwd *lub_db_getpwnam(const char *name)
 	struct passwd *pw = NULL;
 	int res = 0;
 
+#ifdef _SC_GETPW_R_SIZE_MAX
 	size = sysconf(_SC_GETPW_R_SIZE_MAX);
+#else
+	size = 1024;
+#endif
 	pwbuf = malloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
 		return NULL;
@@ -42,7 +46,11 @@ struct passwd *lub_db_getpwuid(uid_t uid)
 	struct passwd *pw = NULL;
 	int res = 0;
 
+#ifdef _SC_GETPW_R_SIZE_MAX
 	size = sysconf(_SC_GETPW_R_SIZE_MAX);
+#else
+	size = 1024;
+#endif
 	pwbuf = malloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
 		return NULL;
@@ -70,7 +78,11 @@ struct group *lub_db_getgrnam(const char *name)
 	struct group *gr = NULL;
 	int res = 0;
 
+#ifdef _SC_GETGR_R_SIZE_MAX
 	size = sysconf(_SC_GETGR_R_SIZE_MAX);
+#else
+	size = 1024;
+#endif
 	grbuf = malloc(sizeof(*grbuf) + size);
 	if (!grbuf)
 		return NULL;
@@ -98,7 +110,11 @@ struct group *lub_db_getgrgid(gid_t gid)
 	struct group *gr = NULL;
 	int res = 0;
 
+#ifdef _SC_GETGR_R_SIZE_MAX
 	size = sysconf(_SC_GETGR_R_SIZE_MAX);
+#else
+	size = 1024;
+#endif
 	grbuf = malloc(sizeof(struct group) + size);
 	if (!grbuf)
 		return NULL;
