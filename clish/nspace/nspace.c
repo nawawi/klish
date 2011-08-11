@@ -248,6 +248,10 @@ const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t * this,
 	retval = clish_nspace_find_create_command(this, real_prefix, cmd);
 	lub_string_free(real_prefix);
 
+	if (retval && iter_cmd &&
+		lub_string_nocasecmp(iter_cmd, clish_command__get_name(retval)) > 0)
+		return NULL;
+
 	return retval;
 }
 
