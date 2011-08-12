@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <ctype.h>
 
 /*---------------------------------------------------------
  * PRIVATE METHODS
@@ -225,8 +226,11 @@ const clish_command_t *clish_nspace_find_next_completion(clish_nspace_t * this,
 
 	if (in_line[0] != '\0') {
 		/* If prefix is followed by space */
-		if (in_line[0] == ' ')
-			in_line++;
+		if (!isspace(in_line[0])) {
+			lub_string_free(real_prefix);
+			return NULL;
+		}
+		in_line++;
 		if (iter_cmd &&
 			(lub_string_nocasestr(iter_cmd, real_prefix) == iter_cmd) &&
 			(lub_string_nocasecmp(iter_cmd, real_prefix)))
