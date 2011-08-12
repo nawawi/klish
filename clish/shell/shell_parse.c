@@ -113,9 +113,21 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 			if (is_switch) {
 				unsigned rec_paramc = clish_param__get_param_count(param);
 				for (i = 0; i < rec_paramc; i++) {
+					char *str = NULL;
+					char *tmptest = NULL;
 					cparam = clish_param__get_param(param, i);
 					if (!cparam)
 						break;
+					/* Check test condition */
+					tmptest = clish_param__get_test(cparam);
+					if (tmptest)
+						str = clish_shell_expand(tmptest, SHELL_VAR_ACTION, context);
+					if (str && !lub_system_line_test(str)) {
+						lub_string_free(str);
+						continue;
+					}
+					if (str)
+						lub_string_free(str);
 					if (CLISH_PARAM_SUBCOMMAND ==
 						clish_param__get_mode(cparam)) {
 						const char *pname =
@@ -167,20 +179,25 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 				validated = NULL;
 			} else if (is_switch) {
 				for (i = 0; i < rec_paramc; i++) {
-					cparam =
-					    clish_param__get_param(param, i);
+					char *str  = NULL;
+					char *tmptest = NULL;
+					cparam = clish_param__get_param(param, i);
 					if (!cparam)
 						break;
-					if ((validated =
-					    arg ? clish_param_validate(cparam,
-								       arg) :
-					    NULL)) {
-						rec_paramv =
-						    clish_param__get_paramv
-						    (cparam);
-						rec_paramc =
-						    clish_param__get_param_count
-						    (cparam);
+					/* Check test condition */
+					tmptest = clish_param__get_test(cparam);
+					if (tmptest)
+						str = clish_shell_expand(tmptest, SHELL_VAR_ACTION, context);
+					if (str && !lub_system_line_test(str)) {
+						lub_string_free(str);
+						continue;
+					}
+					if (str)
+						lub_string_free(str);
+					if ((validated = arg ?
+						clish_param_validate(cparam, arg) : NULL)) {
+						rec_paramv = clish_param__get_paramv(cparam);
+						rec_paramc = clish_param__get_param_count(cparam);
 						break;
 					}
 				}
