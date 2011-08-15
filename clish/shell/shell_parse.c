@@ -59,6 +59,27 @@ clish_pargv_status_t clish_shell_parse(
 }
 
 /*--------------------------------------------------------- */
+static bool_t line_test(const clish_param_t *param, void *context)
+{
+	char *str = NULL;
+	char *teststr = NULL;
+	bool_t res;
+
+	if (!param)
+		return BOOL_FALSE;
+	teststr = clish_param__get_test(param);
+	if (!teststr)
+		return BOOL_TRUE;
+	str = clish_shell_expand(teststr, SHELL_VAR_ACTION, context);
+	if (!str)
+		return BOOL_FALSE;
+	res = lub_system_line_test(str);
+	lub_string_free(str);
+
+	return res;
+}
+
+/*--------------------------------------------------------- */
 clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 	const clish_command_t *cmd,
 	void *context,
@@ -97,14 +118,9 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 			is_switch = 1;
 
 		/* Check the 'test' conditions */
-		if (param) {
-			char *str = clish_shell_expand(clish_param__get_test(param), SHELL_VAR_ACTION, context);
-			if (str && !lub_system_line_test(str)) {
-				lub_string_free(str);
-				index++;
-				continue;
-			}
-			lub_string_free(str);
+		if (param && !line_test(param, context)) {
+			index++;
+			continue;
 		}
 
 		/* Add param for help and completion */
@@ -113,21 +129,11 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 			if (is_switch) {
 				unsigned rec_paramc = clish_param__get_param_count(param);
 				for (i = 0; i < rec_paramc; i++) {
-					char *str = NULL;
-					char *tmptest = NULL;
 					cparam = clish_param__get_param(param, i);
 					if (!cparam)
 						break;
-					/* Check test condition */
-					tmptest = clish_param__get_test(cparam);
-					if (tmptest)
-						str = clish_shell_expand(tmptest, SHELL_VAR_ACTION, context);
-					if (str && !lub_system_line_test(str)) {
-						lub_string_free(str);
+					if (!line_test(cparam, context))
 						continue;
-					}
-					if (str)
-						lub_string_free(str);
 					if (CLISH_PARAM_SUBCOMMAND ==
 						clish_param__get_mode(cparam)) {
 						const char *pname =
@@ -179,21 +185,11 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 				validated = NULL;
 			} else if (is_switch) {
 				for (i = 0; i < rec_paramc; i++) {
-					char *str  = NULL;
-					char *tmptest = NULL;
 					cparam = clish_param__get_param(param, i);
 					if (!cparam)
 						break;
-					/* Check test condition */
-					tmptest = clish_param__get_test(cparam);
-					if (tmptest)
-						str = clish_shell_expand(tmptest, SHELL_VAR_ACTION, context);
-					if (str && !lub_system_line_test(str)) {
-						lub_string_free(str);
+					if (!line_test(cparam, context))
 						continue;
-					}
-					if (str)
-						lub_string_free(str);
 					if ((validated = arg ?
 						clish_param_validate(cparam, arg) : NULL)) {
 						rec_paramv = clish_param__get_paramv(cparam);
