@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_define([MAJOR_VERSION], 1)
 m4_define([MINOR_VERSION], 5)
-m4_define([MICRO_VERSION], 0)
+m4_define([MICRO_VERSION], 1)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -234,6 +234,12 @@ if test "x$enable_gpl" = "xyes"; then
 else
     AC_MSG_WARN([Skipping BFD library checks because of GPL Licence])
 fi
+
+################################
+# Check for regex.h
+################################
+AC_CHECK_HEADERS(regex.h, [],
+    AC_MSG_ERROR([regex.h not found: regular expressions are not supported]))
 
 ################################
 # Check for getopt_long()

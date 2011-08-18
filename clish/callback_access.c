@@ -11,7 +11,9 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <string.h>
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
 
 #include "lub/string.h"
 #include "lub/db.h"
@@ -21,6 +23,7 @@
 bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
 {
 	bool_t allowed = BOOL_FALSE; /* assume the user is not allowed */
+#ifdef HAVE_GRP_H
 	int num_groups;
 	long ngroups_max;
 	gid_t *group_list;
@@ -59,6 +62,7 @@ bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
 
 	lub_string_free(full_access);
 	free(group_list);
+#endif
 	return allowed;
 }
 
