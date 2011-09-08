@@ -97,22 +97,32 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 #endif
 }
 
+enum {
+	RETVAL_OK = 0, /* OK */
+	RETVAL_UNKNOWN = 1, /* Unknown error */
+	RETVAL_NOSTDIN = 2, /* No stdin found */
+	RETVAL_SCRIPT = 3, /* Script execution error */
+	RETVAL_SYNTAX = 4 /* Syntax error */
+};
+
 /*-------------------------------------------------------- */
 static int _loop(clish_shell_t * this, bool_t is_thread)
 {
 	int running = 0;
+	int retval = RETVAL_OK;
 
 	assert(this);
 	if (!tinyrl__get_istream(this->tinyrl))
-		return -1;
+		return RETVAL_NOSTDIN;
 	/* Check the shell isn't closing down */
 	if (this && (SHELL_STATE_CLOSING == this->state))
-		return 0;
+		return retval;
 
 	if (is_thread)
 		pthread_testcancel();
 	/* Loop reading and executing lines until the user quits */
 	while (!running) {
+		retval = RETVAL_OK;
 		/* Get input from the stream */
 		running = clish_shell_readline(this, NULL);
 		if (running) {
@@ -123,8 +133,13 @@ static int _loop(clish_shell_t * this, bool_t is_thread)
 				if (tinyrl__get_isatty(this->tinyrl) ||
 					!this->current_file->stop_on_error)
 					running = 0;
+				if (SHELL_STATE_SCRIPT_ERROR == this->state)
+					retval = RETVAL_SCRIPT;
+				else
+					retval = RETVAL_SYNTAX;
 				break;
 			default:
+					retval = RETVAL_UNKNOWN;
 				break;
 			}
 		}
@@ -137,7 +152,7 @@ static int _loop(clish_shell_t * this, bool_t is_thread)
 			pthread_testcancel();
 	}
 
-	return 0;
+	return retval;
 }
 
 /*-------------------------------------------------------- */
@@ -167,22 +182,22 @@ static void *clish_shell_thread(void *arg)
 {
 	clish_shell_t *this = arg;
 	int last_type;
-	int res = 0;
-	void *retval = 0;
+	int *res = NULL;
 
+	res = malloc(sizeof(*res));
+	*res = 0;
 	/* make sure we can only be cancelled at controlled points */
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &last_type);
 	/* register a cancellation handler */
 	pthread_cleanup_push((void (*)(void *))clish_shell_thread_cleanup, this);
 
 	if (this)
-		res = _loop(this, BOOL_TRUE);
+		*res = _loop(this, BOOL_TRUE);
 
 	/* be a good pthread citizen */
 	pthread_cleanup_pop(1);
 
-	retval = res ? (void *)-1 : NULL;
-	return retval;
+	return res;
 }
 
 /*-------------------------------------------------------- */
@@ -199,13 +214,18 @@ int clish_shell_spawn(clish_shell_t *this,
 /*-------------------------------------------------------- */
 int clish_shell_wait(clish_shell_t *this)
 {
-	void *result = NULL;
+	void *res = NULL;
+	int retval = 0;
 
 	if (!this)
 		return -1;
-	(void)pthread_join(this->pthread, &result);
+	(void)pthread_join(this->pthread, &res);
+	if (res) {
+		retval = *(int *)res;
+		free(res);
+	}
 
-	return result ? -1 : 0;
+	return retval;
 }
 
 /*-------------------------------------------------------- */
