@@ -38,14 +38,16 @@ struct clish_context_s {
 typedef struct clish_context_s clish_context_t;
 
 typedef enum {
-	SHELL_STATE_INITIALISING,
-	SHELL_STATE_OK,
-	SHELL_STATE_HELPING,
-	SHELL_STATE_SCRIPT_ERROR,/* Script execution error */
-	SHELL_STATE_EOF, /* EOF of input stream */
-	SHELL_STATE_SYNTAX_ERROR, /* Illegal line entered */
-	SHELL_STATE_SYSTEM_ERROR, /* Some internal system error */
-	SHELL_STATE_CLOSING
+	SHELL_STATE_OK = 0,
+	SHELL_STATE_UNKNOWN = 1,
+	SHELL_STATE_IO_ERROR = 2,
+	SHELL_STATE_SCRIPT_ERROR = 3,/* Script execution error */
+	SHELL_STATE_SYNTAX_ERROR = 4, /* Illegal line entered */
+	SHELL_STATE_SYSTEM_ERROR = 5, /* Some internal system error */
+	SHELL_STATE_INITIALISING = 6,
+	SHELL_STATE_HELPING = 7,
+	SHELL_STATE_EOF = 8, /* EOF of input stream */
+	SHELL_STATE_CLOSING = 9
 } clish_shell_state_t;
 
 typedef enum {
