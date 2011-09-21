@@ -254,22 +254,29 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 		/* we've got a command so check the syntax */
 		arg_status = clish_shell_parse(context->shell,
 			line, &context->cmd, &context->pargv);
+		if (CLISH_LINE_OK != arg_status) {
+			fprintf(stderr, "Syntax error on line \"%s\":\n",
+				line);
+		}
 		switch (arg_status) {
 		case CLISH_LINE_OK:
 			tinyrl_done(this);
 			result = BOOL_TRUE;
 			break;
 		case CLISH_BAD_HISTORY:
-			fprintf(stderr, "Error: Bad history entry.\n");
+			fprintf(stderr, "Bad history entry.\n");
 			break;
 		case CLISH_BAD_CMD:
-			fprintf(stderr, "Error: Illegal command line.\n");
+			fprintf(stderr, "Illegal command line.\n");
 			break;
 		case CLISH_BAD_PARAM:
-			fprintf(stderr, "Error: Illegal parameter.\n");
+			fprintf(stderr, "Illegal parameter.\n");
 			break;
 		case CLISH_LINE_PARTIAL:
-			fprintf(stderr, "Error: The command is not completed.\n");
+			fprintf(stderr, "The command is not completed.\n");
+			break;
+		default:
+			fprintf(stderr, "Unknown problem.\n");
 			break;
 		}
 		if (CLISH_LINE_OK != arg_status)

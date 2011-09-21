@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8o";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8ok";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 		{"utf8",	0, NULL, 'u'},
 		{"8bit",	0, NULL, '8'},
 		{"log",		0, NULL, 'o'},
+		{"check",	0, NULL, 'k'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -153,6 +154,11 @@ int main(int argc, char **argv)
 			break;
 		case 'i':
 			viewid = optarg;
+			break;
+		case 'k':
+			lockless = BOOL_TRUE;
+			my_hooks.script_fn = clish_dryrun_callback;
+			my_hooks.config_fn = NULL;
 			break;
 		case 'h':
 			help(0, argv[0]);
@@ -282,6 +288,7 @@ static void help(int status, const char *argv0)
 		printf("\t-u, --utf8\tForce UTF-8 encoding.\n");
 		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
 		printf("\t-o, --log\tEnable command logging to syslog's local0.\n");
+		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
 	}
 }
 
