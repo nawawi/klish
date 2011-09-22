@@ -27,7 +27,9 @@ typedef struct clish_shell_file_s clish_shell_file_t;
 struct clish_shell_file_s {
 	clish_shell_file_t *next;
 	FILE *file;
-	bool_t stop_on_error;	/* stop on error for file input  */
+	char *fname;
+	unsigned int line;
+	bool_t stop_on_error; /* stop on error for file input  */
 };
 
 typedef struct {

@@ -622,10 +622,9 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 	char *s = buffer;
 
 	/* strip any spurious '\r' or '\n' */
-	p = strchr(buffer, '\r');
-	if (!p)
-		p = strchr(buffer, '\n');
-	if (p)
+	if ((p = strchr(buffer, '\r')))
+		*p = '\0';
+	if ((p = strchr(buffer, '\n')))
 		*p = '\0';
 	/* skip any whitespace at the beginning of the line */
 	if (0 == this->point) {
@@ -635,9 +634,9 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 	if (*s) {
 		/* append this string to the input buffer */
 		(void)tinyrl_insert_text(this, s);
-		/* echo the command to the output stream */
-		tinyrl_redisplay(this);
 	}
+	/* echo the command to the output stream */
+	tinyrl_redisplay(this);
 
 	return s;
 }
@@ -647,7 +646,6 @@ static char *internal_readline(tinyrl_t * this,
 	const char *prompt, void *context, const char *str)
 {
 	FILE *istream = tinyrl_vt100__get_istream(this->term);
-	int crlf = 1; /* Enable crlf if result is NULL */
 	char *result = NULL;
 	int lerrno = 0;
 
@@ -726,9 +724,8 @@ static char *internal_readline(tinyrl_t * this,
 				s = internal_insertline(this, buffer);
 				len = strlen(buffer) + 1; /* account for the '\0' */
 			}
-			if (!s || (this->line[0] == '\0' && feof(istream))) {
+			if (!s || ((this->line[0] == '\0') && feof(istream))) {
 				/* time to finish the session */
-				crlf = 0;
 				this->line = NULL;
 				lerrno = ENOENT;
 			}
@@ -739,15 +736,10 @@ static char *internal_readline(tinyrl_t * this,
 		 * This is a measure to stop potential task spin on encountering an
 		 * error from fgets.
 		 */
-		if (this->line) {
-			if (this->line[0] == '\0') {
-				tinyrl_reset_line_state(this);
-			} else if (!this->handlers[KEY_LF](this, KEY_LF)) {
-				/* an issue has occured */
-				tinyrl_ding(this);
-				this->line = NULL;
-				lerrno = EBADMSG;
-			}
+		if (this->line && !this->handlers[KEY_LF](this, KEY_LF)) {
+			/* an issue has occured */
+			this->line = NULL;
+			lerrno = EBADMSG;
 		}
 		if (str)
 			lub_string_free(tmp);
@@ -762,10 +754,6 @@ static char *internal_readline(tinyrl_t * this,
 	/* free our internal buffer */
 	free(this->buffer);
 	this->buffer = NULL;
-
-	/* make sure we're not left on a prompt line */
-	if (crlf && (!result || ('\0' == *result)))
-		tinyrl_crlf(this);
 
 	if (!result)
 		errno = lerrno; /* get saved errno */

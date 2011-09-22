@@ -211,6 +211,10 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	const clish_command_t *cmd = NULL;
 	const char *line = tinyrl__get_line(this);
 	bool_t result = BOOL_FALSE;
+	char *errmsg = NULL;
+
+	/* Inc line counter */
+	context->shell->current_file->line++;
 
 	/* Renew prompt */
 	clish_shell_renew_prompt(this);
@@ -218,7 +222,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	/* nothing to pass simply move down the screen */
 	if (!*line) {
 		tinyrl_crlf(this);
-		tinyrl_reset_line_state(this);
+		tinyrl_done(this);
 		return BOOL_TRUE;
 	}
 
@@ -245,6 +249,11 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 			break;
 		default:
 			/* failed to get a unique match... */
+			if (!tinyrl__get_isatty(this)) {
+				/* batch mode */
+				tinyrl_crlf(this);
+				errmsg = "Unknown command";
+			}
 			break;
 		}
 	}
@@ -254,33 +263,41 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 		/* we've got a command so check the syntax */
 		arg_status = clish_shell_parse(context->shell,
 			line, &context->cmd, &context->pargv);
-		if (CLISH_LINE_OK != arg_status) {
-			fprintf(stderr, "Syntax error on line \"%s\":\n",
-				line);
-		}
 		switch (arg_status) {
 		case CLISH_LINE_OK:
 			tinyrl_done(this);
 			result = BOOL_TRUE;
 			break;
 		case CLISH_BAD_HISTORY:
-			fprintf(stderr, "Bad history entry.\n");
+			errmsg = "Bad history entry";
 			break;
 		case CLISH_BAD_CMD:
-			fprintf(stderr, "Illegal command line.\n");
+			errmsg = "Illegal command line";
 			break;
 		case CLISH_BAD_PARAM:
-			fprintf(stderr, "Illegal parameter.\n");
+			errmsg = "Illegal parameter";
 			break;
 		case CLISH_LINE_PARTIAL:
-			fprintf(stderr, "The command is not completed.\n");
+			errmsg = "The command is not completed";
 			break;
 		default:
-			fprintf(stderr, "Unknown problem.\n");
+			errmsg = "Unknown problem";
 			break;
 		}
-		if (CLISH_LINE_OK != arg_status)
+	}
+	/* If error then print message */
+	if (errmsg) {
+		if (tinyrl__get_isatty(this)) {
+			fprintf(stderr, "Syntax error: %s\n", errmsg);
 			tinyrl_reset_line_state(this);
+		} else {
+			char *fname = "stdin";
+			if (context->shell->current_file->fname)
+				fname = context->shell->current_file->fname;
+			fprintf(stderr, "Syntax error on line %s:%u \"%s\": "
+			"%s\n", fname, context->shell->current_file->line,
+			line, errmsg);
+		}
 	}
 	/* keep the compiler happy */
 	key = key;
