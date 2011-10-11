@@ -123,7 +123,8 @@ static int _loop(clish_shell_t * this, bool_t is_thread)
 			case SHELL_STATE_SYNTAX_ERROR:
 				/* Interactive session doesn't exit on error */
 				if (tinyrl__get_isatty(this->tinyrl) ||
-					!this->current_file->stop_on_error)
+					(this->current_file &&
+					!this->current_file->stop_on_error))
 					running = 0;
 				retval = this->state;
 			default:

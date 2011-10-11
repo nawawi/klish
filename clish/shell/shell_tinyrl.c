@@ -214,7 +214,8 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	char *errmsg = NULL;
 
 	/* Inc line counter */
-	context->shell->current_file->line++;
+	if (context->shell->current_file)
+		context->shell->current_file->line++;
 
 	/* Renew prompt */
 	clish_shell_renew_prompt(this);
@@ -287,7 +288,8 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	}
 	/* If error then print message */
 	if (errmsg) {
-		if (tinyrl__get_isatty(this)) {
+		if (tinyrl__get_isatty(this) ||
+			!context->shell->current_file) {
 			fprintf(stderr, "Syntax error: %s\n", errmsg);
 			tinyrl_reset_line_state(this);
 		} else {
