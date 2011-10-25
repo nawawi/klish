@@ -372,6 +372,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 		const char *defval = element->Attribute("default");
 		const char *mode = element->Attribute("mode");
 		const char *optional = element->Attribute("optional");
+		const char *order = element->Attribute("order");
 		const char *value = element->Attribute("value");
 		const char *hidden = element->Attribute("hidden");
 		const char *test = element->Attribute("test");
@@ -457,6 +458,11 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 			clish_param__set_optional(param, BOOL_TRUE);
 		else
 			clish_param__set_optional(param, BOOL_FALSE);
+
+		if (order && (lub_string_nocasecmp(order, "true") == 0))
+			clish_param__set_order(param, BOOL_TRUE);
+		else
+			clish_param__set_order(param, BOOL_FALSE);
 
 		if (value) {
 			clish_param__set_value(param, value);

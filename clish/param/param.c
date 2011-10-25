@@ -27,6 +27,7 @@ static void clish_param_init(clish_param_t *this, const char *name,
 	this->defval = NULL;
 	this->mode = CLISH_PARAM_COMMON;
 	this->optional = BOOL_FALSE;
+	this->order = BOOL_FALSE;
 	this->value = NULL;
 	this->hidden = BOOL_FALSE;
 	this->test = NULL;
@@ -215,6 +216,18 @@ void clish_param__set_optional(clish_param_t * this, bool_t optional)
 bool_t clish_param__get_optional(const clish_param_t * this)
 {
 	return this->optional;
+}
+
+/*--------------------------------------------------------- */
+void clish_param__set_order(clish_param_t * this, bool_t order)
+{
+	this->order = order;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_param__get_order(const clish_param_t * this)
+{
+	return this->order;
 }
 
 /*--------------------------------------------------------- */

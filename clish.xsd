@@ -273,7 +273,12 @@
 *           value of this parameter.
 *
 * [optional]- Specify whether parameter is optional. The allowed values
-*           is "true" or "false". It false by default.
+*           is "true" or "false". It's false by default.
+*
+* [order]   - Used only together with "optional=true" field.
+*           If order="true" then user can't enter previously declared
+*           optional parameters after current validated parameter.
+*           The allowed values is "true" or "false". It's false by default.
 *
 * [default] - defines a default value for a parameter. Any parameters
 *           at the end of command line which have default values need 
@@ -313,6 +318,7 @@
         <xs:attribute name="prefix" type="xs:string" use="optional"/>
         <xs:attribute name="mode" type="param_mode_t" use="optional" default="common"/>
         <xs:attribute name="optional" type="bool_t" use="optional" default="false"/>
+        <xs:attribute name="order" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="value" type="xs:string" use="optional"/>
         <xs:attribute name="hidden" type="bool_t" use="optional" default="false"/>
         <xs:attribute name="test" type="xs:string" use="optional"/>

@@ -174,13 +174,13 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 			 * to restore index if the optional parameters
 			 * will be used.
 			 */
-			if (BOOL_TRUE != clish_param__get_optional(param)) {
+			if (!clish_param__get_optional(param)) {
 				nopt_param = param;
 				nopt_index = index;
 			}
 
 			/* Validate the current parameter. */
-			if (NULL != clish_pargv_find_arg(pargv, clish_param__get_name(param))) {
+			if (clish_pargv_find_arg(pargv, clish_param__get_name(param))) {
 				/* Duplicated parameter */
 				validated = NULL;
 			} else if (is_switch) {
@@ -198,9 +198,8 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 					}
 				}
 			} else {
-				validated =
-				    arg ? clish_param_validate(param,
-							       arg) : NULL;
+				validated = arg ?
+					clish_param_validate(param, arg) : NULL;
 			}
 
 			if (validated) {
@@ -235,12 +234,17 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 				}
 
 				/* Choose the next parameter */
-				if (BOOL_TRUE == clish_param__get_optional(param)) {
+				if (clish_param__get_optional(param) &&
+					!clish_param__get_order(param)) {
 					if (nopt_param)
 						index = nopt_index + 1;
 					else
 						index = 0;
 				} else {
+					/* Save non-option position in
+					   case of ordered optional param */
+					nopt_param = param;
+					nopt_index = index;
 					index++;
 				}
 
@@ -248,8 +252,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 				/* Choose the next parameter if current
 				 * is not validated.
 				 */
-				if (BOOL_TRUE ==
-					clish_param__get_optional(param))
+				if (clish_param__get_optional(param))
 					index++;
 				else {
 					if (!arg)

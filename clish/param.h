@@ -78,6 +78,8 @@ unsigned int clish_param__get_param_count(const clish_param_t * instance);
 clish_paramv_t *clish_param__get_paramv(clish_param_t * instance);
 void clish_param__set_optional(clish_param_t * instance, bool_t optional);
 bool_t clish_param__get_optional(const clish_param_t * instance);
+void clish_param__set_order(clish_param_t * instance, bool_t order);
+bool_t clish_param__get_order(const clish_param_t * instance);
 void clish_param__set_value(clish_param_t * instance, const char * value);
 char *clish_param__get_value(const clish_param_t * instance);
 void clish_param__set_hidden(clish_param_t * instance, bool_t hidden);

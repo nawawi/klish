@@ -21,6 +21,7 @@ struct clish_param_s {
 	clish_paramv_t *paramv;
 	clish_param_mode_e mode;
 	bool_t optional;
+	bool_t order;
 	bool_t hidden;
 	char *test; /* The condition to enable param */
 	char *completion; /* Possible completions */
