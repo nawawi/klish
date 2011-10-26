@@ -102,6 +102,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="regexp"/>
             <xs:enumeration value="integer"/>
+            <xs:enumeration value="unsignedInteger"/>
             <xs:enumeration value="select"/>
             <xs:enumeration value="choice"/>
             <xs:enumeration value="subcommand"/>
