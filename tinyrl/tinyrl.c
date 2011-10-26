@@ -136,6 +136,7 @@ static bool_t tinyrl_key_default(tinyrl_t * this, int key)
 /*-------------------------------------------------------- */
 static bool_t tinyrl_key_interrupt(tinyrl_t * this, int key)
 {
+	tinyrl_crlf(this);
 	tinyrl_delete_text(this, 0, this->end);
 	this->done = BOOL_TRUE;
 	/* keep the compiler happy */
