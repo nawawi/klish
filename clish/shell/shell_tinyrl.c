@@ -22,13 +22,18 @@
 static void clish_shell_renew_prompt(tinyrl_t *this)
 {
 	clish_context_t *context = tinyrl__get_context(this);
+	clish_context_t prompt_context;
 	char *prompt = NULL;
 	const clish_view_t *view;
+
+	/* Create appropriate context */
+	memset(&prompt_context, 0, sizeof(prompt_context));
+	prompt_context.shell = context->shell;
 
 	/* Obtain the prompt */
 	view = clish_shell__get_view(context->shell);
 	assert(view);
-	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, context);
+	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, &prompt_context);
 	assert(prompt);
 	tinyrl__set_prompt(this, prompt);
 	lub_string_free(prompt);
