@@ -318,13 +318,19 @@ tinyrl_completion_func_t clish_shell_tinyrl_completion;
 char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
 	const char *line, unsigned start, unsigned end)
 {
-	lub_argv_t *matches = lub_argv_new(NULL, 0);
+	lub_argv_t *matches;
 	clish_context_t *context = tinyrl__get_context(tinyrl);
 	clish_shell_t *this = context->shell;
 	clish_shell_iterator_t iter;
 	const clish_command_t *cmd = NULL;
-	char *text = lub_string_dupn(line, end);
+	char *text;
 	char **result = NULL;
+
+	if (tinyrl_is_quoting(tinyrl))
+		return result;
+
+	matches = lub_argv_new(NULL, 0);
+	text = lub_string_dupn(line, end);
 
 	/* Don't bother to resort to filename completion */
 	tinyrl_completion_over(tinyrl);

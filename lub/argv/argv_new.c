@@ -14,7 +14,7 @@ static void lub_argv_init(lub_argv_t * this, const char *line, size_t offset)
 	size_t len;
 	const char *word;
 	lub_arg_t *arg;
-	bool_t quoted;
+	size_t quoted;
 
 	this->argv = NULL;
 	this->argc = 0;
@@ -30,17 +30,17 @@ static void lub_argv_init(lub_argv_t * this, const char *line, size_t offset)
 
 	/* then fill out the array with the words */
 	for (word = lub_argv_nextword(line, &len, &offset, &quoted);
-		*word;
+		*word || quoted;
 		word = lub_argv_nextword(word + len, &len, &offset, &quoted)) {
 		(*arg).arg = lub_string_ndecode(word, len);
 		(*arg).offset = offset;
-		(*arg).quoted = quoted;
+		(*arg).quoted = quoted ? BOOL_TRUE : BOOL_FALSE;
 
 		offset += len;
 
 		if (quoted) {
-			len += 1; /* account for terminating quotation mark */
-			offset += 2; /* account for quotation marks */
+			len += quoted - 1; /* account for terminating quotation mark */
+			offset += quoted; /* account for quotation marks */
 		}
 		arg++;
 	}

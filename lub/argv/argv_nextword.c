@@ -9,12 +9,11 @@
 
 /*--------------------------------------------------------- */
 const char *lub_argv_nextword(const char *string,
-	size_t * len, size_t * offset, bool_t * quoted)
+	size_t * len, size_t * offset, size_t * quoted)
 {
 	const char *word;
-	bool_t quote = BOOL_FALSE;
 
-	*quoted = BOOL_FALSE;
+	*quoted = 0;
 
 	/* find the start of a word (not including an opening quote) */
 	while (*string && isspace(*string)) {
@@ -28,7 +27,7 @@ const char *lub_argv_nextword(const char *string,
 	}
 	/* is this the start of a quoted string ? */
 	if (*string == '"') {
-		quote = BOOL_TRUE;
+		*quoted = 1;
 		string++;
 	}
 	word = string;
@@ -45,18 +44,18 @@ const char *lub_argv_nextword(const char *string,
 			}
 			continue;
 		}
-		if ((BOOL_FALSE == quote) && isspace(*string)) {
-			/* end of word */
+		/* end of word */
+		if (!*quoted && isspace(*string))
 			break;
-		}
 		if (*string == '"') {
 			/* end of a quoted string */
-			*quoted = BOOL_TRUE;
+			*quoted = 2;
 			break;
 		}
 		(*len)++;
 		string++;
 	}
+
 	return word;
 }
 
@@ -66,13 +65,13 @@ unsigned lub_argv_wordcount(const char *line)
 	const char *word;
 	unsigned result = 0;
 	size_t len = 0, offset = 0;
-	bool_t quoted;
+	size_t quoted;
 
 	for (word = lub_argv_nextword(line, &len, &offset, &quoted);
-		*word;
+		*word || quoted;
 		word = lub_argv_nextword(word + len, &len, &offset, &quoted)) {
 		/* account for the terminating quotation mark */
-		len += (BOOL_TRUE == quoted) ? 1 : 0;
+		len += quoted ? quoted - 1 : 0;
 		result++;
 	}
 

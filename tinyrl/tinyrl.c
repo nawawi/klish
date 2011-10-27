@@ -1328,6 +1328,13 @@ bool_t tinyrl_is_quoting(const tinyrl_t * this)
 	/* count the quotes upto the current insertion point */
 	unsigned i = 0;
 	while (i < this->point) {
+		if (result && (this->line[i] == '\\')) {
+			i++;
+			if (i >= this->point)
+				break;
+			i++;
+			continue;
+		}
 		if (this->line[i++] == '"') {
 			result = result ? BOOL_FALSE : BOOL_TRUE;
 		}
