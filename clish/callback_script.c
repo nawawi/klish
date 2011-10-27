@@ -26,7 +26,7 @@ int clish_script_callback(clish_context_t *context,
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
 	const char * shebang = NULL;
-	pid_t cpid;
+	pid_t cpid = -1;
 	int res;
 	const char *fifo_name;
 	FILE *rpipe, *wpipe;
@@ -114,9 +114,10 @@ int clish_script_callback(clish_context_t *context,
 			fprintf(stderr, "System error. Can't fork the script.\n"
 				"The ACTION will be not executed.\n");
 			lub_string_free(command);
-			kill(cpid, SIGTERM);
-			if (!is_sh)
+			if (!is_sh) {
+				kill(cpid, SIGTERM);
 				waitpid(cpid, NULL, 0);
+			}
 
 			/* Restore SIGINT and SIGQUIT */
 			sigaction(SIGINT, &sig_old_int, NULL);
@@ -130,8 +131,10 @@ int clish_script_callback(clish_context_t *context,
 		*out = konf_buf__dup_line(buf);
 		konf_buf_delete(buf);
 		/* Wait for the writing process */
-		if (!is_sh)
+		if (!is_sh) {
+			kill(cpid, SIGTERM);
 			waitpid(cpid, NULL, 0);
+		}
 		/* Wait for script */
 		res = pclose(rpipe);
 
@@ -140,6 +143,11 @@ int clish_script_callback(clish_context_t *context,
 		sigaction(SIGQUIT, &sig_old_quit, NULL);
 	} else {
 		res = system(command);
+		/* Wait for the writing process */
+		if (!is_sh) {
+			kill(cpid, SIGTERM);
+			waitpid(cpid, NULL, 0);
+		}
 	}
 	lub_string_free(command);
 
