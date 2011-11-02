@@ -112,9 +112,7 @@ static char *find_context_var(const char *name, clish_context_t *this)
 static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *context)
 {
 	clish_var_t *var = lub_bintree_find(tree, name);
-	clish_action_t *action;
 	char *value;
-	char *script;
 	bool_t dynamic;
 	char *res = NULL;
 
@@ -136,16 +134,13 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 
 	/* Try to execute ACTION */
 	if (!res) {
-		action = clish_var__get_action(var);
-		script = clish_action__get_script(action);
-		if (script) {
-			char *out = NULL;
-			if (clish_shell_exec_action(action, context, &out)) {
-				lub_string_free(out);
-				return NULL;
-			}
-			res = out;
+		char *out = NULL;
+		clish_action_t *action = clish_var__get_action(var);
+		if (clish_shell_exec_action(action, context, &out)) {
+			lub_string_free(out);
+			return NULL;
 		}
+		res = out;
 	}
 
 	/* Save value for static var */
