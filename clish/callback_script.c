@@ -21,10 +21,9 @@
 
 /*--------------------------------------------------------- */
 int clish_script_callback(clish_context_t *context,
-	const char *script, char **out)
+	clish_action_t *action, const char *script, char **out)
 {
 	clish_shell_t *this = context->shell;
-	const clish_command_t *cmd = context->cmd;
 	const char * shebang = NULL;
 	pid_t cpid = -1;
 	int res;
@@ -44,8 +43,8 @@ int clish_script_callback(clish_context_t *context,
 		return BOOL_TRUE;
 
 	/* Find out shebang */
-	if (cmd)
-		shebang = clish_action__get_shebang(clish_command__get_action(cmd));
+	if (action)
+		shebang = clish_action__get_shebang(action);
 	if (!shebang)
 		shebang = clish_shell__get_default_shebang(this);
 	assert(shebang);
@@ -159,7 +158,7 @@ int clish_script_callback(clish_context_t *context,
 
 /*--------------------------------------------------------- */
 int clish_dryrun_callback(clish_context_t *context,
-	const char *script, char ** out)
+	clish_action_t *action, const char *script, char ** out)
 {
 #ifdef DEBUG
 	fprintf(stderr, "DRY-RUN: %s\n", script);

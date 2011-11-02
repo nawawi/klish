@@ -346,7 +346,7 @@ int clish_shell_exec_action(clish_action_t *action,
 			lub_argv_delete(argv);
 	} else if (script) {
 		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(context, script, out);
+		result = this->client_hooks->script_fn(context, action, script, out);
 	}
 	lub_string_free(script);
 

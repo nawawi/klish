@@ -152,6 +152,7 @@ typedef void clish_shell_cmd_line_fn_t(
   */
 typedef int clish_shell_script_fn_t(
 	clish_context_t *context,
+	clish_action_t *action,
 	const char *script,
 	char **out);
 
