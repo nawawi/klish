@@ -299,6 +299,26 @@ static bool_t tinyrl_key_backspace(tinyrl_t *this, int key)
 }
 
 /*-------------------------------------------------------- */
+static bool_t tinyrl_key_backword(tinyrl_t *this, int key)
+{
+	bool_t result = BOOL_FALSE;
+
+    /* remove current whitespace before cursor */
+	while (this->point > 0 && isspace(this->line[this->point - 1]))
+        tinyrl_key_backspace(this, KEY_BS);
+
+    /* delete word before cusor */
+	while (this->point > 0 && !isspace(this->line[this->point - 1]))
+        tinyrl_key_backspace(this, KEY_BS);
+
+	result = BOOL_TRUE;
+
+	/* keep the compiler happy */
+	key = key;
+	return result;
+}
+
+/*-------------------------------------------------------- */
 static bool_t tinyrl_key_delete(tinyrl_t * this, int key)
 {
 	bool_t result = BOOL_FALSE;
@@ -330,8 +350,11 @@ static bool_t tinyrl_key_clear_screen(tinyrl_t * this, int key)
 static bool_t tinyrl_key_erase_line(tinyrl_t * this, int key)
 {
 
-	tinyrl_delete_text(this, 0, this->point);
-	this->point = 0;
+	if (this->point) {
+		unsigned end = this->point - 1;
+		tinyrl_delete_text(this, 0, end);
+		this->point = 0;
+	}
 
 	/* keep the compiler happy */
 	key = key;
@@ -441,6 +464,7 @@ tinyrl_init(tinyrl_t * this,
 	this->handlers[KEY_VT] = tinyrl_key_kill;
 	this->handlers[KEY_EM] = tinyrl_key_yank;
 	this->handlers[KEY_HT] = tinyrl_key_tab;
+	this->handlers[KEY_ETB] = tinyrl_key_backword;
 
 	this->line = NULL;
 	this->max_line_length = 0;
