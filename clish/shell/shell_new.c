@@ -78,7 +78,7 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Args */
 	tmp_ptype = clish_shell_find_create_ptype(this,
 		"internal_ARGS",
-		"Arguments", "[^\\]+",
+		"Arguments", "[^\\\\]+",
 		CLISH_PTYPE_REGEXP,
 		CLISH_PTYPE_NONE);
 	assert(tmp_ptype);

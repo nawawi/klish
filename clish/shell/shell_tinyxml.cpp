@@ -410,7 +410,7 @@ process_param(clish_shell_t * shell, TiXmlElement * element, void *parent)
 				&shell->ptype_tree, ptype_name);
 			if (!tmp)
 				tmp = clish_shell_find_create_ptype(shell,
-					ptype_name, "Option", "[^\\]+",
+					ptype_name, "Option", "[^\\\\]+",
 					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 			assert(tmp);
 			opt_param = clish_param_new(prefix, help, tmp);
