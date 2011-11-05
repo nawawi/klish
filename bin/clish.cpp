@@ -269,8 +269,8 @@ static void help(int status, const char *argv0)
 		fprintf(stderr, "Try `%s -h' for more information.\n",
 			name);
 	} else {
-		printf("Usage: %s [options]\n", name);
-		printf("CLI utility. "
+		printf("Usage: %s [options] [script_file] [script_file] ...\n", name);
+		printf("CLI utility. Command line shell."
 			"The part of the klish project.\n");
 		printf("Options:\n");
 		printf("\t-v, --version\tPrint version.\n");
@@ -278,13 +278,13 @@ static void help(int status, const char *argv0)
 		printf("\t-s <path>, --socket=<path>\tSpecify listen socket "
 			"of the konfd daemon.\n");
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
-		printf("\t-e, --stop-on-error\tStop programm execution on error.\n");
+		printf("\t-e, --stop-on-error\tStop script execution on error.\n");
 		printf("\t-b, --background\tStart shell using non-interactive mode.\n");
 		printf("\t-q, --quiet\tDisable echo while executing commands from the file stream.\n");
 		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
-		printf("\t-x, --xml-path\tPath to XML scheme files.\n");
-		printf("\t-w, --view\tSet the startup view.\n");
-		printf("\t-i, --viewid\tSet the startup viewid.\n");
+		printf("\t-x <path>, --xml-path=<path>\tPath to XML scheme files.\n");
+		printf("\t-w <view_name>, --view=<view_name>\tSet the startup view.\n");
+		printf("\t-i <vars>, --viewid=<vars>\tSet the startup viewid variables.\n");
 		printf("\t-u, --utf8\tForce UTF-8 encoding.\n");
 		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
 		printf("\t-o, --log\tEnable command logging to syslog's local0.\n");

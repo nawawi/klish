@@ -12,7 +12,9 @@
 </COMMAND>
 
 <COMMAND name="!"
-	help="Comments">
+	help="Comments"
+	args="comment"
+	args_help="ignored comment text">
 	<ACTION builtin="clish_nop"/>
 </COMMAND>
 
