@@ -212,6 +212,7 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 				int mod_quote = 0; /* quote modifier */
 				int mod_esc = 0; /* escape modifier */
 				char *space;
+				char *all_esc = NULL;
 
 				/* Search for modifiers */
 				while (*q && !isalpha(*q)) {
@@ -240,18 +241,19 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 					lub_string_cat(&result, "\"");
 
 				/* Internal escaping */
-				if (mod_esc) {
-					char *tstr = lub_string_encode(var,
+				if (mod_esc)
+					lub_string_cat(&all_esc,
 						lub_string_esc_quoted);
-					lub_string_free(var);
-					var = tstr;
-				}
 
 				/* Escape special chars */
-				if (escape_chars) {
-					char *tstr = lub_string_encode(var, escape_chars);
+				if (escape_chars)
+					lub_string_cat(&all_esc, escape_chars);
+				if (all_esc) {
+					char *tstr = lub_string_encode(var,
+						all_esc);
 					lub_string_free(var);
 					var = tstr;
+					lub_string_free(all_esc);
 				}
 
 				/* copy the expansion or the raw word */

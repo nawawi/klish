@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *lub_string_esc_default = "`|$<>&()#;";
+const char *lub_string_esc_default = "`|$<>&()#;\\\"";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
 
@@ -30,7 +30,7 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 			else
 				*p = *s;
 		} else {
-			switch (*s) {
+/*			switch (*s) {
 			case 'r':
 			case 'n':
 				*p = '\n';
@@ -42,6 +42,7 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 				*p = *s;
 				break;
 			}
+*/			*p = *s;
 			esc = 0;
 		}
 		if (!esc)
