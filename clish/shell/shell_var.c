@@ -210,7 +210,8 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 				q; q = strtok_r(NULL, ":", &saveptr)) {
 				char *var;
 				int mod_quote = 0; /* quote modifier */
-				int mod_esc = 0; /* escape modifier */
+				int mod_esc = 0; /* internal escape modifier */
+				int mod_esc_chars = 1; /* escaping */
 				char *space;
 				char *all_esc = NULL;
 
@@ -219,9 +220,11 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 					if ('#' == *q) {
 						mod_quote = 1;
 						mod_esc = 1;
-					} else if ('\\' == *q)
+						mod_esc_chars = 0;
+					} else if ('\\' == *q) {
 						mod_esc = 1;
-					else
+						mod_esc_chars = 0;
+					} else
 						break;
 					q++;
 				}
@@ -246,8 +249,10 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 						lub_string_esc_quoted);
 
 				/* Escape special chars */
-				if (escape_chars)
+				if (escape_chars && mod_esc_chars)
 					lub_string_cat(&all_esc, escape_chars);
+
+				/* Real escaping */
 				if (all_esc) {
 					char *tstr = lub_string_encode(var,
 						all_esc);
