@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *lub_string_esc_default = "`|$<>&()#;\\\"";
+const char *lub_string_esc_default = "`|$<>&()#;\\\"'";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
 
