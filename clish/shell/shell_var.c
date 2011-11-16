@@ -51,52 +51,52 @@ static char *find_context_var(const char *name, clish_context_t *this)
 	char *result = NULL;
 	clish_shell_t *shell = this->shell;
 
-	if (!lub_string_nocasecmp(name, "__width")) {
+	if (!lub_string_nocasecmp(name, "_width")) {
 		char tmp[5];
 		snprintf(tmp, sizeof(tmp), "%u",
 			tinyrl__get_width(shell->tinyrl));
 		tmp[sizeof(tmp) - 1] = '\0';
 		result = strdup(tmp);
-	} else if (!lub_string_nocasecmp(name, "__height")) {
+	} else if (!lub_string_nocasecmp(name, "_height")) {
 		char tmp[5];
 		snprintf(tmp, sizeof(tmp), "%u",
 			tinyrl__get_height(shell->tinyrl));
 		tmp[sizeof(tmp) - 1] = '\0';
 		result = strdup(tmp);
-	} else if (!lub_string_nocasecmp(name, "__watchdog_timeout")) {
+	} else if (!lub_string_nocasecmp(name, "_watchdog_timeout")) {
 		char tmp[5];
 		snprintf(tmp, sizeof(tmp), "%u", shell->wdog_timeout);
 		tmp[sizeof(tmp) - 1] = '\0';
 		result = strdup(tmp);
 	} else if (!this->cmd) { /* The vars dependent on command */
 		return NULL;
-	} else if (!lub_string_nocasecmp(name, "__full_cmd")) {
+	} else if (!lub_string_nocasecmp(name, "_full_cmd")) {
 		result = lub_string_dup(clish_command__get_name(this->cmd));
-	} else if (!lub_string_nocasecmp(name, "__cmd")) {
+	} else if (!lub_string_nocasecmp(name, "_cmd")) {
 		result = lub_string_dup(clish_command__get_name(
 			clish_command__get_cmd(this->cmd)));
-	} else if (!lub_string_nocasecmp(name, "__orig_cmd")) {
+	} else if (!lub_string_nocasecmp(name, "_orig_cmd")) {
 		result = lub_string_dup(clish_command__get_name(
 			clish_command__get_orig(this->cmd)));
-	} else if (!lub_string_nocasecmp(name, "__line")) {
+	} else if (!lub_string_nocasecmp(name, "_line")) {
 		result = clish_shell__get_line(this);
-	} else if (!lub_string_nocasecmp(name, "__full_line")) {
+	} else if (!lub_string_nocasecmp(name, "_full_line")) {
 		result = clish_shell__get_full_line(this);
-	} else if (!lub_string_nocasecmp(name, "__params")) {
+	} else if (!lub_string_nocasecmp(name, "_params")) {
 		if (this->pargv)
 			result = clish_shell__get_params(this);
-	} else if (!lub_string_nocasecmp(name, "__interactive")) {
+	} else if (!lub_string_nocasecmp(name, "_interactive")) {
 		if (clish_shell__get_interactive(this->shell))
 			result = strdup("1");
 		else
 			result = strdup("0");
-	} else if (lub_string_nocasestr(name, "__prefix") == name) {
+	} else if (lub_string_nocasestr(name, "_prefix") == name) {
 		int idx = 0;
 		int pnum = 0;
 		pnum = lub_argv_wordcount(clish_command__get_name(this->cmd)) -
 			lub_argv_wordcount(clish_command__get_name(
 			clish_command__get_cmd(this->cmd)));
-		idx = atoi(name + strlen("__prefix"));
+		idx = atoi(name + strlen("_prefix"));
 		if (idx < pnum) {
 			lub_argv_t *argv = lub_argv_new(
 				clish_command__get_name(this->cmd), 0);
@@ -165,6 +165,20 @@ static char *find_viewid_var(const char *name, clish_context_t *context)
 	return find_var(name, &context->shell->pwdv[depth]->viewid, context);
 }
 
+static char * chardiff(const char *syms, const char *minus)
+{
+	char *dst = malloc(strlen(syms) + 1);
+	char *p = dst;
+	const char *src;
+
+	for (src = syms; *src; src++) {
+		if (!strchr(minus, *src))
+			*(p++) = *src;
+	}
+	*p = '\0';
+	return dst;
+}
+
 /*--------------------------------------------------------- */
 /*
  * return the next segment of text from the provided string
@@ -212,6 +226,7 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 				int mod_quote = 0; /* quote modifier */
 				int mod_esc = 0; /* internal escape modifier */
 				int mod_esc_chars = 1; /* escaping */
+				int mod_esc_dec = 0; /* remove internal chars from escaping */
 				char *space;
 				char *all_esc = NULL;
 
@@ -224,6 +239,10 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 					} else if ('\\' == *q) {
 						mod_esc = 1;
 						mod_esc_chars = 0;
+					} else if (('_' == *q) && ('_' == *(q+1))) {
+						mod_esc_dec = 1;
+						q++;
+						break;
 					} else
 						break;
 					q++;
@@ -243,14 +262,20 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 				if (mod_quote && space)
 					lub_string_cat(&result, "\"");
 
+				/* Escape special chars */
+				if (escape_chars && mod_esc_chars) {
+					/* Remove internal esc from escape chars */
+					if (mod_esc_dec)
+						all_esc = chardiff(escape_chars,
+							lub_string_esc_quoted);
+					else
+						all_esc = lub_string_dup(escape_chars);
+				}
+
 				/* Internal escaping */
 				if (mod_esc)
 					lub_string_cat(&all_esc,
 						lub_string_esc_quoted);
-
-				/* Escape special chars */
-				if (escape_chars && mod_esc_chars)
-					lub_string_cat(&all_esc, escape_chars);
 
 				/* Real escaping */
 				if (all_esc) {
