@@ -235,8 +235,10 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 					if ('#' == *q) {
 						mod_quote = 1;
 						mod_esc = 1;
-						mod_esc_chars = 0;
 					} else if ('\\' == *q) {
+						mod_esc = 1;
+					} else if ('!' == *q) {
+						mod_quote = 1;
 						mod_esc = 1;
 						mod_esc_chars = 0;
 					} else if (('_' == *q) && ('_' == *(q+1))) {
@@ -377,7 +379,7 @@ char *clish_shell__get_params(clish_context_t *context)
 		parg = clish_pargv__get_parg(pargv, i);
 		if (request)
 			lub_string_cat(&request, " ");
-		lub_string_cat(&request, "${#");
+		lub_string_cat(&request, "${!");
 		lub_string_cat(&request, clish_parg__get_name(parg));
 		lub_string_cat(&request, "}");
 	}
