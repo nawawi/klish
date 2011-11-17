@@ -90,6 +90,11 @@ static char *find_context_var(const char *name, clish_context_t *this)
 			result = strdup("1");
 		else
 			result = strdup("0");
+	} else if (!lub_string_nocasecmp(name, "_isatty")) {
+		if (tinyrl__get_isatty(this->shell->tinyrl))
+			result = strdup("1");
+		else
+			result = strdup("0");
 	} else if (lub_string_nocasestr(name, "_prefix") == name) {
 		int idx = 0;
 		int pnum = 0;
