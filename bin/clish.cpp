@@ -222,6 +222,18 @@ int main(int argc, char **argv)
 	if (log)
 		clish_shell__set_log(shell, log);
 
+	/* Set source of command stream: files or interactive tty */
+	if(optind < argc) {
+		int i;
+		/* Run the commands from the files */
+		for (i = argc - 1; i >= optind; i--)
+			clish_shell_push_file(shell, argv[i], stop_on_error);
+	} else {
+		/* The interactive shell */
+		clish_shell_push_fd(shell, fdopen(dup(fileno(stdin)), "r"),
+			stop_on_error);
+	}
+
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (running) {
@@ -230,15 +242,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if(optind < argc) {
-		int i;
-		/* Run the commands from the files */
-		for (i = argc - 1; i >= optind; i--)
-			clish_shell_push_file(shell, argv[i], stop_on_error);
-	} else {
-		/* The interactive shell */
-		clish_shell_push_fd(shell, fdopen(dup(fileno(stdin)), "r"), stop_on_error);
-	}
+	/* Main loop */
 	result = clish_shell_loop(shell);
 
 	/* Cleanup */
