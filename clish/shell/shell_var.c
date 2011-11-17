@@ -241,6 +241,9 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 						mod_quote = 1;
 						mod_esc = 1;
 						mod_esc_chars = 0;
+					} else if ('~' == *q) {
+						mod_esc = 1;
+						mod_esc_chars = 0;
 					} else if (('_' == *q) && ('_' == *(q+1))) {
 						mod_esc_dec = 1;
 						q++;
