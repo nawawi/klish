@@ -323,6 +323,8 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	const char *viewid = element->Attribute("viewid");
 	const char *default_shebang = element->Attribute("default_shebang");
 	const char *timeout = element->Attribute("timeout");
+	const char *lock = element->Attribute("lock");
+	const char *interrupt = element->Attribute("interrupt");
 
 	assert(!shell->startup);
 	assert(view);
@@ -345,6 +347,18 @@ process_startup(clish_shell_t * shell, TiXmlElement * element, void *parent)
 
 	if (timeout)
 		clish_shell__set_timeout(shell, atoi(timeout));
+
+	/* lock field */
+	if (lock && (lub_string_nocasecmp(lock, "false") == 0))
+		clish_command__set_lock(cmd, BOOL_FALSE);
+	else
+		clish_command__set_lock(cmd, BOOL_TRUE);
+
+	/* interrupt field */
+	if (interrupt && (lub_string_nocasecmp(interrupt, "true") == 0))
+		clish_command__set_interrupt(cmd, BOOL_TRUE);
+	else
+		clish_command__set_interrupt(cmd, BOOL_FALSE);
 
 	// remember this command
 	shell->startup = cmd;
