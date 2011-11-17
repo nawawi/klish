@@ -559,6 +559,9 @@ process_namespace(clish_shell_t * shell, TiXmlElement * element, void *parent)
 	clish_view_t *ref_view = clish_shell_find_create_view(shell,
 		view, NULL);
 	assert(ref_view);
+	/* Don't include itself without prefix */
+	if ((ref_view == v) && !prefix)
+		return;
 	nspace = clish_nspace_new(ref_view);
 	assert(nspace);
 	clish_view_insert_nspace(v, nspace);
