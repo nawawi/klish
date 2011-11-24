@@ -67,12 +67,14 @@ int main(int argc, char **argv)
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
 	FILE *outfd = stdout;
+	bool_t istimeout = BOOL_FALSE;
+	int timeout = 0;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8ok";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8okt:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -90,6 +92,7 @@ int main(int argc, char **argv)
 		{"8bit",	0, NULL, '8'},
 		{"log",		0, NULL, 'o'},
 		{"check",	0, NULL, 'k'},
+		{"timeout",	1, NULL, 't'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -160,6 +163,10 @@ int main(int argc, char **argv)
 			my_hooks.script_fn = clish_dryrun_callback;
 			my_hooks.config_fn = NULL;
 			break;
+		case 't':
+			istimeout = BOOL_TRUE;
+			timeout = atoi(optarg);
+			break;
 		case 'h':
 			help(0, argv[0]);
 			exit(0);
@@ -221,6 +228,9 @@ int main(int argc, char **argv)
 	/* Set logging */
 	if (log)
 		clish_shell__set_log(shell, log);
+	/* Set idle timeout */
+	if (istimeout)
+		clish_shell__set_timeout(shell, timeout);
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {
@@ -293,6 +303,6 @@ static void help(int status, const char *argv0)
 		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
 		printf("\t-o, --log\tEnable command logging to syslog's local0.\n");
 		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
+		printf("\t-t <timeout>, --timeout=<timeout>\tIdle timeout in seconds.\n");
 	}
 }
-
