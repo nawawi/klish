@@ -176,6 +176,13 @@
 *          be used if a transition to a new view occurs.
 *
 * [default_shebang] - The default shebang for all commands.
+*
+* [timeout] - The idle timeout. The clish will exit if user
+*          have not press any key while this timeout.
+*
+* [lock] - The same as lock for COMMAND tag.
+*
+* [interrupt] - The same as interrupt for COMMAND tag.
 ********************************************************
 -->
     <xs:complexType name="startup_t">
