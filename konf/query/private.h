@@ -13,7 +13,6 @@ struct konf_query_s {
 	unsigned int pwdc;
 	char **pwd;
 	char *line;
-	char *lower_line;
 	char *path;
 	bool_t splitter;
 	bool_t unique;

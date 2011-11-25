@@ -14,7 +14,6 @@
 struct konf_tree_s {
 	lub_list_t *list;
 	char *line;
-	char *lower_line;
 	unsigned short priority;
 	unsigned short seq_num;
 	unsigned short sub_num;

@@ -34,7 +34,7 @@ static int konf_tree_compare(const void *first, const void *second)
 	if (f->sub_num != s->sub_num)
 		return (f->sub_num - s->sub_num);
 	/* Line check */
-	return strcmp(f->lower_line, s->lower_line);
+	return strcmp(f->line, s->line);
 }
 
 /*---------------------------------------------------------
@@ -45,7 +45,6 @@ static void konf_tree_init(konf_tree_t * this, const char *line,
 {
 	/* set up defaults */
 	this->line = strdup(line);
-	this->lower_line = lub_string_tolower(line);
 	this->priority = priority;
 	this->seq_num = 0;
 	this->sub_num = KONF_ENTRY_OK;
@@ -75,8 +74,6 @@ static void konf_tree_fini(konf_tree_t * this)
 	/* free our memory */
 	free(this->line);
 	this->line = NULL;
-	free(this->lower_line);
-	this->lower_line = NULL;
 }
 
 /*---------------------------------------------------------
@@ -227,7 +224,6 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	konf_tree_t *conf;
 	lub_list_node_t *iter;
 	int check_pri = 0;
-	char *lower_line;
 
 	/* If list is empty */
 	if (!(iter = lub_list__get_tail(this->list)))
@@ -236,7 +232,6 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 	if ((0 != priority) && (0 != seq_num))
 		check_pri = 1;
 	/* Iterate non-empty tree */
-	lower_line = lub_string_tolower(line);
 	do {
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if (check_pri) {
@@ -249,12 +244,9 @@ konf_tree_t *konf_tree_find_conf(konf_tree_t * this,
 			if (seq_num > conf->seq_num)
 				break;
 		}
-		if (!strcmp(conf->lower_line, lower_line)) {
-			free(lower_line);
+		if (!strcmp(conf->line, line))
 			return conf;
-		}
 	} while ((iter = lub_list_node__get_prev(iter)));
-	free(lower_line);
 
 	return NULL;
 }
@@ -297,7 +289,7 @@ int konf_tree_del_pattern(konf_tree_t *this,
 			continue;
 		if (0 != regexec(&regexp, conf->line, 0, NULL, 0))
 			continue;
-		if (unique && line && !strcmp(conf->lower_line, line)) {
+		if (unique && line && !strcmp(conf->line, line)) {
 			res++;
 			continue;
 		}
