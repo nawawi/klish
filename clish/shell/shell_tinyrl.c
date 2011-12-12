@@ -19,23 +19,22 @@
 #include "lub/string.h"
 
 /*-------------------------------------------------------- */
-static void clish_shell_renew_prompt(tinyrl_t *this)
+static void clish_shell_renew_prompt(clish_shell_t *this)
 {
-	clish_context_t *context = tinyrl__get_context(this);
 	clish_context_t prompt_context;
 	char *prompt = NULL;
 	const clish_view_t *view;
 
 	/* Create appropriate context */
 	memset(&prompt_context, 0, sizeof(prompt_context));
-	prompt_context.shell = context->shell;
+	prompt_context.shell = this;
 
 	/* Obtain the prompt */
-	view = clish_shell__get_view(context->shell);
+	view = clish_shell__get_view(this);
 	assert(view);
 	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, &prompt_context);
 	assert(prompt);
-	tinyrl__set_prompt(this, prompt);
+	tinyrl__set_prompt(this->tinyrl, prompt);
 	lub_string_free(prompt);
 }
 
@@ -223,7 +222,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 		context->shell->current_file->line++;
 
 	/* Renew prompt */
-	clish_shell_renew_prompt(this);
+	clish_shell_renew_prompt(context->shell);
 
 	/* nothing to pass simply move down the screen */
 	if (!*line) {
@@ -432,8 +431,6 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 /*-------------------------------------------------------- */
 int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 {
-	char *prompt = NULL;
-	const clish_view_t *view;
 	char *str;
 	clish_context_t context;
 	tinyrl_history_t *history;
@@ -446,24 +443,20 @@ int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 		return -1;
 	}
 
+	/* Renew prompt */
+	clish_shell_renew_prompt(this);
+
 	/* Set up the context for tinyrl */
 	context.cmd = NULL;
 	context.pargv = NULL;
 	context.shell = this;
 
-	/* Obtain the prompt */
-	view = clish_shell__get_view(this);
-	assert(view);
-	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, &context);
-	assert(prompt);
-
 	/* Push the specified line or interactive line */
 	if (line)
-		str = tinyrl_forceline(this->tinyrl, prompt, &context, line);
+		str = tinyrl_forceline(this->tinyrl, &context, line);
 	else
-		str = tinyrl_readline(this->tinyrl, prompt, &context);
+		str = tinyrl_readline(this->tinyrl, &context);
 	lerror = errno;
-	lub_string_free(prompt);
 	if (!str) {
 		switch (lerror) {
 		case ENOENT:

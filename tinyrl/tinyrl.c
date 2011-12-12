@@ -668,7 +668,7 @@ static char *internal_insertline(tinyrl_t * this, char *buffer)
 
 /*----------------------------------------------------------------------- */
 static char *internal_readline(tinyrl_t * this,
-	const char *prompt, void *context, const char *str)
+	void *context, const char *str)
 {
 	FILE *istream = tinyrl_vt100__get_istream(this->term);
 	char *result = NULL;
@@ -681,7 +681,6 @@ static char *internal_readline(tinyrl_t * this,
 	this->buffer = lub_string_dup("");
 	this->buffer_size = strlen(this->buffer);
 	this->line = this->buffer;
-	tinyrl__set_prompt(this, prompt);
 	this->context = context;
 
 	if (this->isatty && !str) {
@@ -786,16 +785,15 @@ static char *internal_readline(tinyrl_t * this,
 }
 
 /*----------------------------------------------------------------------- */
-char *tinyrl_readline(tinyrl_t * this, const char *prompt, void *context)
+char *tinyrl_readline(tinyrl_t * this, void *context)
 {
-	return internal_readline(this, prompt, context, NULL);
+	return internal_readline(this, context, NULL);
 }
 
 /*----------------------------------------------------------------------- */
-char *tinyrl_forceline(tinyrl_t * this,
-	 const char *prompt, void *context, const char *line)
+char *tinyrl_forceline(tinyrl_t * this, void *context, const char *line)
 {
-	return internal_readline(this, prompt, context, line);
+	return internal_readline(this, context, line);
 }
 
 /*----------------------------------------------------------------------- */

@@ -110,10 +110,9 @@ extern void tinyrl__set_timeout_fn(tinyrl_t *instance,
 	tinyrl_timeout_fn_t *fn);
 extern void tinyrl__set_keypress_fn(tinyrl_t *instance,
 	tinyrl_keypress_fn_t *fn);
-extern char *tinyrl_readline(tinyrl_t *instance,
-	const char *prompt, void *context);
-extern char *tinyrl_forceline(tinyrl_t *instance,
-	const char *prompt, void *context, const char *line);
+extern char *tinyrl_readline(tinyrl_t *instance, void *context);
+extern char *tinyrl_forceline(tinyrl_t *instance, 
+	void *context, const char *line);
 extern bool_t tinyrl_bind_key(tinyrl_t *instance, int key,
 	tinyrl_key_func_t *fn);
 extern void tinyrl_delete_matches(char **instance);
