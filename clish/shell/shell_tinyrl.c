@@ -24,6 +24,7 @@ static void clish_shell_renew_prompt(clish_shell_t *this)
 	clish_context_t prompt_context;
 	char *prompt = NULL;
 	const clish_view_t *view;
+	char *str = NULL;
 
 	/* Create appropriate context */
 	memset(&prompt_context, 0, sizeof(prompt_context));
@@ -32,8 +33,12 @@ static void clish_shell_renew_prompt(clish_shell_t *this)
 	/* Obtain the prompt */
 	view = clish_shell__get_view(this);
 	assert(view);
-	prompt = clish_shell_expand(clish_view__get_prompt(view), SHELL_VAR_ACTION, &prompt_context);
+	lub_string_cat(&str, "${_PROMPT_PREFIX}");
+	lub_string_cat(&str, clish_view__get_prompt(view));
+	lub_string_cat(&str, "${_PROMPT_SUFFIX}");
+	prompt = clish_shell_expand(str, SHELL_VAR_NONE, &prompt_context);
 	assert(prompt);
+	lub_string_free(str);
 	tinyrl__set_prompt(this->tinyrl, prompt);
 	lub_string_free(prompt);
 }
