@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 	FILE *outfd = stdout;
 	bool_t istimeout = BOOL_FALSE;
 	int timeout = 0;
+	bool_t cmd = BOOL_FALSE; /* -c option */
 	lub_list_t *cmds; /* Commands defined by -c */
 	lub_list_node_t *iter;
 
@@ -174,6 +175,13 @@ int main(int argc, char **argv)
 			istimeout = BOOL_TRUE;
 			timeout = atoi(optarg);
 			break;
+		case 'c':
+			char *str;
+			cmd = BOOL_TRUE;
+			quiet = BOOL_TRUE;
+			str = strdup(optarg);
+			lub_list_add(cmds, str);
+			break;
 		case 'h':
 			help(0, argv[0]);
 			exit(0);
@@ -184,7 +192,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			help(-1, argv[0]);
-			exit(-1);
+			goto end;
 			break;
 		}
 	}
@@ -258,8 +266,17 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	/* Main loop */
-	result = clish_shell_loop(shell);
+	if (cmd) {
+		/* Iterate cmds */
+		for(iter = lub_list__get_head(cmds);
+			iter; iter = lub_list_node__get_next(iter)) {
+			char *str = (char *)lub_list_node__get_data(iter);
+			clish_shell_forceline(shell, str, NULL);
+		}
+	} else {
+		/* Main loop */
+		result = clish_shell_loop(shell);
+	}
 
 end:
 	/* Cleanup */
@@ -306,11 +323,11 @@ static void help(int status, const char *argv0)
 		printf("\t-v, --version\tPrint version.\n");
 		printf("\t-h, --help\tPrint this help.\n");
 		printf("\t-s <path>, --socket=<path>\tSpecify listen socket "
-			"of the konfd daemon.\n");
+			"\n\t\tof the konfd daemon.\n");
 		printf("\t-l, --lockless\tDon't use locking mechanism.\n");
 		printf("\t-e, --stop-on-error\tStop script execution on error.\n");
 		printf("\t-b, --background\tStart shell using non-interactive mode.\n");
-		printf("\t-q, --quiet\tDisable echo while executing commands from the file stream.\n");
+		printf("\t-q, --quiet\tDisable echo while executing commands\n\t\tfrom the file stream.\n");
 		printf("\t-d, --dry-run\tDon't actually execute ACTION scripts.\n");
 		printf("\t-x <path>, --xml-path=<path>\tPath to XML scheme files.\n");
 		printf("\t-w <view_name>, --view=<view_name>\tSet the startup view.\n");
@@ -320,5 +337,6 @@ static void help(int status, const char *argv0)
 		printf("\t-o, --log\tEnable command logging to syslog's local0.\n");
 		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
 		printf("\t-t <timeout>, --timeout=<timeout>\tIdle timeout in seconds.\n");
+		printf("\t-c <command>, --command=<command>\tExecute specified command(s).\n\t\tMultiple options are possible.\n");
 	}
 }
