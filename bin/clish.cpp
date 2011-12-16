@@ -23,6 +23,7 @@
 #include <langinfo.h>
 #endif
 
+#include "lub/list.h"
 #include "clish/shell.h"
 #include "clish/internal.h"
 
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
 {
 	int running;
 	int result = -1;
-	clish_shell_t * shell;
+	clish_shell_t *shell = NULL;
 
 	/* Command line options */
 	const char *socket_path = KONFD_SOCKET_PATH;
@@ -69,12 +70,14 @@ int main(int argc, char **argv)
 	FILE *outfd = stdout;
 	bool_t istimeout = BOOL_FALSE;
 	int timeout = 0;
+	lub_list_t *cmds; /* Commands defined by -c */
+	lub_list_node_t *iter;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8okt:";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8okt:c:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -93,6 +96,7 @@ int main(int argc, char **argv)
 		{"log",		0, NULL, 'o'},
 		{"check",	0, NULL, 'k'},
 		{"timeout",	1, NULL, 't'},
+		{"command",	1, NULL, 'c'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -109,6 +113,9 @@ int main(int argc, char **argv)
 	/* Set current locale */
 	setlocale(LC_ALL, "");
 #endif
+
+	/* Var initialization */
+	cmds = lub_list_new(NULL);
 
 	/* Parse command line options */
 	optind = 0;
@@ -185,7 +192,7 @@ int main(int argc, char **argv)
 	/* Validate command line options */
 	if (utf8 && bit8) {
 		fprintf(stderr, "The -u and -8 options can't be used together.\n");
-		return -1;
+		goto end;
 	}
 
 	/* Create shell instance */
@@ -194,7 +201,7 @@ int main(int argc, char **argv)
 	shell = clish_shell_new(&my_hooks, NULL, NULL, outfd, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Cannot run clish.\n");
-		return -1;
+		goto end;
 	}
 	/* Load the XML files */
 	clish_shell_load_scheme(shell, xml_path);
@@ -248,17 +255,26 @@ int main(int argc, char **argv)
 	running = clish_shell_startup(shell);
 	if (running) {
 		fprintf(stderr, "Cannot startup clish.\n");
-		clish_shell_delete(shell);
-		return -1;
+		goto end;
 	}
 
 	/* Main loop */
 	result = clish_shell_loop(shell);
 
+end:
 	/* Cleanup */
-	clish_shell_delete(shell);
+	if (shell)
+		clish_shell_delete(shell);
 	if (quiet)
 		fclose(outfd);
+
+	/* Delete each cmds element */
+	while ((iter = lub_list__get_head(cmds))) {
+		lub_list_del(cmds, iter);
+		free(lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
+	}
+	lub_list_free(cmds);
 
 	return result;
 }

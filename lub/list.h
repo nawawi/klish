@@ -1,6 +1,8 @@
 #ifndef _lub_list_h
 #define _lub_list_h
+
 #include <stddef.h>
+#include "lub/c_decl.h"
 
 /****************************************************************
  * TYPE DEFINITIONS
@@ -32,43 +34,15 @@ typedef struct lub_list_s lub_list_t;
  */
 typedef struct lub_list_node_s lub_list_iterator_t;
 
+_BEGIN_C_DECL
 /****************************************************************
  * LIST OPERATIONS
  **************************************************************** */
 /**
  * This operation initialises an instance of a list.
  */
-extern lub_list_t *lub_list_new(lub_list_compare_fn compareFn);
-
-/**
- * This operation is called to initialise a "clientnode" ready for
- * insertion into a tree. This is only required once after the memory
- * for a node has been allocated.
- *
- * \pre none
- *
- * \post The node is ready to be inserted into a tree.
- */
-extern lub_list_node_t *lub_list_node_new(void *data);
-
-/*****************************************
- * NODE MANIPULATION OPERATIONS
- ***************************************** */
-/**
- * This operation adds a client node to the specified tree.
- *
- * \pre The tree must be initialised
- * \pre The clientnode must be initialised
- * 
- * \return
- * 0 if the "clientnode" is added correctly to the tree.
- * If another "clientnode" already exists in the tree with the same key, then
- * -1 is returned, and the tree remains unchanged.
- *
- * \post If the bintree "node" is already part of a tree, then an
- * assert will fire.
- */
-
+lub_list_t *lub_list_new(lub_list_compare_fn compareFn);
+lub_list_node_t *lub_list_node_new(void *data);
 void lub_list_free(lub_list_t *list);
 void lub_list_node_free(lub_list_node_t *node);
 inline lub_list_node_t *lub_list__get_head(lub_list_t *list);
@@ -83,5 +57,6 @@ lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
 void lub_list_del(lub_list_t *list, lub_list_node_t *node);
 inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src);
 
+_END_C_DECL
 #endif				/* _lub_list_h */
 
