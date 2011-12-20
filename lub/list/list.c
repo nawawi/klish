@@ -69,6 +69,18 @@ inline lub_list_node_t *lub_list_iterator_init(lub_list_t *this)
 }
 
 /*--------------------------------------------------------- */
+inline lub_list_node_t *lub_list_node__get_prev(lub_list_node_t *this)
+{
+	return this->prev;
+}
+
+/*--------------------------------------------------------- */
+inline lub_list_node_t *lub_list_node__get_next(lub_list_node_t *this)
+{
+	return this->next;
+}
+
+/*--------------------------------------------------------- */
 inline lub_list_node_t *lub_list_iterator_next(lub_list_node_t *this)
 {
 	return lub_list_node__get_next(this);
@@ -84,18 +96,6 @@ inline lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *this)
 void inline lub_list_node_free(lub_list_node_t *this)
 {
 	free(this);
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_node__get_prev(lub_list_node_t *this)
-{
-	return this->prev;
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_node__get_next(lub_list_node_t *this)
-{
-	return this->next;
 }
 
 /*--------------------------------------------------------- */
