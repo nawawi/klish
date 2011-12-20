@@ -76,7 +76,7 @@ static void tty_set_raw_mode(tinyrl_t * this)
 		new_termios.c_cc[VMIN] = 1;
 		new_termios.c_cc[VTIME] = 0;
 		/* Do the mode switch */
-		status = tcsetattr(fd, TCSAFLUSH, &new_termios);
+		status = tcsetattr(fd, TCSADRAIN, &new_termios);
 		assert(-1 != status);
 	}
 }
@@ -87,7 +87,7 @@ static void tty_restore_mode(const tinyrl_t * this)
 	int fd = fileno(tinyrl_vt100__get_istream(this->term));
 
 	/* Do the mode switch */
-	(void)tcsetattr(fd, TCSAFLUSH, &this->default_termios);
+	(void)tcsetattr(fd, TCSADRAIN, &this->default_termios);
 }
 
 /*----------------------------------------------------------------------- */
