@@ -269,9 +269,9 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 	const char *iter_cmd, const char *line,
 	clish_nspace_visibility_t field, bool_t inherit)
 {
-	const clish_command_t *result, *cmd;
+	const clish_command_t *result, *cmd, *ncmd = NULL;
 	clish_nspace_t *nspace;
-	unsigned cnt = clish_view__get_nspace_count(this);
+	unsigned int cnt = clish_view__get_nspace_count(this);
 	int i;
 
 	/* ask local view for next command */
@@ -280,10 +280,13 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 	if (!inherit)
 		return result;
 
-	/* ask the imported namespaces for next command */
+	if (cnt)
+		ncmd = clish_view_resolve_prefix(this, line, BOOL_FALSE);
+	/* Ask the imported namespaces for next command */
 	for (i = cnt - 1; i >= 0; i--) {
 		nspace = clish_view__get_nspace(this, i);
-		if (!clish_nspace__get_visibility(nspace, field))
+		if (!clish_nspace__get_visibility(nspace, field) &&
+			(!*line || ncmd))
 			continue;
 		cmd = clish_nspace_find_next_completion(nspace,
 			iter_cmd, line, field);
