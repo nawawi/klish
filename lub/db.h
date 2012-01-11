@@ -2,6 +2,11 @@
 #define _lub_passwd_h
 
 #include <stddef.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
