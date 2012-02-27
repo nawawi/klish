@@ -763,7 +763,7 @@ static char *internal_readline(tinyrl_t * this,
 		if (this->line && !this->handlers[KEY_LF](this, KEY_LF)) {
 			/* an issue has occured */
 			this->line = NULL;
-			lerrno = EBADMSG;
+			lerrno = ENOEXEC;
 		}
 		if (str)
 			lub_string_free(tmp);

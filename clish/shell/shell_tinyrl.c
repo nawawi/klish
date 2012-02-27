@@ -467,7 +467,7 @@ int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 		case ENOENT:
 			this->state = SHELL_STATE_EOF;
 			break;
-		case EBADMSG:
+		case ENOEXEC:
 			this->state = SHELL_STATE_SYNTAX_ERROR;
 			break;
 		default:
