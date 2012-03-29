@@ -193,7 +193,7 @@ bool_t clish_config_callback(clish_context_t *context)
 					lub_string_free(str);
 					break;
 				}
-				fprintf(clish_shell__get_ostream(this),
+				tinyrl_printf(clish_shell__get_tinyrl(this),
 					"%s\n", str);
 				lub_string_free(str);
 			}

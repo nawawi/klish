@@ -95,7 +95,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 		break;
 	case 2:
 		/* just display line */
-		fprintf(tinyrl__get_ostream(this), "\n%s", buffer);
+		tinyrl_printf(this, "\n%s", buffer);
 		free(buffer);
 		buffer = NULL;
 		break;

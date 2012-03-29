@@ -110,6 +110,8 @@ int tinyrl_vt100_printf(const tinyrl_vt100_t * this, const char *fmt, ...)
 	va_list args;
 	int len;
 
+	if (!this->ostream)
+		return 0;
 	va_start(args, fmt);
 	len = tinyrl_vt100_vprintf(this, fmt, args);
 	va_end(args);
@@ -121,6 +123,8 @@ int tinyrl_vt100_printf(const tinyrl_vt100_t * this, const char *fmt, ...)
 int
 tinyrl_vt100_vprintf(const tinyrl_vt100_t * this, const char *fmt, va_list args)
 {
+	if (!this->ostream)
+		return 0;
 	return vfprintf(this->ostream, fmt, args);
 }
 
@@ -174,6 +178,8 @@ int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 /*-------------------------------------------------------- */
 int tinyrl_vt100_oflush(const tinyrl_vt100_t * this)
 {
+	if (!this->ostream)
+		return 0;
 	return fflush(this->ostream);
 }
 
@@ -186,6 +192,8 @@ int tinyrl_vt100_ierror(const tinyrl_vt100_t * this)
 /*-------------------------------------------------------- */
 int tinyrl_vt100_oerror(const tinyrl_vt100_t * this)
 {
+	if (!this->ostream)
+		return 0;
 	return ferror(this->ostream);
 }
 
@@ -207,7 +215,12 @@ unsigned int tinyrl_vt100__get_width(const tinyrl_vt100_t *this)
 #ifdef TIOCGWINSZ
 	struct winsize ws;
 	int res;
+#endif
 
+	if(!this->ostream)
+		return 0;
+
+#ifdef TIOCGWINSZ
 	ws.ws_col = 0;
 	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
 	if (res || !ws.ws_col)
@@ -224,7 +237,12 @@ unsigned int tinyrl_vt100__get_height(const tinyrl_vt100_t *this)
 #ifdef TIOCGWINSZ
 	struct winsize ws;
 	int res;
+#endif
 
+	if(!this->ostream)
+		return 0;
+
+#ifdef TIOCGWINSZ
 	ws.ws_row = 0;
 	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
 	if (res || !ws.ws_row)
@@ -257,7 +275,7 @@ tinyrl_vt100_t *tinyrl_vt100_new(FILE * istream, FILE * ostream)
 	tinyrl_vt100_t *this = NULL;
 
 	this = malloc(sizeof(tinyrl_vt100_t));
-	if (NULL != this) {
+	if (this) {
 		tinyrl_vt100_init(this, istream, ostream);
 	}
 
