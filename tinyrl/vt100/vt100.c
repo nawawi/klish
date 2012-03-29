@@ -218,7 +218,7 @@ unsigned int tinyrl_vt100__get_width(const tinyrl_vt100_t *this)
 #endif
 
 	if(!this->ostream)
-		return 0;
+		return 80;
 
 #ifdef TIOCGWINSZ
 	ws.ws_col = 0;
@@ -240,7 +240,7 @@ unsigned int tinyrl_vt100__get_height(const tinyrl_vt100_t *this)
 #endif
 
 	if(!this->ostream)
-		return 0;
+		return 25;
 
 #ifdef TIOCGWINSZ
 	ws.ws_row = 0;
