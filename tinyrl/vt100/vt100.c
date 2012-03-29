@@ -58,6 +58,10 @@ tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
 	char sequence[10], *p = sequence;
 	int c;
 	unsigned i;
+
+	if (!this->istream)
+		return tinyrl_vt100_UNKNOWN;
+
 	/* before the while loop, set the input as non-blocking */
 	_tinyrl_vt100_setInputNonBlocking(this);
 
@@ -138,6 +142,8 @@ int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 	int retval;
 	ssize_t res;
 
+	if (!this->istream)
+		return VT100_ERR;
 	istream_fd = fileno(this->istream);
 
 	/* Just wait for the input if no timeout */
@@ -186,6 +192,8 @@ int tinyrl_vt100_oflush(const tinyrl_vt100_t * this)
 /*-------------------------------------------------------- */
 int tinyrl_vt100_ierror(const tinyrl_vt100_t * this)
 {
+	if (!this->istream)
+		return 0;
 	return ferror(this->istream);
 }
 
@@ -200,12 +208,16 @@ int tinyrl_vt100_oerror(const tinyrl_vt100_t * this)
 /*-------------------------------------------------------- */
 int tinyrl_vt100_ieof(const tinyrl_vt100_t * this)
 {
+	if (!this->istream)
+		return 0;
 	return feof(this->istream);
 }
 
 /*-------------------------------------------------------- */
 int tinyrl_vt100_eof(const tinyrl_vt100_t * this)
 {
+	if (!this->istream)
+		return 0;
 	return feof(this->istream);
 }
 

@@ -63,9 +63,12 @@ static unsigned utf8_nsyms(tinyrl_t * this, const char *str, unsigned num)
 static void tty_set_raw_mode(tinyrl_t * this)
 {
 	struct termios new_termios;
-	int fd = fileno(tinyrl_vt100__get_istream(this->term));
+	int fd;
 	int status;
 
+	if (!tinyrl_vt100__get_istream(this->term))
+		return;
+	fd = fileno(tinyrl_vt100__get_istream(this->term));
 	status = tcgetattr(fd, &this->default_termios);
 	if (-1 != status) {
 		status = tcgetattr(fd, &new_termios);
@@ -84,8 +87,11 @@ static void tty_set_raw_mode(tinyrl_t * this)
 /*----------------------------------------------------------------------- */
 static void tty_restore_mode(const tinyrl_t * this)
 {
-	int fd = fileno(tinyrl_vt100__get_istream(this->term));
+	int fd;
 
+	if (!tinyrl_vt100__get_istream(this->term))
+		return;
+	fd = fileno(tinyrl_vt100__get_istream(this->term));
 	/* Do the mode switch */
 	(void)tcsetattr(fd, TCSADRAIN, &this->default_termios);
 }
@@ -743,7 +749,7 @@ static char *internal_readline(tinyrl_t * this,
 			tmp = lub_string_dup(str);
 			s = internal_insertline(this, tmp);
 		} else {
-			while ((sizeof(buffer) == len) &&
+			while (istream && (sizeof(buffer) == len) &&
 				(s = fgets(buffer, sizeof(buffer), istream))) {
 				s = internal_insertline(this, buffer);
 				len = strlen(buffer) + 1; /* account for the '\0' */
@@ -1268,7 +1274,10 @@ void tinyrl_disable_echo(tinyrl_t * this, char echo_char)
 void tinyrl__set_istream(tinyrl_t * this, FILE * istream)
 {
 	tinyrl_vt100__set_istream(this->term, istream);
-	this->isatty = isatty(fileno(istream)) ? BOOL_TRUE : BOOL_FALSE;
+	if (istream)
+		this->isatty = isatty(fileno(istream)) ? BOOL_TRUE : BOOL_FALSE;
+	else
+		this->isatty = BOOL_FALSE;
 }
 
 /*-------------------------------------------------------- */
