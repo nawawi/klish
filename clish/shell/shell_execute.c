@@ -179,6 +179,63 @@ void clish_shell_cleanup_script(void *script)
 	lub_string_free(script);
 }
 
+/*-------------------------------------------------------- */
+static int clish_shell_lock(const char *lock_path)
+{
+	int i;
+	int res;
+	int lock_fd = -1;
+	struct flock lock;
+
+	if (!lock_path)
+		return -1;
+	lock_fd = open(lock_path, O_WRONLY | O_CREAT, 00644);
+	if (-1 == lock_fd) {
+		fprintf(stderr, "Can't open lockfile %s.\n", lock_path);
+		return -1;
+	}
+	lock.l_type = F_WRLCK;
+	lock.l_whence = SEEK_SET;
+	lock.l_start = 0;
+	lock.l_len = 0;
+	for (i = 0; i < CLISH_LOCK_WAIT; i++) {
+		res = fcntl(lock_fd, F_SETLK, &lock);
+		if (res != -1)
+			break;
+		if (EINTR == errno)
+			continue;
+		if ((EAGAIN == errno) || (EACCES == errno)) {
+			if (0 == i)
+				fprintf(stderr,
+					"Try to get lock. Please wait...\n");
+			sleep(1);
+			continue;
+		}
+		break;
+	}
+	if (res == -1) {
+		fprintf(stderr, "Can't get lock.\n");
+		close(lock_fd);
+		return -1;
+	}
+	return lock_fd;
+}
+
+/*-------------------------------------------------------- */
+static void clish_shell_unlock(int lock_fd)
+{
+	struct flock lock;
+
+	if (lock_fd == -1)
+		return;
+	lock.l_type = F_UNLCK;
+	lock.l_whence = SEEK_SET;
+	lock.l_start = 0;
+	lock.l_len = 0;
+	fcntl(lock_fd, F_SETLK, &lock);
+	close(lock_fd);
+}
+
 /*----------------------------------------------------------- */
 int clish_shell_execute(clish_context_t *context, char **out)
 {
@@ -211,34 +268,10 @@ int clish_shell_execute(clish_context_t *context, char **out)
 
 	/* Lock the lockfile */
 	if (lock_path && clish_command__get_lock(cmd)) {
-		int i;
-		int res;
-		lock_fd = open(lock_path, O_RDONLY | O_CREAT, 00644);
+		lock_fd = clish_shell_lock(lock_path);
 		if (-1 == lock_fd) {
-			fprintf(stderr, "Can't open lockfile %s.\n",
-				lock_path);
 			result = -1;
-			goto error; /* can't open file */
-		}
-		for (i = 0; i < CLISH_LOCK_WAIT; i++) {
-			res = flock(lock_fd, LOCK_EX | LOCK_NB);
-			if (!res)
-				break;
-			if ((EBADF == errno) ||
-				(EINVAL == errno) ||
-				(ENOLCK == errno))
-				break;
-			if (EINTR == errno)
-				continue;
-			if (0 == i)
-				fprintf(stderr,
-					"Try to get lock. Please wait...\n");
-			sleep(1);
-		}
-		if (res) {
-			fprintf(stderr, "Can't get lock.\n");
-			result = -1;
-			goto error; /* can't get the lock */
+			goto error; /* Can't set lock */
 		}
 	}
 
@@ -287,10 +320,8 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Unlock the lockfile */
-	if (lock_fd != -1) {
-		flock(lock_fd, LOCK_UN);
-		close(lock_fd);
-	}
+	if (lock_fd != -1)
+		clish_shell_unlock(lock_fd);
 
 	/* Move into the new view */
 	if (!result) {
@@ -453,5 +484,6 @@ bool_t clish_shell__get_log(const clish_shell_t *this)
 	assert(this);
 	return this->log;
 }
+
 
 /*----------------------------------------------------------- */
