@@ -11,9 +11,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <signal.h>
+#include <fcntl.h>
 
 /*
  * These are the internal commands for this framework.
