@@ -16405,13 +16405,12 @@ if test "x$ac_cv_header_pthread_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_PTHREAD_H 1
 _ACEOF
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
-$as_echo_n "checking for pthread_create in -lpthread... " >&6; }
-if ${ac_cv_lib_pthread_pthread_create+:} false; then :
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pthread_create" >&5
+$as_echo_n "checking for library containing pthread_create... " >&6; }
+if ${ac_cv_search_pthread_create+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16430,18 +16429,35 @@ return pthread_create ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthread_pthread_create=yes
-else
-  ac_cv_lib_pthread_pthread_create=no
+for ac_lib in '' pthread; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_pthread_create=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_pthread_create+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
-$as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_create" = xyes; then :
+done
+if ${ac_cv_search_pthread_create+:} false; then :
+
+else
+  ac_cv_search_pthread_create=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pthread_create" >&5
+$as_echo "$ac_cv_search_pthread_create" >&6; }
+ac_res=$ac_cv_search_pthread_create
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 $as_echo "#define HAVE_LIBPTHREAD /**/" >>confdefs.h
 

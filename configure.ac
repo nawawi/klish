@@ -109,8 +109,7 @@ AC_ARG_WITH(pthread,
             ])
 
 AC_CHECK_HEADERS(pthread.h,
-                 [AC_CHECK_LIB(pthread, 
-                              pthread_create, 
+                 [AC_SEARCH_LIBS([pthread_create], [pthread],
                               [AC_DEFINE([HAVE_LIBPTHREAD], [], [Have POSIX threads library])
                                 if test "x$with_pthread" = "x"; then
                                     PTHREAD_LIBS="-lpthread"
