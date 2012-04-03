@@ -72,14 +72,11 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(top_srcdir)/lub/partition/vxworks/module.am \
 	$(top_srcdir)/lub/string/module.am \
 	$(top_srcdir)/lub/system/module.am \
-	$(top_srcdir)/lub/test/module.am $(top_srcdir)/test/module.am \
+	$(top_srcdir)/lub/test/module.am \
 	$(top_srcdir)/tinyrl/history/module.am \
 	$(top_srcdir)/tinyrl/module.am \
 	$(top_srcdir)/tinyrl/vt100/module.am \
-	$(top_srcdir)/tinyxml/module.am \
-	$(top_srcdir)/xml-examples/clish/module.am \
-	$(top_srcdir)/xml-examples/klish/module.am \
-	$(top_srcdir)/xml-examples/module.am aux_scripts/compile \
+	$(top_srcdir)/tinyxml/module.am aux_scripts/compile \
 	aux_scripts/config.guess aux_scripts/config.sub \
 	aux_scripts/depcomp aux_scripts/install-sh \
 	aux_scripts/ltmain.sh aux_scripts/missing
@@ -145,13 +142,6 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 @LUBHEAP_TRUE@	lub/partition/private.h \
 @LUBHEAP_TRUE@	lub/partition/posix/posix_partition.c \
 @LUBHEAP_TRUE@	lub/partition/posix/private.h
-noinst_PROGRAMS = test/bintree$(EXEEXT) test/string$(EXEEXT) \
-	$(am__EXEEXT_1)
-@LUBHEAP_TRUE@am__append_2 = \
-@LUBHEAP_TRUE@    test/heap                  \
-@LUBHEAP_TRUE@    test/mallocTest            \
-@LUBHEAP_TRUE@    test/lubMallocTest
-
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -418,10 +408,7 @@ libtinyxml_la_OBJECTS = $(am_libtinyxml_la_OBJECTS)
 libtinyxml_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(libtinyxml_la_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-@LUBHEAP_TRUE@am__EXEEXT_1 = test/heap$(EXEEXT) \
-@LUBHEAP_TRUE@	test/mallocTest$(EXEEXT) \
-@LUBHEAP_TRUE@	test/lubMallocTest$(EXEEXT)
-PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+PROGRAMS = $(bin_PROGRAMS)
 am_bin_clish_OBJECTS = bin/clish.$(OBJEXT)
 bin_clish_OBJECTS = $(am_bin_clish_OBJECTS)
 bin_clish_DEPENDENCIES = libclish.la libkonf.la libtinyrl.la \
@@ -432,34 +419,6 @@ bin_konf_DEPENDENCIES = libkonf.la liblub.la
 am_bin_konfd_OBJECTS = bin/konfd.$(OBJEXT)
 bin_konfd_OBJECTS = $(am_bin_konfd_OBJECTS)
 bin_konfd_DEPENDENCIES = libkonf.la liblub.la
-am_test_bintree_OBJECTS = test/bintree.$(OBJEXT)
-test_bintree_OBJECTS = $(am_test_bintree_OBJECTS)
-test_bintree_DEPENDENCIES = liblub.la
-am__test_heap_SOURCES_DIST = test/heap.c
-@LUBHEAP_TRUE@am_test_heap_OBJECTS = test/heap.$(OBJEXT)
-test_heap_OBJECTS = $(am_test_heap_OBJECTS)
-@LUBHEAP_TRUE@test_heap_DEPENDENCIES = liblub.la
-am__test_lubMallocTest_SOURCES_DIST = test/mallocTest.c
-@LUBHEAP_TRUE@am_test_lubMallocTest_OBJECTS =  \
-@LUBHEAP_TRUE@	test/test_lubMallocTest-mallocTest.$(OBJEXT)
-test_lubMallocTest_OBJECTS = $(am_test_lubMallocTest_OBJECTS)
-@LUBHEAP_TRUE@test_lubMallocTest_DEPENDENCIES = liblubheap.la \
-@LUBHEAP_TRUE@	liblub.la
-test_lubMallocTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(test_lubMallocTest_CFLAGS) $(CFLAGS) \
-	$(test_lubMallocTest_LDFLAGS) $(LDFLAGS) -o $@
-am__test_mallocTest_SOURCES_DIST = test/mallocTest.c
-@LUBHEAP_TRUE@am_test_mallocTest_OBJECTS =  \
-@LUBHEAP_TRUE@	test/test_mallocTest-mallocTest.$(OBJEXT)
-test_mallocTest_OBJECTS = $(am_test_mallocTest_OBJECTS)
-test_mallocTest_DEPENDENCIES =
-test_mallocTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test_mallocTest_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_test_string_OBJECTS = test/string.$(OBJEXT)
-test_string_OBJECTS = $(am_test_string_OBJECTS)
-test_string_DEPENDENCIES = liblub.la
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/aux_scripts/depcomp
 am__depfiles_maybe = depfiles
@@ -485,17 +444,11 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(liblub_la_SOURCES) $(libtinyrl_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
-	$(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
-	$(test_bintree_SOURCES) $(test_heap_SOURCES) \
-	$(test_lubMallocTest_SOURCES) $(test_mallocTest_SOURCES) \
-	$(test_string_SOURCES)
+	$(bin_konf_SOURCES) $(bin_konfd_SOURCES)
 DIST_SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(am__liblub_la_SOURCES_DIST) $(libtinyrl_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
-	$(bin_konf_SOURCES) $(bin_konfd_SOURCES) \
-	$(test_bintree_SOURCES) $(am__test_heap_SOURCES_DIST) \
-	$(am__test_lubMallocTest_SOURCES_DIST) \
-	$(am__test_mallocTest_SOURCES_DIST) $(test_string_SOURCES)
+	$(bin_konf_SOURCES) $(bin_konfd_SOURCES)
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -669,15 +622,14 @@ nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
 	tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h konf/query.h \
 	konf/buf.h konf/net.h
 EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
-	tinyrl/module.am tinyxml/module.am test/module.am \
-	xml-examples/module.am konf/module.am doxygen.config clish.xsd \
-	LICENCE README CHANGES ISSUES clish/command/module.am \
-	clish/param/module.am clish/pargv/module.am \
-	clish/ptype/module.am clish/shell/module.am \
-	clish/view/module.am clish/nspace/module.am \
-	clish/var/module.am clish/action/module.am \
-	clish/config/module.am clish/README lub/argv/module.am \
-	lub/bintree/module.am lub/list/module.am \
+	tinyrl/module.am tinyxml/module.am konf/module.am \
+	doxygen.config clish.xsd LICENCE README CHANGES ISSUES \
+	clish/command/module.am clish/param/module.am \
+	clish/pargv/module.am clish/ptype/module.am \
+	clish/shell/module.am clish/view/module.am \
+	clish/nspace/module.am clish/var/module.am \
+	clish/action/module.am clish/config/module.am clish/README \
+	lub/argv/module.am lub/bintree/module.am lub/list/module.am \
 	lub/blockpool/module.am lub/ctype/module.am \
 	lub/dblockpool/module.am lub/dump/module.am lub/heap/module.am \
 	lub/string/module.am lub/test/module.am lub/system/module.am \
@@ -692,15 +644,8 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	lub/partition/vxworks/vxworks_partition.c \
 	lub/partition/vxworks/private.h tinyrl/history/module.am \
 	tinyrl/vt100/module.am tinyrl/README tinyxml/changes.txt \
-	tinyxml/readme.txt tinyxml/README xml-examples/clish/module.am \
-	xml-examples/klish/module.am xml-examples/clock.xml \
-	xml-examples/debug-commands.xml xml-examples/debug-view.xml \
-	xml-examples/global-commands.xml xml-examples/named-view.xml \
-	xml-examples/network-commands.xml xml-examples/root-view.xml \
-	xml-examples/script-view.xml xml-examples/script.txt \
-	xml-examples/startup.xml xml-examples/types.xml \
-	xml-examples/README konf/tree/module.am konf/query/module.am \
-	konf/buf/module.am konf/net/module.am
+	tinyxml/readme.txt tinyxml/README konf/tree/module.am \
+	konf/query/module.am konf/buf/module.am konf/net/module.am
 bin_clish_SOURCES = bin/clish.cpp
 bin_clish_LDADD = \
 	libclish.la \
@@ -793,46 +738,6 @@ libtinyxml_la_SOURCES = \
 	tinyxml/tinystr.cpp
 
 libtinyxml_la_CXXFLAGS = @TINYXML_CXXFLAGS@
-test_bintree_SOURCES = \
-    test/bintree.c           \
-    test/bintree.h
-
-test_bintree_LDADD = \
-    liblub.la                \
-     @BFD_LIBS@
-
-@LUBHEAP_TRUE@test_heap_SOURCES = \
-@LUBHEAP_TRUE@    test/heap.c
-
-@LUBHEAP_TRUE@test_heap_LDADD = \
-@LUBHEAP_TRUE@    liblub.la                  \
-@LUBHEAP_TRUE@    @BFD_LIBS@
-
-@LUBHEAP_TRUE@test_mallocTest_CFLAGS = @RT_CFLAGS@ 
-@LUBHEAP_TRUE@test_mallocTest_SOURCES = \
-@LUBHEAP_TRUE@    test/mallocTest.c
-
-@LUBHEAP_TRUE@test_mallocTest_LDADD = \
-@LUBHEAP_TRUE@    @RT_LIBS@
-
-@LUBHEAP_TRUE@test_lubMallocTest_CFLAGS = @RT_CFLAGS@
-@LUBHEAP_TRUE@test_lubMallocTest_LDFLAGS = 
-@LUBHEAP_TRUE@test_lubMallocTest_SOURCES = \
-@LUBHEAP_TRUE@    test/mallocTest.c
-
-@LUBHEAP_TRUE@test_lubMallocTest_LDADD = \
-@LUBHEAP_TRUE@    @RT_LIBS@                  \
-@LUBHEAP_TRUE@    liblubheap.la              \
-@LUBHEAP_TRUE@    liblub.la                  \
-@LUBHEAP_TRUE@    @BFD_LIBS@
-
-test_string_SOURCES = \
-    test/string.c
-
-test_string_LDADD = \
-    liblub.la                \
-    @BFD_LIBS@
-
 libkonf_la_SOURCES = konf/tree/tree.c konf/tree/tree_dump.c \
 	konf/tree/private.h konf/query/query.c konf/query/query_dump.c \
 	konf/query/private.h konf/buf/buf.c konf/buf/private.h \
@@ -845,7 +750,7 @@ all: config.h
 .SUFFIXES: .c .cpp .lo .o .obj
 am--refresh: Makefile
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -868,7 +773,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
 	esac;
-$(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/test/module.am $(top_srcdir)/xml-examples/module.am $(top_srcdir)/xml-examples/clish/module.am $(top_srcdir)/xml-examples/klish/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am:
+$(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am:
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
@@ -1543,15 +1448,6 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-
-clean-noinstPROGRAMS:
-	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
-	echo " rm -f" $$list; \
-	rm -f $$list || exit $$?; \
-	test -n "$(EXEEXT)" || exit 0; \
-	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
-	echo " rm -f" $$list; \
-	rm -f $$list
 bin/$(am__dirstamp):
 	@$(MKDIR_P) bin
 	@: > bin/$(am__dirstamp)
@@ -1570,37 +1466,6 @@ bin/konfd.$(OBJEXT): bin/$(am__dirstamp) bin/$(DEPDIR)/$(am__dirstamp)
 bin/konfd$(EXEEXT): $(bin_konfd_OBJECTS) $(bin_konfd_DEPENDENCIES) $(EXTRA_bin_konfd_DEPENDENCIES) bin/$(am__dirstamp)
 	@rm -f bin/konfd$(EXEEXT)
 	$(LINK) $(bin_konfd_OBJECTS) $(bin_konfd_LDADD) $(LIBS)
-test/$(am__dirstamp):
-	@$(MKDIR_P) test
-	@: > test/$(am__dirstamp)
-test/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) test/$(DEPDIR)
-	@: > test/$(DEPDIR)/$(am__dirstamp)
-test/bintree.$(OBJEXT): test/$(am__dirstamp) \
-	test/$(DEPDIR)/$(am__dirstamp)
-test/bintree$(EXEEXT): $(test_bintree_OBJECTS) $(test_bintree_DEPENDENCIES) $(EXTRA_test_bintree_DEPENDENCIES) test/$(am__dirstamp)
-	@rm -f test/bintree$(EXEEXT)
-	$(LINK) $(test_bintree_OBJECTS) $(test_bintree_LDADD) $(LIBS)
-test/heap.$(OBJEXT): test/$(am__dirstamp) \
-	test/$(DEPDIR)/$(am__dirstamp)
-test/heap$(EXEEXT): $(test_heap_OBJECTS) $(test_heap_DEPENDENCIES) $(EXTRA_test_heap_DEPENDENCIES) test/$(am__dirstamp)
-	@rm -f test/heap$(EXEEXT)
-	$(LINK) $(test_heap_OBJECTS) $(test_heap_LDADD) $(LIBS)
-test/test_lubMallocTest-mallocTest.$(OBJEXT): test/$(am__dirstamp) \
-	test/$(DEPDIR)/$(am__dirstamp)
-test/lubMallocTest$(EXEEXT): $(test_lubMallocTest_OBJECTS) $(test_lubMallocTest_DEPENDENCIES) $(EXTRA_test_lubMallocTest_DEPENDENCIES) test/$(am__dirstamp)
-	@rm -f test/lubMallocTest$(EXEEXT)
-	$(test_lubMallocTest_LINK) $(test_lubMallocTest_OBJECTS) $(test_lubMallocTest_LDADD) $(LIBS)
-test/test_mallocTest-mallocTest.$(OBJEXT): test/$(am__dirstamp) \
-	test/$(DEPDIR)/$(am__dirstamp)
-test/mallocTest$(EXEEXT): $(test_mallocTest_OBJECTS) $(test_mallocTest_DEPENDENCIES) $(EXTRA_test_mallocTest_DEPENDENCIES) test/$(am__dirstamp)
-	@rm -f test/mallocTest$(EXEEXT)
-	$(test_mallocTest_LINK) $(test_mallocTest_OBJECTS) $(test_mallocTest_LDADD) $(LIBS)
-test/string.$(OBJEXT): test/$(am__dirstamp) \
-	test/$(DEPDIR)/$(am__dirstamp)
-test/string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) $(EXTRA_test_string_DEPENDENCIES) test/$(am__dirstamp)
-	@rm -f test/string$(EXEEXT)
-	$(LINK) $(test_string_OBJECTS) $(test_string_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1915,11 +1780,6 @@ mostlyclean-compile:
 	-rm -f lub/system/test.lo
 	-rm -f lub/test/test.$(OBJEXT)
 	-rm -f lub/test/test.lo
-	-rm -f test/bintree.$(OBJEXT)
-	-rm -f test/heap.$(OBJEXT)
-	-rm -f test/string.$(OBJEXT)
-	-rm -f test/test_lubMallocTest-mallocTest.$(OBJEXT)
-	-rm -f test/test_mallocTest-mallocTest.$(OBJEXT)
 	-rm -f tinyrl/history/history.$(OBJEXT)
 	-rm -f tinyrl/history/history.lo
 	-rm -f tinyrl/history/history_entry.$(OBJEXT)
@@ -2097,11 +1957,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/system/$(DEPDIR)/system_test.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/system/$(DEPDIR)/test.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/test/$(DEPDIR)/test.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/bintree.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/heap.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/string.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_lubMallocTest-mallocTest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_mallocTest-mallocTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/$(DEPDIR)/tinyrl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/history/$(DEPDIR)/history.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/history/$(DEPDIR)/history_entry.Plo@am__quote@
@@ -2394,34 +2249,6 @@ clish/config/libclish_la-config_dump.lo: clish/config/config_dump.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclish_la_CFLAGS) $(CFLAGS) -c -o clish/config/libclish_la-config_dump.lo `test -f 'clish/config/config_dump.c' || echo '$(srcdir)/'`clish/config/config_dump.c
 
-test/test_lubMallocTest-mallocTest.o: test/mallocTest.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_lubMallocTest_CFLAGS) $(CFLAGS) -MT test/test_lubMallocTest-mallocTest.o -MD -MP -MF test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo -c -o test/test_lubMallocTest-mallocTest.o `test -f 'test/mallocTest.c' || echo '$(srcdir)/'`test/mallocTest.c
-@am__fastdepCC_TRUE@	$(am__mv) test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo test/$(DEPDIR)/test_lubMallocTest-mallocTest.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test/mallocTest.c' object='test/test_lubMallocTest-mallocTest.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_lubMallocTest_CFLAGS) $(CFLAGS) -c -o test/test_lubMallocTest-mallocTest.o `test -f 'test/mallocTest.c' || echo '$(srcdir)/'`test/mallocTest.c
-
-test/test_lubMallocTest-mallocTest.obj: test/mallocTest.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_lubMallocTest_CFLAGS) $(CFLAGS) -MT test/test_lubMallocTest-mallocTest.obj -MD -MP -MF test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo -c -o test/test_lubMallocTest-mallocTest.obj `if test -f 'test/mallocTest.c'; then $(CYGPATH_W) 'test/mallocTest.c'; else $(CYGPATH_W) '$(srcdir)/test/mallocTest.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) test/$(DEPDIR)/test_lubMallocTest-mallocTest.Tpo test/$(DEPDIR)/test_lubMallocTest-mallocTest.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test/mallocTest.c' object='test/test_lubMallocTest-mallocTest.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_lubMallocTest_CFLAGS) $(CFLAGS) -c -o test/test_lubMallocTest-mallocTest.obj `if test -f 'test/mallocTest.c'; then $(CYGPATH_W) 'test/mallocTest.c'; else $(CYGPATH_W) '$(srcdir)/test/mallocTest.c'; fi`
-
-test/test_mallocTest-mallocTest.o: test/mallocTest.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_mallocTest_CFLAGS) $(CFLAGS) -MT test/test_mallocTest-mallocTest.o -MD -MP -MF test/$(DEPDIR)/test_mallocTest-mallocTest.Tpo -c -o test/test_mallocTest-mallocTest.o `test -f 'test/mallocTest.c' || echo '$(srcdir)/'`test/mallocTest.c
-@am__fastdepCC_TRUE@	$(am__mv) test/$(DEPDIR)/test_mallocTest-mallocTest.Tpo test/$(DEPDIR)/test_mallocTest-mallocTest.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test/mallocTest.c' object='test/test_mallocTest-mallocTest.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_mallocTest_CFLAGS) $(CFLAGS) -c -o test/test_mallocTest-mallocTest.o `test -f 'test/mallocTest.c' || echo '$(srcdir)/'`test/mallocTest.c
-
-test/test_mallocTest-mallocTest.obj: test/mallocTest.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_mallocTest_CFLAGS) $(CFLAGS) -MT test/test_mallocTest-mallocTest.obj -MD -MP -MF test/$(DEPDIR)/test_mallocTest-mallocTest.Tpo -c -o test/test_mallocTest-mallocTest.obj `if test -f 'test/mallocTest.c'; then $(CYGPATH_W) 'test/mallocTest.c'; else $(CYGPATH_W) '$(srcdir)/test/mallocTest.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) test/$(DEPDIR)/test_mallocTest-mallocTest.Tpo test/$(DEPDIR)/test_mallocTest-mallocTest.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test/mallocTest.c' object='test/test_mallocTest-mallocTest.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_mallocTest_CFLAGS) $(CFLAGS) -c -o test/test_mallocTest-mallocTest.obj `if test -f 'test/mallocTest.c'; then $(CYGPATH_W) 'test/mallocTest.c'; else $(CYGPATH_W) '$(srcdir)/test/mallocTest.c'; fi`
-
 .cpp.o:
 @am__fastdepCXX_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
@@ -2510,7 +2337,6 @@ clean-libtool:
 	-rm -rf lub/string/.libs lub/string/_libs
 	-rm -rf lub/system/.libs lub/system/_libs
 	-rm -rf lub/test/.libs lub/test/_libs
-	-rm -rf test/.libs test/_libs
 	-rm -rf tinyrl/.libs tinyrl/_libs
 	-rm -rf tinyrl/history/.libs tinyrl/history/_libs
 	-rm -rf tinyrl/vt100/.libs tinyrl/vt100/_libs
@@ -2852,8 +2678,6 @@ distclean-generic:
 	-rm -f lub/system/$(am__dirstamp)
 	-rm -f lub/test/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/test/$(am__dirstamp)
-	-rm -f test/$(DEPDIR)/$(am__dirstamp)
-	-rm -f test/$(am__dirstamp)
 	-rm -f tinyrl/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tinyrl/$(am__dirstamp)
 	-rm -f tinyrl/history/$(DEPDIR)/$(am__dirstamp)
@@ -2869,12 +2693,11 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libLTLIBRARIES clean-libtool clean-noinstPROGRAMS \
-	mostlyclean-am
+	clean-libLTLIBRARIES clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -2923,7 +2746,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -2947,19 +2770,19 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLIBRARIES \
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
 	clean-binPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libLTLIBRARIES clean-libtool clean-noinstPROGRAMS ctags \
-	dist dist-all dist-bzip2 dist-gzip dist-lzip dist-lzma \
-	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
-	distclean-libtool distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLIBRARIES install-libLTLIBRARIES \
-	install-man install-nobase_includeHEADERS install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-libLTLIBRARIES clean-libtool ctags dist dist-all \
+	dist-bzip2 dist-gzip dist-lzip dist-lzma dist-shar dist-tarZ \
+	dist-xz dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-binPROGRAMS install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLIBRARIES install-libLTLIBRARIES install-man \
+	install-nobase_includeHEADERS install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
@@ -2983,20 +2806,6 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLIBRARIES \
 @TCL_TRUE@		liblub.la \
 @TCL_TRUE@		@TCL_LIBS@ \
 @TCL_TRUE@		@BFD_LIBS@
-
-#EXTRA_DIST  +=                                  	\
-#                xml-examples/clock.xml 	\
-#                xml-examples/debug-commands.xml 	\
-#                xml-examples/debug-view.xml       	\
-#                xml-examples/global-commands.xml	\
-#                xml-examples/named-view.xml		\
-#                xml-examples/network-commands.xml	\
-#                xml-examples/root-view.xml	    	\
-#                xml-examples/script-view.xml	    	\
-#                xml-examples/script.txt		    	\
-#                xml-examples/startup.xml	    	\
-#                xml-examples/types.xml	    		\
-#                xml-examples/README
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

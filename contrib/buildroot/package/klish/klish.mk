@@ -9,7 +9,7 @@ KLISH_VERSION:=HEAD
 KLISH_SITE:=http://klish.googlecode.com/svn/trunk
 KLISH_SITE_METHOD:=svn
 else
-KLISH_VERSION = 1.5.3
+KLISH_VERSION = 1.5.4
 KLISH_SOURCE = klish-$(KLISH_VERSION).tar.bz2
 KLISH_SITE = http://klish.googlecode.com/files
 endif

@@ -23,8 +23,6 @@ EXTRA_DIST              =  \
     lub/module.am          \
     tinyrl/module.am       \
     tinyxml/module.am      \
-    test/module.am         \
-    xml-examples/module.am \
     konf/module.am         \
     doxygen.config         \
     clish.xsd              \
@@ -38,6 +36,4 @@ include $(top_srcdir)/clish/module.am
 include $(top_srcdir)/lub/module.am
 include $(top_srcdir)/tinyrl/module.am
 include $(top_srcdir)/tinyxml/module.am
-include $(top_srcdir)/test/module.am
-include $(top_srcdir)/xml-examples/module.am
 include $(top_srcdir)/konf/module.am
