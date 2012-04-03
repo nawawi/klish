@@ -780,7 +780,7 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/string/string_suffix.c lub/string/string_escape.c \
 	lub/string/private.h lub/test/test.c lub/system/test.c \
 	lub/system/system_test.c lub/system/private.h lub/db/db.c
-liblub_la_LIBADD = -lpthread
+liblub_la_LIBADD = 
 libtinyrl_la_LIBADD = liblub.la
 libtinyrl_la_SOURCES = tinyrl/tinyrl.c tinyrl/private.h \
 	tinyrl/history/history.c tinyrl/history/history_entry.c \
