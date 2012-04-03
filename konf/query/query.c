@@ -107,7 +107,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	};
 #endif
 
-	optind = 0;
+	optind = 0; /* It must be 1 for QNX6. This system has no getopt.h */
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H
