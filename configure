@@ -627,8 +627,6 @@ TCL_LIBS
 TCL_CFLAGS
 RT_CFLAGS
 RT_LIBS
-PTHREAD_CFLAGS
-PTHREAD_LIBS
 TINYXML_CXXFLAGS
 TINYXML_LIBS
 TINYRL_CFLAGS
@@ -767,7 +765,6 @@ with_sysroot
 enable_libtool_lock
 enable_dependency_tracking
 enable_debug
-with_pthread
 with_rt
 with_tcl
 enable_lubheap
@@ -1426,8 +1423,6 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-pthread=DIR      Use POSIX threads library distribution in DIR
-
   --with-rt=DIR           Use POSIX real time library distribution in DIR
   --with-tcl=DIR          Use TCL library distribution in DIR
 
@@ -16391,12 +16386,10 @@ fi
 ################################
 # Check for the PTHREAD library
 ################################
-
-# Check whether --with-pthread was given.
-if test "${with_pthread+set}" = set; then :
-  withval=$with_pthread;
-fi
-
+#C_ARG_WITH(pthread,
+#           [AS_HELP_STRING([--with-pthread=DIR],
+#                           [Use POSIX threads library distribution in DIR])
+#           ])
 
 for ac_header in pthread.h
 do :
@@ -16405,7 +16398,7 @@ if test "x$ac_cv_header_pthread_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_PTHREAD_H 1
 _ACEOF
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pthread_create" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pthread_create" >&5
 $as_echo_n "checking for library containing pthread_create... " >&6; }
 if ${ac_cv_search_pthread_create+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16459,16 +16452,8 @@ ac_res=$ac_cv_search_pthread_create
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
-$as_echo "#define HAVE_LIBPTHREAD /**/" >>confdefs.h
-
-                                if test "x$with_pthread" = "x"; then
-                                    PTHREAD_LIBS="-lpthread"
-                                else
-                                    PTHREAD_CFLAGS="-I$with_pthread/include"
-                                    PTHREAD_LIBS="-L$with_pthread/lib -lpthread"
-                                fi
-
-
+else
+   as_fn_error $? "Cannot find the POSIX threads library" "$LINENO" 5
 
 fi
 
@@ -16477,10 +16462,6 @@ fi
 
 done
 
-
-if test "x$PTHREAD_LIBS" = "x"; then
-    as_fn_error $? "Cannot find the POSIX threads library" "$LINENO" 5
-fi
 
 ################################
 # Check for the RT library

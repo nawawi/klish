@@ -27,9 +27,6 @@
 /* Have native langauage support library */
 #undef HAVE_LIBINTL
 
-/* Have POSIX threads library */
-#undef HAVE_LIBPTHREAD
-
 /* Have POSIX real time library */
 #undef HAVE_LIBRT
 

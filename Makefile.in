@@ -581,8 +581,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
-PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RT_CFLAGS = @RT_CFLAGS@
 RT_LIBS = @RT_LIBS@
@@ -710,10 +708,8 @@ bin_clish_LDADD = \
 	libtinyrl.la \
 	libtinyxml.la \
 	liblub.la \
-	@PTHREAD_LIBS@ \
 	@BFD_LIBS@
 
-#	@LUBHEAP_LIBS@
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD = \
 	libkonf.la \
@@ -2986,17 +2982,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLIBRARIES \
 @TCL_TRUE@		libtinyxml.la \
 @TCL_TRUE@		liblub.la \
 @TCL_TRUE@		@TCL_LIBS@ \
-@TCL_TRUE@		@PTHREAD_LIBS@ \
 @TCL_TRUE@		@BFD_LIBS@
-#		@LUBHEAP_LIBS@
-
-@LUBHEAP_TRUE@	bin_PROGRAMS += bin/lubheap
-@LUBHEAP_TRUE@	bin_lubheap_SOURCES = bin/lubheap.c
-@LUBHEAP_TRUE@	bin_lubheap_LDADD = \
-@LUBHEAP_TRUE@		liblub.la \
-@LUBHEAP_TRUE@		@LUBHEAP_LIBS@ \
-@LUBHEAP_TRUE@		@PTHREAD_LIBS@ \
-@LUBHEAP_TRUE@		@BFD_LIBS@
 
 #EXTRA_DIST  +=                                  	\
 #                xml-examples/clock.xml 	\

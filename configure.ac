@@ -103,28 +103,16 @@ AC_SUBST(TINYXML_CXXFLAGS)
 ################################
 # Check for the PTHREAD library
 ################################
-AC_ARG_WITH(pthread,
-            [AS_HELP_STRING([--with-pthread=DIR],
-                            [Use POSIX threads library distribution in DIR])
-            ])
+#C_ARG_WITH(pthread,
+#           [AS_HELP_STRING([--with-pthread=DIR],
+#                           [Use POSIX threads library distribution in DIR])
+#           ])
 
 AC_CHECK_HEADERS(pthread.h,
-                 [AC_SEARCH_LIBS([pthread_create], [pthread],
-                              [AC_DEFINE([HAVE_LIBPTHREAD], [], [Have POSIX threads library])
-                                if test "x$with_pthread" = "x"; then
-                                    PTHREAD_LIBS="-lpthread"
-                                else
-                                    PTHREAD_CFLAGS="-I$with_pthread/include"
-                                    PTHREAD_LIBS="-L$with_pthread/lib -lpthread"
-                                fi
-                                AC_SUBST(PTHREAD_LIBS)
-                                AC_SUBST(PTHREAD_CFLAGS)
-                              ])
-                 ])
-
-if test "x$PTHREAD_LIBS" = "x"; then
-    AC_MSG_ERROR([Cannot find the POSIX threads library])
-fi
+	[ AC_SEARCH_LIBS([pthread_create], [pthread], [],
+		[ AC_MSG_ERROR([Cannot find the POSIX threads library])
+	])
+])
 
 ################################
 # Check for the RT library

@@ -11,9 +11,7 @@ bin_clish_LDADD = \
 	libtinyrl.la \
 	libtinyxml.la \
 	liblub.la \
-	@PTHREAD_LIBS@ \
 	@BFD_LIBS@
-#	@LUBHEAP_LIBS@
 
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD = \
@@ -42,17 +40,5 @@ if TCL
 		libtinyxml.la \
 		liblub.la \
 		@TCL_LIBS@ \
-		@PTHREAD_LIBS@ \
-		@BFD_LIBS@
-#		@LUBHEAP_LIBS@
-endif
-
-if LUBHEAP
-	bin_PROGRAMS += bin/lubheap
-	bin_lubheap_SOURCES = bin/lubheap.c
-	bin_lubheap_LDADD = \
-		liblub.la \
-		@LUBHEAP_LIBS@ \
-		@PTHREAD_LIBS@ \
 		@BFD_LIBS@
 endif
