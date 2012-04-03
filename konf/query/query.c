@@ -107,7 +107,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	};
 #endif
 
-	optind = 1;
+	optind = 0;
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H
@@ -209,7 +209,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	if ((pwdc = argc - optind) < 0)
 		return -1;
 
-	for (i = 0; i < pwdc; i ++)
+	for (i = 0; i < pwdc; i++)
 		konf_query_add_pwd(this, argv[optind + i]);
 
 	return 0;

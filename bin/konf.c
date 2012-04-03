@@ -72,7 +72,6 @@ int main(int argc, char **argv)
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
 	/* Parse command line options */
-	optind = 1;
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H
