@@ -11,6 +11,9 @@ AC_INIT([klish],
 
 AC_CONFIG_AUX_DIR(aux_scripts)
 
+# Check for system extensions (_POSIX_THREAD_SEMANTICS for Solaris)
+AC_USE_SYSTEM_EXTENSIONS
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -271,6 +274,13 @@ AC_CHECK_HEADERS(grp.h, [],
 ################################
 AC_CHECK_FUNCS(chroot, [],
     AC_MSG_WARN([chroot() not found: the choot is not supported]))
+
+################################
+# Check for socket
+################################
+AC_CHECK_FUNCS(socket, [],
+    AC_MSG_WARN([socket() not found: the socket is not supported]))
+
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
