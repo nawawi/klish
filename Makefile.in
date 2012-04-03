@@ -58,21 +58,12 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(top_srcdir)/konf/tree/module.am \
 	$(top_srcdir)/lub/argv/module.am \
 	$(top_srcdir)/lub/bintree/module.am \
-	$(top_srcdir)/lub/blockpool/module.am \
 	$(top_srcdir)/lub/ctype/module.am \
 	$(top_srcdir)/lub/db/module.am \
-	$(top_srcdir)/lub/dblockpool/module.am \
 	$(top_srcdir)/lub/dump/module.am \
-	$(top_srcdir)/lub/heap/module.am \
-	$(top_srcdir)/lub/heap/posix/module.am \
-	$(top_srcdir)/lub/heap/vxworks/module.am \
 	$(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/module.am \
-	$(top_srcdir)/lub/partition/module.am \
-	$(top_srcdir)/lub/partition/posix/module.am \
-	$(top_srcdir)/lub/partition/vxworks/module.am \
 	$(top_srcdir)/lub/string/module.am \
 	$(top_srcdir)/lub/system/module.am \
-	$(top_srcdir)/lub/test/module.am \
 	$(top_srcdir)/tinyrl/history/module.am \
 	$(top_srcdir)/tinyrl/module.am \
 	$(top_srcdir)/tinyrl/vt100/module.am \
@@ -80,68 +71,6 @@ DIST_COMMON = README $(am__configure_deps) $(nobase_include_HEADERS) \
 	aux_scripts/config.guess aux_scripts/config.sub \
 	aux_scripts/depcomp aux_scripts/install-sh \
 	aux_scripts/ltmain.sh aux_scripts/missing
-@LUBHEAP_TRUE@am__append_1 = lub/heap/cache.c lub/heap/cache.h \
-@LUBHEAP_TRUE@	lub/heap/cache_bucket.c lub/heap/context.c \
-@LUBHEAP_TRUE@	lub/heap/context.h lub/heap/heap__get_max_free.c \
-@LUBHEAP_TRUE@	lub/heap/heap__get_stacktrace.c \
-@LUBHEAP_TRUE@	lub/heap/heap__get_stats.c \
-@LUBHEAP_TRUE@	lub/heap/heap_add_segment.c \
-@LUBHEAP_TRUE@	lub/heap/heap_align_block.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block__get_tail.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_from_ptr.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getfirst.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getkey.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getnext.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getprevious.c \
-@LUBHEAP_TRUE@	lub/heap/heap_block_check.c \
-@LUBHEAP_TRUE@	lub/heap/heap_check.c \
-@LUBHEAP_TRUE@	lub/heap/heap_context_delete.c \
-@LUBHEAP_TRUE@	lub/heap/heap_context_find_or_create.c \
-@LUBHEAP_TRUE@	lub/heap/heap_create.c lub/heap/heap_destroy.c \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_both_ways.c \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_downwards.c \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_upwards.c \
-@LUBHEAP_TRUE@	lub/heap/heap_foreach_free_block.c \
-@LUBHEAP_TRUE@	lub/heap/heap_foreach_segment.c \
-@LUBHEAP_TRUE@	lub/heap/heap_graft_to_bottom.c \
-@LUBHEAP_TRUE@	lub/heap/heap_graft_to_top.c \
-@LUBHEAP_TRUE@	lub/heap/heap_init_free_block.c \
-@LUBHEAP_TRUE@	lub/heap/heap_merge_with_next.c \
-@LUBHEAP_TRUE@	lub/heap/heap_merge_with_previous.c \
-@LUBHEAP_TRUE@	lub/heap/heap_new_alloc_block.c \
-@LUBHEAP_TRUE@	lub/heap/heap_new_free_block.c \
-@LUBHEAP_TRUE@	lub/heap/heap_post_realloc.c \
-@LUBHEAP_TRUE@	lub/heap/heap_pre_realloc.c \
-@LUBHEAP_TRUE@	lub/heap/heap_raw_realloc.c \
-@LUBHEAP_TRUE@	lub/heap/heap_realloc.c \
-@LUBHEAP_TRUE@	lub/heap/heap_scan_stack.c lub/heap/heap_show.c \
-@LUBHEAP_TRUE@	lub/heap/heap_slice_from_bottom.c \
-@LUBHEAP_TRUE@	lub/heap/heap_slice_from_top.c \
-@LUBHEAP_TRUE@	lub/heap/heap_static_alloc.c \
-@LUBHEAP_TRUE@	lub/heap/heap_stop_here.c \
-@LUBHEAP_TRUE@	lub/heap/heap_tainted_memory.c lub/heap/node.c \
-@LUBHEAP_TRUE@	lub/heap/node.h lub/heap/private.h \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_clean_stacks.c \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_leak_mutex.c \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_scan_bss.c \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_scan_data.c \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_symShow.c \
-@LUBHEAP_TRUE@	lub/heap/posix/sysheap_stubs.c \
-@LUBHEAP_TRUE@	lub/partition/partition_check_memory.c \
-@LUBHEAP_TRUE@	lub/partition/partition_destroy_local_heap.c \
-@LUBHEAP_TRUE@	lub/partition/partition_disable_leak_detection.c \
-@LUBHEAP_TRUE@	lub/partition/partition_enable_leak_detection.c \
-@LUBHEAP_TRUE@	lub/partition/partition_extend_memory.c \
-@LUBHEAP_TRUE@	lub/partition/partition_findcreate_local_heap.c \
-@LUBHEAP_TRUE@	lub/partition/partition_fini.c \
-@LUBHEAP_TRUE@	lub/partition/partition_init.c \
-@LUBHEAP_TRUE@	lub/partition/partition_realloc.c \
-@LUBHEAP_TRUE@	lub/partition/partition_segment_alloc.c \
-@LUBHEAP_TRUE@	lub/partition/partition_show.c \
-@LUBHEAP_TRUE@	lub/partition/partition_sysalloc.c \
-@LUBHEAP_TRUE@	lub/partition/private.h \
-@LUBHEAP_TRUE@	lub/partition/posix/posix_partition.c \
-@LUBHEAP_TRUE@	lub/partition/posix/private.h
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -230,140 +159,6 @@ am_libkonf_la_OBJECTS = konf/tree/tree.lo konf/tree/tree_dump.lo \
 	konf/net/net.lo
 libkonf_la_OBJECTS = $(am_libkonf_la_OBJECTS)
 liblub_la_DEPENDENCIES =
-am__liblub_la_SOURCES_DIST = lub/argv/argv__get_arg.c \
-	lub/argv/argv__get_argv.c lub/argv/argv__get_count.c \
-	lub/argv/argv__get_offset.c lub/argv/argv__get_quoted.c \
-	lub/argv/argv_new.c lub/argv/argv_nextword.c \
-	lub/argv/private.h lub/bintree/bintree_dump.c \
-	lub/bintree/bintree_find.c lub/bintree/bintree_findfirst.c \
-	lub/bintree/bintree_findlast.c lub/bintree/bintree_findnext.c \
-	lub/bintree/bintree_findprevious.c lub/bintree/bintree_init.c \
-	lub/bintree/bintree_insert.c \
-	lub/bintree/bintree_iterator_init.c \
-	lub/bintree/bintree_iterator_next.c \
-	lub/bintree/bintree_iterator_previous.c \
-	lub/bintree/bintree_node_init.c lub/bintree/bintree_remove.c \
-	lub/bintree/bintree_splay.c lub/bintree/private.h \
-	lub/list/list.c lub/blockpool/blockpool_alloc.c \
-	lub/blockpool/blockpool__get_stats.c \
-	lub/blockpool/blockpool_free.c lub/blockpool/blockpool_init.c \
-	lub/blockpool/private.h lub/ctype/ctype_isspace.c \
-	lub/ctype/ctype_isdigit.c lub/ctype/ctype_toupper.c \
-	lub/ctype/ctype_tolower.c lub/dblockpool/dblockpool_alloc.c \
-	lub/dblockpool/dblockpool_fini.c \
-	lub/dblockpool/dblockpool_free.c \
-	lub/dblockpool/dblockpool_init.c lub/dblockpool/private.h \
-	lub/dump/dump.c lub/dump/private.h lub/heap/cache.c \
-	lub/heap/cache.h lub/heap/cache_bucket.c lub/heap/context.c \
-	lub/heap/context.h lub/heap/heap__get_max_free.c \
-	lub/heap/heap__get_stacktrace.c lub/heap/heap__get_stats.c \
-	lub/heap/heap_add_segment.c lub/heap/heap_align_block.c \
-	lub/heap/heap_block__get_tail.c lub/heap/heap_block_from_ptr.c \
-	lub/heap/heap_block_getfirst.c lub/heap/heap_block_getkey.c \
-	lub/heap/heap_block_getnext.c \
-	lub/heap/heap_block_getprevious.c lub/heap/heap_block_check.c \
-	lub/heap/heap_check.c lub/heap/heap_context_delete.c \
-	lub/heap/heap_context_find_or_create.c lub/heap/heap_create.c \
-	lub/heap/heap_destroy.c lub/heap/heap_extend_both_ways.c \
-	lub/heap/heap_extend_downwards.c \
-	lub/heap/heap_extend_upwards.c \
-	lub/heap/heap_foreach_free_block.c \
-	lub/heap/heap_foreach_segment.c \
-	lub/heap/heap_graft_to_bottom.c lub/heap/heap_graft_to_top.c \
-	lub/heap/heap_init_free_block.c \
-	lub/heap/heap_merge_with_next.c \
-	lub/heap/heap_merge_with_previous.c \
-	lub/heap/heap_new_alloc_block.c lub/heap/heap_new_free_block.c \
-	lub/heap/heap_post_realloc.c lub/heap/heap_pre_realloc.c \
-	lub/heap/heap_raw_realloc.c lub/heap/heap_realloc.c \
-	lub/heap/heap_scan_stack.c lub/heap/heap_show.c \
-	lub/heap/heap_slice_from_bottom.c \
-	lub/heap/heap_slice_from_top.c lub/heap/heap_static_alloc.c \
-	lub/heap/heap_stop_here.c lub/heap/heap_tainted_memory.c \
-	lub/heap/node.c lub/heap/node.h lub/heap/private.h \
-	lub/heap/posix/heap_clean_stacks.c \
-	lub/heap/posix/heap_leak_mutex.c \
-	lub/heap/posix/heap_scan_bss.c lub/heap/posix/heap_scan_data.c \
-	lub/heap/posix/heap_symShow.c lub/heap/posix/sysheap_stubs.c \
-	lub/partition/partition_check_memory.c \
-	lub/partition/partition_destroy_local_heap.c \
-	lub/partition/partition_disable_leak_detection.c \
-	lub/partition/partition_enable_leak_detection.c \
-	lub/partition/partition_extend_memory.c \
-	lub/partition/partition_findcreate_local_heap.c \
-	lub/partition/partition_fini.c lub/partition/partition_init.c \
-	lub/partition/partition_realloc.c \
-	lub/partition/partition_segment_alloc.c \
-	lub/partition/partition_show.c \
-	lub/partition/partition_sysalloc.c lub/partition/private.h \
-	lub/partition/posix/posix_partition.c \
-	lub/partition/posix/private.h lub/string/string_cat.c \
-	lub/string/string_catn.c lub/string/string_dup.c \
-	lub/string/string_free.c lub/string/string_nocasecmp.c \
-	lub/string/string_nocasestr.c lub/string/string_suffix.c \
-	lub/string/string_escape.c lub/string/private.h \
-	lub/test/test.c lub/system/test.c lub/system/system_test.c \
-	lub/system/private.h lub/db/db.c
-@LUBHEAP_TRUE@am__objects_1 = lub/heap/cache.lo \
-@LUBHEAP_TRUE@	lub/heap/cache_bucket.lo lub/heap/context.lo \
-@LUBHEAP_TRUE@	lub/heap/heap__get_max_free.lo \
-@LUBHEAP_TRUE@	lub/heap/heap__get_stacktrace.lo \
-@LUBHEAP_TRUE@	lub/heap/heap__get_stats.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_add_segment.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_align_block.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block__get_tail.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_from_ptr.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getfirst.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getkey.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getnext.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_getprevious.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_block_check.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_check.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_context_delete.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_context_find_or_create.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_create.lo lub/heap/heap_destroy.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_both_ways.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_downwards.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_extend_upwards.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_foreach_free_block.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_foreach_segment.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_graft_to_bottom.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_graft_to_top.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_init_free_block.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_merge_with_next.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_merge_with_previous.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_new_alloc_block.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_new_free_block.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_post_realloc.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_pre_realloc.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_raw_realloc.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_realloc.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_scan_stack.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_show.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_slice_from_bottom.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_slice_from_top.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_static_alloc.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_stop_here.lo \
-@LUBHEAP_TRUE@	lub/heap/heap_tainted_memory.lo lub/heap/node.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_clean_stacks.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_leak_mutex.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_scan_bss.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_scan_data.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/heap_symShow.lo \
-@LUBHEAP_TRUE@	lub/heap/posix/sysheap_stubs.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_check_memory.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_destroy_local_heap.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_disable_leak_detection.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_enable_leak_detection.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_extend_memory.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_findcreate_local_heap.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_fini.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_init.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_realloc.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_segment_alloc.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_show.lo \
-@LUBHEAP_TRUE@	lub/partition/partition_sysalloc.lo \
-@LUBHEAP_TRUE@	lub/partition/posix/posix_partition.lo
 am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/argv/argv__get_argv.lo lub/argv/argv__get_count.lo \
 	lub/argv/argv__get_offset.lo lub/argv/argv__get_quoted.lo \
@@ -379,21 +174,14 @@ am_liblub_la_OBJECTS = lub/argv/argv__get_arg.lo \
 	lub/bintree/bintree_iterator_previous.lo \
 	lub/bintree/bintree_node_init.lo lub/bintree/bintree_remove.lo \
 	lub/bintree/bintree_splay.lo lub/list/list.lo \
-	lub/blockpool/blockpool_alloc.lo \
-	lub/blockpool/blockpool__get_stats.lo \
-	lub/blockpool/blockpool_free.lo \
-	lub/blockpool/blockpool_init.lo lub/ctype/ctype_isspace.lo \
-	lub/ctype/ctype_isdigit.lo lub/ctype/ctype_toupper.lo \
-	lub/ctype/ctype_tolower.lo lub/dblockpool/dblockpool_alloc.lo \
-	lub/dblockpool/dblockpool_fini.lo \
-	lub/dblockpool/dblockpool_free.lo \
-	lub/dblockpool/dblockpool_init.lo lub/dump/dump.lo \
-	$(am__objects_1) lub/string/string_cat.lo \
+	lub/ctype/ctype_isspace.lo lub/ctype/ctype_isdigit.lo \
+	lub/ctype/ctype_toupper.lo lub/ctype/ctype_tolower.lo \
+	lub/dump/dump.lo lub/string/string_cat.lo \
 	lub/string/string_catn.lo lub/string/string_dup.lo \
 	lub/string/string_free.lo lub/string/string_nocasecmp.lo \
 	lub/string/string_nocasestr.lo lub/string/string_suffix.lo \
-	lub/string/string_escape.lo lub/test/test.lo \
-	lub/system/test.lo lub/system/system_test.lo lub/db/db.lo
+	lub/string/string_escape.lo lub/system/test.lo \
+	lub/system/system_test.lo lub/db/db.lo
 liblub_la_OBJECTS = $(am_liblub_la_OBJECTS)
 libtinyrl_la_DEPENDENCIES = liblub.la
 am_libtinyrl_la_OBJECTS = tinyrl/tinyrl.lo tinyrl/history/history.lo \
@@ -446,7 +234,7 @@ SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
 	$(bin_konf_SOURCES) $(bin_konfd_SOURCES)
 DIST_SOURCES = $(libclish_la_SOURCES) $(libkonf_la_SOURCES) \
-	$(am__liblub_la_SOURCES_DIST) $(libtinyrl_la_SOURCES) \
+	$(liblub_la_SOURCES) $(libtinyrl_la_SOURCES) \
 	$(libtinyxml_la_SOURCES) $(bin_clish_SOURCES) \
 	$(bin_konf_SOURCES) $(bin_konfd_SOURCES)
 HEADERS = $(nobase_include_HEADERS)
@@ -615,12 +403,10 @@ nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
 	clish/pargv.h clish/ptype.h clish/shell.h clish/view.h \
 	clish/nspace.h clish/var.h clish/action.h clish/config.h \
 	clish/internal.h lub/argv.h lub/bintree.h lub/list.h \
-	lub/blockpool.h lub/ctype.h lub/dblockpool.h lub/c_decl.h \
-	lub/dump.h lub/heap.h lub/partition.h lub/string.h \
-	lub/size_fmt.h lub/test.h lub/types.h lub/system.h lub/db.h \
-	tinyrl/tinyrl.h tinyrl/history.h tinyrl/vt100.h \
-	tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h konf/query.h \
-	konf/buf.h konf/net.h
+	lub/ctype.h lub/c_decl.h lub/dump.h lub/string.h lub/types.h \
+	lub/system.h lub/db.h tinyrl/tinyrl.h tinyrl/history.h \
+	tinyrl/vt100.h tinyxml/tinystr.h tinyxml/tinyxml.h konf/tree.h \
+	konf/query.h konf/buf.h konf/net.h
 EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	tinyrl/module.am tinyxml/module.am konf/module.am \
 	doxygen.config clish.xsd LICENCE README CHANGES ISSUES \
@@ -630,22 +416,12 @@ EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
 	clish/nspace/module.am clish/var/module.am \
 	clish/action/module.am clish/config/module.am clish/README \
 	lub/argv/module.am lub/bintree/module.am lub/list/module.am \
-	lub/blockpool/module.am lub/ctype/module.am \
-	lub/dblockpool/module.am lub/dump/module.am lub/heap/module.am \
-	lub/string/module.am lub/test/module.am lub/system/module.am \
-	lub/db/module.am lub/README lub/heap/posix/module.am \
-	lub/heap/vxworks/module.am \
-	lub/heap/vxworks/heap_clean_stacks.c \
-	lub/heap/vxworks/heap_leak_mutex.c \
-	lub/heap/vxworks/heap_scan_bss.c \
-	lub/heap/vxworks/heap_scan_data.c \
-	lub/heap/vxworks/heap_symShow.c lub/partition/posix/module.am \
-	lub/partition/vxworks/module.am \
-	lub/partition/vxworks/vxworks_partition.c \
-	lub/partition/vxworks/private.h tinyrl/history/module.am \
-	tinyrl/vt100/module.am tinyrl/README tinyxml/changes.txt \
-	tinyxml/readme.txt tinyxml/README konf/tree/module.am \
-	konf/query/module.am konf/buf/module.am konf/net/module.am
+	lub/ctype/module.am lub/dump/module.am lub/string/module.am \
+	lub/system/module.am lub/db/module.am lub/README \
+	tinyrl/history/module.am tinyrl/vt100/module.am tinyrl/README \
+	tinyxml/changes.txt tinyxml/readme.txt tinyxml/README \
+	konf/tree/module.am konf/query/module.am konf/buf/module.am \
+	konf/net/module.am
 bin_clish_SOURCES = bin/clish.cpp
 bin_clish_LDADD = \
 	libclish.la \
@@ -709,21 +485,14 @@ liblub_la_SOURCES = lub/argv/argv__get_arg.c lub/argv/argv__get_argv.c \
 	lub/bintree/bintree_iterator_previous.c \
 	lub/bintree/bintree_node_init.c lub/bintree/bintree_remove.c \
 	lub/bintree/bintree_splay.c lub/bintree/private.h \
-	lub/list/list.c lub/blockpool/blockpool_alloc.c \
-	lub/blockpool/blockpool__get_stats.c \
-	lub/blockpool/blockpool_free.c lub/blockpool/blockpool_init.c \
-	lub/blockpool/private.h lub/ctype/ctype_isspace.c \
+	lub/list/list.c lub/ctype/ctype_isspace.c \
 	lub/ctype/ctype_isdigit.c lub/ctype/ctype_toupper.c \
-	lub/ctype/ctype_tolower.c lub/dblockpool/dblockpool_alloc.c \
-	lub/dblockpool/dblockpool_fini.c \
-	lub/dblockpool/dblockpool_free.c \
-	lub/dblockpool/dblockpool_init.c lub/dblockpool/private.h \
-	lub/dump/dump.c lub/dump/private.h $(am__append_1) \
+	lub/ctype/ctype_tolower.c lub/dump/dump.c lub/dump/private.h \
 	lub/string/string_cat.c lub/string/string_catn.c \
 	lub/string/string_dup.c lub/string/string_free.c \
 	lub/string/string_nocasecmp.c lub/string/string_nocasestr.c \
 	lub/string/string_suffix.c lub/string/string_escape.c \
-	lub/string/private.h lub/test/test.c lub/system/test.c \
+	lub/string/private.h lub/system/test.c \
 	lub/system/system_test.c lub/system/private.h lub/db/db.c
 liblub_la_LIBADD = 
 libtinyrl_la_LIBADD = liblub.la
@@ -750,7 +519,7 @@ all: config.h
 .SUFFIXES: .c .cpp .lo .o .obj
 am--refresh: Makefile
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -773,7 +542,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
 	esac;
-$(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/blockpool/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dblockpool/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/heap/module.am $(top_srcdir)/lub/heap/posix/module.am $(top_srcdir)/lub/heap/vxworks/module.am $(top_srcdir)/lub/partition/module.am $(top_srcdir)/lub/partition/posix/module.am $(top_srcdir)/lub/partition/vxworks/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/test/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am:
+$(top_srcdir)/bin/module.am $(top_srcdir)/clish/module.am $(top_srcdir)/clish/command/module.am $(top_srcdir)/clish/param/module.am $(top_srcdir)/clish/pargv/module.am $(top_srcdir)/clish/ptype/module.am $(top_srcdir)/clish/shell/module.am $(top_srcdir)/clish/view/module.am $(top_srcdir)/clish/nspace/module.am $(top_srcdir)/clish/var/module.am $(top_srcdir)/clish/action/module.am $(top_srcdir)/clish/config/module.am $(top_srcdir)/lub/module.am $(top_srcdir)/lub/argv/module.am $(top_srcdir)/lub/bintree/module.am $(top_srcdir)/lub/list/module.am $(top_srcdir)/lub/ctype/module.am $(top_srcdir)/lub/dump/module.am $(top_srcdir)/lub/string/module.am $(top_srcdir)/lub/system/module.am $(top_srcdir)/lub/db/module.am $(top_srcdir)/tinyrl/module.am $(top_srcdir)/tinyrl/history/module.am $(top_srcdir)/tinyrl/vt100/module.am $(top_srcdir)/tinyxml/module.am $(top_srcdir)/konf/module.am $(top_srcdir)/konf/tree/module.am $(top_srcdir)/konf/query/module.am $(top_srcdir)/konf/buf/module.am $(top_srcdir)/konf/net/module.am:
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
@@ -1104,20 +873,6 @@ lub/list/$(DEPDIR)/$(am__dirstamp):
 	@: > lub/list/$(DEPDIR)/$(am__dirstamp)
 lub/list/list.lo: lub/list/$(am__dirstamp) \
 	lub/list/$(DEPDIR)/$(am__dirstamp)
-lub/blockpool/$(am__dirstamp):
-	@$(MKDIR_P) lub/blockpool
-	@: > lub/blockpool/$(am__dirstamp)
-lub/blockpool/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/blockpool/$(DEPDIR)
-	@: > lub/blockpool/$(DEPDIR)/$(am__dirstamp)
-lub/blockpool/blockpool_alloc.lo: lub/blockpool/$(am__dirstamp) \
-	lub/blockpool/$(DEPDIR)/$(am__dirstamp)
-lub/blockpool/blockpool__get_stats.lo: lub/blockpool/$(am__dirstamp) \
-	lub/blockpool/$(DEPDIR)/$(am__dirstamp)
-lub/blockpool/blockpool_free.lo: lub/blockpool/$(am__dirstamp) \
-	lub/blockpool/$(DEPDIR)/$(am__dirstamp)
-lub/blockpool/blockpool_init.lo: lub/blockpool/$(am__dirstamp) \
-	lub/blockpool/$(DEPDIR)/$(am__dirstamp)
 lub/ctype/$(am__dirstamp):
 	@$(MKDIR_P) lub/ctype
 	@: > lub/ctype/$(am__dirstamp)
@@ -1132,20 +887,6 @@ lub/ctype/ctype_toupper.lo: lub/ctype/$(am__dirstamp) \
 	lub/ctype/$(DEPDIR)/$(am__dirstamp)
 lub/ctype/ctype_tolower.lo: lub/ctype/$(am__dirstamp) \
 	lub/ctype/$(DEPDIR)/$(am__dirstamp)
-lub/dblockpool/$(am__dirstamp):
-	@$(MKDIR_P) lub/dblockpool
-	@: > lub/dblockpool/$(am__dirstamp)
-lub/dblockpool/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/dblockpool/$(DEPDIR)
-	@: > lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
-lub/dblockpool/dblockpool_alloc.lo: lub/dblockpool/$(am__dirstamp) \
-	lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
-lub/dblockpool/dblockpool_fini.lo: lub/dblockpool/$(am__dirstamp) \
-	lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
-lub/dblockpool/dblockpool_free.lo: lub/dblockpool/$(am__dirstamp) \
-	lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
-lub/dblockpool/dblockpool_init.lo: lub/dblockpool/$(am__dirstamp) \
-	lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
 lub/dump/$(am__dirstamp):
 	@$(MKDIR_P) lub/dump
 	@: > lub/dump/$(am__dirstamp)
@@ -1154,164 +895,6 @@ lub/dump/$(DEPDIR)/$(am__dirstamp):
 	@: > lub/dump/$(DEPDIR)/$(am__dirstamp)
 lub/dump/dump.lo: lub/dump/$(am__dirstamp) \
 	lub/dump/$(DEPDIR)/$(am__dirstamp)
-lub/heap/$(am__dirstamp):
-	@$(MKDIR_P) lub/heap
-	@: > lub/heap/$(am__dirstamp)
-lub/heap/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/heap/$(DEPDIR)
-	@: > lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/cache.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/cache_bucket.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/context.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap__get_max_free.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap__get_stacktrace.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap__get_stats.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_add_segment.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_align_block.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block__get_tail.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_from_ptr.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_getfirst.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_getkey.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_getnext.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_getprevious.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_block_check.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_check.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_context_delete.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_context_find_or_create.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_create.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_destroy.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_extend_both_ways.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_extend_downwards.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_extend_upwards.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_foreach_free_block.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_foreach_segment.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_graft_to_bottom.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_graft_to_top.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_init_free_block.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_merge_with_next.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_merge_with_previous.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_new_alloc_block.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_new_free_block.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_post_realloc.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_pre_realloc.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_raw_realloc.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_realloc.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_scan_stack.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_show.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_slice_from_bottom.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_slice_from_top.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_static_alloc.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_stop_here.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/heap_tainted_memory.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/node.lo: lub/heap/$(am__dirstamp) \
-	lub/heap/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/$(am__dirstamp):
-	@$(MKDIR_P) lub/heap/posix
-	@: > lub/heap/posix/$(am__dirstamp)
-lub/heap/posix/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/heap/posix/$(DEPDIR)
-	@: > lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/heap_clean_stacks.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/heap_leak_mutex.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/heap_scan_bss.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/heap_scan_data.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/heap_symShow.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/heap/posix/sysheap_stubs.lo: lub/heap/posix/$(am__dirstamp) \
-	lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-lub/partition/$(am__dirstamp):
-	@$(MKDIR_P) lub/partition
-	@: > lub/partition/$(am__dirstamp)
-lub/partition/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/partition/$(DEPDIR)
-	@: > lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_check_memory.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_destroy_local_heap.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_disable_leak_detection.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_enable_leak_detection.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_extend_memory.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_findcreate_local_heap.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_fini.lo: lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_init.lo: lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_realloc.lo: lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_segment_alloc.lo:  \
-	lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_show.lo: lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/partition_sysalloc.lo: lub/partition/$(am__dirstamp) \
-	lub/partition/$(DEPDIR)/$(am__dirstamp)
-lub/partition/posix/$(am__dirstamp):
-	@$(MKDIR_P) lub/partition/posix
-	@: > lub/partition/posix/$(am__dirstamp)
-lub/partition/posix/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/partition/posix/$(DEPDIR)
-	@: > lub/partition/posix/$(DEPDIR)/$(am__dirstamp)
-lub/partition/posix/posix_partition.lo:  \
-	lub/partition/posix/$(am__dirstamp) \
-	lub/partition/posix/$(DEPDIR)/$(am__dirstamp)
 lub/string/$(am__dirstamp):
 	@$(MKDIR_P) lub/string
 	@: > lub/string/$(am__dirstamp)
@@ -1334,14 +917,6 @@ lub/string/string_suffix.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
 lub/string/string_escape.lo: lub/string/$(am__dirstamp) \
 	lub/string/$(DEPDIR)/$(am__dirstamp)
-lub/test/$(am__dirstamp):
-	@$(MKDIR_P) lub/test
-	@: > lub/test/$(am__dirstamp)
-lub/test/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) lub/test/$(DEPDIR)
-	@: > lub/test/$(DEPDIR)/$(am__dirstamp)
-lub/test/test.lo: lub/test/$(am__dirstamp) \
-	lub/test/$(DEPDIR)/$(am__dirstamp)
 lub/system/$(am__dirstamp):
 	@$(MKDIR_P) lub/system
 	@: > lub/system/$(am__dirstamp)
@@ -1602,14 +1177,6 @@ mostlyclean-compile:
 	-rm -f lub/bintree/bintree_remove.lo
 	-rm -f lub/bintree/bintree_splay.$(OBJEXT)
 	-rm -f lub/bintree/bintree_splay.lo
-	-rm -f lub/blockpool/blockpool__get_stats.$(OBJEXT)
-	-rm -f lub/blockpool/blockpool__get_stats.lo
-	-rm -f lub/blockpool/blockpool_alloc.$(OBJEXT)
-	-rm -f lub/blockpool/blockpool_alloc.lo
-	-rm -f lub/blockpool/blockpool_free.$(OBJEXT)
-	-rm -f lub/blockpool/blockpool_free.lo
-	-rm -f lub/blockpool/blockpool_init.$(OBJEXT)
-	-rm -f lub/blockpool/blockpool_init.lo
 	-rm -f lub/ctype/ctype_isdigit.$(OBJEXT)
 	-rm -f lub/ctype/ctype_isdigit.lo
 	-rm -f lub/ctype/ctype_isspace.$(OBJEXT)
@@ -1620,144 +1187,10 @@ mostlyclean-compile:
 	-rm -f lub/ctype/ctype_toupper.lo
 	-rm -f lub/db/db.$(OBJEXT)
 	-rm -f lub/db/db.lo
-	-rm -f lub/dblockpool/dblockpool_alloc.$(OBJEXT)
-	-rm -f lub/dblockpool/dblockpool_alloc.lo
-	-rm -f lub/dblockpool/dblockpool_fini.$(OBJEXT)
-	-rm -f lub/dblockpool/dblockpool_fini.lo
-	-rm -f lub/dblockpool/dblockpool_free.$(OBJEXT)
-	-rm -f lub/dblockpool/dblockpool_free.lo
-	-rm -f lub/dblockpool/dblockpool_init.$(OBJEXT)
-	-rm -f lub/dblockpool/dblockpool_init.lo
 	-rm -f lub/dump/dump.$(OBJEXT)
 	-rm -f lub/dump/dump.lo
-	-rm -f lub/heap/cache.$(OBJEXT)
-	-rm -f lub/heap/cache.lo
-	-rm -f lub/heap/cache_bucket.$(OBJEXT)
-	-rm -f lub/heap/cache_bucket.lo
-	-rm -f lub/heap/context.$(OBJEXT)
-	-rm -f lub/heap/context.lo
-	-rm -f lub/heap/heap__get_max_free.$(OBJEXT)
-	-rm -f lub/heap/heap__get_max_free.lo
-	-rm -f lub/heap/heap__get_stacktrace.$(OBJEXT)
-	-rm -f lub/heap/heap__get_stacktrace.lo
-	-rm -f lub/heap/heap__get_stats.$(OBJEXT)
-	-rm -f lub/heap/heap__get_stats.lo
-	-rm -f lub/heap/heap_add_segment.$(OBJEXT)
-	-rm -f lub/heap/heap_add_segment.lo
-	-rm -f lub/heap/heap_align_block.$(OBJEXT)
-	-rm -f lub/heap/heap_align_block.lo
-	-rm -f lub/heap/heap_block__get_tail.$(OBJEXT)
-	-rm -f lub/heap/heap_block__get_tail.lo
-	-rm -f lub/heap/heap_block_check.$(OBJEXT)
-	-rm -f lub/heap/heap_block_check.lo
-	-rm -f lub/heap/heap_block_from_ptr.$(OBJEXT)
-	-rm -f lub/heap/heap_block_from_ptr.lo
-	-rm -f lub/heap/heap_block_getfirst.$(OBJEXT)
-	-rm -f lub/heap/heap_block_getfirst.lo
-	-rm -f lub/heap/heap_block_getkey.$(OBJEXT)
-	-rm -f lub/heap/heap_block_getkey.lo
-	-rm -f lub/heap/heap_block_getnext.$(OBJEXT)
-	-rm -f lub/heap/heap_block_getnext.lo
-	-rm -f lub/heap/heap_block_getprevious.$(OBJEXT)
-	-rm -f lub/heap/heap_block_getprevious.lo
-	-rm -f lub/heap/heap_check.$(OBJEXT)
-	-rm -f lub/heap/heap_check.lo
-	-rm -f lub/heap/heap_context_delete.$(OBJEXT)
-	-rm -f lub/heap/heap_context_delete.lo
-	-rm -f lub/heap/heap_context_find_or_create.$(OBJEXT)
-	-rm -f lub/heap/heap_context_find_or_create.lo
-	-rm -f lub/heap/heap_create.$(OBJEXT)
-	-rm -f lub/heap/heap_create.lo
-	-rm -f lub/heap/heap_destroy.$(OBJEXT)
-	-rm -f lub/heap/heap_destroy.lo
-	-rm -f lub/heap/heap_extend_both_ways.$(OBJEXT)
-	-rm -f lub/heap/heap_extend_both_ways.lo
-	-rm -f lub/heap/heap_extend_downwards.$(OBJEXT)
-	-rm -f lub/heap/heap_extend_downwards.lo
-	-rm -f lub/heap/heap_extend_upwards.$(OBJEXT)
-	-rm -f lub/heap/heap_extend_upwards.lo
-	-rm -f lub/heap/heap_foreach_free_block.$(OBJEXT)
-	-rm -f lub/heap/heap_foreach_free_block.lo
-	-rm -f lub/heap/heap_foreach_segment.$(OBJEXT)
-	-rm -f lub/heap/heap_foreach_segment.lo
-	-rm -f lub/heap/heap_graft_to_bottom.$(OBJEXT)
-	-rm -f lub/heap/heap_graft_to_bottom.lo
-	-rm -f lub/heap/heap_graft_to_top.$(OBJEXT)
-	-rm -f lub/heap/heap_graft_to_top.lo
-	-rm -f lub/heap/heap_init_free_block.$(OBJEXT)
-	-rm -f lub/heap/heap_init_free_block.lo
-	-rm -f lub/heap/heap_merge_with_next.$(OBJEXT)
-	-rm -f lub/heap/heap_merge_with_next.lo
-	-rm -f lub/heap/heap_merge_with_previous.$(OBJEXT)
-	-rm -f lub/heap/heap_merge_with_previous.lo
-	-rm -f lub/heap/heap_new_alloc_block.$(OBJEXT)
-	-rm -f lub/heap/heap_new_alloc_block.lo
-	-rm -f lub/heap/heap_new_free_block.$(OBJEXT)
-	-rm -f lub/heap/heap_new_free_block.lo
-	-rm -f lub/heap/heap_post_realloc.$(OBJEXT)
-	-rm -f lub/heap/heap_post_realloc.lo
-	-rm -f lub/heap/heap_pre_realloc.$(OBJEXT)
-	-rm -f lub/heap/heap_pre_realloc.lo
-	-rm -f lub/heap/heap_raw_realloc.$(OBJEXT)
-	-rm -f lub/heap/heap_raw_realloc.lo
-	-rm -f lub/heap/heap_realloc.$(OBJEXT)
-	-rm -f lub/heap/heap_realloc.lo
-	-rm -f lub/heap/heap_scan_stack.$(OBJEXT)
-	-rm -f lub/heap/heap_scan_stack.lo
-	-rm -f lub/heap/heap_show.$(OBJEXT)
-	-rm -f lub/heap/heap_show.lo
-	-rm -f lub/heap/heap_slice_from_bottom.$(OBJEXT)
-	-rm -f lub/heap/heap_slice_from_bottom.lo
-	-rm -f lub/heap/heap_slice_from_top.$(OBJEXT)
-	-rm -f lub/heap/heap_slice_from_top.lo
-	-rm -f lub/heap/heap_static_alloc.$(OBJEXT)
-	-rm -f lub/heap/heap_static_alloc.lo
-	-rm -f lub/heap/heap_stop_here.$(OBJEXT)
-	-rm -f lub/heap/heap_stop_here.lo
-	-rm -f lub/heap/heap_tainted_memory.$(OBJEXT)
-	-rm -f lub/heap/heap_tainted_memory.lo
-	-rm -f lub/heap/node.$(OBJEXT)
-	-rm -f lub/heap/node.lo
-	-rm -f lub/heap/posix/heap_clean_stacks.$(OBJEXT)
-	-rm -f lub/heap/posix/heap_clean_stacks.lo
-	-rm -f lub/heap/posix/heap_leak_mutex.$(OBJEXT)
-	-rm -f lub/heap/posix/heap_leak_mutex.lo
-	-rm -f lub/heap/posix/heap_scan_bss.$(OBJEXT)
-	-rm -f lub/heap/posix/heap_scan_bss.lo
-	-rm -f lub/heap/posix/heap_scan_data.$(OBJEXT)
-	-rm -f lub/heap/posix/heap_scan_data.lo
-	-rm -f lub/heap/posix/heap_symShow.$(OBJEXT)
-	-rm -f lub/heap/posix/heap_symShow.lo
-	-rm -f lub/heap/posix/sysheap_stubs.$(OBJEXT)
-	-rm -f lub/heap/posix/sysheap_stubs.lo
 	-rm -f lub/list/list.$(OBJEXT)
 	-rm -f lub/list/list.lo
-	-rm -f lub/partition/partition_check_memory.$(OBJEXT)
-	-rm -f lub/partition/partition_check_memory.lo
-	-rm -f lub/partition/partition_destroy_local_heap.$(OBJEXT)
-	-rm -f lub/partition/partition_destroy_local_heap.lo
-	-rm -f lub/partition/partition_disable_leak_detection.$(OBJEXT)
-	-rm -f lub/partition/partition_disable_leak_detection.lo
-	-rm -f lub/partition/partition_enable_leak_detection.$(OBJEXT)
-	-rm -f lub/partition/partition_enable_leak_detection.lo
-	-rm -f lub/partition/partition_extend_memory.$(OBJEXT)
-	-rm -f lub/partition/partition_extend_memory.lo
-	-rm -f lub/partition/partition_findcreate_local_heap.$(OBJEXT)
-	-rm -f lub/partition/partition_findcreate_local_heap.lo
-	-rm -f lub/partition/partition_fini.$(OBJEXT)
-	-rm -f lub/partition/partition_fini.lo
-	-rm -f lub/partition/partition_init.$(OBJEXT)
-	-rm -f lub/partition/partition_init.lo
-	-rm -f lub/partition/partition_realloc.$(OBJEXT)
-	-rm -f lub/partition/partition_realloc.lo
-	-rm -f lub/partition/partition_segment_alloc.$(OBJEXT)
-	-rm -f lub/partition/partition_segment_alloc.lo
-	-rm -f lub/partition/partition_show.$(OBJEXT)
-	-rm -f lub/partition/partition_show.lo
-	-rm -f lub/partition/partition_sysalloc.$(OBJEXT)
-	-rm -f lub/partition/partition_sysalloc.lo
-	-rm -f lub/partition/posix/posix_partition.$(OBJEXT)
-	-rm -f lub/partition/posix/posix_partition.lo
 	-rm -f lub/string/string_cat.$(OBJEXT)
 	-rm -f lub/string/string_cat.lo
 	-rm -f lub/string/string_catn.$(OBJEXT)
@@ -1778,8 +1211,6 @@ mostlyclean-compile:
 	-rm -f lub/system/system_test.lo
 	-rm -f lub/system/test.$(OBJEXT)
 	-rm -f lub/system/test.lo
-	-rm -f lub/test/test.$(OBJEXT)
-	-rm -f lub/test/test.lo
 	-rm -f tinyrl/history/history.$(OBJEXT)
 	-rm -f tinyrl/history/history.lo
 	-rm -f tinyrl/history/history_entry.$(OBJEXT)
@@ -1868,84 +1299,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_node_init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_remove.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/bintree/$(DEPDIR)/bintree_splay.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/blockpool/$(DEPDIR)/blockpool__get_stats.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/blockpool/$(DEPDIR)/blockpool_alloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/blockpool/$(DEPDIR)/blockpool_free.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/blockpool/$(DEPDIR)/blockpool_init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/ctype/$(DEPDIR)/ctype_isdigit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/ctype/$(DEPDIR)/ctype_isspace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/ctype/$(DEPDIR)/ctype_tolower.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/ctype/$(DEPDIR)/ctype_toupper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/db/$(DEPDIR)/db.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/dblockpool/$(DEPDIR)/dblockpool_alloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/dblockpool/$(DEPDIR)/dblockpool_fini.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/dblockpool/$(DEPDIR)/dblockpool_free.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/dblockpool/$(DEPDIR)/dblockpool_init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/dump/$(DEPDIR)/dump.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/cache.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/cache_bucket.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/context.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap__get_max_free.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap__get_stacktrace.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap__get_stats.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_add_segment.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_align_block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block__get_tail.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_check.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_from_ptr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_getfirst.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_getkey.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_getnext.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_block_getprevious.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_check.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_context_delete.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_context_find_or_create.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_create.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_destroy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_extend_both_ways.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_extend_downwards.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_extend_upwards.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_foreach_free_block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_foreach_segment.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_graft_to_bottom.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_graft_to_top.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_init_free_block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_merge_with_next.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_merge_with_previous.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_new_alloc_block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_new_free_block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_post_realloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_pre_realloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_raw_realloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_realloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_scan_stack.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_show.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_slice_from_bottom.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_slice_from_top.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_static_alloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_stop_here.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/heap_tainted_memory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/$(DEPDIR)/node.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_clean_stacks.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_leak_mutex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_scan_bss.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_scan_data.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/heap_symShow.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/heap/posix/$(DEPDIR)/sysheap_stubs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/list/$(DEPDIR)/list.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_check_memory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_destroy_local_heap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_disable_leak_detection.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_enable_leak_detection.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_extend_memory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_findcreate_local_heap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_fini.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_init.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_realloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_segment_alloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_show.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/$(DEPDIR)/partition_sysalloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/partition/posix/$(DEPDIR)/posix_partition.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_cat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_catn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_dup.Plo@am__quote@
@@ -1956,7 +1316,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lub/string/$(DEPDIR)/string_suffix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/system/$(DEPDIR)/system_test.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lub/system/$(DEPDIR)/test.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@lub/test/$(DEPDIR)/test.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/$(DEPDIR)/tinyrl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/history/$(DEPDIR)/history.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tinyrl/history/$(DEPDIR)/history_entry.Plo@am__quote@
@@ -2324,19 +1683,12 @@ clean-libtool:
 	-rm -rf konf/tree/.libs konf/tree/_libs
 	-rm -rf lub/argv/.libs lub/argv/_libs
 	-rm -rf lub/bintree/.libs lub/bintree/_libs
-	-rm -rf lub/blockpool/.libs lub/blockpool/_libs
 	-rm -rf lub/ctype/.libs lub/ctype/_libs
 	-rm -rf lub/db/.libs lub/db/_libs
-	-rm -rf lub/dblockpool/.libs lub/dblockpool/_libs
 	-rm -rf lub/dump/.libs lub/dump/_libs
-	-rm -rf lub/heap/.libs lub/heap/_libs
-	-rm -rf lub/heap/posix/.libs lub/heap/posix/_libs
 	-rm -rf lub/list/.libs lub/list/_libs
-	-rm -rf lub/partition/.libs lub/partition/_libs
-	-rm -rf lub/partition/posix/.libs lub/partition/posix/_libs
 	-rm -rf lub/string/.libs lub/string/_libs
 	-rm -rf lub/system/.libs lub/system/_libs
-	-rm -rf lub/test/.libs lub/test/_libs
 	-rm -rf tinyrl/.libs tinyrl/_libs
 	-rm -rf tinyrl/history/.libs tinyrl/history/_libs
 	-rm -rf tinyrl/vt100/.libs tinyrl/vt100/_libs
@@ -2652,32 +2004,18 @@ distclean-generic:
 	-rm -f lub/argv/$(am__dirstamp)
 	-rm -f lub/bintree/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/bintree/$(am__dirstamp)
-	-rm -f lub/blockpool/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/blockpool/$(am__dirstamp)
 	-rm -f lub/ctype/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/ctype/$(am__dirstamp)
 	-rm -f lub/db/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/db/$(am__dirstamp)
-	-rm -f lub/dblockpool/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/dblockpool/$(am__dirstamp)
 	-rm -f lub/dump/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/dump/$(am__dirstamp)
-	-rm -f lub/heap/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/heap/$(am__dirstamp)
-	-rm -f lub/heap/posix/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/heap/posix/$(am__dirstamp)
 	-rm -f lub/list/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/list/$(am__dirstamp)
-	-rm -f lub/partition/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/partition/$(am__dirstamp)
-	-rm -f lub/partition/posix/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/partition/posix/$(am__dirstamp)
 	-rm -f lub/string/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/string/$(am__dirstamp)
 	-rm -f lub/system/$(DEPDIR)/$(am__dirstamp)
 	-rm -f lub/system/$(am__dirstamp)
-	-rm -f lub/test/$(DEPDIR)/$(am__dirstamp)
-	-rm -f lub/test/$(am__dirstamp)
 	-rm -f tinyrl/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tinyrl/$(am__dirstamp)
 	-rm -f tinyrl/history/$(DEPDIR)/$(am__dirstamp)
@@ -2697,7 +2035,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dump/$(DEPDIR) lub/list/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -2746,7 +2084,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/blockpool/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dblockpool/$(DEPDIR) lub/dump/$(DEPDIR) lub/heap/$(DEPDIR) lub/heap/posix/$(DEPDIR) lub/list/$(DEPDIR) lub/partition/$(DEPDIR) lub/partition/posix/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) lub/test/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
+	-rm -rf bin/$(DEPDIR) clish/$(DEPDIR) clish/action/$(DEPDIR) clish/command/$(DEPDIR) clish/config/$(DEPDIR) clish/nspace/$(DEPDIR) clish/param/$(DEPDIR) clish/pargv/$(DEPDIR) clish/ptype/$(DEPDIR) clish/shell/$(DEPDIR) clish/var/$(DEPDIR) clish/view/$(DEPDIR) konf/buf/$(DEPDIR) konf/net/$(DEPDIR) konf/query/$(DEPDIR) konf/tree/$(DEPDIR) lub/argv/$(DEPDIR) lub/bintree/$(DEPDIR) lub/ctype/$(DEPDIR) lub/db/$(DEPDIR) lub/dump/$(DEPDIR) lub/list/$(DEPDIR) lub/string/$(DEPDIR) lub/system/$(DEPDIR) tinyrl/$(DEPDIR) tinyrl/history/$(DEPDIR) tinyrl/vt100/$(DEPDIR) tinyxml/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

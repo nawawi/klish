@@ -1,3 +1,0 @@
-EXTRA_DIST  +=                                       \
-            lub/partition/vxworks/vxworks_partition.c\
-            lub/partition/vxworks/private.h

@@ -1,4 +1,0 @@
-if LUBHEAP
-  liblub_la_SOURCES +=  lub/partition/posix/posix_partition.c  \
-                        lub/partition/posix/private.h
-endif
