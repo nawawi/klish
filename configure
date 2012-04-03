@@ -16780,6 +16780,66 @@ $as_echo "$as_me: WARNING: Skipping BFD library checks because of GPL Licence" >
 fi
 
 ################################
+# Search for network functions (like connect())
+################################
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing socket" >&5
+$as_echo_n "checking for library containing socket... " >&6; }
+if ${ac_cv_search_socket+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char socket ();
+int
+main ()
+{
+return socket ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' socket; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_socket=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_socket+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_socket+:} false; then :
+
+else
+  ac_cv_search_socket=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_socket" >&5
+$as_echo "$ac_cv_search_socket" >&6; }
+ac_res=$ac_cv_search_socket
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+
+################################
 # Check for regex.h
 ################################
 for ac_header in regex.h
@@ -16923,25 +16983,6 @@ else
 $as_echo "$as_me: WARNING: chroot() not found: the choot is not supported" >&2;}
 fi
 done
-
-
-################################
-# Check for socket
-################################
-for ac_func in socket
-do :
-  ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
-if test "x$ac_cv_func_socket" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SOCKET 1
-_ACEOF
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: socket() not found: the socket is not supported" >&5
-$as_echo "$as_me: WARNING: socket() not found: the socket is not supported" >&2;}
-fi
-done
-
 
 
 ac_config_files="$ac_config_files Makefile"

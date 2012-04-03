@@ -239,6 +239,11 @@ else
 fi
 
 ################################
+# Search for network functions (like connect())
+################################
+AC_SEARCH_LIBS([socket], [socket])
+
+################################
 # Check for regex.h
 ################################
 AC_CHECK_HEADERS(regex.h, [],
@@ -274,13 +279,6 @@ AC_CHECK_HEADERS(grp.h, [],
 ################################
 AC_CHECK_FUNCS(chroot, [],
     AC_MSG_WARN([chroot() not found: the choot is not supported]))
-
-################################
-# Check for socket
-################################
-AC_CHECK_FUNCS(socket, [],
-    AC_MSG_WARN([socket() not found: the socket is not supported]))
-
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

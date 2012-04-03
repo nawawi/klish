@@ -1,11 +1,12 @@
+/* It must be here to include config.h before another headers */
+#include "lub/db.h"
+
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <grp.h>
 #include <unistd.h>
-
-#include "lub/db.h"
 
 struct passwd *lub_db_getpwnam(const char *name)
 {
