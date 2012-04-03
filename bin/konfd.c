@@ -572,7 +572,7 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 		{NULL,		0, NULL, 0}
 	};
 #endif
-	optind = 0;
+	optind = 1;
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H

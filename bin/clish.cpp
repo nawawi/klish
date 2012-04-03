@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	cmds = lub_list_new(NULL);
 
 	/* Parse command line options */
-	optind = 0;
+	optind = 1;
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H

@@ -107,7 +107,7 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 	};
 #endif
 
-	optind = 0;
+	optind = 1;
 	while(1) {
 		int opt;
 #ifdef HAVE_GETOPT_H
