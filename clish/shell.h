@@ -13,7 +13,6 @@
 #define _clish_shell_h
 
 #include <stdio.h>
-#include <pthread.h>
 
 #include "lub/c_decl.h"
 #include "lub/types.h"
@@ -326,11 +325,6 @@ FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
 char * clish_shell__get_lockfile(clish_shell_t * instance);
 int clish_shell__set_socket(clish_shell_t * instance, const char * path);
-int clish_shell_spawn(clish_shell_t * instance,
-	const pthread_attr_t * attr);
-int clish_shell_wait(clish_shell_t * instance);
-int clish_shell_spawn_and_wait(clish_shell_t * instance,
-	const pthread_attr_t * attr);
 void clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
 int clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);

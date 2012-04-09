@@ -8,9 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
 #include <unistd.h>
-#include <pthread.h>
 #include <dirent.h>
 
 /*
@@ -98,7 +96,7 @@ void clish_shell_load_scheme(clish_shell_t * this, const char *xml_path)
 }
 
 /*-------------------------------------------------------- */
-static int _loop(clish_shell_t * this, bool_t is_thread)
+int clish_shell_loop(clish_shell_t *this)
 {
 	int running = 0;
 	int retval = SHELL_STATE_OK;
@@ -110,8 +108,6 @@ static int _loop(clish_shell_t * this, bool_t is_thread)
 	if (this && (SHELL_STATE_CLOSING == this->state))
 		return retval;
 
-	if (is_thread)
-		pthread_testcancel();
 	/* Loop reading and executing lines until the user quits */
 	while (!running) {
 		retval = SHELL_STATE_OK;
@@ -135,101 +131,9 @@ static int _loop(clish_shell_t * this, bool_t is_thread)
 			running = -1;
 		if (running)
 			running = clish_shell_pop_file(this);
-		/* test for cancellation */
-		if (is_thread)
-			pthread_testcancel();
 	}
 
 	return retval;
-}
-
-/*-------------------------------------------------------- */
-/*
- * This is invoked when the thread ends or is cancelled.
- */
-static void clish_shell_thread_cleanup(clish_shell_t * this)
-{
-#ifdef __vxworks
-	int last_state;
-	/* we need to avoid recursion issues that exit in VxWorks */
-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &last_state);
-#endif				/* __vxworks */
-
-/* Nothing to do now. The context will be free later. */
-
-#ifdef __vxworks
-	pthread_setcancelstate(last_state, &last_state);
-#endif				/* __vxworks */
-}
-
-/*-------------------------------------------------------- */
-/*
- * This provides the thread of execution for a shell instance
- */
-static void *clish_shell_thread(void *arg)
-{
-	clish_shell_t *this = arg;
-	int last_type;
-	int *res = NULL;
-
-	res = malloc(sizeof(*res));
-	*res = 0;
-	/* make sure we can only be cancelled at controlled points */
-	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &last_type);
-	/* register a cancellation handler */
-	pthread_cleanup_push((void (*)(void *))clish_shell_thread_cleanup, this);
-
-	if (this)
-		*res = _loop(this, BOOL_TRUE);
-
-	/* be a good pthread citizen */
-	pthread_cleanup_pop(1);
-
-	return res;
-}
-
-/*-------------------------------------------------------- */
-int clish_shell_spawn(clish_shell_t *this,
-	const pthread_attr_t *attr)
-{
-	if (!this)
-		return -1;
-
-	return pthread_create(&this->pthread,
-		attr, clish_shell_thread, this);
-}
-
-/*-------------------------------------------------------- */
-int clish_shell_wait(clish_shell_t *this)
-{
-	void *res = NULL;
-	int retval = 0;
-
-	if (!this)
-		return -1;
-	(void)pthread_join(this->pthread, &res);
-	if (res) {
-		retval = *(int *)res;
-		free(res);
-	}
-
-	return retval;
-}
-
-/*-------------------------------------------------------- */
-int clish_shell_spawn_and_wait(clish_shell_t *this,
-	const pthread_attr_t *attr)
-{
-	if (clish_shell_spawn(this, attr) < 0)
-		return -1;
-
-	return clish_shell_wait(this);
-}
-
-/*-------------------------------------------------------- */
-int clish_shell_loop(clish_shell_t *this)
-{
-	return _loop(this, BOOL_FALSE);
 }
 
 /*-------------------------------------------------------- */

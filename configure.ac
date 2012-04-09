@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_define([MAJOR_VERSION], 1)
 m4_define([MINOR_VERSION], 5)
-m4_define([MICRO_VERSION], 3)
+m4_define([MICRO_VERSION], 4)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -99,41 +99,6 @@ if test "x$TINYXML_LIBS" = "x"; then
 fi
 AC_SUBST(TINYXML_LIBS)
 AC_SUBST(TINYXML_CXXFLAGS)
-
-################################
-# Check for the PTHREAD library
-################################
-#C_ARG_WITH(pthread,
-#           [AS_HELP_STRING([--with-pthread=DIR],
-#                           [Use POSIX threads library distribution in DIR])
-#           ])
-
-AC_CHECK_HEADERS(pthread.h,
-	[ AC_SEARCH_LIBS([pthread_create], [pthread], [],
-		[ AC_MSG_ERROR([Cannot find the POSIX threads library])
-	])
-])
-
-################################
-# Check for the RT library
-################################
-AC_ARG_WITH(rt,
-            [AS_HELP_STRING([--with-rt=DIR],
-                            [Use POSIX real time library distribution in DIR])])
-
-AC_CHECK_LIB(rt, 
-             clock_gettime, 
-             [
-                AC_DEFINE([HAVE_LIBRT], [], [Have POSIX real time library])
-                if test "x$with_rt" = "x"; then
-                    RT_LIBS="-lrt"
-                else
-                    RT_CFLAGS="-I$with_rt/include"
-                    RT_LIBS="-L$with_rt/lib -lrt"
-                fi
-                AC_SUBST(RT_LIBS)
-                AC_SUBST(RT_CFLAGS)
-             ])
 
 ################################
 # Search for network functions (like connect())

@@ -59,7 +59,6 @@ struct clish_shell_s {
 	int depth;
 	konf_client_t *client;
 	char *lockfile;
-	pthread_t pthread;
 	char *default_shebang;
 	char *fifo_name; /* The name of temporary fifo file. */
 	bool_t interactive; /* Is shell interactive. */
