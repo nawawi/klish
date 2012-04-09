@@ -22,23 +22,3 @@ bin_konf_SOURCES = bin/konf.c
 bin_konf_LDADD = \
 	libkonf.la \
 	liblub.la
-
-## If TCL is enabled
-if TCL
-	bin_PROGRAMS += bin/tclish@TCL_VERSION@
-
-	bin_tclish@TCL_VERSION@_SOURCES = bin/tclish.cpp \
-		bin/tclish_fini_callback.c \
-		bin/tclish_init_callback.c \
-		bin/tclish_script_callback.c \
-		bin/tclish_show_result.c
-
-	bin_tclish@TCL_VERSION@_LDADD = \
-		libclish.la \
-		libkonf.la \
-		libtinyrl.la \
-		libtinyxml.la \
-		liblub.la \
-		@TCL_LIBS@ \
-		@BFD_LIBS@
-endif

@@ -8,7 +8,7 @@ libclish_la_SOURCES = \
     clish/callback_log.c \
     clish/private.h
 
-libclish_la_CFLAGS = @LUB_CFLAGS@ @LUBHEAP_CFLAGS@ $(DEBUG_CFLAGS)
+libclish_la_CFLAGS = @LUB_CFLAGS@ $(DEBUG_CFLAGS)
 libclish_la_LIBADD = \
 	liblub.la \
 	libtinyrl.la \

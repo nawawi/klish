@@ -136,61 +136,6 @@ AC_CHECK_LIB(rt,
              ])
 
 ################################
-# Check for the TCL library
-################################
-TCL_CONFIG=${libdir}/tclConfig.sh
-
-AC_ARG_WITH(tcl,
-            [AS_HELP_STRING([--with-tcl=DIR],
-                            [Use TCL library distribution in DIR])],
-if test -e $TCL_CONFIG; then
-    source ${TCL_CONFIG} # get TCL_VERSION
-    if test "${with_tcl}" = "yes"; then
-        TCL_CFLAGS="${TCL_INCLUDE_SPEC}"
-        TCL_LIBS="${TCL_LIB_SPEC}"
-    else
-        TCL_CFLAGS="-I${with_tcl}/include"
-        TCL_LIBS="-L${with_tcl}/lib -ltcl"
-    fi
-    CPPFLAGS="$CPPFLAGS $TCL_CFLAGS"
-    AC_CHECK_HEADERS(tcl.h,
-        AC_CHECK_LIB(tcl${TCL_VERSION}, Tcl_CreateInterp, [
-            AC_DEFINE([HAVE_LIBTCL], [], [Have TCL library])
-            AC_SUBST(TCL_CFLAGS)
-            AC_SUBST(TCL_LIBS)
-            AC_SUBST(TCL_VERSION)
-            have_tcl="yes"
-        ])
-    )
-fi
-)
-AM_CONDITIONAL(TCL,test "x${have_tcl}" = "xyes")
-
-################################
-# Check for inclusion of lub_heap
-################################
-AC_ARG_ENABLE(lubheap,
-    [AS_HELP_STRING([--enable-lubheap],
-                    [Replace standard memory libaries with lubheap (EXPERIMENTAL) [default=no]])],
-    [],
-    [enable_lubheap=no])
-
-AM_CONDITIONAL(LUBHEAP,test "x$enable_lubheap" = "xyes")
-
-if test "x$enable_lubheap" = "xyes"; then
-    AC_MSG_WARN([Replacing standard memory libraries with lubheap])
-
-    LUBHEAP_LIBS="-llubheap"
-    LUBHEAP_CFLAGS=""
-
-    if test "x$LUBHEAP_LIBS" = "x"; then
-        AC_MSG_ERROR([Cannot find the "Little Useful Bits Heap" library])
-    fi
-    AC_SUBST(LUBHEAP_LIBS)
-    AC_SUBST(LUBHEAP_CFLAGS)
-fi
-
-################################
 # Check for linkage with GPL libraries
 ################################
 AC_ARG_ENABLE(gpl,

@@ -30,9 +30,6 @@
 /* Have POSIX real time library */
 #undef HAVE_LIBRT
 
-/* Have TCL library */
-#undef HAVE_LIBTCL
-
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
@@ -65,9 +62,6 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have the <tcl.h> header file. */
-#undef HAVE_TCL_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
