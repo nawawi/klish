@@ -285,7 +285,6 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BFD_LIBS = @BFD_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -445,8 +444,7 @@ bin_clish_LDADD = \
 	libkonf.la \
 	libtinyrl.la \
 	libtinyxml.la \
-	liblub.la \
-	@BFD_LIBS@
+	liblub.la
 
 bin_konfd_SOURCES = bin/konfd.c
 bin_konfd_LDADD = \

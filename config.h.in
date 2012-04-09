@@ -1,8 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the <bfd.h> header file. */
-#undef HAVE_BFD_H
-
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
@@ -20,12 +17,6 @@
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
-
-/* Have Binary File Decription library */
-#undef HAVE_LIBBFD
-
-/* Have native langauage support library */
-#undef HAVE_LIBINTL
 
 /* Have POSIX real time library */
 #undef HAVE_LIBRT

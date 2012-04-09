@@ -136,41 +136,6 @@ AC_CHECK_LIB(rt,
              ])
 
 ################################
-# Check for linkage with GPL libraries
-################################
-AC_ARG_ENABLE(gpl,
-    [AS_HELP_STRING([--enable-gpl],
-                    [Link with GPL licenced libraries [default=yes]])],
-    [],
-    [enable_gpl=yes])
-
-if test "x$enable_gpl" = "xyes"; then
-    ################################
-    # Check for BFD library
-    ################################
-    AC_MSG_WARN([Linking with GPL licence libraries])
-    AC_CHECK_HEADERS(bfd.h,
-        [AC_CHECK_LIB(bfd, 
-                      bfd_init,
-                      [AC_DEFINE([HAVE_LIBBFD], 
-                                 [], 
-                                 [Have Binary File Decription library])
-                       BFD_LIBS="-lbfd -liberty"
-                       AC_CHECK_LIB(intl, 
-                                    libintl_dgettext, 
-                                    [AC_DEFINE([HAVE_LIBINTL], 
-                                               [], 
-                                               [Have native langauage support library])
-                                     BFD_LIBS="$BFD_LIBS -lintl"
-                                    ])
-                       AC_SUBST(BFD_LIBS)
-                      ])
-        ])
-else
-    AC_MSG_WARN([Skipping BFD library checks because of GPL Licence])
-fi
-
-################################
 # Search for network functions (like connect())
 ################################
 AC_SEARCH_LIBS([socket], [socket])
