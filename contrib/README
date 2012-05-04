@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 
 The buildroot/ directory contain the files to embed the klish package into the
-buildroot environment. The buildroot/package/klish must be copied to the
+buildroot environment. The buildroot/ files must be copied to the
 buildroot's source tree package/klish directory. Then the package/Config.in
 file must be changed. Add the following string
 
@@ -20,3 +20,13 @@ download the last revision from the SVN repository.
 These files were tested with buildroot-2010.11.
 The current predefined stable version of klish package that used in the
 buildroot's klish.mk file is 1.3.1.
+
+--------------------------------------------------------------------------------
+ OpenWRT
+--------------------------------------------------------------------------------
+
+The openwrt/ directory contain the files to embed the klish package into the
+OpenWRT environment.
+
+The OpenWRT's Makefile was created by Emmanuel Deloget.
+
