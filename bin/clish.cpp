@@ -27,9 +27,6 @@
 #include "clish/shell.h"
 #include "clish/internal.h"
 
-#ifndef VERSION
-#define VERSION 1.2.2
-#endif
 #define QUOTE(t) #t
 /* #define version(v) printf("%s\n", QUOTE(v)) */
 #define version(v) printf("%s\n", v)
