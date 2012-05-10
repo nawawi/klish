@@ -26,7 +26,7 @@ the packet.
        <PARAM name="dest"
                help="Host name or IP address"
               ptype="IP_ADDR" />
-       <ACTION>exec ping ${-n :num_echos} ${-i :hops} ${dest}</ACTION>
+       <ACTION>exec ping ${-c :num_echos} ${-t :hops} ${dest}</ACTION>
    </COMMAND>
    <!--=======================================================-->
    <COMMAND name="traceroute" 
@@ -48,7 +48,7 @@ The only mandatory parameter is the destination host name or IP number.
        <PARAM name="dest"
                help="Remote system to trace"
               ptype="IP_ADDR" />
-       <ACTION>exec tracert ${-m :hops} ${dest}</ACTION>
+       <ACTION>exec traceroute ${-m :hops} ${dest}</ACTION>
     </COMMAND>
    <!--=======================================================-->    
 </CLISH_MODULE>

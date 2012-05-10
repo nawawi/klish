@@ -8,12 +8,12 @@ libclish_la_SOURCES = \
     clish/callback_log.c \
     clish/private.h
 
-libclish_la_CFLAGS = @LUB_CFLAGS@ $(DEBUG_CFLAGS)
+libclish_la_LDFLAGS = @XML_LDFLAGS@
+libclish_la_CFLAGS = @LUB_CFLAGS@ @XML_CFLAGS@ $(DEBUG_CFLAGS)
 libclish_la_LIBADD = \
 	liblub.la \
 	libtinyrl.la \
-	libtinyxml.la \
-	libkonf.la
+	libkonf.la @XML_LIBS@
 
 nobase_include_HEADERS += \
 	clish/types.h \

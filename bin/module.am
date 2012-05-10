@@ -4,12 +4,11 @@ bin_PROGRAMS += \
 	bin/konfd \
 	bin/konf
 
-bin_clish_SOURCES = bin/clish.cpp
+bin_clish_SOURCES = bin/clish.c
 bin_clish_LDADD = \
 	libclish.la \
 	libkonf.la \
 	libtinyrl.la \
-	libtinyxml.la \
 	liblub.la
 
 bin_konfd_SOURCES = bin/konfd.c

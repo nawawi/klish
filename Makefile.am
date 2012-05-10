@@ -2,14 +2,13 @@
 AUTOMAKE_OPTIONS        = foreign nostdinc
 
 AM_CPPFLAGS             = -I. -I$(top_srcdir)
-AM_LD                   = $(CXX)
+AM_LD                   = $(CC)
 
 if DEBUG
   DEBUG_CFLAGS = -DDEBUG
 endif
 
 AM_CFLAGS               = -pedantic -Wall $(DEBUG_CFLAGS)
-AM_CXXFLAGS             = -Wall $(DEBUG_CFLAGS)
 #AM_CFLAGS               = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 -DVERSION=$(VERSION) $(DEBUG_CFLAGS)
 
 bin_PROGRAMS            =
@@ -22,7 +21,6 @@ EXTRA_DIST              =  \
     clish/module.am        \
     lub/module.am          \
     tinyrl/module.am       \
-    tinyxml/module.am      \
     konf/module.am         \
     doxygen.config         \
     clish.xsd              \
@@ -35,5 +33,5 @@ include $(top_srcdir)/bin/module.am
 include $(top_srcdir)/clish/module.am
 include $(top_srcdir)/lub/module.am
 include $(top_srcdir)/tinyrl/module.am
-include $(top_srcdir)/tinyxml/module.am
 include $(top_srcdir)/konf/module.am
+

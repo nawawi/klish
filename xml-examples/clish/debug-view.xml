@@ -3,7 +3,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
-    <VIEW name="debug-view" prompt="debug> ">
+    <VIEW name="debug-view" prompt="debug&gt; ">
         <COMMAND name="sh"
                  help="launch a full shell">
             <ACTION>bash</ACTION>

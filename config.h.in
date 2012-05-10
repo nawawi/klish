@@ -18,6 +18,12 @@
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
 
+/* Define to 1 if you want to use libxml2 to parse clish XML files */
+#undef HAVE_LIB_LIBXML2
+
+/* Define to 1 if you want to use libroxml to parse clish XML files */
+#undef HAVE_LIB_ROXML
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
