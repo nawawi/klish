@@ -1,8 +1,10 @@
-//-------------------------------------
-// clish.cpp
-//
-// A console client for libclish
-//-------------------------------------
+/*
+ * --------------------------------------
+ * clish.cpp
+ *
+ * A console client for libclish
+ * --------------------------------------
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -171,12 +173,13 @@ int main(int argc, char **argv)
 			istimeout = BOOL_TRUE;
 			timeout = atoi(optarg);
 			break;
-		case 'c':
-			char *str;
-			cmd = BOOL_TRUE;
-			quiet = BOOL_TRUE;
-			str = strdup(optarg);
-			lub_list_add(cmds, str);
+		case 'c': {
+				char *str;
+				cmd = BOOL_TRUE;
+				quiet = BOOL_TRUE;
+				str = strdup(optarg);
+				lub_list_add(cmds, str);
+			}
 			break;
 		case 'h':
 			help(0, argv[0]);
