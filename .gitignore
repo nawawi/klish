@@ -4,6 +4,7 @@
 *.o
 *.lo
 *.la
+*~
 
 /autom4te.cache
 /config.log
@@ -16,3 +17,5 @@
 /bin/clish
 /bin/konf
 /bin/konfd
+
+/klish-*.tar*
