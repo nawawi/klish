@@ -408,18 +408,18 @@ nobase_include_HEADERS = clish/types.h clish/command.h clish/param.h \
 	lub/system.h lub/db.h tinyrl/tinyrl.h tinyrl/history.h \
 	tinyrl/vt100.h konf/tree.h konf/query.h konf/buf.h konf/net.h
 EXTRA_DIST = bin/module.am clish/module.am lub/module.am \
-	tinyrl/module.am konf/module.am doxygen.config clish.xsd \
-	LICENCE README CHANGES ISSUES clish/command/module.am \
-	clish/param/module.am clish/pargv/module.am \
-	clish/ptype/module.am clish/shell/module.am \
-	clish/view/module.am clish/nspace/module.am \
-	clish/var/module.am clish/action/module.am \
-	clish/config/module.am clish/README lub/argv/module.am \
-	lub/bintree/module.am lub/list/module.am lub/ctype/module.am \
-	lub/dump/module.am lub/string/module.am lub/system/module.am \
-	lub/db/module.am lub/README tinyrl/history/module.am \
-	tinyrl/vt100/module.am tinyrl/README konf/tree/module.am \
-	konf/query/module.am konf/buf/module.am konf/net/module.am
+	tinyrl/module.am konf/module.am clish.xsd LICENCE README \
+	CHANGES ISSUES clish/command/module.am clish/param/module.am \
+	clish/pargv/module.am clish/ptype/module.am \
+	clish/shell/module.am clish/view/module.am \
+	clish/nspace/module.am clish/var/module.am \
+	clish/action/module.am clish/config/module.am clish/README \
+	lub/argv/module.am lub/bintree/module.am lub/list/module.am \
+	lub/ctype/module.am lub/dump/module.am lub/string/module.am \
+	lub/system/module.am lub/db/module.am lub/README \
+	tinyrl/history/module.am tinyrl/vt100/module.am tinyrl/README \
+	konf/tree/module.am konf/query/module.am konf/buf/module.am \
+	konf/net/module.am
 bin_clish_SOURCES = bin/clish.c
 bin_clish_LDADD = \
 	libclish.la \

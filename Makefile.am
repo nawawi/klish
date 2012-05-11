@@ -22,7 +22,6 @@ EXTRA_DIST              =  \
     lub/module.am          \
     tinyrl/module.am       \
     konf/module.am         \
-    doxygen.config         \
     clish.xsd              \
     LICENCE                \
     README                 \
