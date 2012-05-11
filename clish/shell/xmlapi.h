@@ -1,6 +1,6 @@
 /*
  * xmlapi.h
- * 
+ *
  * private klish file: internal XML API
  */
 
@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <stdio.h> /* need for FILE */
 
 /* 
  * XML document (opaque type) 
@@ -209,7 +210,6 @@ void clish_xmlattr_get_value_noerr(
 	char *value, 
 	unsigned int valuelen);
 
-#include <stdio.h> /* need for FILE */
 /*
  * print an XML node to the out file
  */

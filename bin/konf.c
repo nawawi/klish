@@ -1,7 +1,6 @@
 /*
  * konf.c
  *
- *
  * The client to communicate to konfd configuration daemon.
  */
 
