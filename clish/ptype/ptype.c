@@ -159,7 +159,7 @@ const char *clish_ptype_method__get_name(clish_ptype_method_e method)
 clish_ptype_method_e clish_ptype_method_resolve(const char *name)
 {
 	clish_ptype_method_e result = CLISH_PTYPE_REGEXP;
-	if (NULL != name && *name) {
+	if (NULL != name) {
 		unsigned i;
 		for (i = 0; i < CLISH_PTYPE_SELECT + 1; i++) {
 			if (0 == strcmp(name, method_names[i])) {
@@ -191,7 +191,7 @@ const char *clish_ptype_preprocess__get_name(
 clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char *name)
 {
 	clish_ptype_preprocess_e result = CLISH_PTYPE_NONE;
-	if (name && *name) {
+	if (name) {
 		unsigned i;
 		for (i = 0; i < CLISH_PTYPE_TOLOWER + 1; i++) {
 			if (0 == strcmp(name, preprocess_names[i])) {

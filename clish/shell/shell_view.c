@@ -19,7 +19,7 @@ clish_view_t *clish_shell_find_create_view(clish_shell_t * this,
 		clish_shell_insert_view(this, view);
 	} else {
 		/* set the prompt */
-		if (prompt && *prompt)
+		if (prompt)
 			clish_view__set_prompt(view, prompt);
 	}
 	return view;

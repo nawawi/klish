@@ -330,10 +330,8 @@ const char *clish_view__get_name(const clish_view_t * this)
 /*--------------------------------------------------------- */
 void clish_view__set_prompt(clish_view_t * this, const char *prompt)
 {
-	if (prompt && *prompt) {
-		assert(!this->prompt);
-		this->prompt = lub_string_dup(prompt);
-	}
+	assert(!this->prompt);
+	this->prompt = lub_string_dup(prompt);
 }
 
 /*--------------------------------------------------------- */
