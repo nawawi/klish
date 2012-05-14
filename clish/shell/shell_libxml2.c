@@ -29,11 +29,6 @@ struct clish_xmlnode_s {
 	int dummy;
 };
 
-/* dummy stuff ; really a xmlAttr */
-struct clish_xmlattr_s {
-	int dummy;
-};
-
 static inline xmlDoc *xmldoc_to_doc(clish_xmldoc_t *doc)
 {
 	return (xmlDoc*)doc;
@@ -44,11 +39,6 @@ static inline xmlNode *xmlnode_to_node(clish_xmlnode_t *node)
 	return (xmlNode*)node;
 }
 
-static inline xmlAttr *xmlattr_to_attr(clish_xmlattr_t *attr)
-{
-	return (xmlAttr*)attr;
-}
-
 static inline clish_xmldoc_t *doc_to_xmldoc(xmlDoc *node)
 {
 	return (clish_xmldoc_t*)node;
@@ -57,11 +47,6 @@ static inline clish_xmldoc_t *doc_to_xmldoc(xmlDoc *node)
 static inline clish_xmlnode_t *node_to_xmlnode(xmlNode *node)
 {
 	return (clish_xmlnode_t*)node;
-}
-
-static inline clish_xmlattr_t *attr_to_xmlattr(xmlAttr *node)
-{
-	return (clish_xmlattr_t*)node;
 }
 
 /*
@@ -166,7 +151,7 @@ clish_xmlnode_t *clish_xmlnode_next_child(clish_xmlnode_t *parent,
 	return node_to_xmlnode(child);
 }
 
-clish_xmlattr_t *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
+char *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
 					  const char *attrname)
 {
 	xmlNode *n;
@@ -180,67 +165,16 @@ clish_xmlattr_t *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
 		xmlAttr *a = n->properties;
 		while (a) {
 			if (strcmp((char*)a->name, attrname) == 0) {
-				return attr_to_xmlattr(a);
+				if (a->children && a->children->content)
+					return a->children->content;
+				else
+					return NULL;
 			}
 			a = a->next;
 		}
 	}
 		
 	return NULL;
-}
-
-int clish_xmlattr_get_value(clish_xmlattr_t *attr, char *value, 
-			    unsigned int *valuelen)
-{
-	xmlAttr *a;
-
-	if (value && valuelen && *valuelen) 
-		*value = 0;
-
-	if (!attr || !value || !valuelen)
-		return -EINVAL;
-
-	if (*valuelen <= 1)
-		return -EINVAL;
-
-	*value = 0;
-	
-	a = xmlattr_to_attr(attr);
-	if (a->children && a->children->content) {
-		char *c = (char*)a->children->content;
-		int rlen = strlen(c) + 1;
-		if (rlen <= *valuelen) {
-			sprintf(value, "%s", c);
-			return 0;
-		} else {
-			*valuelen = rlen;
-			return -E2BIG;
-		}
-	}
-
-	return -EINVAL;
-}
-
-/* safer */
-void clish_xmlattr_get_value_noerr(clish_xmlattr_t *attr, char *value, 
-				   unsigned int valuelen)
-{
-	xmlAttr *a;
-
-	if (value && valuelen) 
-		*value = 0;
-
-	if (!attr || !value || valuelen <= 1)
-		return;
-
-	a = xmlattr_to_attr(attr);
-	if (a->children && a->children->content) {
-		char *c = (char*)a->children->content;
-		int rlen = strlen(c) + 1;
-		if (rlen <= valuelen) {
-			sprintf(value, "%s", c);
-		}
-	}
 }
 
 int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content, 
@@ -333,6 +267,11 @@ void clish_xmlnode_print(clish_xmlnode_t *node, FILE *out)
 		}
 		fprintf(out, ">");
 	}
+}
+
+void clish_xml_release(void *p)
+{
+	/* do we allocate memory? not yet. */
 }
 
 #endif /* HAVE_LIB_LIBXML2 */

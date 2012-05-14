@@ -23,12 +23,6 @@ typedef struct clish_xmldoc_s clish_xmldoc_t;
  */
 typedef struct clish_xmlnode_s clish_xmlnode_t;
 
-/* 
- * XML attribute (opaque type) 
- * The real type is defined by the selected external API
- */
-typedef struct clish_xmlattr_s clish_xmlattr_t;
-
 /*
  * read an XML document
  */
@@ -183,32 +177,16 @@ static inline char* clish_xmlnode_get_all_content(clish_xmlnode_t *node)
 /*
  * get an attribute by name. May return NULL if the
  * attribute is not found
+ * Special: allocate memory (to free with clish_xml_release())
  */
-clish_xmlattr_t *clish_xmlnode_fetch_attr(
+char *clish_xmlnode_fetch_attr(
 	clish_xmlnode_t *node,
 	const char *attrname);
 
 /*
- * get the attribute value.
- * neither value not valuelen shall be NULL. *valuelen is the length
- * of the value buffer. If it's too small, we return -E2BIG and set
- * *valuelen to the minimum length value.
- * returns < 0 on error. On error, value shall not be modified.
+ * Free a pointer allocated by the XML backend
  */
-int clish_xmlattr_get_value(
-	clish_xmlattr_t *attr,
-	char *value, 
-	unsigned int *valuelen);
-
-/*
- * get the attribute value.
- * value shall not be NULL, and valuelen shall not be 0. 
- * On error, value is set to \0 when possible.
- */
-void clish_xmlattr_get_value_noerr(
-	clish_xmlattr_t *attr,
-	char *value, 
-	unsigned int valuelen);
+void clish_xml_release(void *p);
 
 /*
  * print an XML node to the out file

@@ -125,51 +125,34 @@ process_clish_module(clish_shell_t * shell, clish_xmlnode_t * element, void *par
 static void process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_view_t *view;
-	char name[128] = "";
-	char prompt[128] = "";
-	char depth[128] = "";
-	char restore[128] = "";
-	clish_xmlattr_t *a_name;
-	clish_xmlattr_t *a_prompt;
-	clish_xmlattr_t *a_depth;
-	clish_xmlattr_t *a_restore;
-	clish_xmlattr_t *a_access;
 	int allowed = 1;
 
-	a_name = clish_xmlnode_fetch_attr(element, "name");
-	a_prompt = clish_xmlnode_fetch_attr(element, "prompt");
-	a_depth = clish_xmlnode_fetch_attr(element, "depth");
-	a_restore = clish_xmlnode_fetch_attr(element, "restore");
-	a_access = clish_xmlnode_fetch_attr(element, "access");
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *prompt = clish_xmlnode_fetch_attr(element, "prompt");
+	char *depth = clish_xmlnode_fetch_attr(element, "depth");
+	char *restore = clish_xmlnode_fetch_attr(element, "restore");
+	char *access = clish_xmlnode_fetch_attr(element, "access");
 
 	/* Check permissions */
-	if (a_access) {
-		char access[128] = "";
-
+	if (access) {
 		allowed = 0;
-		clish_xmlattr_get_value_noerr(a_access, access, sizeof(access));
 		if (shell->client_hooks->access_fn)
 			allowed = shell->client_hooks->access_fn(shell, access);
 	}
 	if (!allowed)
-		return;
+		goto process_view_end;
 
-	clish_xmlattr_get_value_noerr(a_name, name, sizeof(name));
-	clish_xmlattr_get_value_noerr(a_prompt, prompt, sizeof(prompt));
+	assert(name);
 
 	/* re-use a view if it already exists */
 	view = clish_shell_find_create_view(shell, name, prompt);
 
-	clish_xmlattr_get_value_noerr(a_depth, depth, sizeof(depth));
-
-	if (*depth && (lub_ctype_isdigit(*depth))) {
+	if (depth && (lub_ctype_isdigit(*depth))) {
 		unsigned res = atoi(depth);
 		clish_view__set_depth(view, res);
 	}
 
-	clish_xmlattr_get_value_noerr(a_restore, restore, sizeof(restore));
-
-	if (*restore) {
+	if (restore) {
 		if (!lub_string_nocasecmp(restore, "depth"))
 			clish_view__set_restore(view, CLISH_RESTORE_DEPTH);
 		else if (!lub_string_nocasecmp(restore, "view"))
@@ -179,6 +162,13 @@ static void process_view(clish_shell_t * shell, clish_xmlnode_t * element, void 
 	}
 
 	process_children(shell, element, view);
+
+process_view_end:
+	clish_xml_release(name);
+	clish_xml_release(prompt);
+	clish_xml_release(depth);
+	clish_xml_release(restore);
+	clish_xml_release(access);
 }
 
 /* ------------------------------------------------------ */
@@ -188,39 +178,28 @@ static void process_ptype(clish_shell_t * shell, clish_xmlnode_t * element, void
 	clish_ptype_preprocess_e preprocess;
 	clish_ptype_t *ptype;
 
-	clish_xmlattr_t *a_name = clish_xmlnode_fetch_attr(element, "name");
-	clish_xmlattr_t *a_help = clish_xmlnode_fetch_attr(element, "help");
-	clish_xmlattr_t *a_pattern = clish_xmlnode_fetch_attr(element, "pattern");
-	clish_xmlattr_t *a_method_name = clish_xmlnode_fetch_attr(element, "method");
-	clish_xmlattr_t *a_preprocess_name =
-		clish_xmlnode_fetch_attr(element, "preprocess");
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *help = clish_xmlnode_fetch_attr(element, "help");
+	char *pattern = clish_xmlnode_fetch_attr(element, "pattern");
+	char *method_name = clish_xmlnode_fetch_attr(element, "method");
+	char *preprocess_name =	clish_xmlnode_fetch_attr(element, "preprocess");
 
-	char name[128] = "";
-	char help[128] = "";
-	char pattern[128] = "";
-	char method_name[128] = "";
-	char preprocess_name[128] = "";
-
-	clish_xmlattr_get_value_noerr(a_name, name, sizeof(name));
-	clish_xmlattr_get_value_noerr(a_pattern, pattern, sizeof(pattern));
-
-	assert(*name);
-	assert(*pattern);
-
-	clish_xmlattr_get_value_noerr(a_method_name, method_name,
-		sizeof(method_name));
+	assert(name);
+	assert(pattern);
 
 	method = clish_ptype_method_resolve(method_name);
-
-	clish_xmlattr_get_value_noerr(a_preprocess_name, preprocess_name,
-		sizeof(preprocess_name));
-	clish_xmlattr_get_value_noerr(a_help, help, sizeof(help));
 
 	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
 	ptype = clish_shell_find_create_ptype(shell,
 		name, help, pattern, method, preprocess);
 
 	assert(ptype);
+
+	clish_xml_release(name);
+	clish_xml_release(help);
+	clish_xml_release(pattern);
+	clish_xml_release(method_name);
+	clish_xml_release(preprocess_name);
 }
 
 /* ------------------------------------------------------ */
@@ -266,42 +245,28 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_view_t *alias_view = NULL;
 	int allowed = 1;
 
-	clish_xmlattr_t *a_access = clish_xmlnode_fetch_attr(element, "access");
-	clish_xmlattr_t *a_name = clish_xmlnode_fetch_attr(element, "name");
-	clish_xmlattr_t *a_help = clish_xmlnode_fetch_attr(element, "help");
-	clish_xmlattr_t *a_view = clish_xmlnode_fetch_attr(element, "view");
-	clish_xmlattr_t *a_viewid = clish_xmlnode_fetch_attr(element, "viewid");
-	clish_xmlattr_t *a_escape_chars = clish_xmlnode_fetch_attr(element, "escape_chars");
-	clish_xmlattr_t *a_args_name = clish_xmlnode_fetch_attr(element, "args");
-	clish_xmlattr_t *a_args_help = clish_xmlnode_fetch_attr(element, "args_help");
-	clish_xmlattr_t *a_lock = clish_xmlnode_fetch_attr(element, "lock");
-	clish_xmlattr_t *a_interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
-	clish_xmlattr_t *a_ref = clish_xmlnode_fetch_attr(element, "ref");
-
-	char name[128];
-	char help[128];
-	char ref[128];
-	char view[128];
-	char viewid[128];
-	char lock[128];
-	char interrupt[128];
-	char escape_chars[128];
-	char args_name[128];
+	char *access = clish_xmlnode_fetch_attr(element, "access");
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *help = clish_xmlnode_fetch_attr(element, "help");
+	char *view = clish_xmlnode_fetch_attr(element, "view");
+	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
+	char *escape_chars = clish_xmlnode_fetch_attr(element, "escape_chars");
+	char *args_name = clish_xmlnode_fetch_attr(element, "args");
+	char *args_help = clish_xmlnode_fetch_attr(element, "args_help");
+	char *lock = clish_xmlnode_fetch_attr(element, "lock");
+	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
+	char *ref = clish_xmlnode_fetch_attr(element, "ref");
 
 	/* Check permissions */
-	if (a_access) {
-		char access[128];
-
+	if (access) {
 		allowed = 0;
-		clish_xmlattr_get_value_noerr(a_access, access, sizeof(access));
-
 		if (shell->client_hooks->access_fn)
 			allowed = shell->client_hooks->access_fn(shell, access);
 	}
 	if (!allowed)
-		return;
+		goto process_command_end;
 
-	clish_xmlattr_get_value_noerr(a_name, name, sizeof(name));
+	assert(*name);
 
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
@@ -309,18 +274,13 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		/* flag the duplication then ignore further definition */
 		printf("DUPLICATE COMMAND: %s\n",
 		       clish_command__get_name(old));
-		return;
+		goto process_command_end;
 	}
 
-	clish_xmlattr_get_value_noerr(a_help, help, sizeof(help));
-
-	assert(*name);
 	assert(*help);
 
-	clish_xmlattr_get_value_noerr(a_ref, ref, sizeof(ref));
-
 	/* Reference 'ref' field */
-	if (*ref) {
+	if (ref) {
 		char *saveptr;
 		const char *delim = "@";
 		char *view_name = NULL;
@@ -331,7 +291,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		if (!cmdn) {
 			printf("EMPTY REFERENCE COMMAND: %s\n", name);
 			lub_string_free(str);
-			return;
+			goto process_command_end;
 		}
 		alias_name = lub_string_dup(cmdn);
 		view_name = strtok_r(NULL, delim, &saveptr);
@@ -343,38 +303,29 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		lub_string_free(str);
 	}
 
-	clish_xmlattr_get_value_noerr(a_escape_chars, escape_chars,
-		sizeof(escape_chars));
-	clish_xmlattr_get_value_noerr(a_args_name, args_name,
-		sizeof(args_name));
-
 	/* create a command */
 	cmd = clish_view_new_command(v, name, help);
 	assert(cmd);
 	clish_command__set_pview(cmd, v);
+
 	/* define some specialist escape characters */
-	if (*escape_chars)
+	if (escape_chars)
 		clish_command__set_escape_chars(cmd, escape_chars);
-	if (*args_name) {
+
+	if (args_name) {
 		/* define a "rest of line" argument */
-		char args_help[128];
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
-		clish_xmlattr_get_value_noerr(a_args_help, args_help,
-			sizeof(args_help));
-
-		assert(*args_help);
+		assert(args_help);
 		tmp = clish_shell_find_ptype(shell, "internal_ARGS");
 		assert(tmp);
 		param = clish_param_new(args_name, args_help, tmp);
 		clish_command__set_args(cmd, param);
 	}
 
-	clish_xmlattr_get_value_noerr(a_view, view, sizeof(view));
-
 	/* define the view which this command changes to */
-	if (*view) {
+	if (view) {
 		clish_view_t *next = clish_shell_find_create_view(shell, view,
 			NULL);
 
@@ -382,22 +333,18 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_command__set_view(cmd, next);
 	}
 
-	clish_xmlattr_get_value_noerr(a_viewid, viewid, sizeof(viewid));
-
 	/* define the view id which this command changes to */
-	if (*viewid)
+	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
 
 	/* lock field */
-	clish_xmlattr_get_value_noerr(a_lock, lock, sizeof(lock));
-	if (lub_string_nocasecmp(lock, "false") == 0)
+	if (lock && lub_string_nocasecmp(lock, "false") == 0)
 		clish_command__set_lock(cmd, BOOL_FALSE);
 	else
 		clish_command__set_lock(cmd, BOOL_TRUE);
 
 	/* interrupt field */
-	clish_xmlattr_get_value_noerr(a_interrupt, interrupt, sizeof(interrupt));
-	if (lub_string_nocasecmp(interrupt, "true") == 0)
+	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
 		clish_command__set_interrupt(cmd, BOOL_TRUE);
 	else
 		clish_command__set_interrupt(cmd, BOOL_FALSE);
@@ -412,6 +359,19 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	}
 
 	process_children(shell, element, cmd);
+
+process_command_end:
+	clish_xml_release(access);
+	clish_xml_release(name);
+	clish_xml_release(help);
+	clish_xml_release(view);
+	clish_xml_release(viewid);
+	clish_xml_release(escape_chars);
+	clish_xml_release(args_name);
+	clish_xml_release(args_help);
+	clish_xml_release(lock);
+	clish_xml_release(interrupt);
+	clish_xml_release(ref);
 }
 
 /* ------------------------------------------------------ */
@@ -420,26 +380,18 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_command_t *cmd = NULL;
-	clish_xmlattr_t *a_view = clish_xmlnode_fetch_attr(element, "view");
-	clish_xmlattr_t *a_viewid = clish_xmlnode_fetch_attr(element, "viewid");
-	clish_xmlattr_t *a_default_shebang =
-		clish_xmlnode_fetch_attr(element, "default_shebang");
-	clish_xmlattr_t *a_timeout = clish_xmlnode_fetch_attr(element, "timeout");
-	clish_xmlattr_t *a_lock = clish_xmlnode_fetch_attr(element, "lock");
-	clish_xmlattr_t *a_interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
 
-	char view[128];
-	char viewid[128];
-	char timeout[128];
-	char lock[128];
-	char interrupt[128];
-	char default_shebang[128];
+	char *view = clish_xmlnode_fetch_attr(element, "view");
+	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
+	char *default_shebang =
+		clish_xmlnode_fetch_attr(element, "default_shebang");
+	char *timeout = clish_xmlnode_fetch_attr(element, "timeout");
+	char *lock = clish_xmlnode_fetch_attr(element, "lock");
+	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
 
 	assert(!shell->startup);
 
-	clish_xmlattr_get_value_noerr(a_view, view, sizeof(view));
-
-	assert(*view);
+	assert(view);
 
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "startup", NULL);
@@ -451,35 +403,36 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_command__set_view(cmd, next);
 
 	/* define the view id which this command changes to */
-	clish_xmlattr_get_value_noerr(a_viewid, viewid, sizeof(viewid));
-	if (*viewid)
+	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
 
-	clish_xmlattr_get_value_noerr(a_default_shebang, default_shebang,
-		sizeof(default_shebang));
-	if (*default_shebang)
+	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
-	clish_xmlattr_get_value_noerr(a_timeout, timeout, sizeof(timeout));
-	if (*timeout)
+	if (timeout)
 		clish_shell__set_timeout(shell, atoi(timeout));
 
 	/* lock field */
-	clish_xmlattr_get_value_noerr(a_lock, lock, sizeof(lock));
-	if (lub_string_nocasecmp(lock, "false") == 0)
+	if (lock && lub_string_nocasecmp(lock, "false") == 0)
 		clish_command__set_lock(cmd, BOOL_FALSE);
 	else
 		clish_command__set_lock(cmd, BOOL_TRUE);
 
 	/* interrupt field */
-	clish_xmlattr_get_value_noerr(a_interrupt, interrupt, sizeof(interrupt));
-	if (lub_string_nocasecmp(interrupt, "true") == 0)
+	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
 		clish_command__set_interrupt(cmd, BOOL_TRUE);
 	else
 		clish_command__set_interrupt(cmd, BOOL_FALSE);
 
 	/* remember this command */
 	shell->startup = cmd;
+
+	clish_xml_release(view);
+	clish_xml_release(viewid);
+	clish_xml_release(default_shebang);
+	clish_xml_release(timeout);
+	clish_xml_release(lock);
+	clish_xml_release(interrupt);
 
 	process_children(shell, element, cmd);
 }
@@ -505,44 +458,27 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		free(pname);
 
 	if (cmd || p_param) {
-		clish_xmlattr_t *a_name = clish_xmlnode_fetch_attr(element, "name");
-		clish_xmlattr_t *a_help = clish_xmlnode_fetch_attr(element, "help");
-		clish_xmlattr_t *a_ptype = clish_xmlnode_fetch_attr(element, "ptype");
-		clish_xmlattr_t *a_prefix = clish_xmlnode_fetch_attr(element, "prefix");
-		clish_xmlattr_t *a_defval = clish_xmlnode_fetch_attr(element, "default");
-		clish_xmlattr_t *a_mode = clish_xmlnode_fetch_attr(element, "mode");
-		clish_xmlattr_t *a_optional = clish_xmlnode_fetch_attr(element, "optional");
-		clish_xmlattr_t *a_order = clish_xmlnode_fetch_attr(element, "order");
-		clish_xmlattr_t *a_value = clish_xmlnode_fetch_attr(element, "value");
-		clish_xmlattr_t *a_hidden = clish_xmlnode_fetch_attr(element, "hidden");
-		clish_xmlattr_t *a_test = clish_xmlnode_fetch_attr(element, "test");
-		clish_xmlattr_t *a_completion = clish_xmlnode_fetch_attr(element, "completion");
+		char *name = clish_xmlnode_fetch_attr(element, "name");
+		char *help = clish_xmlnode_fetch_attr(element, "help");
+		char *ptype = clish_xmlnode_fetch_attr(element, "ptype");
+		char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
+		char *defval = clish_xmlnode_fetch_attr(element, "default");
+		char *mode = clish_xmlnode_fetch_attr(element, "mode");
+		char *optional = clish_xmlnode_fetch_attr(element, "optional");
+		char *order = clish_xmlnode_fetch_attr(element, "order");
+		char *value = clish_xmlnode_fetch_attr(element, "value");
+		char *hidden = clish_xmlnode_fetch_attr(element, "hidden");
+		char *test = clish_xmlnode_fetch_attr(element, "test");
+		char *completion = clish_xmlnode_fetch_attr(element, "completion");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
-		char name[128];
-		char help[128];
-		char ptype[128];
-		char prefix[128];
-		char defval[128];
-		char mode[128];
-		char optional[128];
-		char order[128];
-		char value[128];
-		char hidden[128];
-		char test[128];
-		char completion[128];
-
 		assert((!cmd) || (cmd != shell->startup));
 
-		clish_xmlattr_get_value_noerr(a_name, name, sizeof(name));
-		clish_xmlattr_get_value_noerr(a_help, help, sizeof(help));
-		clish_xmlattr_get_value_noerr(a_ptype, ptype, sizeof(ptype));
-
 		/* create a command */
-		assert(*name);
-		assert(*help);
-		assert(*ptype);
+		assert(name);
+		assert(help);
+		assert(ptype);
 
 		if (*ptype) {
 			tmp = clish_shell_find_create_ptype(shell, ptype,
@@ -557,9 +493,7 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		 * command syntax over newer optional command mechanism.
 		 * It will create nested PARAM.
 		 */
-		clish_xmlattr_get_value_noerr(a_prefix, prefix, sizeof(prefix));
-		clish_xmlattr_get_value_noerr(a_test, test, sizeof(test));
-		if (*prefix) {
+		if (prefix) {
 			const char *ptype_name = "__SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
 
@@ -580,7 +514,7 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 				CLISH_PARAM_SUBCOMMAND);
 			clish_param__set_optional(opt_param, BOOL_TRUE);
 
-			if (*test)
+			if (test)
 				clish_param__set_test(opt_param, test);
 
 			/* add the parameter to the command */
@@ -594,19 +528,15 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 			p_param = opt_param;
 		}
 
-		clish_xmlattr_get_value_noerr(a_defval, defval, sizeof(defval));
-
-		if (*defval)
+		if (defval)
 			clish_param__set_default(param, defval);
 
-		clish_xmlattr_get_value_noerr(a_hidden, hidden, sizeof(hidden));
-		if (lub_string_nocasecmp(hidden, "true") == 0)
+		if (hidden && lub_string_nocasecmp(hidden, "true") == 0)
 			clish_param__set_hidden(param, BOOL_TRUE);
 		else
 			clish_param__set_hidden(param, BOOL_FALSE);
 
-		clish_xmlattr_get_value_noerr(a_mode, mode, sizeof(mode));
-		if (*mode) {
+		if (mode) {
 			if (lub_string_nocasecmp(mode, "switch") == 0) {
 				clish_param__set_mode(param,
 					CLISH_PARAM_SWITCH);
@@ -620,33 +550,27 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 					CLISH_PARAM_COMMON);
 		}
 
-		clish_xmlattr_get_value_noerr(a_optional, optional,
-			sizeof(optional));
-		if (lub_string_nocasecmp(optional, "true") == 0)
+		if (optional && lub_string_nocasecmp(optional, "true") == 0)
 			clish_param__set_optional(param, BOOL_TRUE);
 		else
 			clish_param__set_optional(param, BOOL_FALSE);
 
-		clish_xmlattr_get_value_noerr(a_order, order, sizeof(order));
-		if (lub_string_nocasecmp(order, "true") == 0)
+		if (order && lub_string_nocasecmp(order, "true") == 0)
 			clish_param__set_order(param, BOOL_TRUE);
 		else
 			clish_param__set_order(param, BOOL_FALSE);
 
-		clish_xmlattr_get_value_noerr(a_value, value, sizeof(value));
-		if (*value) {
+		if (value) {
 			clish_param__set_value(param, value);
 			/* Force mode to subcommand */
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
 		}
 
-		if (*test && !*prefix)
+		if (test && !prefix)
 			clish_param__set_test(param, test);
 
-		clish_xmlattr_get_value_noerr(a_completion, completion,
-			sizeof(completion));
-		if (*completion)
+		if (completion)
 			clish_param__set_completion(param, completion);
 
 		/* add the parameter to the command */
@@ -657,6 +581,19 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		if (p_param)
 			clish_param_insert_param(p_param, param);
 
+		clish_xml_release(name);
+		clish_xml_release(help);
+		clish_xml_release(ptype);
+		clish_xml_release(prefix);
+		clish_xml_release(defval);
+		clish_xml_release(mode);
+		clish_xml_release(optional);
+		clish_xml_release(order);
+		clish_xml_release(value);
+		clish_xml_release(hidden);
+		clish_xml_release(test);
+		clish_xml_release(completion);
+
 		process_children(shell, element, param);
 	}
 }
@@ -666,13 +603,11 @@ static void
 process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_action_t *action = NULL;
-	clish_xmlattr_t *a_builtin = clish_xmlnode_fetch_attr(element, "builtin");
-	clish_xmlattr_t *a_shebang = clish_xmlnode_fetch_attr(element, "shebang");
+	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
+	char *shebang = clish_xmlnode_fetch_attr(element, "shebang");
 	clish_xmlnode_t *pelement = clish_xmlnode_parent(element);
 	char *pname = clish_xmlnode_get_all_name(pelement);
 	char *text;
-	char builtin[128];
-	char shebang[128];
 
 	if (pname && lub_string_nocasecmp(pname, "VAR") == 0)
 		action = clish_var__get_action((clish_var_t *)parent);
@@ -692,13 +627,13 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (text)
 		free(text);
 
-	clish_xmlattr_get_value_noerr(a_builtin, builtin, sizeof(builtin));
-	clish_xmlattr_get_value_noerr(a_shebang, shebang, sizeof(shebang));
-
-	if (*builtin)
+	if (builtin)
 		clish_action__set_builtin(action, builtin);
-	if (*shebang)
+	if (shebang)
 		clish_action__set_shebang(action, shebang);
+
+	clish_xml_release(builtin);
+	clish_xml_release(shebang);
 }
 
 /* ------------------------------------------------------ */
@@ -726,56 +661,41 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_nspace_t *nspace = NULL;
 
-	clish_xmlattr_t *a_view = clish_xmlnode_fetch_attr(element, "ref");
-	clish_xmlattr_t *a_prefix = clish_xmlnode_fetch_attr(element, "prefix");
-	clish_xmlattr_t *a_prefix_help = clish_xmlnode_fetch_attr(element, "prefix_help");
-	clish_xmlattr_t *a_help = clish_xmlnode_fetch_attr(element, "help");
-	clish_xmlattr_t *a_completion = clish_xmlnode_fetch_attr(element, "completion");
-	clish_xmlattr_t *a_context_help = clish_xmlnode_fetch_attr(element, "context_help");
-	clish_xmlattr_t *a_inherit = clish_xmlnode_fetch_attr(element, "inherit");
-	clish_xmlattr_t *a_access = clish_xmlnode_fetch_attr(element, "access");
-
-	char view[128];
-	char prefix[128];
-
-	char help[128];
-	char completion[128];
-	char context_help[128];
-	char inherit[128];
+	char *view = clish_xmlnode_fetch_attr(element, "ref");
+	char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
+	char *prefix_help = clish_xmlnode_fetch_attr(element, "prefix_help");
+	char *help = clish_xmlnode_fetch_attr(element, "help");
+	char *completion = clish_xmlnode_fetch_attr(element, "completion");
+	char *context_help = clish_xmlnode_fetch_attr(element, "context_help");
+	char *inherit = clish_xmlnode_fetch_attr(element, "inherit");
+	char *access = clish_xmlnode_fetch_attr(element, "access");
 
 	int allowed = 1;
 
-	if (a_access) {
-		char access[128];
+	if (access) {
 		allowed = 0;
-		clish_xmlattr_get_value_noerr(a_access, access, sizeof(access));
 		if (shell->client_hooks->access_fn)
 			allowed = shell->client_hooks->access_fn(shell, access);
 	}
 	if (!allowed)
-		return;
+		goto process_namespace_end;
 
-	clish_xmlattr_get_value_noerr(a_view, view, sizeof(view));
-	clish_xmlattr_get_value_noerr(a_prefix, prefix, sizeof(prefix));
-
-	assert(*view);
+	assert(view);
 	clish_view_t *ref_view = clish_shell_find_create_view(shell,
 		view, NULL);
 	assert(ref_view);
+
 	/* Don't include itself without prefix */
-	if ((ref_view == v) && !*prefix)
-		return;
+	if ((ref_view == v) && !prefix) 
+		goto process_namespace_end;
+
 	nspace = clish_nspace_new(ref_view);
 	assert(nspace);
 	clish_view_insert_nspace(v, nspace);
 
-	if (*prefix) {
-		char prefix_help[128];
-
+	if (prefix) {
 		clish_nspace__set_prefix(nspace, prefix);
-		clish_xmlattr_get_value_noerr(a_prefix_help, prefix_help,
-			sizeof(prefix_help));
-		if (*prefix_help)
+		if (prefix_help)
 			clish_nspace_create_prefix_cmd(nspace,
 				"prefix",
 				prefix_help);
@@ -785,35 +705,35 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 				"Prefix for the imported commands.");
 	}
 
-	clish_xmlattr_get_value_noerr(a_help, help, sizeof(help));
-
-	if (lub_string_nocasecmp(help, "true") == 0)
+	if (help && lub_string_nocasecmp(help, "true") == 0)
 		clish_nspace__set_help(nspace, BOOL_TRUE);
 	else
 		clish_nspace__set_help(nspace, BOOL_FALSE);
 
-	clish_xmlattr_get_value_noerr(a_completion, completion,
-		sizeof(completion));
-
-	if (lub_string_nocasecmp(completion, "false") == 0)
+	if (completion && lub_string_nocasecmp(completion, "false") == 0)
 		clish_nspace__set_completion(nspace, BOOL_FALSE);
 	else
 		clish_nspace__set_completion(nspace, BOOL_TRUE);
 
-	clish_xmlattr_get_value_noerr(a_context_help, context_help,
-		sizeof(context_help));
-
-	if (lub_string_nocasecmp(context_help, "true") == 0)
+	if (context_help && lub_string_nocasecmp(context_help, "true") == 0)
 		clish_nspace__set_context_help(nspace, BOOL_TRUE);
 	else
 		clish_nspace__set_context_help(nspace, BOOL_FALSE);
 
-	clish_xmlattr_get_value_noerr(a_inherit, inherit, sizeof(inherit));
-
-	if (lub_string_nocasecmp(inherit, "false") == 0)
+	if (inherit && lub_string_nocasecmp(inherit, "false") == 0)
 		clish_nspace__set_inherit(nspace, BOOL_FALSE);
 	else
 		clish_nspace__set_inherit(nspace, BOOL_TRUE);
+
+process_namespace_end:
+	clish_xml_release(view);
+	clish_xml_release(prefix);
+	clish_xml_release(prefix_help);
+	clish_xml_release(help);
+	clish_xml_release(completion);
+	clish_xml_release(context_help);
+	clish_xml_release(inherit);
+	clish_xml_release(access);
 }
 
 /* ------------------------------------------------------ */
@@ -828,31 +748,20 @@ process_config(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	config = clish_command__get_config(cmd);
 
 	/* read the following text element */
-	clish_xmlattr_t *a_operation = clish_xmlnode_fetch_attr(element, "operation");
-	clish_xmlattr_t *a_priority = clish_xmlnode_fetch_attr(element, "priority");
-	clish_xmlattr_t *a_pattern = clish_xmlnode_fetch_attr(element, "pattern");
-	clish_xmlattr_t *a_file = clish_xmlnode_fetch_attr(element, "file");
-	clish_xmlattr_t *a_splitter = clish_xmlnode_fetch_attr(element, "splitter");
-	clish_xmlattr_t *a_seq = clish_xmlnode_fetch_attr(element, "sequence");
-	clish_xmlattr_t *a_unique = clish_xmlnode_fetch_attr(element, "unique");
-	clish_xmlattr_t *a_depth = clish_xmlnode_fetch_attr(element, "depth");
+	char *operation = clish_xmlnode_fetch_attr(element, "operation");
+	char *priority = clish_xmlnode_fetch_attr(element, "priority");
+	char *pattern = clish_xmlnode_fetch_attr(element, "pattern");
+	char *file = clish_xmlnode_fetch_attr(element, "file");
+	char *splitter = clish_xmlnode_fetch_attr(element, "splitter");
+	char *seq = clish_xmlnode_fetch_attr(element, "sequence");
+	char *unique = clish_xmlnode_fetch_attr(element, "unique");
+	char *depth = clish_xmlnode_fetch_attr(element, "depth");
 
-	char operation[128];
-	char priority[128];
-	char pattern[128];
-	char file[128];
-	char splitter[128];
-	char seq[128];
-	char unique[128];
-	char depth[128];
-
-	clish_xmlattr_get_value_noerr(a_operation, operation, sizeof(operation));
-
-	if (!lub_string_nocasecmp(operation, "unset"))
+	if (operation && !lub_string_nocasecmp(operation, "unset"))
 		clish_config__set_op(config, CLISH_CONFIG_UNSET);
-	else if (!lub_string_nocasecmp(operation, "none"))
+	else if (operation && !lub_string_nocasecmp(operation, "none"))
 		clish_config__set_op(config, CLISH_CONFIG_NONE);
-	else if (!lub_string_nocasecmp(operation, "dump"))
+	else if (operation && !lub_string_nocasecmp(operation, "dump"))
 		clish_config__set_op(config, CLISH_CONFIG_DUMP);
 	else {
 		clish_config__set_op(config, CLISH_CONFIG_SET);
@@ -860,9 +769,7 @@ process_config(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_config__set_priority(config, 0x7f00);
 	}
 
-	clish_xmlattr_get_value_noerr(a_priority, priority, sizeof(priority));
-
-	if (*priority) {
+	if (priority) {
 		long val = 0;
 		char *endptr;
 		unsigned short pri;
@@ -879,62 +786,53 @@ process_config(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_config__set_priority(config, pri);
 	}
 
-	clish_xmlattr_get_value_noerr(a_pattern, pattern, sizeof(pattern));
-
-	if (*pattern)
+	if (pattern)
 		clish_config__set_pattern(config, pattern);
 	else
 		clish_config__set_pattern(config, "^${__cmd}");
 
-	clish_xmlattr_get_value_noerr(a_file, file, sizeof(file));
-
-	if (*file)
+	if (file)
 		clish_config__set_file(config, file);
 
-	clish_xmlattr_get_value_noerr(a_splitter, splitter, sizeof(splitter));
-
-	if (lub_string_nocasecmp(splitter, "false") == 0)
+	if (splitter && lub_string_nocasecmp(splitter, "false") == 0)
 		clish_config__set_splitter(config, BOOL_FALSE);
 	else
 		clish_config__set_splitter(config, BOOL_TRUE);
 
-	clish_xmlattr_get_value_noerr(a_unique, unique, sizeof(unique));
-
-	if (lub_string_nocasecmp(unique, "false") == 0)
+	if (unique && lub_string_nocasecmp(unique, "false") == 0)
 		clish_config__set_unique(config, BOOL_FALSE);
 	else
 		clish_config__set_unique(config, BOOL_TRUE);
 
-	clish_xmlattr_get_value_noerr(a_seq, seq, sizeof(seq));
-
-	if (*seq)
+	if (seq)
 		clish_config__set_seq(config, seq);
 	else
 		/* The entries without sequence cannot be non-unique */
 		clish_config__set_unique(config, BOOL_TRUE);
 
-	clish_xmlattr_get_value_noerr(a_depth, depth, sizeof(depth));
-
-	if (*depth)
+	if (depth)
 		clish_config__set_depth(config, depth);
 
+	clish_xml_release(operation);
+	clish_xml_release(priority);
+	clish_xml_release(pattern);
+	clish_xml_release(file);
+	clish_xml_release(splitter);
+	clish_xml_release(seq);
+	clish_xml_release(unique);
+	clish_xml_release(depth);
 }
 
 /* ------------------------------------------------------ */
 static void process_var(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_var_t *var = NULL;
-	clish_xmlattr_t *a_name = clish_xmlnode_fetch_attr(element, "name");
-	clish_xmlattr_t *a_dynamic = clish_xmlnode_fetch_attr(element, "dynamic");
-	clish_xmlattr_t *a_value = clish_xmlnode_fetch_attr(element, "value");
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *dynamic = clish_xmlnode_fetch_attr(element, "dynamic");
+	char *value = clish_xmlnode_fetch_attr(element, "value");
 
-	char name[128];
-	char value[128];
-	char dynamic[128];
+	assert(name);
 
-	clish_xmlattr_get_value_noerr(a_name, name, sizeof(name));
-
-	assert(*name);
 	/* Check if this var doesn't already exist */
 	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
 	if (var) {
@@ -946,14 +844,15 @@ static void process_var(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	var = clish_var_new(name);
 	lub_bintree_insert(&shell->var_tree, var);
 
-	clish_xmlattr_get_value_noerr(a_dynamic, dynamic, sizeof(dynamic));
-
-	if (lub_string_nocasecmp(dynamic, "true") == 0)
+	if (dynamic && lub_string_nocasecmp(dynamic, "true") == 0)
 		clish_var__set_dynamic(var, BOOL_TRUE);
 
-	clish_xmlattr_get_value_noerr(a_value, value, sizeof(value));
-	if (*value)
+	if (value)
 		clish_var__set_value(var, value);
+
+	clish_xml_release(name);
+	clish_xml_release(dynamic);
+	clish_xml_release(value);
 
 	process_children(shell, element, var);
 }
