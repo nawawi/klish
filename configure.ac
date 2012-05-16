@@ -66,11 +66,16 @@ AC_ARG_WITH(libxml2,
             [use_libxml2=$withval],
             [use_libxml2=yes])
 
-if test "x$use_roxml" = "xyes"; then
-	if test "x$use_libxml2" = "xyes"; then
-		AC_MSG_WARN([both roxml and libxml2 are selected. I choose roxml])
-		use_libxml2=no
-	fi
+if test "x$use_roxml" != "xno"; then
+    if test "x$use_libxml2" != "xno"; then
+        AC_MSG_WARN([both roxml and libxml2 are selected. I choose roxml])
+        use_libxml2=no
+    fi
+else
+    if test "x$use_libxml2" = "xno"; then
+        AC_MSG_WARN([neither roxml nor libxml2 are selected. I choose libxml2])
+        use_libxml2=yes
+    fi
 fi
 
 XML_LDFLAGS=""
