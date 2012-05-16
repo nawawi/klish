@@ -82,56 +82,170 @@ XML_LDFLAGS=""
 XML_CFLAGS=""
 XML_LIBS=""
 
-AC_MSG_CHECKING([for libroxml support])
 case x$use_roxml in
   xno)
+    AC_MSG_CHECKING([for libroxml support])
     AC_MSG_RESULT([no])
     ;;
   xyes)
+    # we choose to NOT rely on pkg-config on this one. We may do it as
+    # libroxml provides a .pc file but some environment (both cross-compile
+    # or native environment) may lack this support. The good thing is that
+    # it doesn't add much complexity to the configure.ac file (and we
+    # may move these tests to another m4 file later). 
+
+    # the header is installed in the standard path
+    AC_CHECK_HEADER([roxml.h],
+                    [roxml_h_found=yes],
+                    [roxml_h_found=no],
+                    [/* force include check */])
+    if test "x$roxml_h_found" != "xyes"; then
+        AC_MSG_ERROR([cannot find <roxml.h> header file])
+    fi
+    XML_CFLAGS=""
+
     # the library is installed in the standard path
-    XML_LDFLAGS="`pkg-config libroxml --libs-only-L`"
-    XML_CFLAGS="`pkg-config libroxml --cflags`"
-    XML_LIBS="`pkg-config libroxml --libs-only-l`"
-    AC_MSG_RESULT([yes])
+    AC_CHECK_LIB([roxml],
+                 [roxml_load_doc],
+                 [roxml_lib_found=yes],
+                 [roxml_lib_found=no],
+                 [])
+    if test "x$roxml_lib_found" != "xyes"; then
+        AC_MSG_ERROR([cannot find roxml library])
+    fi
+    XML_LDFLAGS=""
+    XML_LIBS="-lroxml"
+
     AC_DEFINE([HAVE_LIB_ROXML], 
               [], 
               [Define to 1 if you want to use libroxml to parse clish XML files])
+
     ;;
+
   *)
-    # this is very likely to be a source directory, so
-    # let's consider that it's a valid one
-    XML_LDFLAGS="-L${use_roxml}"
-    XML_CFLAGS="-I${use_roxml}/inc"
-    XML_LIBS="-lroxml"
-    AC_MSG_RESULT([yes (lib in ${use_roxml}, includes in ${use_roxml}/inc)])
+    # first, we check if we're not looking for an alternate include
+    # directory -for example, if the user feeds the script with the
+    # option --with-roxml=/usr/local
+    # NOTE: we search for include/roxml.h and inc/roxml.h to defeat
+    # the caching algorithm of the configure script. If someone knows
+    # a better way, please do not hesitate
+    roxml_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS -I${use_roxml}"
+    AC_CHECK_HEADER([include/roxml.h],
+                    [roxml_h_found=yes],
+                    [roxml_h_found=no],
+                    [/* force include check */])
+    if test "x$roxml_h_found" = "xno"; then
+        # the directory might be a source directory, so check
+        # if the include file is to be found here
+        AC_CHECK_HEADER([inc/roxml.h],
+                        [roxml_h_found=yes],
+                        [roxml_h_found=no],
+                        [/* force include check */])
+        if test "x$roxml_h_found" = "xno"; then
+            AC_MSG_ERROR([cannot find <roxml.h> header file])
+        fi
+        XML_CFLAGS="-I${use_roxml}/inc"
+        AC_MSG_NOTICE([header file <roxml.h> found in ${use_roxml}/inc])
+    else
+        XML_CFLAGS="-I${use_roxml}/include"
+        AC_MSG_NOTICE([header file <roxml.h> found in ${use_roxml}/include])
+    fi
+    CFLAGS="$roxml_CFLAGS"
+
+    # we're doing both previous checks, but we are trying to find a library
+    # now, so the check themselves are a bit different
+    # NOTE: we search for roxml_load_doc and roxml_close to defeat
+    # the caching algorithm of the configure script. If someone knows
+    # a better way, please do not hesitate.
+    roxml_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$LDFLAGS -L${use_roxml}/lib"
+    AC_CHECK_LIB([roxml],
+                 [roxml_load_doc],
+                 [roxml_lib_found=yes],
+                 [roxml_lib_found=no],
+                 [])
+    LDFLAGS=$roxml_LDFLAGS
+    if test "x$roxml_lib_found" = "xno"; then
+        LDFLAGS="$LDFLAGS -L${use_roxml}"
+        AC_CHECK_LIB([roxml],
+                     [roxml_close],
+                     [roxml_lib_found=yes],
+                     [roxml_lib_found=no],
+                     [])
+        LDFLAGS=$roxml_LDFLAGS
+        if test "x$roxml_lib_found" = "xno"; then
+            AC_MSG_ERROR([cannot find roxml library])
+        fi
+        XML_LDFLAGS="-L${use_roxml}"
+        XML_LIBS="-lroxml"
+        AC_MSG_NOTICE([library libroxml found in ${use_roxml}])
+    else
+        XML_LDFLAGS="-L${use_roxml}/lib"
+        XML_LIBS="-lroxml"
+        AC_MSG_NOTICE([library libroxml found in ${use_roxml}/lib])
+    fi
+
     AC_DEFINE([HAVE_LIB_ROXML], 
               [], 
               [Define to 1 if you want to use libroxml to parse clish XML files])
     ;;
 esac
 
-AC_MSG_CHECKING([for libxml2 support])
 case x$use_libxml2 in
   xno)
+    AC_MSG_CHECKING([for libxml2 support])
     AC_MSG_RESULT([no])
     ;;
   xyes)
-    # the library is installed in the standard path
-    XML_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
+    # I would love to avoid using pkg-config (which may not be available on
+    # some compilation environment) but doing so really add a lot of complexity
+    # to the system, as the headers don't lie in a standard directory (they
+    # lie in a subdirectory of a standard include directory; not the same thing
+    # for configure scripts). 
     XML_CFLAGS="`pkg-config libxml-2.0 --cflags`"
+    XML_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
     XML_LIBS="`pkg-config libxml-2.0 --libs-only-l`"
-    AC_MSG_RESULT([yes])
+    AC_CHECK_LIB([xml2],
+                 [xmlNewDoc],
+                 [libxml2_lib_found=yes],
+                 [libxml2_lib_found=no],
+                 [-lz])
+    if test "x$libxml2_lib_found" != "xyes"; then
+        AC_MSG_ERROR([cannot find libxml2 library])
+    fi
+
+    # the header file is installed in a subdirectory of one of the standard
+    # include directory. This might prove to be a problem if the cross-compile
+    # environment is not complete enough (i.e. if it misses pkg-config, or
+    # if pkg-config returns wrong values). In most cases, the environment is
+    # likely to be OK so we will never hit any issue. 
+    xml2_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $XML_CFLAGS"
+    AC_CHECK_HEADER([libxml/tree.h],
+                    [libxml2_h_found=yes],
+                    [libxml2_h_found=no],
+                    [/* force include check */])
+    CFLAGS="$xml2_CFLAGS"
+    if test "x$libxml2_h_found" != "xyes"; then
+        AC_MSG_ERROR([cannot find libxml2 headers])
+    fi
+
     AC_DEFINE([HAVE_LIB_LIBXML2], 
               [], 
               [Define to 1 if you want to use libxml2 to parse clish XML files])
     ;;
   *)
-    # this is very likely to be a source directory, so
-    # let's consider that it's a valid one
-    XML_LDFLAGS="-L${use_libxml2}"
-    XML_CFLAGS="-I${use_libxml2}"
+    # this is probably broken. We consider that the user supplied path is
+    # a non-standard path. But we're not going to check anything.
+    AC_MSG_WARN([--with-libxml2=DIR is probably broken, but let's try])
+    XML_LDFLAGS="-L${use_libxml2}/include/libxml2"
+    XML_CFLAGS="-I${use_libxml2}/lib"
     XML_LIBS="-lxml2"
-    AC_MSG_RESULT([yes (lib and includes in ${use_libxml2}])
+    AC_MSG_CHECKING([for libxml2 support])
+    AC_MSG_RESULT([yes])
+    AC_MSG_NOTICE([headers for libxml2 hopefully in ${use_libxml2}/include/libxml2])
+    AC_MSG_NOTICE([library libxml2 hopefully in ${use_libxml2}/lib])
     AC_DEFINE([HAVE_LIB_LIBXML2], 
               [], 
               [Define to 1 if you want to use libxml2 to parse clish XML files])
