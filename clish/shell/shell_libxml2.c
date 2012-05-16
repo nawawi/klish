@@ -166,7 +166,7 @@ char *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
 		while (a) {
 			if (strcmp((char*)a->name, attrname) == 0) {
 				if (a->children && a->children->content)
-					return a->children->content;
+					return (char *)a->children->content;
 				else
 					return NULL;
 			}
