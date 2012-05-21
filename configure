@@ -768,6 +768,7 @@ enable_libtool_lock
 enable_dependency_tracking
 enable_debug
 with_roxml
+with_expat
 with_libxml2
 '
       ac_precious_vars='build_alias
@@ -1418,8 +1419,10 @@ Optional Packages:
                         (or the compiler's sysroot if not specified).
   --with-roxml=DIR        Use roxml as the XML parser implementation
                           [default=no]
+  --with-expat=DIR        Use expat as the XML parser implementation
+                          [default=no]
   --with-libxml2=DIR      Use libxml2 as the XML parser implementation
-                          [default=yes]
+                          [default=no]
 
 Some influential environment variables:
   CC          C compiler command
@@ -12653,48 +12656,209 @@ fi
 
 
 
+# Check whether --with-expat was given.
+if test "${with_expat+set}" = set; then :
+  withval=$with_expat; use_expat=$withval
+else
+  use_expat=no
+fi
+
+
+
 # Check whether --with-libxml2 was given.
 if test "${with_libxml2+set}" = set; then :
   withval=$with_libxml2; use_libxml2=$withval
 else
-  use_libxml2=yes
+  use_libxml2=no
 fi
 
+
+# select the default xml backend
+sel_xml_backends=""
+xml_backend=""
+found_xml_backend=""
+count_xml_backends=0
+if test "x$use_libxml2" != "xno"; then
+    xml_backend="$sel_xml_backends libxml2"
+    sel_xml_backends="libxml2"
+    count_xml_backends=$((count_xml_backends + 1))
+fi
 
 if test "x$use_roxml" != "xno"; then
-    if test "x$use_libxml2" != "xno"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: both roxml and libxml2 are selected. I choose roxml" >&5
-$as_echo "$as_me: WARNING: both roxml and libxml2 are selected. I choose roxml" >&2;}
-        use_libxml2=no
-    fi
-else
-    if test "x$use_libxml2" = "xno"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: neither roxml nor libxml2 are selected. I choose libxml2" >&5
-$as_echo "$as_me: WARNING: neither roxml nor libxml2 are selected. I choose libxml2" >&2;}
-        use_libxml2=yes
-    fi
+    sel_xml_backends="$sel_xml_backends roxml"
+    xml_backend="roxml"
+    count_xml_backends=$((count_xml_backends + 1))
 fi
+
+if test "x$use_expat" != "xno"; then
+    sel_xml_backends="$sel_xml_backends expat"
+    xml_backend="expat"
+    count_xml_backends=$((count_xml_backends + 1))
+fi
+
+if test $count_xml_backends -gt 1; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Multiple XML backend has been selected ($sel_xml_backends). I choose $xml_backend" >&5
+$as_echo "$as_me: WARNING: Multiple XML backend has been selected ($sel_xml_backends). I choose $xml_backend" >&2;}
+fi
+
+if test "x$xml_backend" = "x"; then
+    xml_backend="auto"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No XML backend has been selected: auto check" >&5
+$as_echo "$as_me: WARNING: No XML backend has been selected: auto check" >&2;}
+fi
+
+case x$xml_backend in
+    xroxml)
+        use_libxml2="no"
+        use_expat="no"
+        ;;
+    xlibxml2)
+        use_roxml="no"
+        use_expat="no"
+        ;;
+    xexpat)
+        use_libxml2="no"
+        use_roxml="no"
+        ;;
+esac
 
 XML_LDFLAGS=""
 XML_CFLAGS=""
 XML_LIBS=""
 
-case x$use_roxml in
-  xno)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libroxml support" >&5
-$as_echo_n "checking for libroxml support... " >&6; }
+if test "$xml_backend" = "expat" -o "$xml_backend" = "auto"; then
+    if test "$xml_backend" = "auto"; then
+        # on auto select, we try to detect the library
+        use_expat="yes"
+    fi
+    case x$use_expat in
+      xyes)
+        # we choose to NOT rely on pkg-config on this one. Instead, we
+        # check for the library and the header file - that should be
+        # enough.
+        ac_fn_c_check_header_compile "$LINENO" "expat.h" "ac_cv_header_expat_h" "/* force include check */
+"
+if test "x$ac_cv_header_expat_h" = xyes; then :
+  expat_h_found=yes
+else
+  expat_h_found=no
+fi
+
+
+        if test "x$expat_h_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find <expat.h> header file" >&5
+$as_echo "$as_me: WARNING: cannot find <expat.h> header file" >&2;}
+            else
+                as_fn_error $? "cannot find <expat.h> header file" "$LINENO" 5
+            fi
+        fi
+        XML_CFLAGS=""
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XML_ParserCreate in -lexpat" >&5
+$as_echo_n "checking for XML_ParserCreate in -lexpat... " >&6; }
+if ${ac_cv_lib_expat_XML_ParserCreate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexpat  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XML_ParserCreate ();
+int
+main ()
+{
+return XML_ParserCreate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_expat_XML_ParserCreate=yes
+else
+  ac_cv_lib_expat_XML_ParserCreate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_expat_XML_ParserCreate" >&5
+$as_echo "$ac_cv_lib_expat_XML_ParserCreate" >&6; }
+if test "x$ac_cv_lib_expat_XML_ParserCreate" = xyes; then :
+  expat_lib_found=yes
+else
+  expat_lib_found=no
+fi
+
+        if test "x$expat_lib_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find expat library" >&5
+$as_echo "$as_me: WARNING: cannot find expat library" >&2;}
+            else
+                as_fn_error $? "cannot find expat library" "$LINENO" 5
+            fi
+        fi
+        XML_LDFLAGS=""
+        XML_LIBS="-lexpat"
+
+
+$as_echo "#define HAVE_LIB_EXPAT /**/" >>confdefs.h
+
+        xml_backend="found"
+        found_xml_backend="expat"
+        ;;
+      *)
+        # this is probably broken. We consider that the user supplied path is
+        # a non-standard path. But we're not going to check anything.
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-expat=DIR is probably broken, just trying" >&5
+$as_echo "$as_me: WARNING: --with-expat=DIR is probably broken, just trying" >&2;}
+        XML_LDFLAGS="-L${use_expat}/include"
+        XML_CFLAGS="-I${use_expat}/lib"
+        XML_LIBS="-lxml2"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for expat support" >&5
+$as_echo_n "checking for expat support... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: headers for expat hopefully in ${use_expat}/include" >&5
+$as_echo "$as_me: headers for expat hopefully in ${use_expat}/include" >&6;}
+        { $as_echo "$as_me:${as_lineno-$LINENO}: library expat hopefully in ${use_expat}/lib" >&5
+$as_echo "$as_me: library expat hopefully in ${use_expat}/lib" >&6;}
+
+$as_echo "#define HAVE_LIB_EXPAT /**/" >>confdefs.h
+
+        xml_backend="found"
+        found_xml_backend="expat"
+        ;;
+    esac
+else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libexpat support" >&5
+$as_echo_n "checking for libexpat support... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-    ;;
-  xyes)
-    # we choose to NOT rely on pkg-config on this one. We may do it as
-    # libroxml provides a .pc file but some environment (both cross-compile
-    # or native environment) may lack this support. The good thing is that
-    # it doesn't add much complexity to the configure.ac file (and we
-    # may move these tests to another m4 file later).
+fi
 
-    # the header is installed in the standard path
-    ac_fn_c_check_header_compile "$LINENO" "roxml.h" "ac_cv_header_roxml_h" "/* force include check */
+if test "$xml_backend" = "roxml" -o "$xml_backend" = "auto"; then
+    if test "$xml_backend" = "auto"; then
+        # on auto select, we try to detect the library
+        use_roxml="yes"
+    fi
+    case x$use_roxml in
+      xyes)
+        # we choose to NOT rely on pkg-config on this one. We may do it as
+        # libroxml provides a .pc file but some environment (both cross-compile
+        # or native environment) may lack this support. The good thing is that
+        # it doesn't add much complexity to the configure.ac file (and we
+        # may move these tests to another m4 file later).
+
+        # the header is installed in the standard path
+        ac_fn_c_check_header_compile "$LINENO" "roxml.h" "ac_cv_header_roxml_h" "/* force include check */
 "
 if test "x$ac_cv_header_roxml_h" = xyes; then :
   roxml_h_found=yes
@@ -12703,13 +12867,18 @@ else
 fi
 
 
-    if test "x$roxml_h_found" != "xyes"; then
-        as_fn_error $? "cannot find <roxml.h> header file" "$LINENO" 5
-    fi
-    XML_CFLAGS=""
+        if test "x$roxml_h_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find <roxml.h> header file" >&5
+$as_echo "$as_me: WARNING: cannot find <roxml.h> header file" >&2;}
+            else
+                as_fn_error $? "cannot find <roxml.h> header file" "$LINENO" 5
+            fi
+        fi
+        XML_CFLAGS=""
 
-    # the library is installed in the standard path
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_load_doc in -lroxml" >&5
+        # the library is installed in the standard path
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_load_doc in -lroxml" >&5
 $as_echo_n "checking for roxml_load_doc in -lroxml... " >&6; }
 if ${ac_cv_lib_roxml_roxml_load_doc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12751,28 +12920,34 @@ else
   roxml_lib_found=no
 fi
 
-    if test "x$roxml_lib_found" != "xyes"; then
-        as_fn_error $? "cannot find roxml library" "$LINENO" 5
-    fi
-    XML_LDFLAGS=""
-    XML_LIBS="-lroxml"
+        if test "x$roxml_lib_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find roxml library" >&5
+$as_echo "$as_me: WARNING: cannot find roxml library" >&2;}
+            else
+                as_fn_error $? "cannot find roxml library" "$LINENO" 5
+            fi
+        fi
+        XML_LDFLAGS=""
+        XML_LIBS="-lroxml"
 
 
 $as_echo "#define HAVE_LIB_ROXML /**/" >>confdefs.h
 
+        xml_backend="found"
+        found_xml_backend="roxml"
+        ;;
 
-    ;;
-
-  *)
-    # first, we check if we're not looking for an alternate include
-    # directory -for example, if the user feeds the script with the
-    # option --with-roxml=/usr/local
-    # NOTE: we search for include/roxml.h and inc/roxml.h to defeat
-    # the caching algorithm of the configure script. If someone knows
-    # a better way, please do not hesitate
-    roxml_CFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS -I${use_roxml}"
-    ac_fn_c_check_header_compile "$LINENO" "include/roxml.h" "ac_cv_header_include_roxml_h" "/* force include check */
+      *)
+        # first, we check if we're not looking for an alternate include
+        # directory -for example, if the user feeds the script with the
+        # option --with-roxml=/usr/local
+        # NOTE: we search for include/roxml.h and inc/roxml.h to defeat
+        # the caching algorithm of the configure script. If someone knows
+        # a better way, please do not hesitate
+        roxml_CFLAGS="$CFLAGS"
+        CFLAGS="$CFLAGS -I${use_roxml}"
+        ac_fn_c_check_header_compile "$LINENO" "include/roxml.h" "ac_cv_header_include_roxml_h" "/* force include check */
 "
 if test "x$ac_cv_header_include_roxml_h" = xyes; then :
   roxml_h_found=yes
@@ -12781,10 +12956,10 @@ else
 fi
 
 
-    if test "x$roxml_h_found" = "xno"; then
-        # the directory might be a source directory, so check
-        # if the include file is to be found here
-        ac_fn_c_check_header_compile "$LINENO" "inc/roxml.h" "ac_cv_header_inc_roxml_h" "/* force include check */
+        if test "x$roxml_h_found" = "xno"; then
+            # the directory might be a source directory, so check
+            # if the include file is to be found here
+            ac_fn_c_check_header_compile "$LINENO" "inc/roxml.h" "ac_cv_header_inc_roxml_h" "/* force include check */
 "
 if test "x$ac_cv_header_inc_roxml_h" = xyes; then :
   roxml_h_found=yes
@@ -12793,27 +12968,32 @@ else
 fi
 
 
-        if test "x$roxml_h_found" = "xno"; then
-            as_fn_error $? "cannot find <roxml.h> header file" "$LINENO" 5
-        fi
-        XML_CFLAGS="-I${use_roxml}/inc"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: header file <roxml.h> found in ${use_roxml}/inc" >&5
+            if test "x$roxml_h_found" = "xno"; then
+                if test "$xml_backend" = "auto"; then
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find <roxml.h> header file" >&5
+$as_echo "$as_me: WARNING: cannot find <roxml.h> header file" >&2;}
+                else
+                    as_fn_error $? "cannot find <roxml.h> header file" "$LINENO" 5
+                fi
+            fi
+            XML_CFLAGS="-I${use_roxml}/inc"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: header file <roxml.h> found in ${use_roxml}/inc" >&5
 $as_echo "$as_me: header file <roxml.h> found in ${use_roxml}/inc" >&6;}
-    else
-        XML_CFLAGS="-I${use_roxml}/include"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: header file <roxml.h> found in ${use_roxml}/include" >&5
+        else
+            XML_CFLAGS="-I${use_roxml}/include"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: header file <roxml.h> found in ${use_roxml}/include" >&5
 $as_echo "$as_me: header file <roxml.h> found in ${use_roxml}/include" >&6;}
-    fi
-    CFLAGS="$roxml_CFLAGS"
+        fi
+        CFLAGS="$roxml_CFLAGS"
 
-    # we're doing both previous checks, but we are trying to find a library
-    # now, so the check themselves are a bit different
-    # NOTE: we search for roxml_load_doc and roxml_close to defeat
-    # the caching algorithm of the configure script. If someone knows
-    # a better way, please do not hesitate.
-    roxml_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L${use_roxml}/lib"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_load_doc in -lroxml" >&5
+        # we're doing both previous checks, but we are trying to find a library
+        # now, so the check themselves are a bit different
+        # NOTE: we search for roxml_load_doc and roxml_close to defeat
+        # the caching algorithm of the configure script. If someone knows
+        # a better way, please do not hesitate.
+        roxml_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$LDFLAGS -L${use_roxml}/lib"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_load_doc in -lroxml" >&5
 $as_echo_n "checking for roxml_load_doc in -lroxml... " >&6; }
 if ${ac_cv_lib_roxml_roxml_load_doc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12855,10 +13035,10 @@ else
   roxml_lib_found=no
 fi
 
-    LDFLAGS=$roxml_LDFLAGS
-    if test "x$roxml_lib_found" = "xno"; then
-        LDFLAGS="$LDFLAGS -L${use_roxml}"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_close in -lroxml" >&5
+        LDFLAGS=$roxml_LDFLAGS
+        if test "x$roxml_lib_found" = "xno"; then
+            LDFLAGS="$LDFLAGS -L${use_roxml}"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for roxml_close in -lroxml" >&5
 $as_echo_n "checking for roxml_close in -lroxml... " >&6; }
 if ${ac_cv_lib_roxml_roxml_close+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12900,44 +13080,56 @@ else
   roxml_lib_found=no
 fi
 
-        LDFLAGS=$roxml_LDFLAGS
-        if test "x$roxml_lib_found" = "xno"; then
-            as_fn_error $? "cannot find roxml library" "$LINENO" 5
-        fi
-        XML_LDFLAGS="-L${use_roxml}"
-        XML_LIBS="-lroxml"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: library libroxml found in ${use_roxml}" >&5
+            LDFLAGS=$roxml_LDFLAGS
+            if test "x$roxml_lib_found" = "xno"; then
+                if test "$xml_backend" = "auto"; then
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find roxml library" >&5
+$as_echo "$as_me: WARNING: cannot find roxml library" >&2;}
+                else
+                    as_fn_error $? "cannot find roxml library" "$LINENO" 5
+                fi
+            fi
+            XML_LDFLAGS="-L${use_roxml}"
+            XML_LIBS="-lroxml"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: library libroxml found in ${use_roxml}" >&5
 $as_echo "$as_me: library libroxml found in ${use_roxml}" >&6;}
-    else
-        XML_LDFLAGS="-L${use_roxml}/lib"
-        XML_LIBS="-lroxml"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: library libroxml found in ${use_roxml}/lib" >&5
+        else
+            XML_LDFLAGS="-L${use_roxml}/lib"
+            XML_LIBS="-lroxml"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: library libroxml found in ${use_roxml}/lib" >&5
 $as_echo "$as_me: library libroxml found in ${use_roxml}/lib" >&6;}
-    fi
+        fi
 
 
 $as_echo "#define HAVE_LIB_ROXML /**/" >>confdefs.h
 
-    ;;
-esac
-
-case x$use_libxml2 in
-  xno)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 support" >&5
-$as_echo_n "checking for libxml2 support... " >&6; }
+        xml_backend="found"
+        found_xml_backend="roxml"
+        ;;
+    esac
+else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libroxml support" >&5
+$as_echo_n "checking for libroxml support... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-    ;;
-  xyes)
-    # I would love to avoid using pkg-config (which may not be available on
-    # some compilation environment) but doing so really add a lot of complexity
-    # to the system, as the headers don't lie in a standard directory (they
-    # lie in a subdirectory of a standard include directory; not the same thing
-    # for configure scripts).
-    XML_CFLAGS="`pkg-config libxml-2.0 --cflags`"
-    XML_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
-    XML_LIBS="`pkg-config libxml-2.0 --libs-only-l`"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlNewDoc in -lxml2" >&5
+fi
+
+if test "$xml_backend" = "libxml2" -o "$xml_backend" = "auto"; then
+    if test "$xml_backend" = "auto"; then
+        # on auto select, we try to detect the library
+        use_libxml2="yes"
+    fi
+    case x$use_libxml2 in
+      xyes)
+        # I would love to avoid using pkg-config (which may not be available on
+        # some compilation environment) but doing so really add a lot of
+        # complexity to the system, as the headers don't lie in a standard
+        # directory (they lie in a subdirectory of a standard include directory;
+        # not the same thing for configure scripts).
+        XML_CFLAGS="`pkg-config libxml-2.0 --cflags`"
+        XML_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
+        XML_LIBS="`pkg-config libxml-2.0 --libs-only-l`"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlNewDoc in -lxml2" >&5
 $as_echo_n "checking for xmlNewDoc in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlNewDoc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12979,18 +13171,23 @@ else
   libxml2_lib_found=no
 fi
 
-    if test "x$libxml2_lib_found" != "xyes"; then
-        as_fn_error $? "cannot find libxml2 library" "$LINENO" 5
-    fi
+        if test "x$libxml2_lib_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find libxml2 library" >&5
+$as_echo "$as_me: WARNING: cannot find libxml2 library" >&2;}
+            else
+                as_fn_error $? "cannot find libxml2 library" "$LINENO" 5
+            fi
+        fi
 
-    # the header file is installed in a subdirectory of one of the standard
-    # include directory. This might prove to be a problem if the cross-compile
-    # environment is not complete enough (i.e. if it misses pkg-config, or
-    # if pkg-config returns wrong values). In most cases, the environment is
-    # likely to be OK so we will never hit any issue.
-    xml2_CFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS $XML_CFLAGS"
-    ac_fn_c_check_header_compile "$LINENO" "libxml/tree.h" "ac_cv_header_libxml_tree_h" "/* force include check */
+        # the header file is installed in a subdirectory of one of the standard
+        # include directory. This might prove to be a problem if the cross-
+        # compile environment is not complete enough (i.e. if it misses
+        # pkg-config, or if pkg-config returns wrong values). In most cases, the
+        # environment is likely to be OK so we will never hit any issue.
+        xml2_CFLAGS="$CFLAGS"
+        CFLAGS="$CFLAGS $XML_CFLAGS"
+        ac_fn_c_check_header_compile "$LINENO" "libxml/tree.h" "ac_cv_header_libxml_tree_h" "/* force include check */
 "
 if test "x$ac_cv_header_libxml_tree_h" = xyes; then :
   libxml2_h_found=yes
@@ -12999,36 +13196,61 @@ else
 fi
 
 
-    CFLAGS="$xml2_CFLAGS"
-    if test "x$libxml2_h_found" != "xyes"; then
-        as_fn_error $? "cannot find libxml2 headers" "$LINENO" 5
-    fi
+        CFLAGS="$xml2_CFLAGS"
+        if test "x$libxml2_h_found" != "xyes"; then
+            if test "$xml_backend" = "auto"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find libxml2 headers" >&5
+$as_echo "$as_me: WARNING: cannot find libxml2 headers" >&2;}
+            else
+                as_fn_error $? "cannot find libxml2 headers" "$LINENO" 5
+            fi
+        fi
 
 
 $as_echo "#define HAVE_LIB_LIBXML2 /**/" >>confdefs.h
 
-    ;;
-  *)
-    # this is probably broken. We consider that the user supplied path is
-    # a non-standard path. But we're not going to check anything.
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-libxml2=DIR is probably broken, but let's try" >&5
-$as_echo "$as_me: WARNING: --with-libxml2=DIR is probably broken, but let's try" >&2;}
-    XML_LDFLAGS="-L${use_libxml2}/include/libxml2"
-    XML_CFLAGS="-I${use_libxml2}/lib"
-    XML_LIBS="-lxml2"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 support" >&5
+        xml_backend="found"
+        found_xml_backend="libxml2"
+        ;;
+      *)
+        # this is probably broken. We consider that the user supplied path is
+        # a non-standard path. But we're not going to check anything.
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-libxml2=DIR is probably broken, just trying" >&5
+$as_echo "$as_me: WARNING: --with-libxml2=DIR is probably broken, just trying" >&2;}
+        XML_LDFLAGS="-L${use_libxml2}/include/libxml2"
+        XML_CFLAGS="-I${use_libxml2}/lib"
+        XML_LIBS="-lxml2"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 support" >&5
 $as_echo_n "checking for libxml2 support... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: headers for libxml2 hopefully in ${use_libxml2}/include/libxml2" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: headers for libxml2 hopefully in ${use_libxml2}/include/libxml2" >&5
 $as_echo "$as_me: headers for libxml2 hopefully in ${use_libxml2}/include/libxml2" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: library libxml2 hopefully in ${use_libxml2}/lib" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: library libxml2 hopefully in ${use_libxml2}/lib" >&5
 $as_echo "$as_me: library libxml2 hopefully in ${use_libxml2}/lib" >&6;}
 
 $as_echo "#define HAVE_LIB_LIBXML2 /**/" >>confdefs.h
 
-    ;;
-esac
+        xml_backend="found"
+        found_xml_backend="libxml2"
+        ;;
+    esac
+else
+    # not selected? We print a small message
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 support" >&5
+$as_echo_n "checking for libxml2 support... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+if test "$xml_backend" != "found"; then
+    as_fn_error $? "Failed to find a suitable XML backend" "$LINENO" 5
+fi
+
+if test $count_xml_backends -eq 0; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: I found a suitable XML backend: $found_xml_backend" >&5
+$as_echo "$as_me: I found a suitable XML backend: $found_xml_backend" >&6;}
+fi
 
 
 
