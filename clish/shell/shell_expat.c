@@ -1,6 +1,6 @@
 /*
  * ------------------------------------------------------
- * shell_xmlexpat.c
+ * shell_expat.c
  *
  * This file implements the means to read an XML encoded file
  * and populate the CLI tree based on the contents. It implements
@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -143,8 +144,8 @@ static void clish_expat_add_attrlist(clish_xmlnode_t *node, const char **attr)
  */
 static clish_xmlnode_t *clish_expat_make_node(clish_xmlnode_t *parent,
 					      clish_xmlnodetype_t type,
-					      char *n,
-					      char *v,
+					      const char *n,
+					      const char *v,
 					      const char **attr)
 {
 	clish_xmlnode_t *node;
