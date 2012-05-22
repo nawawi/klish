@@ -266,7 +266,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (!allowed)
 		goto process_command_end;
 
-	assert(*name);
+	assert(name);
 
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
@@ -277,7 +277,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		goto process_command_end;
 	}
 
-	assert(*help);
+	assert(help);
 
 	/* Reference 'ref' field */
 	if (ref) {
