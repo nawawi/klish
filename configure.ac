@@ -54,14 +54,14 @@ AM_CONDITIONAL(DEBUG,test x$enable_debug = xyes)
 ################################
 # Check for the roxml library
 ################################
-AC_ARG_WITH(roxml,
-            [AS_HELP_STRING([--with-roxml=DIR],
+AC_ARG_WITH(libroxml,
+            [AS_HELP_STRING([--with-libroxml=DIR],
                             [Use roxml as the XML parser implementation [default=no]])],
             [use_roxml=$withval],
             [use_roxml=no])
 
-AC_ARG_WITH(expat,
-            [AS_HELP_STRING([--with-expat=DIR],
+AC_ARG_WITH(libexpat,
+            [AS_HELP_STRING([--with-libexpat=DIR],
                             [Use expat as the XML parser implementation [default=no]])],
             [use_expat=$withval],
             [use_expat=no])
