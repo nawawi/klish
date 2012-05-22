@@ -686,7 +686,7 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 	assert(ref_view);
 
 	/* Don't include itself without prefix */
-	if ((ref_view == v) && !prefix) 
+	if ((ref_view == v) && !prefix)
 		goto process_namespace_end;
 
 	nspace = clish_nspace_new(ref_view);
