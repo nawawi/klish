@@ -10,6 +10,7 @@ AC_INIT([klish],
         [serj.kalichev at gmail dot com])
 
 AC_CONFIG_AUX_DIR(aux_scripts)
+AC_CONFIG_MACRO_DIR([m4])
 
 # Check for system extensions (_POSIX_THREAD_SEMANTICS for Solaris)
 AC_USE_SYSTEM_EXTENSIONS

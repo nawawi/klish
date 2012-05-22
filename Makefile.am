@@ -1,5 +1,6 @@
 ## Process this file with automake to generate Makefile.in
 AUTOMAKE_OPTIONS        = foreign nostdinc
+ACLOCAL_AMFLAGS         = -I m4
 
 AM_CPPFLAGS             = -I. -I$(top_srcdir)
 AM_LD                   = $(CC)
