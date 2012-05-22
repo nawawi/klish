@@ -78,8 +78,8 @@ xml_backend=""
 found_xml_backend=""
 count_xml_backends=0
 if test "x$use_libxml2" != "xno"; then
-    xml_backend="$sel_xml_backends libxml2"
-    sel_xml_backends="libxml2"
+    sel_xml_backends="$sel_xml_backends libxml2"
+    xml_backend="libxml2"
     count_xml_backends=$((count_xml_backends + 1))
 fi
 
