@@ -447,7 +447,7 @@ int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content,
 			children = children->next;
 		}
 		if (minlen >= *contentlen) {
-			*contentlen = minlen;
+			*contentlen = minlen + 1;
 			return -E2BIG;
 		}
 		children = node->children;
