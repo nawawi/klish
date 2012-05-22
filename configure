@@ -767,8 +767,8 @@ with_sysroot
 enable_libtool_lock
 enable_dependency_tracking
 enable_debug
-with_roxml
-with_expat
+with_libroxml
+with_libexpat
 with_libxml2
 '
       ac_precious_vars='build_alias
@@ -1417,9 +1417,9 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-roxml=DIR        Use roxml as the XML parser implementation
+  --with-libroxml=DIR     Use roxml as the XML parser implementation
                           [default=no]
-  --with-expat=DIR        Use expat as the XML parser implementation
+  --with-libexpat=DIR     Use expat as the XML parser implementation
                           [default=no]
   --with-libxml2=DIR      Use libxml2 as the XML parser implementation
                           [default=no]
@@ -12647,18 +12647,18 @@ fi
 # Check for the roxml library
 ################################
 
-# Check whether --with-roxml was given.
-if test "${with_roxml+set}" = set; then :
-  withval=$with_roxml; use_roxml=$withval
+# Check whether --with-libroxml was given.
+if test "${with_libroxml+set}" = set; then :
+  withval=$with_libroxml; use_roxml=$withval
 else
   use_roxml=no
 fi
 
 
 
-# Check whether --with-expat was given.
-if test "${with_expat+set}" = set; then :
-  withval=$with_expat; use_expat=$withval
+# Check whether --with-libexpat was given.
+if test "${with_libexpat+set}" = set; then :
+  withval=$with_libexpat; use_expat=$withval
 else
   use_expat=no
 fi
@@ -12679,8 +12679,8 @@ xml_backend=""
 found_xml_backend=""
 count_xml_backends=0
 if test "x$use_libxml2" != "xno"; then
-    xml_backend="$sel_xml_backends libxml2"
-    sel_xml_backends="libxml2"
+    sel_xml_backends="$sel_xml_backends libxml2"
+    xml_backend="libxml2"
     count_xml_backends=$((count_xml_backends + 1))
 fi
 
