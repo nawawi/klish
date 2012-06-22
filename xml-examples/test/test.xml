@@ -28,11 +28,11 @@
 		<ACTION> echo "Common quotes with nested single quotes" </ACTION>
 	</COMMAND>
 
-	<COMMAND name="test5" help="Broken comment">
-<!--		<PARAM name="test5.param1" help="ttt" ptype="STRING" test='! -z "www"'/>
+	<COMMAND name="test5" help="Broken comment. Problem with libroxml.">
+<!-- - '
 -->
 		<PARAM name="test5.param2" help="Help test5.param2" ptype="STRING" optional="true" order="true"/>
-		<ACTION> echo "Broken comment" </ACTION>
+		<ACTION> echo "Broken comment. Problem with libroxml." </ACTION>
 	</COMMAND>
 
 	<COMMAND name="test6" help="Long ACTION. libexpat hangs">
