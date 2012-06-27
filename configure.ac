@@ -172,8 +172,8 @@ if test "$xml_backend" = "expat" -o "$xml_backend" = "auto"; then
         # this is probably broken. We consider that the user supplied path is
         # a non-standard path. But we're not going to check anything.
         AC_MSG_WARN([--with-expat=DIR is probably broken, just trying])
-        XML_LDFLAGS="-L${use_expat}/include"
-        XML_CFLAGS="-I${use_expat}/lib"
+        XML_LDFLAGS="-L${use_expat}/lib"
+        XML_CFLAGS="-I${use_expat}/include"
         XML_LIBS="-lxml2"
         AC_MSG_CHECKING([for expat support])
         AC_MSG_RESULT([yes])
@@ -383,8 +383,8 @@ if test "$xml_backend" = "libxml2" -o "$xml_backend" = "auto"; then
         # this is probably broken. We consider that the user supplied path is
         # a non-standard path. But we're not going to check anything.
         AC_MSG_WARN([--with-libxml2=DIR is probably broken, just trying])
-        XML_LDFLAGS="-L${use_libxml2}/include/libxml2"
-        XML_CFLAGS="-I${use_libxml2}/lib"
+        XML_LDFLAGS="-L${use_libxml2}/lib"
+        XML_CFLAGS="-I${use_libxml2}/include/libxml2"
         XML_LIBS="-lxml2"
         AC_MSG_CHECKING([for libxml2 support])
         AC_MSG_RESULT([yes])
