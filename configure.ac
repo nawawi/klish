@@ -174,7 +174,7 @@ if test "$xml_backend" = "expat" -o "$xml_backend" = "auto"; then
         AC_MSG_WARN([--with-expat=DIR is probably broken, just trying])
         XML_LDFLAGS="-L${use_expat}/lib"
         XML_CFLAGS="-I${use_expat}/include"
-        XML_LIBS="-lxml2"
+        XML_LIBS="-lexpat"
         AC_MSG_CHECKING([for expat support])
         AC_MSG_RESULT([yes])
         AC_MSG_NOTICE([headers for expat hopefully in ${use_expat}/include])
