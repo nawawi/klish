@@ -29,19 +29,6 @@ AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(size_t)
 
-#------------------------------------------------------------------------
-# Handle the --prefix=... option
-#------------------------------------------------------------------------
-
-if test "${prefix}" = "NONE"; then
-    prefix=/usr/local
-fi
-if test "${exec_prefix}" = "NONE"; then
-    exec_prefix=$prefix
-fi
-# libdir must be a fully qualified path (not ${exec_prefix}/lib)
-eval libdir="$libdir"
-
 ################################
 # Deal with debugging options
 ################################
