@@ -1397,4 +1397,21 @@ extern unsigned tinyrl__get_height(const tinyrl_t *this)
 	return tinyrl_vt100__get_height(this->term);
 }
 
+/*----------------------------------------------------------*/
+int tinyrl__save_history(const tinyrl_t *this, const char *fname)
+{
+	return tinyrl_history_save(this->history, fname);
+}
+
+/*----------------------------------------------------------*/
+int tinyrl__restore_history(const tinyrl_t *this, const char *fname)
+{
+	return tinyrl_history_restore(this->history, fname);
+}
+
+/*----------------------------------------------------------*/
+void tinyrl__stifle_history(tinyrl_t *this, unsigned int stifle)
+{
+	tinyrl_history_stifle(this->history, stifle);
+}
 /*--------------------------------------------------------- */

@@ -349,6 +349,9 @@ int clish_shell_wdog(clish_shell_t *instance);
 void clish_shell__set_wdog_timeout(clish_shell_t *instance,
 	unsigned int timeout);
 unsigned int clish_shell__get_wdog_timeout(const clish_shell_t *instance);
+int clish_shell__save_history(const clish_shell_t *instance, const char *fname);
+int clish_shell__restore_history(const clish_shell_t *instance, const char *fname);
+void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);
 
 _END_C_DECL
 

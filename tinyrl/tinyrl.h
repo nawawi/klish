@@ -216,6 +216,9 @@ extern void tinyrl_limit_line_length(
 
 extern unsigned tinyrl__get_width(const tinyrl_t *instance);
 extern unsigned tinyrl__get_height(const tinyrl_t *instance);
+extern int tinyrl__save_history(const tinyrl_t *instance, const char *fname);
+extern int tinyrl__restore_history(const tinyrl_t *instance, const char *fname);
+extern void tinyrl__stifle_history(tinyrl_t *instance, unsigned int stifle);
 
 _END_C_DECL
 #endif				/* _tinyrl_tinyrl_h */

@@ -3,14 +3,14 @@
  * 
  * Simple non-readline hooks for the cli library
  */
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "private.h"
 #include "lub/string.h"
-#include <stdlib.h>
-
 #include "tinyrl/history.h"
 
 struct _tinyrl_history {
@@ -408,5 +408,55 @@ tinyrl_history_entry_t *tinyrl_history_getprevious(tinyrl_history_iterator_t *
 
 	return result;
 }
+
+/*-------------------------------------*/
+/* Save command history to specified file */
+int tinyrl_history_save(const tinyrl_history_t *this, const char *fname)
+{
+	tinyrl_history_entry_t *entry;
+	tinyrl_history_iterator_t iter;
+	FILE *f;
+
+	if (!fname) {
+		errno = EINVAL;
+		return -1;
+	}
+	if (!(f = fopen(fname, "w")))
+		return -1;
+	for (entry = tinyrl_history_getfirst(this, &iter);
+		entry; entry = tinyrl_history_getnext(&iter)) {
+		if (fprintf(f, "%s\n", tinyrl_history_entry__get_line(entry)) < 0)
+			return -1;
+	}
+	fclose(f);
+
+	return 0;
+}
+
+/*-------------------------------------*/
+/* Restore command history from specified file */
+int tinyrl_history_restore(const tinyrl_history_t *this, const char *fname)
+{
+/*
+	tinyrl_history_entry_t *entry;
+	tinyrl_history_iterator_t iter;
+	FILE *f;
+
+	if (!fname) {
+		errno = EINVAL;
+		return -1;
+	}
+	if (!(f = fopen(fname, "w")))
+		return -1;
+	for (entry = tinyrl_history_getfirst(this, &iter);
+		entry; entry = tinyrl_history_getnext(&iter)) {
+		if (fprintf(f, "%s\n", tinyrl_history_entry__get_line(entry)) < 0)
+			return -1;
+	}
+	fclose(f);
+*/
+	return 0;
+}
+
 
 /*-------------------------------------*/

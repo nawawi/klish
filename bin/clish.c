@@ -26,6 +26,7 @@
 #endif
 
 #include "lub/list.h"
+#include "lub/system.h"
 #include "clish/shell.h"
 #include "clish/internal.h"
 
@@ -72,12 +73,15 @@ int main(int argc, char **argv)
 	bool_t cmd = BOOL_FALSE; /* -c option */
 	lub_list_t *cmds; /* Commands defined by -c */
 	lub_list_node_t *iter;
+	const char *histfile = "~/.clish_history";
+	char *histfile_expanded = NULL;
+	unsigned int histsize = 50;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8okt:c:";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8okt:c:f:z:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -97,6 +101,8 @@ int main(int argc, char **argv)
 		{"check",	0, NULL, 'k'},
 		{"timeout",	1, NULL, 't'},
 		{"command",	1, NULL, 'c'},
+		{"histfile",	1, NULL, 'f'},
+		{"histsize",	1, NULL, 'z'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -181,6 +187,23 @@ int main(int argc, char **argv)
 				lub_list_add(cmds, str);
 			}
 			break;
+		case 'f':
+			if (!strcmp(optarg, "/dev/null"))
+				histfile = NULL;
+			else
+				histfile = optarg;
+			break;
+		case 'z': {
+				int itmp = 0;
+				itmp = atoi(optarg);
+				if (itmp <= 0) {
+					fprintf(stderr, "Error: Illegal histsize option value.\n");
+					help(-1, argv[0]);
+					goto end;
+				}
+				histsize = itmp;
+			}
+			break;
 		case 'h':
 			help(0, argv[0]);
 			exit(0);
@@ -245,6 +268,12 @@ int main(int argc, char **argv)
 	/* Set idle timeout */
 	if (istimeout)
 		clish_shell__set_timeout(shell, timeout);
+	/* Set history settings */
+	clish_shell__stifle_history(shell, histsize);
+	if (histfile)
+		histfile_expanded = lub_system_tilde_expand(histfile);
+	if (histfile_expanded)
+		clish_shell__restore_history(shell, histfile_expanded);
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {
@@ -279,8 +308,13 @@ int main(int argc, char **argv)
 
 end:
 	/* Cleanup */
-	if (shell)
+	if (shell) {
+		if (histfile_expanded) {
+			clish_shell__save_history(shell, histfile_expanded);
+			free(histfile_expanded);
+		}
 		clish_shell_delete(shell);
+	}
 	if (quiet)
 		fclose(outfd);
 
@@ -337,5 +371,7 @@ static void help(int status, const char *argv0)
 		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
 		printf("\t-t <timeout>, --timeout=<timeout>\tIdle timeout in seconds.\n");
 		printf("\t-c <command>, --command=<command>\tExecute specified command(s).\n\t\tMultiple options are possible.\n");
+		printf("\t-f <path>, --histfile=<path>\tFile to save command history.\n");
+		printf("\t-z <num>, --histsize=<num>\tCommand history size in lines.\n");
 	}
 }

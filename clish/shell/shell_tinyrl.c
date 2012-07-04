@@ -569,4 +569,22 @@ tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * this)
 	return this->tinyrl;
 }
 
+/*----------------------------------------------------------*/
+int clish_shell__save_history(const clish_shell_t *this, const char *fname)
+{
+	return tinyrl__save_history(this->tinyrl, fname);
+}
+
+/*----------------------------------------------------------*/
+int clish_shell__restore_history(const clish_shell_t *this, const char *fname)
+{
+	return tinyrl__restore_history(this->tinyrl, fname);
+}
+
+/*----------------------------------------------------------*/
+void clish_shell__stifle_history(clish_shell_t *this, unsigned int stifle)
+{
+	tinyrl__stifle_history(this->tinyrl, stifle);
+}
+
 /*-------------------------------------------------------- */
