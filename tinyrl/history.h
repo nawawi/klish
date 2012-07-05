@@ -72,7 +72,7 @@ extern unsigned tinyrl_history_unstifle(tinyrl_history_t * instance);
 extern bool_t tinyrl_history_is_stifled(const tinyrl_history_t * instance);
 
 extern int tinyrl_history_save(const tinyrl_history_t *instance, const char *fname);
-extern int tinyrl_history_restore(const tinyrl_history_t *instance, const char *fname);
+extern int tinyrl_history_restore(tinyrl_history_t *instance, const char *fname);
 
     /*
        INFORMATION ABOUT THE HISTORY LIST 

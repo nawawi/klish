@@ -435,27 +435,47 @@ int tinyrl_history_save(const tinyrl_history_t *this, const char *fname)
 
 /*-------------------------------------*/
 /* Restore command history from specified file */
-int tinyrl_history_restore(const tinyrl_history_t *this, const char *fname)
+int tinyrl_history_restore(tinyrl_history_t *this, const char *fname)
 {
-/*
-	tinyrl_history_entry_t *entry;
-	tinyrl_history_iterator_t iter;
 	FILE *f;
+	char *p;
+	int part_len = 300;
+	char *buf;
+	int buf_len = part_len;
+	int res = 0;
 
 	if (!fname) {
 		errno = EINVAL;
 		return -1;
 	}
-	if (!(f = fopen(fname, "w")))
-		return -1;
-	for (entry = tinyrl_history_getfirst(this, &iter);
-		entry; entry = tinyrl_history_getnext(&iter)) {
-		if (fprintf(f, "%s\n", tinyrl_history_entry__get_line(entry)) < 0)
-			return -1;
+	if (!(f = fopen(fname, "r")))
+		return 0; /* Can't find history file */
+
+	buf = malloc(buf_len);
+	p = buf;
+	while (fgets(p, buf_len - (p - buf), f)) {
+		char *ptmp = NULL;
+		char *el = strchr(buf, '\n');
+		if (el) { /* The whole line was readed */
+			*el = '\0';
+			tinyrl_history_add(this, buf);
+			p = buf;
+			continue;
+		}
+		buf_len += part_len;
+		ptmp = realloc(buf, buf_len);
+		if (!ptmp) {
+			res = -1;
+			goto end;
+		}
+		buf = ptmp;
+		p = buf + buf_len - part_len - 1;
 	}
+end:
+	free(buf);
 	fclose(f);
-*/
-	return 0;
+
+	return res;
 }
 
 
