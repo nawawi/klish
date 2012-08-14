@@ -31,9 +31,8 @@ EXTRA_DIST = \
 	CHANGES \
 	ISSUES
 
-include $(top_srcdir)/bin/module.am
-include $(top_srcdir)/clish/module.am
 include $(top_srcdir)/lub/module.am
 include $(top_srcdir)/tinyrl/module.am
 include $(top_srcdir)/konf/module.am
-
+include $(top_srcdir)/clish/module.am
+include $(top_srcdir)/bin/module.am

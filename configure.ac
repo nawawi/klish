@@ -403,42 +403,6 @@ AC_SUBST(XML_LDFLAGS)
 AC_SUBST(XML_CFLAGS)
 
 ################################
-# Check for the LUB library
-################################
-LUB_LIBS="-llub"
-LUB_CFLAGS=""
-
-if test "x$LUB_LIBS" = "x"; then
-    AC_MSG_ERROR([Cannot find the "Little Useful Bits" library])
-fi
-AC_SUBST(LUB_LIBS)
-AC_SUBST(LUB_CFLAGS)
-
-################################
-# Check for the KONF library
-################################
-KONF_LIBS="-lkonf"
-KONF_CFLAGS=""
-
-if test "x$KONF_LIBS" = "x"; then
-    AC_MSG_ERROR([Cannot find the "CLI config" library])
-fi
-AC_SUBST(KONF_LIBS)
-AC_SUBST(KONF_CFLAGS)
-
-################################
-# Check for the TINYRL library
-################################
-TINYRL_LIBS="-ltinyrl"
-TINYRL_CFLAGS=""
-
-if test "x$TINYRL_LIBS" = "x"; then
-    AC_MSG_ERROR([Cannot find the "Tiny Readline" library])
-fi
-AC_SUBST(TINYRL_LIBS)
-AC_SUBST(TINYRL_CFLAGS)
-
-################################
 # Search for network functions (like connect())
 ################################
 AC_SEARCH_LIBS([socket], [socket])

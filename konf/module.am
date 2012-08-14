@@ -2,6 +2,7 @@
 lib_LTLIBRARIES += libkonf.la
 libkonf_la_SOURCES =
 libkonf_la_LIBADD = liblub.la
+libkonf_la_DEPENDENCIES = liblub.la
 
 nobase_include_HEADERS += \
 	konf/tree.h \
