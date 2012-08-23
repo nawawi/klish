@@ -246,7 +246,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
 	sigset_t old_sigs;
-	struct sigaction old_sigint, old_sigquit;
+	struct sigaction old_sigint, old_sigquit, old_sighup;
 	clish_view_t *cur_view = clish_shell__get_view(this);
 	unsigned int saved_wdog_timeout = this->wdog_timeout;
 
@@ -275,7 +275,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		}
 	}
 
-	/* Ignore and block SIGINT and SIGQUIT */
+	/* Ignore and block SIGINT, SIGQUIT, SIGHUP */
 	if (!clish_command__get_interrupt(cmd)) {
 		struct sigaction sa;
 		sigset_t sigs;
@@ -284,16 +284,18 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		sa.sa_handler = SIG_IGN;
 		sigaction(SIGINT, &sa, &old_sigint);
 		sigaction(SIGQUIT, &sa, &old_sigquit);
+		sigaction(SIGHUP, &sa, &old_sighup);
 		sigemptyset(&sigs);
 		sigaddset(&sigs, SIGINT);
 		sigaddset(&sigs, SIGQUIT);
+		sigaddset(&sigs, SIGHUP);
 		sigprocmask(SIG_BLOCK, &sigs, &old_sigs);
 	}
 
 	/* Execute ACTION */
 	result = clish_shell_exec_action(action, context, out);
 
-	/* Restore SIGINT and SIGQUIT */
+	/* Restore SIGINT, SIGQUIT, SIGHUP */
 	if (!clish_command__get_interrupt(cmd)) {
 		sigprocmask(SIG_SETMASK, &old_sigs, NULL);
 		/* Is the signals delivery guaranteed here (before
@@ -306,6 +308,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		*/
 		sigaction(SIGINT, &old_sigint, NULL);
 		sigaction(SIGQUIT, &old_sigquit, NULL);
+		sigaction(SIGHUP, &old_sighup, NULL);
 	}
 
 	/* Call config callback */
