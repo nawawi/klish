@@ -2,7 +2,8 @@
 bin_PROGRAMS += \
 	bin/clish \
 	bin/konfd \
-	bin/konf
+	bin/konf \
+	bin/sigexec
 
 bin_clish_SOURCES = bin/clish.c
 bin_clish_LDADD = \
@@ -20,3 +21,5 @@ bin_konf_SOURCES = bin/konf.c
 bin_konf_LDADD = \
 	libkonf.la \
 	liblub.la
+
+bin_sigexec_SOURCES = bin/sigexec.c
