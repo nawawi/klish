@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 	/* Unblock signals */
 	sigemptyset(&sigs);
-	sigprocmask(SIG_BLOCK, &sigs, NULL);
+	sigprocmask(SIG_SETMASK, &sigs, NULL);
 
 	/* Execute user command */
 /*	fprintf(stderr, "%s %s %s\n", child_argv[0], child_argv[1], child_argv[2]); */
