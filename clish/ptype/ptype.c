@@ -326,8 +326,6 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 		/* first of all check that this is a number */
 		bool_t ok = BOOL_TRUE;
 		const char *p = result;
-		if (*p == '-')
-			p++;
 		while (*p) {
 			if (!lub_ctype_isdigit(*p++)) {
 				ok = BOOL_FALSE;
