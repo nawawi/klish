@@ -5,9 +5,11 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "lub/string.h"
+#include "lub/db.h"
 
 /*-------------------------------------------------------- */
 static void clish_shell_init(clish_shell_t * this,
@@ -57,6 +59,7 @@ static void clish_shell_init(clish_shell_t * this,
 	this->fifo_name = NULL;
 	this->interactive = BOOL_TRUE; /* The interactive shell by default. */
 	this->log = BOOL_FALSE; /* Disable logging by default */
+	this->user = lub_db_getpwuid(getuid()); /* Get user information */
 
 	/* Create internal ptypes and params */
 	/* Current depth */
@@ -143,6 +146,7 @@ static void clish_shell_fini(clish_shell_t * this)
 
 	lub_string_free(this->lockfile);
 	lub_string_free(this->default_shebang);
+	free(this->user);
 	if (this->fifo_name) {
 		unlink(this->fifo_name);
 		lub_string_free(this->fifo_name);
@@ -180,6 +184,12 @@ void clish_shell_delete(clish_shell_t * this)
 	clish_shell_fini(this);
 
 	free(this);
+}
+
+/*--------------------------------------------------------- */
+struct passwd *clish_shell__get_user(clish_shell_t * this)
+{
+	return this->user;
 }
 
 /*-------------------------------------------------------- */

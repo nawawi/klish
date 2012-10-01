@@ -63,6 +63,7 @@ struct clish_shell_s {
 	char *fifo_name; /* The name of temporary fifo file. */
 	bool_t interactive; /* Is shell interactive. */
 	bool_t log; /* If command logging is enabled */
+	struct passwd *user; /* Current user information */
 
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;

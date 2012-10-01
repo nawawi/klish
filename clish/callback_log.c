@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "internal.h"
 
@@ -16,6 +18,10 @@
 int clish_log_callback(clish_context_t *context, const char *line,
 	int retcode)
 {
+	clish_shell_t *this = context->shell;
+	struct passwd *user = NULL;
+	char *uname = "unknown";
+
 	/* Initialization */
 	if (!line) {
 		openlog(SYSLOG_IDENT, LOG_PID, SYSLOG_FACILITY);
@@ -23,7 +29,9 @@ int clish_log_callback(clish_context_t *context, const char *line,
 	}
 
 	/* Log the given line */
-	syslog(LOG_INFO, "%s : %d", line, retcode);
+	if ((user = clish_shell__get_user(this)))
+		uname = user->pw_name;
+	syslog(LOG_INFO, "(%s) %s : %d", uname, line, retcode);
 
 	return 0;
 }
