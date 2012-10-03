@@ -231,7 +231,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 
 	/* nothing to pass simply move down the screen */
 	if (!*line) {
-		tinyrl_crlf(this);
+		tinyrl_multi_crlf(this);
 		tinyrl_done(this);
 		return BOOL_TRUE;
 	}
@@ -261,7 +261,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 			/* failed to get a unique match... */
 			if (!tinyrl__get_isatty(this)) {
 				/* batch mode */
-				tinyrl_crlf(this);
+				tinyrl_multi_crlf(this);
 				errmsg = "Unknown command";
 			}
 			break;
@@ -269,7 +269,7 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	}
 	if (cmd) {
 		clish_pargv_status_t arg_status;
-		tinyrl_crlf(this);
+		tinyrl_multi_crlf(this);
 		/* we've got a command so check the syntax */
 		arg_status = clish_shell_parse(context->shell,
 			line, &context->cmd, &context->pargv);

@@ -120,6 +120,7 @@ extern char **tinyrl_completion(tinyrl_t *instance,
 	const char *line, unsigned start, unsigned end,
 	tinyrl_compentry_func_t *generator);
 extern void tinyrl_crlf(const tinyrl_t * instance);
+extern void tinyrl_multi_crlf(const tinyrl_t * instance);
 extern void tinyrl_ding(const tinyrl_t * instance);
 
 extern void tinyrl_reset_line_state(tinyrl_t * instance);

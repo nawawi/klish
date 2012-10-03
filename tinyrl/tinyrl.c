@@ -41,7 +41,7 @@ static void utf8_point_right(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-static unsigned utf8_nsyms(tinyrl_t * this, const char *str, unsigned num)
+static unsigned utf8_nsyms(const tinyrl_t * this, const char *str, unsigned num)
 {
 	unsigned nsym = 0;
 	unsigned i;
@@ -562,7 +562,7 @@ static void tinyrl_internal_print(const tinyrl_t * this, const char *text)
 }
 
 /*----------------------------------------------------------------------- */
-static void tinyrl_internal_position(tinyrl_t *this, int prompt_len,
+static void tinyrl_internal_position(const tinyrl_t *this, int prompt_len,
 	int line_len, unsigned int width)
 {
 	int rows, cols;
@@ -577,6 +577,19 @@ static void tinyrl_internal_position(tinyrl_t *this, int prompt_len,
 		tinyrl_vt100_cursor_up(this->term, rows);
 	else if (rows < 0)
 		tinyrl_vt100_cursor_down(this->term, -rows);
+}
+
+/*-------------------------------------------------------- */
+/* Jump to first free line after current multiline input   */
+void tinyrl_multi_crlf(const tinyrl_t * this)
+{
+	unsigned int line_size = strlen(this->last_buffer);
+	unsigned int line_len = utf8_nsyms(this, this->last_buffer, line_size);
+	unsigned int count = utf8_nsyms(this, this->last_buffer, this->last_point);
+
+	tinyrl_internal_position(this, this->prompt_len + line_len,
+		- (line_len - count), this->last_width);
+	tinyrl_crlf(this);
 }
 
 /*----------------------------------------------------------------------- */
