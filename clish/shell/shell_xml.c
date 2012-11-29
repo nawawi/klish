@@ -42,7 +42,8 @@ static PROCESS_FN
 	process_namespace,
 	process_config,
 	process_var,
-	process_wdog;
+	process_wdog,
+	process_hotkey;
 
 static clish_xml_cb_t xml_elements[] = {
 	{"CLISH_MODULE", process_clish_module},
@@ -58,6 +59,7 @@ static clish_xml_cb_t xml_elements[] = {
 	{"CONFIG", process_config},
 	{"VAR", process_var},
 	{"WATCHDOG", process_wdog},
+	{"HOTKEY", process_hotkey},
 	{NULL, NULL}
 };
 
@@ -941,6 +943,24 @@ static void process_wdog(clish_shell_t *shell,
 	shell->wdog = cmd;
 
 	process_children(shell, element, cmd);
+}
+
+/* ------------------------------------------------------ */
+static void
+process_hotkey(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
+{
+	clish_view_t *v = (clish_view_t *)parent;
+
+	char *key = clish_xmlnode_fetch_attr(element, "key");
+	char *cmd = clish_xmlnode_fetch_attr(element, "cmd");
+
+	assert(key);
+	assert(cmd);
+
+	assert (!clish_view_insert_hotkey(v, key, cmd));
+
+	clish_xml_release(key);
+	clish_xml_release(cmd);
 }
 
 /* ------------------------------------------------------ */
