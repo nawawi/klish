@@ -56,6 +56,9 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 
 	/* set up the defaults */
 	clish_view__set_prompt(this, prompt);
+
+	/* Initialize hotkey structures */
+	this->hotkeys = clish_hotkeyv_new();
 }
 
 /*--------------------------------------------------------- */
@@ -82,6 +85,10 @@ static void clish_view_fini(clish_view_t * this)
 	for (i = 0; i < this->nspacec; i++) {
 		clish_nspace_delete(this->nspacev[i]);
 	}
+
+	/* Free hotkey structures */
+	clish_hotkeyv_delete(this->hotkeys);
+
 	/* free the namespace vector */
 	free(this->nspacev);
 	this->nspacec = 0;
@@ -381,6 +388,18 @@ void clish_view__set_restore(clish_view_t * this,
 clish_view_restore_t clish_view__get_restore(const clish_view_t * this)
 {
 	return this->restore;
+}
+
+/*--------------------------------------------------------- */
+int clish_view_insert_hotkey(const clish_view_t *this, const char *key, const char *cmd)
+{
+	return clish_hotkeyv_insert(this->hotkeys, key, cmd);
+}
+
+/*--------------------------------------------------------- */
+const char *clish_view_find_hotkey(const clish_view_t *this, int code)
+{
+	return clish_hotkeyv_cmd_by_code(this->hotkeys, code);
 }
 
 /*--------------------------------------------------------- */

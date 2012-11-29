@@ -3,6 +3,7 @@
  */
 #include "clish/view.h"
 #include "lub/bintree.h"
+#include "clish/hotkey.h"
 
 /*---------------------------------------------------------
  * PRIVATE TYPES
@@ -14,6 +15,7 @@ struct clish_view_s {
 	char *prompt;
 	unsigned int nspacec;
 	clish_nspace_t **nspacev;
+	clish_hotkeyv_t *hotkeys;
 	unsigned int depth;
 	clish_view_restore_t restore;
 };
