@@ -317,6 +317,37 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 }
 
 /*-------------------------------------------------------- */
+static bool_t clish_shell_tinyrl_hotkey(tinyrl_t *this, int key)
+{
+	clish_view_t *view;
+	const char *cmd = NULL;
+	clish_context_t *context = tinyrl__get_context(this);
+	clish_shell_t *shell = context->shell;
+	int i;
+
+	i = clish_shell__get_depth(shell);
+	while (i >= 0) {
+		view = clish_shell__get_pwd_view(shell, i);
+		cmd = clish_view_find_hotkey(view, key);
+		if (cmd)
+			break;
+		i--;
+	}
+	/* Check the global view */
+	if (i < 0) {
+		view = shell->global;
+		cmd = clish_view_find_hotkey(view, key);
+	}
+	if (!cmd)
+		return BOOL_FALSE;
+
+	tinyrl_replace_line(this, cmd, 0);
+	clish_shell_tinyrl_key_enter(this, 0);
+
+	return BOOL_TRUE;
+}
+
+/*-------------------------------------------------------- */
 /* This is the completion function provided for CLISH */
 tinyrl_completion_func_t clish_shell_tinyrl_completion;
 char **clish_shell_tinyrl_completion(tinyrl_t * tinyrl,
@@ -395,6 +426,9 @@ static void clish_shell_tinyrl_init(tinyrl_t * this)
 	status = tinyrl_bind_key(this, ' ', clish_shell_tinyrl_key_space);
 	assert(status);
 
+	/* Set external hotkey callback */
+	tinyrl__set_hotkey_fn(this, clish_shell_tinyrl_hotkey);
+
 	/* Assign timeout callback */
 	tinyrl__set_timeout_fn(this, clish_shell_timeout_fn);
 	/* Assign keypress callback */
@@ -434,7 +468,7 @@ void clish_shell_tinyrl_delete(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
+static int clish_shell_execline(clish_shell_t *this, const char *line, char **out)
 {
 	char *str;
 	clish_context_t context;
