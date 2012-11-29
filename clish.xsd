@@ -18,7 +18,8 @@
     <xs:element name="CONFIG" type="config_t"/>
     <xs:element name="VAR" type="var_t"/>
     <xs:element name="WATCHDOG" type="wdog_t"/>
-
+    <xs:element name="HOTKEY" type="hotkey_t"/>
+ 
     <!--
 ***********************************************************
 * The common simple types
@@ -48,6 +49,7 @@
             <xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="VAR" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="WATCHDOG" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
     <!--
@@ -154,6 +156,7 @@
         <xs:sequence>
             <xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="prompt" type="xs:string" use="optional"/>
@@ -493,5 +496,15 @@
         </xs:sequence>
     </xs:complexType>
 
+<!--
+*******************************************************
+* <HOTKEY> is used to define hotkey actions
+*
+********************************************************
+-->
+    <xs:complexType name="hotkey_t">
+        <xs:attribute name="key" type="xs:string" use="required"/>
+        <xs:attribute name="cmd" type="xs:string" use="required"/>
+    </xs:complexType>
 
 </xs:schema>
