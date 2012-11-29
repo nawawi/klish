@@ -132,9 +132,12 @@ static bool_t tinyrl_key_default(tinyrl_t * this, int key)
 		result = tinyrl_insert_text(this, tmp);
 	} else {
 		char tmp[10];
-		sprintf(tmp, "~%d", key);
-		/* inject control characters as ~N where N is the ASCII code */
-		result = tinyrl_insert_text(this, tmp);
+		/* Call the external hotkey analyzer */
+		if (!this->hotkey_fn || !this->hotkey_fn(this, key)) {
+			sprintf(tmp, "~%d", key);
+			/* inject control characters as ~N where N is the ASCII code */
+			result = tinyrl_insert_text(this, tmp);
+		}
 	}
 	return result;
 }
@@ -485,6 +488,7 @@ tinyrl_init(tinyrl_t * this,
 	this->attempted_completion_function = complete_fn;
 	this->timeout_fn = tinyrl_timeout_default;
 	this->keypress_fn = NULL;
+	this->hotkey_fn = NULL;
 	this->state = 0;
 	this->kill_string = NULL;
 	this->echo_char = '\0';
@@ -1363,6 +1367,13 @@ void tinyrl__set_keypress_fn(tinyrl_t *this,
 	tinyrl_keypress_fn_t *fn)
 {
 	this->keypress_fn = fn;
+}
+
+/*-------------------------------------------------------- */
+void tinyrl__set_hotkey_fn(tinyrl_t *this,
+	tinyrl_key_func_t *fn)
+{
+	this->hotkey_fn = fn;
 }
 
 /*-------------------------------------------------------- */

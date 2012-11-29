@@ -110,6 +110,8 @@ extern void tinyrl__set_timeout_fn(tinyrl_t *instance,
 	tinyrl_timeout_fn_t *fn);
 extern void tinyrl__set_keypress_fn(tinyrl_t *instance,
 	tinyrl_keypress_fn_t *fn);
+extern void tinyrl__set_hotkey_fn(tinyrl_t *instance,
+	tinyrl_key_func_t *fn);
 extern char *tinyrl_readline(tinyrl_t *instance, void *context);
 extern char *tinyrl_forceline(tinyrl_t *instance, 
 	void *context, const char *line);

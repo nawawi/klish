@@ -25,6 +25,7 @@ struct _tinyrl {
 	char *kill_string;
 #define NUM_HANDLERS 256
 	tinyrl_key_func_t *handlers[NUM_HANDLERS];
+	tinyrl_key_func_t *hotkey_fn;
 
 	tinyrl_history_t *history;
 	tinyrl_history_iterator_t hist_iter;
