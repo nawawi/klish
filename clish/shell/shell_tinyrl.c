@@ -324,6 +324,7 @@ static bool_t clish_shell_tinyrl_hotkey(tinyrl_t *this, int key)
 	clish_context_t *context = tinyrl__get_context(this);
 	clish_shell_t *shell = context->shell;
 	int i;
+	char *tmp = NULL;
 
 	i = clish_shell__get_depth(shell);
 	while (i >= 0) {
@@ -341,7 +342,9 @@ static bool_t clish_shell_tinyrl_hotkey(tinyrl_t *this, int key)
 	if (!cmd)
 		return BOOL_FALSE;
 
-	tinyrl_replace_line(this, cmd, 0);
+	tmp = clish_shell_expand(cmd, SHELL_VAR_NONE, context);
+	tinyrl_replace_line(this, tmp, 0);
+	lub_string_free(tmp);
 	clish_shell_tinyrl_key_enter(this, 0);
 
 	return BOOL_TRUE;
