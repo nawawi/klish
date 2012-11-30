@@ -77,6 +77,7 @@ static clish_pargv_status_t clish_shell_tinyrl_expand(tinyrl_t * this)
 	int rtn;
 	char *buffer;
 
+	return status;
 	/* first of all perform any history substitutions */
 	rtn = tinyrl_history_expand(tinyrl__get_history(this),
 		tinyrl__get_line(this), &buffer);
