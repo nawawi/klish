@@ -32,6 +32,7 @@ nobase_include_HEADERS += \
 	clish/action.h \
 	clish/config.h \
 	clish/hotkey.h \
+	clish/plugin.h \
 	clish/internal.h
 
 EXTRA_DIST += \
