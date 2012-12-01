@@ -481,7 +481,8 @@
         <xs:sequence>
             <xs:element ref="ACTION" minOccurs="0"/>
         </xs:sequence>
-        <xs:attributeGroup ref="menu_item_g"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="help" type="xs:string" use="optional"/>
         <xs:attribute name="value" type="xs:string" use="optional"/>
         <xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
     </xs:complexType>
