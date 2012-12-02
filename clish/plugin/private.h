@@ -2,6 +2,7 @@
  * plugin private.h
  */
 
+#include "lub/list.h"
 #include "clish/plugin.h"
 
 /*---------------------------------------------------------
