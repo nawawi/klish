@@ -15,10 +15,11 @@ typedef int clish_plugin_init_t(clish_plugin_t *plugin);
 /* Name of init function within plugin */
 #define CLISH_PLUGIN_INIT "clish_plugin_init"
 
-clish_plugin_t *clish_plugin_new(const char *file);
+clish_plugin_t *clish_plugin_new(const char *name, const char *file);
 void clish_plugin_free(clish_plugin_t *instance);
 int clish_plugin_load(clish_plugin_t *instance);
-
+clish_plugin_fn_t *clish_plugin_resolve(clish_plugin_t *instance,
+	const char *name);
 int clish_plugin_sym(clish_plugin_t *instance,
 	clish_plugin_fn_t *func, const char *name);
 
