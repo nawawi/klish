@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <dlfcn.h>
 
 /**********************************************************
  * SYM functions                                          *
@@ -63,6 +64,7 @@ clish_plugin_t *clish_plugin_new(const char *name, const char *file)
 		this->name = lub_string_dup(name);
 	else
 		this->name = NULL;
+	this->dlhan = NULL;
 	/* Initialise the list of symbols */
 	this->syms = lub_list_new(clish_sym_compare);
 
@@ -89,6 +91,8 @@ void clish_plugin_free(clish_plugin_t *this)
 		lub_list_node_free(iter);
 	}
 	lub_list_free(this->syms);
+	if (this->dlhan)
+		dlclose(this->dlhan);
 
 	free(this);
 }
@@ -118,17 +122,35 @@ clish_plugin_fn_t *clish_plugin_dlsym(clish_plugin_t *this, const char *name)
 	/* Iterate elements */
 	for(iter = lub_list__get_head(this->syms);
 		iter; iter = lub_list_node__get_next(iter)) {
+		int res;
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
-
+		res = strcmp(sym->name, name);
+		if (!res)
+			return sym->func;
+		if (res > 0) /* No chances to find name */
+			break;
 	}
 
 	return NULL;
 }
 
 /*--------------------------------------------------------- */
-int clish_plugin_load(clish_plugin_t *this)
+void *clish_plugin_load(clish_plugin_t *this)
 {
+	clish_plugin_init_t *plugin_init;
 
+	if (!this)
+		return NULL;
+
+	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_GLOBAL)))
+		return NULL;
+	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT);
+	if (!plugin_init) {
+		dlclose(this->dlhan);
+		this->dlhan = NULL;
+		return NULL;
+	}
+	plugin_init(this);
 
 	return 0;
 }
