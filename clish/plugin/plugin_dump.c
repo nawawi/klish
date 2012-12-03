@@ -9,7 +9,7 @@
 /*--------------------------------------------------------- */
 void clish_sym_dump(const clish_sym_t *this)
 {
-	lub_dump_printf("plugin(%p)\n", this);
+	lub_dump_printf("sym(%p)\n", this);
 
 	lub_dump_indent();
 	lub_dump_printf("name : %s\n", this->name);
