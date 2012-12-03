@@ -152,7 +152,7 @@ void *clish_plugin_load(clish_plugin_t *this)
 	}
 	plugin_init(this);
 
-	return 0;
+	return this->dlhan;
 }
 
 /*--------------------------------------------------------- */

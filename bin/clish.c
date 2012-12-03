@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 
 	/* Validate command line options */
 	if (utf8 && bit8) {
-		fprintf(stderr, "The -u and -8 options can't be used together.\n");
+		fprintf(stderr, "Error: The -u and -8 options can't be used together.\n");
 		goto end;
 	}
 
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 		outfd = fopen("/dev/null", "w");
 	shell = clish_shell_new(&my_hooks, NULL, NULL, outfd, stop_on_error);
 	if (!shell) {
-		fprintf(stderr, "Cannot run clish.\n");
+		fprintf(stderr, "Error: Can't run clish.\n");
 		goto end;
 	}
 	/* Load the XML files */
@@ -274,6 +274,11 @@ int main(int argc, char **argv)
 		histfile_expanded = lub_system_tilde_expand(histfile);
 	if (histfile_expanded)
 		clish_shell__restore_history(shell, histfile_expanded);
+	/* Load plugins */
+	if (clish_shell_load_plugins(shell) < 0) {
+		fprintf(stderr, "Error: Can't load plugins.\n");
+		goto end;
+	}
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {
@@ -290,7 +295,7 @@ int main(int argc, char **argv)
 	/* Execute startup */
 	running = clish_shell_startup(shell);
 	if (running) {
-		fprintf(stderr, "Cannot startup clish.\n");
+		fprintf(stderr, "Error: Can't startup clish.\n");
 		goto end;
 	}
 

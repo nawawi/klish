@@ -22,6 +22,7 @@ clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name);
 int clish_plugin_add_sym(clish_plugin_t *instance,
 	clish_plugin_fn_t *func, const char *name);
+void clish_plugin_dump(const clish_plugin_t *this);
 
 #endif				/* _clish_plugin_h */
 /** @} clish_plugin */
