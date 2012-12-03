@@ -14,6 +14,7 @@ libclish_la_SOURCES += \
 	clish/shell/shell_wdog.c \
 	clish/shell/shell_pwd.c \
 	clish/shell/shell_tinyrl.c \
+	clish/shell/shell_plugin.c \
 	clish/shell/shell_xml.c \
 	clish/shell/private.h \
 	clish/shell/xmlapi.h \

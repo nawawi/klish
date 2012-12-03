@@ -98,7 +98,7 @@ void clish_plugin_free(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
-int clish_plugin_sym(clish_plugin_t *this,
+int clish_plugin_add_sym(clish_plugin_t *this,
 	clish_plugin_fn_t *func, const char *name)
 {
 	clish_sym_t *sym;
@@ -114,7 +114,7 @@ int clish_plugin_sym(clish_plugin_t *this,
 }
 
 /*--------------------------------------------------------- */
-clish_plugin_fn_t *clish_plugin_dlsym(clish_plugin_t *this, const char *name)
+clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 {
 	lub_list_node_t *iter;
 	clish_sym_t *sym;
