@@ -110,8 +110,17 @@ int clish_plugin_sym(clish_plugin_t *this,
 }
 
 /*--------------------------------------------------------- */
-clish_plugin_fn_t *clish_plugin_resolve(clish_plugin_t *this, const char *name)
+clish_plugin_fn_t *clish_plugin_dlsym(clish_plugin_t *this, const char *name)
 {
+	lub_list_node_t *iter;
+	clish_sym_t *sym;
+
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->syms);
+		iter; iter = lub_list_node__get_next(iter)) {
+		sym = (clish_sym_t *)lub_list_node__get_data(iter);
+
+	}
 
 	return NULL;
 }
