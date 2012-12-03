@@ -10,6 +10,8 @@
 
 #include "lub/string.h"
 #include "lub/db.h"
+#include "lub/list.h"
+#include "clish/plugin.h"
 
 /*-------------------------------------------------------- */
 static void clish_shell_init(clish_shell_t * this,
@@ -34,6 +36,9 @@ static void clish_shell_init(clish_shell_t * this,
 	lub_bintree_init(&this->var_tree,
 		clish_var_bt_offset(),
 		clish_var_bt_compare, clish_var_bt_getkey);
+
+	/* Initialize plugin list */
+	this->plugins = lub_list_new(NULL);
 
 	assert((NULL != hooks) && (NULL != hooks->script_fn));
 
@@ -98,6 +103,7 @@ static void clish_shell_fini(clish_shell_t * this)
 	clish_ptype_t *ptype;
 	clish_var_t *var;
 	unsigned i;
+	lub_list_node_t *iter;
 
 	/* delete each VIEW held  */
 	while ((view = lub_bintree_findfirst(&this->view_tree))) {
@@ -116,6 +122,16 @@ static void clish_shell_fini(clish_shell_t * this)
 		lub_bintree_remove(&this->var_tree, var);
 		clish_var_delete(var);
 	}
+
+	/* Free all loaded plugins */
+	while ((iter = lub_list__get_head(this->plugins))) {
+		/* Remove the symbol from the list */
+		lub_list_del(this->plugins, iter);
+		/* Free the instance */
+		clish_plugin_free((clish_plugin_t *)lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
+	}
+	lub_list_free(this->plugins);
 
 	/* free the textual details */
 	lub_string_free(this->overview);
