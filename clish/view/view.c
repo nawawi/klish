@@ -403,3 +403,9 @@ const char *clish_view_find_hotkey(const clish_view_t *this, int code)
 }
 
 /*--------------------------------------------------------- */
+lub_bintree_t *clish_view__cmd_tree(clish_view_t *this)
+{
+	return &this->tree;
+}
+
+/*--------------------------------------------------------- */
