@@ -4,6 +4,7 @@
 *.o
 *.lo
 *.la
+*.so
 *~
 
 /autom4te.cache
