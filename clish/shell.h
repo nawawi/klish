@@ -356,6 +356,10 @@ int clish_shell__restore_history(clish_shell_t *instance, const char *fname);
 void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);
 struct passwd *clish_shell__get_user(clish_shell_t *instance);
 
+/* Plugin functions */
+int clish_shell_load_plugins(clish_shell_t *instance);
+
+
 _END_C_DECL
 
 #endif				/* _clish_shell_h */

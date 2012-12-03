@@ -21,6 +21,7 @@ int clish_shell_load_plugins(clish_shell_t *this)
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
 		if (!clish_plugin_load(plugin))
 			return -1;
+		clish_plugin_dump(plugin);
 	}
 
 	return 0;
