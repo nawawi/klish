@@ -2,11 +2,13 @@
  * shell.h - private interface to the shell class
  */
 #include "lub/bintree.h"
+#include "lub/list.h"
 #include "tinyrl/tinyrl.h"
 #include "clish/shell.h"
 #include "clish/pargv.h"
 #include "clish/var.h"
 #include "clish/action.h"
+#include "clish/plugin.h"
 
 /*-------------------------------------
  * PRIVATE TYPES
@@ -64,6 +66,7 @@ struct clish_shell_s {
 	bool_t interactive; /* Is shell interactive. */
 	bool_t log; /* If command logging is enabled */
 	struct passwd *user; /* Current user information */
+	lub_list_t *plugins; /* List of plugins */
 
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;

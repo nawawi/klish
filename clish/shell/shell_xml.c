@@ -43,7 +43,8 @@ static PROCESS_FN
 	process_config,
 	process_var,
 	process_wdog,
-	process_hotkey;
+	process_hotkey,
+	process_plugin;
 
 static clish_xml_cb_t xml_elements[] = {
 	{"CLISH_MODULE", process_clish_module},
@@ -60,6 +61,7 @@ static clish_xml_cb_t xml_elements[] = {
 	{"VAR", process_var},
 	{"WATCHDOG", process_wdog},
 	{"HOTKEY", process_hotkey},
+	{"PLUGIN", process_plugin},
 	{NULL, NULL}
 };
 
@@ -964,6 +966,24 @@ process_hotkey(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 
 	clish_xml_release(key);
 	clish_xml_release(cmd);
+}
+
+/* ------------------------------------------------------ */
+static void
+process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
+{
+	clish_plugin_t *plugin;
+	char *file = clish_xmlnode_fetch_attr(element, "file");
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+
+	assert(file);
+
+	plugin = clish_plugin_new(name, file);
+	assert(plugin);
+	lub_list_add(shell->plugins, plugin);
+
+	clish_xml_release(file);
+	clish_xml_release(name);
 }
 
 /* ------------------------------------------------------ */
