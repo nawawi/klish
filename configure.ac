@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-m4_define([MAJOR_VERSION], 1)
-m4_define([MINOR_VERSION], 6)
-m4_define([MICRO_VERSION], 2)
+m4_define([MAJOR_VERSION], 2)
+m4_define([MINOR_VERSION], 0)
+m4_define([MICRO_VERSION], 0)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -443,6 +443,16 @@ AC_CHECK_HEADERS(grp.h, [],
 ################################
 AC_CHECK_FUNCS(chroot, [],
     AC_MSG_WARN([chroot() not found: the choot is not supported]))
+
+################################
+# Check for dlopen
+################################
+AC_CHECK_HEADERS(dlfcn.h, [
+        AC_SEARCH_LIBS([dlopen], [dl dld], [], [
+          AC_MSG_WARN([unable to find the dlopen() function])
+        ])
+    ],
+    AC_MSG_WARN([dlfcn.h not found: the dl operations is not supported]))
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
