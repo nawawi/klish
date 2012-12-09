@@ -72,6 +72,10 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 		</ACTION>
 	</COMMAND>
 
+	<COMMAND help="The > within attribute value" name="test7" lock="false">
+		<ACTION> echo "The > within attribute value" </ACTION>
+	</COMMAND>
+
 </VIEW>
 
 </CLISH_MODULE>
