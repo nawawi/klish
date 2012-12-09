@@ -1,0 +1,69 @@
+#!/usr/bin/make -f
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+SRCTOP = `pwd`
+DESTDIR = $(SRCTOP)/debian/tmp
+
+INST_OWN = -o root -g root 
+MAKE_DIR = install -p -d $(INST_OWN) -m 755
+INST_FILE = install -c $(INST_OWN) -m 644
+INST_PROG = install -c $(INST_OWN) -m 755 -s
+INST_SCRIPT = install -c $(INST_OWN) -m 755
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+        
+	./configure --prefix=/usr
+
+	touch build-stamp
+
+clean: 
+	dh_testdir
+	dh_testroot
+
+	-$(MAKE) distclean
+
+	rm -f build-stamp
+	dh_clean 
+
+install: build
+
+	dh_testdir
+	dh_testroot
+	dh_prep
+
+	dh_installdirs
+
+	$(MAKE) install DESTDIR=$(DESTDIR) LIBTOOL=libtool
+	rm -rf $(DESTDIR)/usr/include
+
+	install -m 755 $(SRCTOP)/contrib/konfd.init.debian $(DESTDIR)/etc/init.d/konfd
+	cp $(SRCTOP)/contrib/clish/*	$(DESTDIR)/etc/clish/
+
+	dh_install
+
+# Build architecture-independent files here.
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog
+	dh_installdocs
+	dh_installexamples
+	dh_installdebconf	
+	dh_installman
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture-dependent files here.
+binary-arch:
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

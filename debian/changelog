@@ -1,0 +1,11 @@
+klish (1.6.2-1) unstable; urgency=low
+
+  * New upstream
+
+ -- Nixus Networks <debian@nixus.es>  Thu, 9 Dec 2012 17:04:00 +0200
+
+klish (1.5.2-8) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Nixus Networks <debian@nixus.es>  Thu, 19 Jan 2012 18:48:36 +0200

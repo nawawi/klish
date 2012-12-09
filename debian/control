@@ -1,0 +1,15 @@
+Source: klish
+Maintainer: Nixus Networks <debian@nixus.es>
+Uploaders: Nixus Networks <debian@nixus.es>
+Section: web
+Priority: extra
+Standards-Version: 0.1
+Build-Depends: debhelper (>= 7), 
+Homepage: http://www.nixus.es
+
+Package: klish
+Architecture: amd64
+Depends: 
+Recommends:
+Suggests:
+Description: Klish
