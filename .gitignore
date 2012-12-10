@@ -20,6 +20,15 @@
 /aclocal.m4
 /Makefile.in
 
+# Debian files
+/build-stamp
+/debian/*.log
+/debian/tmp
+/debian/*substvars
+/debian/klish
+/debian/klish-dev
+/debian/files
+
 /bin/clish
 /bin/konf
 /bin/konfd

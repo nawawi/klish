@@ -37,10 +37,12 @@ install: build
 	dh_installdirs
 
 	$(MAKE) install DESTDIR=$(DESTDIR) LIBTOOL=libtool
-	rm -rf $(DESTDIR)/usr/include
+#	rm -rf $(DESTDIR)/usr/include
 
-	install -m 755 $(SRCTOP)/contrib/konfd.init.debian $(DESTDIR)/etc/init.d/konfd
-	cp $(SRCTOP)/contrib/clish/*	$(DESTDIR)/etc/clish/
+#	install -d $(DESTDIR)/etc/init.d
+#	install -d $(DESTDIR)/etc/clish
+#	install -m 755 $(SRCTOP)/contrib/debian/konfd.init.debian $(DESTDIR)/etc/init.d/konfd
+#	cp $(SRCTOP)/contrib/debian/clish/*	$(DESTDIR)/etc/clish/
 
 	dh_install
 
