@@ -33,16 +33,9 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_prep
-
 	dh_installdirs
 
 	$(MAKE) install DESTDIR=$(DESTDIR) LIBTOOL=libtool
-#	rm -rf $(DESTDIR)/usr/include
-
-#	install -d $(DESTDIR)/etc/init.d
-#	install -d $(DESTDIR)/etc/clish
-#	install -m 755 $(SRCTOP)/contrib/debian/konfd.init.debian $(DESTDIR)/etc/init.d/konfd
-#	cp $(SRCTOP)/contrib/debian/clish/*	$(DESTDIR)/etc/clish/
 
 	dh_install
 
@@ -58,6 +51,7 @@ binary-indep: build install
 	dh_link
 	dh_compress
 	dh_fixperms
+	dh_strip
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
