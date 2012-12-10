@@ -11,22 +11,25 @@ INST_FILE = install -c $(INST_OWN) -m 644
 INST_PROG = install -c $(INST_OWN) -m 755 -s
 INST_SCRIPT = install -c $(INST_OWN) -m 755
 
-build: build-stamp
+build: build-arch build-indep
+
+build-arch: build-stamp
+
+build-indep: build-stamp
+
 build-stamp:
 	dh_testdir
-        
 	./configure --prefix=/usr
-
 	touch build-stamp
 
 clean: 
 	dh_testdir
 	dh_testroot
 
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) distclean
 
 	rm -f build-stamp
-	dh_clean 
+	dh_clean
 
 install: build
 
