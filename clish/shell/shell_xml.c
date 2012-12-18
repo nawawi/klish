@@ -110,6 +110,9 @@ void clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 				lub_string_cat(&filename, "/");
 				lub_string_cat(&filename, entry->d_name);
 
+#ifdef DEBUG
+				fprintf(stderr, "Parse XML-file: %s\n", filename);
+#endif
 				/* load this file */
 				(void)clish_shell_xml_read(this, filename);
 
