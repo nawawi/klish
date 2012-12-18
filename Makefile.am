@@ -25,6 +25,7 @@ EXTRA_DIST = \
 	konf/module.am \
 	contrib \
 	xml-examples \
+	debian \
 	clish.xsd \
 	LICENCE \
 	README \
