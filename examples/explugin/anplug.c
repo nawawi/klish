@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <clish/plugin.h>
 
-int anplug_fn(void *context, char **out)
+CLISH_PLUGIN_SYM(anplug_fn)
 {
 	printf("anplug: Another plugin\n");
 	return 0;
 }
 
-int clish_plugin_init(clish_plugin_t *plugin)
+CLISH_PLUGIN_INIT
 {
 	clish_plugin_add_sym(plugin, anplug_fn, "an_fn");
 }

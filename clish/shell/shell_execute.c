@@ -17,161 +17,6 @@
 #include <signal.h>
 #include <fcntl.h>
 
-/*
- * These are the internal commands for this framework.
- */
-static clish_shell_builtin_fn_t
-    clish_close,
-    clish_overview,
-    clish_source,
-    clish_source_nostop,
-    clish_history,
-    clish_nested_up,
-    clish_nop,
-    clish_wdog;
-
-static clish_shell_builtin_t clish_cmd_list[] = {
-	{"clish_close", clish_close},
-	{"clish_overview", clish_overview},
-	{"clish_source", clish_source},
-	{"clish_source_nostop", clish_source_nostop},
-	{"clish_history", clish_history},
-	{"clish_nested_up", clish_nested_up},
-	{"clish_nop", clish_nop},
-	{"clish_wdog", clish_wdog},
-	{NULL, NULL}
-};
-
-/*----------------------------------------------------------- */
-/* Terminate the current shell session */
-static int clish_close(clish_context_t *context, const lub_argv_t * argv)
-{
-	/* the exception proves the rule... */
-	clish_shell_t *this = (clish_shell_t *)context->shell;
-
-	argv = argv; /* not used */
-	this->state = SHELL_STATE_CLOSING;
-
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-/*
- Open a file and interpret it as a script in the context of a new
- thread. Whether the script continues after command, but not script, 
- errors depends on the value of the stop_on_error flag.
-*/
-static int clish_source_internal(clish_context_t *context,
-	const lub_argv_t * argv, bool_t stop_on_error)
-{
-	int result = -1;
-	const char *filename = lub_argv__get_arg(argv, 0);
-	struct stat fileStat;
-
-	/* the exception proves the rule... */
-	clish_shell_t *this = (clish_shell_t *)context->shell;
-
-	/*
-	 * Check file specified is not a directory 
-	 */
-	if ((0 == stat((char *)filename, &fileStat)) &&
-		(!S_ISDIR(fileStat.st_mode))) {
-		/*
-		 * push this file onto the file stack associated with this
-		 * session. This will be closed by clish_shell_pop_file() 
-		 * when it is finished with.
-		 */
-		result = clish_shell_push_file(this, filename,
-			stop_on_error);
-	}
-
-	return result ? -1 : 0;
-}
-
-/*----------------------------------------------------------- */
-/*
- Open a file and interpret it as a script in the context of a new
- thread. Invoking a script in this way will cause the script to
- stop on the first error
-*/
-static int clish_source(clish_context_t *context, const lub_argv_t * argv)
-{
-	return (clish_source_internal(context, argv, BOOL_TRUE));
-}
-
-/*----------------------------------------------------------- */
-/*
- Open a file and interpret it as a script in the context of a new
- thread. Invoking a script in this way will cause the script to
- continue after command, but not script, errors.
-*/
-static int clish_source_nostop(clish_context_t *context, const lub_argv_t * argv)
-{
-	return (clish_source_internal(context, argv, BOOL_FALSE));
-}
-
-/*----------------------------------------------------------- */
-/*
- Show the shell overview
-*/
-static int clish_overview(clish_context_t *context, const lub_argv_t * argv)
-{
-	clish_shell_t *this = context->shell;
-	argv = argv; /* not used */
-
-	tinyrl_printf(this->tinyrl, "%s\n", context->shell->overview);
-
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-static int clish_history(clish_context_t *context, const lub_argv_t * argv)
-{
-	clish_shell_t *this = context->shell;
-	tinyrl_history_t *history = tinyrl__get_history(this->tinyrl);
-	tinyrl_history_iterator_t iter;
-	const tinyrl_history_entry_t *entry;
-	unsigned limit = 0;
-	const char *arg = lub_argv__get_arg(argv, 0);
-
-	if (arg && ('\0' != *arg)) {
-		limit = (unsigned)atoi(arg);
-		if (0 == limit) {
-			/* unlimit the history list */
-			(void)tinyrl_history_unstifle(history);
-		} else {
-			/* limit the scope of the history list */
-			tinyrl_history_stifle(history, limit);
-		}
-	}
-	for (entry = tinyrl_history_getfirst(history, &iter);
-		entry; entry = tinyrl_history_getnext(&iter)) {
-		/* dump the details of this entry */
-		tinyrl_printf(this->tinyrl,
-			"%5d  %s\n",
-			tinyrl_history_entry__get_index(entry),
-			tinyrl_history_entry__get_line(entry));
-	}
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-/*
- * Searches for a builtin command to execute
- */
-static clish_shell_builtin_fn_t *find_builtin_callback(const
-	clish_shell_builtin_t * cmd_list, const char *name)
-{
-	const clish_shell_builtin_t *result;
-
-	/* search a list of commands */
-	for (result = cmd_list; result && result->name; result++) {
-		if (0 == strcmp(name, result->name))
-			break;
-	}
-	return (result && result->name) ? result->callback : NULL;
-}
-
 /*----------------------------------------------------------- */
 void clish_shell_cleanup_script(void *script)
 {
@@ -357,88 +202,26 @@ error:
 int clish_shell_exec_action(clish_action_t *action,
 	clish_context_t *context, char **out)
 {
-	clish_shell_t *this = context->shell;
-	int result = 0;
-	const char *builtin;
+	int result = -1;
+	clish_sym_t *sym;
 	char *script;
+	clish_plugin_fn_t *func = NULL;
 
-	builtin = clish_action__get_builtin(action);
+	if (!(sym = clish_action__get_builtin(action)))
+		return -1;
+	if (!(func = clish_sym__get_func(sym)))
+		return -1;
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
-	if (builtin) {
-		clish_shell_builtin_fn_t *callback;
-		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
-		result = -1;
-		/* search for an internal command */
-		callback = find_builtin_callback(clish_cmd_list, builtin);
-		if (!callback) {
-			/* search for a client command */
-			callback = find_builtin_callback(
-				this->client_hooks->cmd_list, builtin);
-		}
-		/* invoke the builtin callback */
-		if (callback)
-			result = callback(context, argv);
-		if (argv)
-			lub_argv_delete(argv);
-	} else if (script) {
-		/* now get the client to interpret the resulting script */
-		result = this->client_hooks->script_fn(context, action, script, out);
-	}
+	result = func(context, script, out);
 	lub_string_free(script);
 
 	return result;
-}
 
-/*----------------------------------------------------------- */
-/*
- * Find out the previous view in the stack and go to it
- */
-static int clish_nested_up(clish_context_t *context, const lub_argv_t *argv)
-{
-	clish_shell_t *this = context->shell;
-
-	if (!this)
-		return -1;
-
-	argv = argv; /* not used */
-
-	/* If depth=0 than exit */
-	if (0 == this->depth) {
-		this->state = SHELL_STATE_CLOSING;
-		return 0;
-	}
-	this->depth--;
-
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-/*
- * Builtin: NOP function
- */
-static int clish_nop(clish_context_t *context, const lub_argv_t *argv)
-{
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-/*
- * Builtin: Set watchdog timeout. The "0" to turn watchdog off.
- */
-static int clish_wdog(clish_context_t *context, const lub_argv_t *argv)
-{
-	const char *arg = lub_argv__get_arg(argv, 0);
-	clish_shell_t *this = context->shell;
-
-	/* Turn off watchdog if no args */
-	if (!arg || ('\0' == *arg)) {
-		this->wdog_timeout = 0;
-		return 0;
-	}
-
-	this->wdog_timeout = (unsigned int)atoi(arg);
-
-	return 0;
+/*		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
+		if (argv)
+			lub_argv_delete(argv);
+		result = this->client_hooks->script_fn(context, action, script, out);
+*/
 }
 
 /*----------------------------------------------------------- */
@@ -487,6 +270,5 @@ bool_t clish_shell__get_log(const clish_shell_t *this)
 	assert(this);
 	return this->log;
 }
-
 
 /*----------------------------------------------------------- */

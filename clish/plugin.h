@@ -11,11 +11,15 @@ typedef struct clish_plugin_s clish_plugin_t;
 
 /* Plugin types */
 
-typedef int clish_plugin_fn_t(void *context, char **out);
-typedef int clish_plugin_init_t(clish_plugin_t *plugin);
-
 /* Name of init function within plugin */
-#define CLISH_PLUGIN_INIT "clish_plugin_init"
+#define CLISH_PLUGIN_INIT_FNAME clish_plugin_init
+#define CLISH_PLUGIN_INIT_NAME "clish_plugin_init"
+#define CLISH_PLUGIN_INIT_FUNC(name) int name(clish_plugin_t *plugin)
+#define CLISH_PLUGIN_INIT CLISH_PLUGIN_INIT_FUNC(CLISH_PLUGIN_INIT_FNAME)
+#define CLISH_PLUGIN_SYM(name) int name(void *clish_context, const char *script, char **out)
+
+typedef CLISH_PLUGIN_SYM(clish_plugin_fn_t);
+typedef CLISH_PLUGIN_INIT_FUNC(clish_plugin_init_t);
 
 /* Symbol */
 
@@ -24,6 +28,7 @@ clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func);
 void clish_sym_free(clish_sym_t *instance);
 void clish_sym__set_func(clish_sym_t *instance, clish_plugin_fn_t *func);
 clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *instance);
+void clish_sym__set_name(clish_sym_t *instance, const char *name);
 char *clish_sym__get_name(clish_sym_t *instance);
 
 /* Plugin */

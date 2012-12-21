@@ -5,6 +5,7 @@ libclish_la_SOURCES += \
 	clish/shell/shell_command.c \
 	clish/shell/shell_dump.c \
 	clish/shell/shell_execute.c \
+	clish/shell/shell_internal.c \
 	clish/shell/shell_help.c \
 	clish/shell/shell_new.c \
 	clish/shell/shell_parse.c \

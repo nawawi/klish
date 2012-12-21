@@ -682,6 +682,7 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_xmlnode_t *pelement = clish_xmlnode_parent(element);
 	char *pname = clish_xmlnode_get_all_name(pelement);
 	char *text;
+	clish_sym_t *sym = NULL;
 
 	if (pname && lub_string_nocasecmp(pname, "VAR") == 0)
 		action = clish_var__get_action((clish_var_t *)parent);
@@ -701,10 +702,11 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (text)
 		free(text);
 
-	if (builtin) {
-		clish_action__set_builtin(action, builtin);
-		clish_shell_add_unresolved_sym(shell, builtin);
-	}
+	if (builtin)
+		sym = clish_shell_add_unresolved_sym(shell, builtin);
+	else
+		sym = clish_shell_add_unresolved_sym(shell, builtin);
+	clish_action__set_builtin(action, sym);
 	if (shebang)
 		clish_action__set_shebang(action, shebang);
 

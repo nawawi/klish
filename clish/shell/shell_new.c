@@ -21,6 +21,7 @@ static void clish_shell_init(clish_shell_t * this,
 	bool_t stop_on_error)
 {
 	clish_ptype_t *tmp_ptype = NULL;
+	clish_plugin_t *plugin = NULL;
 
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
@@ -39,6 +40,8 @@ static void clish_shell_init(clish_shell_t * this,
 
 	/* Initialize plugin list */
 	this->plugins = lub_list_new(NULL);
+	plugin = clish_plugin_new("clish", NULL);
+	lub_list_add(this->plugins, plugin);
 
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);

@@ -58,6 +58,13 @@ clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *this)
 }
 
 /*--------------------------------------------------------- */
+void clish_sym__set_name(clish_sym_t *this, const char *name)
+{
+	lub_string_free(this->name);
+	this->name = lub_string_dup(name);
+}
+
+/*--------------------------------------------------------- */
 char *clish_sym__get_name(clish_sym_t *this)
 {
 	return this->name;
@@ -72,12 +79,12 @@ clish_plugin_t *clish_plugin_new(const char *name, const char *file)
 {
 	clish_plugin_t *this;
 
-	if (!file)
-		return NULL;
-
 	this = malloc(sizeof(*this));
 
-	this->file = lub_string_dup(file);
+	if (file)
+		this->file = lub_string_dup(file);
+	else
+		this->file = NULL; /* For main program binary */
 	if (name)
 		this->name = lub_string_dup(name);
 	else
@@ -162,7 +169,7 @@ void *clish_plugin_load(clish_plugin_t *this)
 
 	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_GLOBAL)))
 		return NULL;
-	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT);
+	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT_NAME);
 	if (!plugin_init) {
 		dlclose(this->dlhan);
 		this->dlhan = NULL;

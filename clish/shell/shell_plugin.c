@@ -161,17 +161,15 @@ int clish_shell_link_plugins(clish_shell_t *this)
 	/* Iterate elements */
 	for(iter = lub_list__get_head(this->syms);
 		iter; iter = lub_list_node__get_next(iter)) {
-//		int res;
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
 		sym_name = clish_sym__get_name(sym);
 		fn = plugins_find_sym(this, sym_name);
 		if (!fn) {
 			fprintf(stderr, "Error: Can't resolve symbol %s.\n",
 				sym_name);
-//			return 0;
+			return -1;
 		}
-//		fprintf(stderr, "sym: %s\n", sym_name);
-
+		clish_sym__set_func(sym, fn);
 	}
 
 	return 0;
