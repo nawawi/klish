@@ -3,13 +3,20 @@
  */
 #include "private.h"
 #include <assert.h>
+#include <string.h>
 
+#include "lub/string.h"
 #include "lub/list.h"
 #include "lub/bintree.h"
 #include "clish/plugin.h"
 #include "clish/view.h"
 
 /*----------------------------------------------------------------------- */
+/* For all plugins:
+ *  * dlopen(plugin)
+ *  * dlsym(initialize function)
+ *  * exec init functions to get all plugin syms
+ */
 int clish_shell_load_plugins(clish_shell_t *this)
 {
 	lub_list_node_t *iter;
@@ -35,21 +42,66 @@ int clish_shell_load_plugins(clish_shell_t *this)
 }
 
 /*----------------------------------------------------------------------- */
-static clish_plugin_fn_t *plugins_find_sym(clish_shell_t *this, const char *name)
+/* Find plugin by name. */
+static clish_plugin_t *plugin_by_name(clish_shell_t *this, const char *name)
 {
 	lub_list_node_t *iter;
 	clish_plugin_t *plugin;
-	clish_plugin_fn_t *func = NULL;
-	assert(this);
 
 	/* Iterate elements */
 	for(iter = lub_list__get_head(this->plugins);
 		iter; iter = lub_list_node__get_next(iter)) {
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if ((func = clish_plugin_get_sym(plugin, name)))
-			break;
+		if (!strcmp(clish_plugin__get_name(plugin), name))
+			return plugin;
 	}
 
+	return NULL;
+}
+
+/*----------------------------------------------------------------------- */
+/* Iterate plugins to find symbol by name.
+ * The symbol name can be simple or with namespace:
+ * mysym@plugin1
+ * The symbols with prefix will be resolved using specified plugin only.
+ */
+static clish_plugin_fn_t *plugins_find_sym(clish_shell_t *this, const char *name)
+{
+	lub_list_node_t *iter;
+	clish_plugin_t *plugin;
+	clish_plugin_fn_t *func = NULL;
+	/* To parse command name */
+	char *saveptr;
+	const char *delim = "@";
+	char *plugin_name = NULL;
+	char *cmdn = NULL;
+	char *str = lub_string_dup(name);
+
+	assert(this);
+
+	/* Parse name to get sym name and optional plugin name */
+	cmdn = strtok_r(str, delim, &saveptr);
+	if (!cmdn)
+		goto end;
+	plugin_name = strtok_r(NULL, delim, &saveptr);
+
+	if (plugin_name) {
+		/* Search for symbol in specified plugin */
+		plugin = plugin_by_name(this, plugin_name);
+		if (!plugin)
+			goto end;
+		func = clish_plugin_get_sym(plugin, cmdn);
+	} else {
+		/* Iterate all plugins */
+		for(iter = lub_list__get_head(this->plugins);
+			iter; iter = lub_list_node__get_next(iter)) {
+			plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
+			if ((func = clish_plugin_get_sym(plugin, cmdn)))
+				break;
+		}
+	}
+end:
+	lub_string_free(str);
 	return func;
 }
 

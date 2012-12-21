@@ -16,7 +16,7 @@
  **********************************************************/
 
 /*--------------------------------------------------------- */
-static int clish_sym_compare(const void *first, const void *second)
+int clish_sym_compare(const void *first, const void *second)
 {
 	const clish_sym_t *f = (const clish_sym_t *)first;
 	const clish_sym_t *s = (const clish_sym_t *)second;
@@ -25,7 +25,7 @@ static int clish_sym_compare(const void *first, const void *second)
 }
 
 /*--------------------------------------------------------- */
-static clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func)
+clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func)
 {
 	clish_sym_t *this;
 
@@ -37,12 +37,24 @@ static clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func)
 }
 
 /*--------------------------------------------------------- */
-static void clish_sym_free(clish_sym_t *this)
+void clish_sym_free(clish_sym_t *this)
 {
 	if (!this)
 		return;
 	lub_string_free(this->name);
 	free(this);
+}
+
+/*--------------------------------------------------------- */
+void clish_sym__set_func(clish_sym_t *this, clish_plugin_fn_t *func)
+{
+	this->func = func;
+}
+
+/*--------------------------------------------------------- */
+clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *this)
+{
+	return this->func;
 }
 
 /**********************************************************
@@ -126,7 +138,7 @@ clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
 		res = strcmp(sym->name, name);
 		if (!res)
-			return sym->func;
+			return clish_sym__get_func(sym);
 		if (res > 0) /* No chances to find name */
 			break;
 	}

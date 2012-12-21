@@ -41,17 +41,20 @@ typedef struct {
 } clish_shell_pwd_t;
 
 struct clish_shell_s {
-	lub_bintree_t view_tree; /* Maintain a tree of views */
-	lub_bintree_t ptype_tree; /* Maintain a tree of ptypes */
-	lub_bintree_t var_tree; /* Maintain a tree of global variables */
+	lub_bintree_t view_tree; /* Tree of views */
+	lub_bintree_t ptype_tree; /* Tree of ptypes */
+	lub_bintree_t var_tree; /* Tree of global variables */
 	const clish_shell_hooks_t *client_hooks; /* Client callback hooks */
 	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */
 	unsigned int idle_timeout; /* This is the idle timeout */
-	clish_command_t *wdog; /* This is the watchdog command */
-	unsigned int wdog_timeout; /* This is the watchdog timeout */
+
+	/* Watchdog */
+	clish_command_t *wdog; /* Watchdog command */
+	unsigned int wdog_timeout; /* Watchdog timeout */
 	bool_t wdog_active; /* If watchdog is active now */
+
 	clish_shell_state_t state; /* The current state */
 	char *overview; /* Overview text for this shell */
 	tinyrl_t *tinyrl; /* Tiny readline instance */
@@ -67,6 +70,7 @@ struct clish_shell_s {
 	bool_t log; /* If command logging is enabled */
 	struct passwd *user; /* Current user information */
 	lub_list_t *plugins; /* List of plugins */
+	lub_list_t *syms; /* List of all used symbols. Must be resolved. */
 
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;

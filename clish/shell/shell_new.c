@@ -40,6 +40,9 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Initialize plugin list */
 	this->plugins = lub_list_new(NULL);
 
+	/* Initialise the list of unresolved (yet) symbols */
+	this->syms = lub_list_new(clish_sym_compare);
+
 	assert((NULL != hooks) && (NULL != hooks->script_fn));
 
 	/* set up defaults */
@@ -132,6 +135,16 @@ static void clish_shell_fini(clish_shell_t * this)
 		lub_list_node_free(iter);
 	}
 	lub_list_free(this->plugins);
+
+	/* Free symbol list */
+	while ((iter = lub_list__get_head(this->syms))) {
+		/* Remove the symbol from the list */
+		lub_list_del(this->syms, iter);
+		/* Free the instance */
+		clish_sym_free((clish_sym_t *)lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
+	}
+	lub_list_free(this->syms);
 
 	/* free the textual details */
 	lub_string_free(this->overview);
