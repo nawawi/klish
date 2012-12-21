@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <clish/plugin.h>
 
-int anplug_fn(clish_context_t *context, char **out)
+int anplug_fn(void *context, char **out)
 {
 	printf("anplug: Another plugin\n");
 	return 0;

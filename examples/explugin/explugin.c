@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <clish/plugin.h>
 
-int explugin_fn(clish_context_t *context, char **out)
+int explugin_fn(void *context, char **out)
 {
 	printf("explugin: Hello world\n");
 	return 0;
