@@ -57,6 +57,12 @@ clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *this)
 	return this->func;
 }
 
+/*--------------------------------------------------------- */
+char *clish_sym__get_name(clish_sym_t *this)
+{
+	return this->name;
+}
+
 /**********************************************************
  * PLUGIN functions                                       *
  **********************************************************/
@@ -136,7 +142,7 @@ clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 		iter; iter = lub_list_node__get_next(iter)) {
 		int res;
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
-		res = strcmp(sym->name, name);
+		res = strcmp(clish_sym__get_name(sym), name);
 		if (!res)
 			return clish_sym__get_func(sym);
 		if (res > 0) /* No chances to find name */

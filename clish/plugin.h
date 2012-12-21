@@ -4,8 +4,6 @@
 #ifndef _clish_plugin_h
 #define _clish_plugin_h
 
-#include "clish/shell.h"
-
 /* Symbol types */
 
 typedef struct clish_sym_s clish_sym_t;
@@ -13,7 +11,7 @@ typedef struct clish_plugin_s clish_plugin_t;
 
 /* Plugin types */
 
-typedef int clish_plugin_fn_t(clish_context_t *context, char **out);
+typedef int clish_plugin_fn_t(void *context, char **out);
 typedef int clish_plugin_init_t(clish_plugin_t *plugin);
 
 /* Name of init function within plugin */
@@ -26,6 +24,7 @@ clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func);
 void clish_sym_free(clish_sym_t *instance);
 void clish_sym__set_func(clish_sym_t *instance, clish_plugin_fn_t *func);
 clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *instance);
+char *clish_sym__get_name(clish_sym_t *instance);
 
 /* Plugin */
 

@@ -701,8 +701,10 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (text)
 		free(text);
 
-	if (builtin)
+	if (builtin) {
 		clish_action__set_builtin(action, builtin);
+		clish_shell_add_unresolved_sym(shell, builtin);
+	}
 	if (shebang)
 		clish_action__set_shebang(action, shebang);
 

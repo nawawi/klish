@@ -277,10 +277,8 @@ int main(int argc, char **argv)
 	/* Load plugins */
 	if (clish_shell_load_plugins(shell) < 0)
 		goto end;
-	if (clish_shell_link_plugins(shell) < 0) {
-		fprintf(stderr, "Error: Undefined reference while plugin linking.\n");
+	if (clish_shell_link_plugins(shell) < 0)
 		goto end;
-	}
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {

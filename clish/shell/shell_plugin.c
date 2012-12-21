@@ -105,37 +105,73 @@ end:
 	return func;
 }
 
-/*----------------------------------------------------------------------- */
-static int plugins_link_view(clish_shell_t *this, clish_view_t *view)
+/*--------------------------------------------------------- */
+clish_sym_t *clish_shell_find_sym(clish_shell_t *this, const char *name)
 {
-	clish_command_t *c;
-	lub_bintree_iterator_t iter;
-	lub_bintree_t *tree;
+	lub_list_node_t *iter;
+	clish_sym_t *sym;
 
-	tree = clish_view__cmd_tree(view);
-	/* Iterate the tree of commands */
-	c = lub_bintree_findfirst(tree);
-	for (lub_bintree_iterator_init(&iter, tree, c);
-		c; c = lub_bintree_iterator_next(&iter)) {
-		plugins_find_sym(this, "jjj");
-		printf("command: %s\n", clish_command__get_name(c));
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->syms);
+		iter; iter = lub_list_node__get_next(iter)) {
+		int res;
+		sym = (clish_sym_t *)lub_list_node__get_data(iter);
+		res = strcmp(clish_sym__get_name(sym), name);
+		if (!res)
+			return sym;
+		if (res > 0) /* No chances to find name */
+			break;
 	}
 
-	return 0;
+	return NULL;
+}
+
+/*----------------------------------------------------------------------- */
+clish_sym_t *clish_shell_add_sym(clish_shell_t *this,
+	clish_plugin_fn_t *func, const char *name)
+{
+	clish_sym_t *sym = NULL;
+
+	if (!name)
+		return NULL;
+	if ((sym = clish_shell_find_sym(this, name)))
+		return sym;
+	if (!(sym = clish_sym_new(name, func)))
+		return NULL;
+	lub_list_add(this->syms, sym);
+
+	return sym;
+}
+
+/*----------------------------------------------------------------------- */
+clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *this,
+	const char *name)
+{
+	return clish_shell_add_sym(this, NULL, name);
 }
 
 /*----------------------------------------------------------------------- */
 int clish_shell_link_plugins(clish_shell_t *this)
 {
-	clish_view_t *v;
-	lub_bintree_iterator_t iter;
+	clish_sym_t *sym;
+	lub_list_node_t *iter;
+	char *sym_name = NULL;
+	clish_plugin_fn_t *fn = NULL;
 
-	v = lub_bintree_findfirst(&this->view_tree);
-	/* Iterate the tree of views */
-	for (lub_bintree_iterator_init(&iter, &this->view_tree, v);
-		v; v = lub_bintree_iterator_next(&iter)) {
-		if (plugins_link_view(this, v))
-			return -1;
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->syms);
+		iter; iter = lub_list_node__get_next(iter)) {
+//		int res;
+		sym = (clish_sym_t *)lub_list_node__get_data(iter);
+		sym_name = clish_sym__get_name(sym);
+		fn = plugins_find_sym(this, sym_name);
+		if (!fn) {
+			fprintf(stderr, "Error: Can't resolve symbol %s.\n",
+				sym_name);
+//			return 0;
+		}
+//		fprintf(stderr, "sym: %s\n", sym_name);
+
 	}
 
 	return 0;

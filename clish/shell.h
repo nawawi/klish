@@ -23,6 +23,7 @@
 #include "clish/view.h"
 #include "clish/ptype.h"
 #include "clish/var.h"
+#include "clish/plugin.h"
 #include "konf/net.h"
 
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
@@ -359,6 +360,13 @@ struct passwd *clish_shell__get_user(clish_shell_t *instance);
 /* Plugin functions */
 int clish_shell_load_plugins(clish_shell_t *instance);
 int clish_shell_link_plugins(clish_shell_t *instance);
+
+/* Unresolved symbols functions */
+clish_sym_t *clish_shell_find_sym(clish_shell_t *instance, const char *name);
+clish_sym_t *clish_shell_add_sym(clish_shell_t *instance,
+	clish_plugin_fn_t *func, const char *name);
+clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *instance,
+	const char *name);
 
 _END_C_DECL
 
