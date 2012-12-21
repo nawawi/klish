@@ -156,3 +156,15 @@ void *clish_plugin_load(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
+char *clish_plugin__get_name(const clish_plugin_t *this)
+{
+	return this->name;
+}
+
+/*--------------------------------------------------------- */
+char *clish_plugin__get_file(const clish_plugin_t *this)
+{
+	return this->file;
+}
+
+/*--------------------------------------------------------- */

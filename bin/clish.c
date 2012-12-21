@@ -275,10 +275,8 @@ int main(int argc, char **argv)
 	if (histfile_expanded)
 		clish_shell__restore_history(shell, histfile_expanded);
 	/* Load plugins */
-	if (clish_shell_load_plugins(shell) < 0) {
-		fprintf(stderr, "Error: Can't load plugins.\n");
+	if (clish_shell_load_plugins(shell) < 0)
 		goto end;
-	}
 	if (clish_shell_link_plugins(shell) < 0) {
 		fprintf(stderr, "Error: Undefined reference while plugin linking.\n");
 		goto end;

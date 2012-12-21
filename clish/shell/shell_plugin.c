@@ -21,8 +21,11 @@ int clish_shell_load_plugins(clish_shell_t *this)
 	for(iter = lub_list__get_head(this->plugins);
 		iter; iter = lub_list_node__get_next(iter)) {
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if (!clish_plugin_load(plugin))
+		if (!clish_plugin_load(plugin)) {
+			fprintf(stderr, "Error: Can't load plugin %s.\n",
+				clish_plugin__get_file(plugin));
 			return -1;
+		}
 #ifdef DEBUG
 		clish_plugin_dump(plugin);
 #endif
