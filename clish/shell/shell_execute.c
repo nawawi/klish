@@ -17,13 +17,6 @@
 #include <signal.h>
 #include <fcntl.h>
 
-/*----------------------------------------------------------- */
-void clish_shell_cleanup_script(void *script)
-{
-	/* simply release the memory */
-	lub_string_free(script);
-}
-
 /*-------------------------------------------------------- */
 static int clish_shell_lock(const char *lock_path)
 {
@@ -207,7 +200,7 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	const clish_action_t *action = context->action;
 
 	if (!(sym = clish_action__get_builtin(action)))
-		return -1;
+		return 0;
 	if (!(func = clish_sym__get_func(sym)))
 		return -1;
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
@@ -215,12 +208,6 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	lub_string_free(script);
 
 	return result;
-
-/*		lub_argv_t *argv = script ? lub_argv_new(script, 0) : NULL;
-		if (argv)
-			lub_argv_delete(argv);
-		result = this->client_hooks->script_fn(context, action, script, out);
-*/
 }
 
 /*----------------------------------------------------------- */
