@@ -301,7 +301,7 @@ FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
 char * clish_shell__get_lockfile(clish_shell_t * instance);
 int clish_shell__set_socket(clish_shell_t * instance, const char * path);
-void clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
+int clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
 int clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
