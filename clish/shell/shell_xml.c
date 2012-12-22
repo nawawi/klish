@@ -18,6 +18,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#define CLISH_XML_ERROR_STR "Error parsing XML: "
+
+
 typedef int (PROCESS_FN) (clish_shell_t * instance,
 	clish_xmlnode_t * element, void *parent);
 
@@ -120,7 +123,7 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 				res = clish_shell_xml_read(this, filename);
 				/* Error message */
 				if (res)
-					fprintf(stderr, "Error parsing XML: File %s\n",
+					fprintf(stderr, CLISH_XML_ERROR_STR"File %s\n",
 						filename);
 				/* release the resource */
 				lub_string_free(filename);
@@ -169,7 +172,7 @@ static int process_node(clish_shell_t * shell, clish_xmlnode_t * node, void *par
 						/* Error message */
 						if (res) {
 							char *ename = clish_xmlnode_fetch_attr(node, "name");
-							fprintf(stderr, "Error parsing XML: Node %s, name=%s\n",
+							fprintf(stderr, CLISH_XML_ERROR_STR"Node %s, name=%s\n",
 								name, ename);
 							clish_xml_release(ename);
 						}
@@ -587,14 +590,22 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_ptype_t *tmp = NULL;
 
 		/* Check syntax */
-		if (cmd && (cmd == shell->startup))
+		if (cmd && (cmd == shell->startup)) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP can't contain PARAMs.\n");
 			goto error;
-		if (!name)
+		}
+		if (!name) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"The \"name\" attribute is required.\n");
 			goto error;
-		if (!help)
+		}
+		if (!help) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"The \"help\" attribute is required.\n");
 			goto error;
-		if (!ptype)
+		}
+		if (!ptype) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"The \"ptype\" attribute is required.\n");
 			goto error;
+		}
 
 		if (*ptype) {
 			tmp = clish_shell_find_create_ptype(shell, ptype,
