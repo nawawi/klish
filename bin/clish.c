@@ -39,7 +39,6 @@ static clish_shell_hooks_t my_hooks = {
     NULL, /* don't worry about init callback */
     clish_access_callback,
     NULL, /* don't worry about cmd_line callback */
-    NULL, /* previously clish_script_callback, */
     NULL, /* don't worry about fini callback */
     clish_config_callback,
     clish_log_callback,
@@ -159,7 +158,7 @@ int main(int argc, char **argv)
 			log = BOOL_TRUE;
 			break;
 		case 'd':
-			my_hooks.script_fn = NULL; /* clish_dryrun_callback; */
+			/* TODO: clish_dryrun_callback; */
 			break;
 		case 'x':
 			xml_path = optarg;
@@ -172,7 +171,7 @@ int main(int argc, char **argv)
 			break;
 		case 'k':
 			lockless = BOOL_TRUE;
-			my_hooks.script_fn = NULL; /* clish_dryrun_callback; */
+			/* TODO: set clish_dryrun_callback; */
 			my_hooks.config_fn = NULL;
 			break;
 		case 't':

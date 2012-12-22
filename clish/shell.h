@@ -134,32 +134,6 @@ typedef void clish_shell_cmd_line_fn_t(
 					      const char *cmd_line);
 
 /**
-  * A hook function used to invoke the script associated with a command
-  * 
-  * This will be invoked from the context of the spawned shell's thread
-  * and will be invoked with the ACTION script which is to be performed.
-  * 
-  * The clish component will only pass down a call when a command has been
-  * correctly input.
-  *
-  * The client may choose to implement invocation of the script in a number of
-  * ways, which may include forking a sub-process or thread. It is important 
-  * that the call doesn't return until the script has been fully evaluated.
-  * 
-  * \return 
-  * - Retval (int)
-  *
-  * \post
-  * - If the script executes successfully then any "view" tag associated with the
-  *   command will be honored. i.e. the CLI will switch to the new view
-  */
-typedef int clish_shell_script_fn_t(
-	clish_context_t *context,
-	clish_action_t *action,
-	const char *script,
-	char **out);
-
-/**
   * A hook function used to control config file write
   * 
   */
@@ -245,7 +219,6 @@ typedef struct {
 	clish_shell_init_fn_t *init_fn;         /* Initialisation call */
 	clish_shell_access_fn_t *access_fn;     /* Access control call */
 	clish_shell_cmd_line_fn_t *cmd_line_fn; /* Command line logging call */
-	clish_shell_script_fn_t *script_fn;     /* script evaluation call */
 	clish_shell_fini_fn_t *fini_fn;         /* Finalisation call */
 	clish_shell_config_fn_t *config_fn;     /* Config call */
 	clish_shell_log_fn_t *log_fn;           /* Logging call */

@@ -106,6 +106,7 @@ end:
 }
 
 /*--------------------------------------------------------- */
+/* Find symbol by name in the list of unresolved symbols */
 clish_sym_t *clish_shell_find_sym(clish_shell_t *this, const char *name)
 {
 	lub_list_node_t *iter;
@@ -127,6 +128,7 @@ clish_sym_t *clish_shell_find_sym(clish_shell_t *this, const char *name)
 }
 
 /*----------------------------------------------------------------------- */
+/* Add symbol to the table of unresolved symbols */
 clish_sym_t *clish_shell_add_sym(clish_shell_t *this,
 	clish_plugin_fn_t *func, const char *name)
 {
@@ -151,6 +153,7 @@ clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *this,
 }
 
 /*----------------------------------------------------------------------- */
+/* Link unresolved symbols */
 int clish_shell_link_plugins(clish_shell_t *this)
 {
 	clish_sym_t *sym;
