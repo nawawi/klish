@@ -66,9 +66,12 @@ struct clish_shell_s {
 	char *lockfile;
 	char *default_shebang;
 	char *fifo_name; /* The name of temporary fifo file. */
+	struct passwd *user; /* Current user information */
+
+	/* Boolean flags */
 	bool_t interactive; /* Is shell interactive. */
 	bool_t log; /* If command logging is enabled */
-	struct passwd *user; /* Current user information */
+	bool_t dryrun; /* Is this a dry-running */
 
 	/* Plugins and symbols */
 	lub_list_t *plugins; /* List of plugins */
@@ -136,5 +139,4 @@ int clish_shell_timeout_fn(tinyrl_t *tinyrl);
 int clish_shell_keypress_fn(tinyrl_t *tinyrl, int key);
 
 /* Internal plugin symbols */
-CLISH_PLUGIN_SYM(clish_dryrun);
 CLISH_PLUGIN_SYM(clish_script);

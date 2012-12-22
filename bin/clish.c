@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 	bool_t utf8 = BOOL_FALSE;
 	bool_t bit8 = BOOL_FALSE;
 	bool_t log = BOOL_FALSE;
+	bool_t dryrun = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -158,7 +159,7 @@ int main(int argc, char **argv)
 			log = BOOL_TRUE;
 			break;
 		case 'd':
-			/* TODO: clish_dryrun_callback; */
+			dryrun = BOOL_TRUE;
 			break;
 		case 'x':
 			xml_path = optarg;
@@ -171,7 +172,7 @@ int main(int argc, char **argv)
 			break;
 		case 'k':
 			lockless = BOOL_TRUE;
-			/* TODO: set clish_dryrun_callback; */
+			dryrun = BOOL_TRUE;
 			my_hooks.config_fn = NULL;
 			break;
 		case 't':
@@ -264,6 +265,9 @@ int main(int argc, char **argv)
 	/* Set logging */
 	if (log)
 		clish_shell__set_log(shell, log);
+	/* Set dry-run */
+	if (dryrun)
+		clish_shell__set_dryrun(shell, dryrun);
 	/* Set idle timeout */
 	if (istimeout)
 		clish_shell__set_timeout(shell, timeout);

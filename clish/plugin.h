@@ -4,6 +4,8 @@
 #ifndef _clish_plugin_h
 #define _clish_plugin_h
 
+#include "lub/types.h"
+
 /* Symbol types */
 
 typedef struct clish_sym_s clish_sym_t;
@@ -33,15 +35,19 @@ void clish_sym__set_func(clish_sym_t *instance, clish_plugin_fn_t *func);
 clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *instance);
 void clish_sym__set_name(clish_sym_t *instance, const char *name);
 char *clish_sym__get_name(clish_sym_t *instance);
+void clish_sym__set_permanent(clish_sym_t *instance, bool_t permanent);
+bool_t clish_sym__get_permanent(clish_sym_t *instance);
 
 /* Plugin */
 
 clish_plugin_t *clish_plugin_new(const char *name, const char *file);
 void clish_plugin_free(clish_plugin_t *instance);
 void *clish_plugin_load(clish_plugin_t *instance);
-clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *instance,
+clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name);
-int clish_plugin_add_sym(clish_plugin_t *instance,
+clish_sym_t *clish_plugin_add_sym(clish_plugin_t *instance,
+	clish_plugin_fn_t *func, const char *name);
+clish_sym_t *clish_plugin_add_psym(clish_plugin_t *instance,
 	clish_plugin_fn_t *func, const char *name);
 void clish_plugin_dump(const clish_plugin_t *instance);
 char *clish_plugin__get_name(const clish_plugin_t *instance);

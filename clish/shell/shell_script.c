@@ -1,7 +1,7 @@
 /*
- * clish_script_callback.c
+ * shell_script.c
  *
- * Callback hook to action a shell script.
+ * Function to execute a shell script.
  */
 
 #include "private.h"
@@ -156,18 +156,6 @@ CLISH_PLUGIN_SYM(clish_script)
 	fprintf(stderr, "RETCODE: %d\n", WEXITSTATUS(res));
 #endif /* DEBUG */
 	return WEXITSTATUS(res);
-}
-
-/*--------------------------------------------------------- */
-CLISH_PLUGIN_SYM(clish_dryrun)
-{
-#ifdef DEBUG
-	fprintf(stderr, "DRY-RUN: %s\n", script);
-#endif /* DEBUG */
-	if (out)
-		*out = NULL;
-
-	return 0;
 }
 
 /*--------------------------------------------------------- */

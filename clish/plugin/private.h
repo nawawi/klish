@@ -12,6 +12,7 @@
 struct clish_sym_s {
 	char *name; /* Symbol name */
 	clish_plugin_fn_t *func; /* Function address */
+	bool_t permanent; /* If permanent the dry-run can't switch off it */
 };
 
 struct clish_plugin_s {

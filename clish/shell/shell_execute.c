@@ -198,8 +198,11 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	char *script;
 	clish_plugin_fn_t *func = NULL;
 	const clish_action_t *action = context->action;
+	clish_shell_t *shell = context->shell;
 
 	if (!(sym = clish_action__get_builtin(action)))
+		return 0;
+	if (shell->dryrun && !clish_sym__get_permanent(sym))
 		return 0;
 	if (!(func = clish_sym__get_func(sym)))
 		return -1;
@@ -255,6 +258,18 @@ bool_t clish_shell__get_log(const clish_shell_t *this)
 {
 	assert(this);
 	return this->log;
+}
+
+/*-------------------------------------------------------- */
+void clish_shell__set_dryrun(clish_shell_t *this, bool_t dryrun)
+{
+	this->dryrun = dryrun;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell__get_dryrun(const clish_shell_t *this)
+{
+	return this->dryrun;
 }
 
 /*----------------------------------------------------------- */

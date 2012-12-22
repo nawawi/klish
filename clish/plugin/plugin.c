@@ -32,6 +32,7 @@ clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func)
 	this = malloc(sizeof(*this));
 	this->name = lub_string_dup(name);
 	this->func = func;
+	this->permanent = BOOL_FALSE;
 
 	return this;
 }
@@ -55,6 +56,18 @@ void clish_sym__set_func(clish_sym_t *this, clish_plugin_fn_t *func)
 clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *this)
 {
 	return this->func;
+}
+
+/*--------------------------------------------------------- */
+void clish_sym__set_permanent(clish_sym_t *this, bool_t permanent)
+{
+	this->permanent = permanent;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_sym__get_permanent(clish_sym_t *this)
+{
+	return this->permanent;
 }
 
 /*--------------------------------------------------------- */
@@ -123,23 +136,37 @@ void clish_plugin_free(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
-int clish_plugin_add_sym(clish_plugin_t *this,
+clish_sym_t *clish_plugin_add_sym(clish_plugin_t *this,
 	clish_plugin_fn_t *func, const char *name)
 {
 	clish_sym_t *sym;
 
 	if (!name || !func)
-		return -1;
+		return NULL;
 
 	if (!(sym = clish_sym_new(name, func)))
-		return -1;
+		return NULL;
 	lub_list_add(this->syms, sym);
 
-	return 0;
+	return sym;
 }
 
 /*--------------------------------------------------------- */
-clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
+/* Add permanent symbol (can't be turned off by dry-run) */
+clish_sym_t *clish_plugin_add_psym(clish_plugin_t *this,
+	clish_plugin_fn_t *func, const char *name)
+{
+	clish_sym_t *sym;
+
+	if (!(sym = clish_plugin_add_sym(this, func, name)))
+		return NULL;
+	clish_sym__set_permanent(sym, BOOL_TRUE);
+
+	return sym;
+}
+
+/*--------------------------------------------------------- */
+clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 {
 	lub_list_node_t *iter;
 	clish_sym_t *sym;
@@ -151,7 +178,7 @@ clish_plugin_fn_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
 		res = strcmp(clish_sym__get_name(sym), name);
 		if (!res)
-			return clish_sym__get_func(sym);
+			return sym;
 		if (res > 0) /* No chances to find name */
 			break;
 	}

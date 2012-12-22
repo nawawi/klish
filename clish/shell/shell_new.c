@@ -75,6 +75,7 @@ static void clish_shell_init(clish_shell_t * this,
 	this->fifo_name = NULL;
 	this->interactive = BOOL_TRUE; /* The interactive shell by default. */
 	this->log = BOOL_FALSE; /* Disable logging by default */
+	this->dryrun = BOOL_FALSE; /* Disable dry-run by default */
 	this->user = lub_db_getpwuid(getuid()); /* Get user information */
 
 	/* Create internal ptypes and params */
