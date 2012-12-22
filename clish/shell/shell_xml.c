@@ -118,7 +118,10 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 #endif
 				/* load this file */
 				res = clish_shell_xml_read(this, filename);
-
+				/* Error message */
+				if (res)
+					fprintf(stderr, "Error parsing XML: File %s\n",
+						filename);
 				/* release the resource */
 				lub_string_free(filename);
 			}
@@ -162,6 +165,14 @@ static int process_node(clish_shell_t * shell, clish_xmlnode_t * node, void *par
 #endif
 						/* process the elements at this level */
 						res = cb->handler(shell, node, parent);
+
+						/* Error message */
+						if (res) {
+							char *ename = clish_xmlnode_fetch_attr(node, "name");
+							fprintf(stderr, "Error parsing XML: Node %s, name=%s\n",
+								name, ename);
+							clish_xml_release(ename);
+						}
 						break;
 					}
 				}
@@ -546,6 +557,7 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_param_t *p_param = NULL;
 	clish_xmlnode_t *pelement;
 	char *pname;
+	int res = -1;
 
 	pelement = clish_xmlnode_parent(element);
 	pname = clish_xmlnode_get_all_name(pelement);
@@ -574,19 +586,21 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
-		assert((!cmd) || (cmd != shell->startup));
-
-		/* create a command */
-		assert(name);
-		assert(help);
-		assert(ptype);
+		/* Check syntax */
+		if (cmd && (cmd == shell->startup))
+			goto error;
+		if (!name)
+			goto error;
+		if (!help)
+			goto error;
+		if (!ptype)
+			goto error;
 
 		if (*ptype) {
 			tmp = clish_shell_find_create_ptype(shell, ptype,
 				NULL, NULL,
 				CLISH_PTYPE_REGEXP,
 				CLISH_PTYPE_NONE);
-			assert(tmp);
 		}
 		param = clish_param_new(name, help, tmp);
 
@@ -609,7 +623,6 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 				tmp = clish_shell_find_create_ptype(shell,
 					ptype_name, "Option", "[^\\\\]+",
 					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
-			assert(tmp);
 			opt_param = clish_param_new(prefix, help, tmp);
 			clish_param__set_mode(opt_param,
 				CLISH_PARAM_SUBCOMMAND);
@@ -682,6 +695,8 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		if (p_param)
 			clish_param_insert_param(p_param, param);
 
+		res = process_children(shell, element, param);
+error:
 		clish_xml_release(name);
 		clish_xml_release(help);
 		clish_xml_release(ptype);
@@ -694,11 +709,9 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_xml_release(hidden);
 		clish_xml_release(test);
 		clish_xml_release(completion);
-
-		return process_children(shell, element, param);
 	}
 
-	return 0;
+	return res;
 }
 
 /* ------------------------------------------------------ */
