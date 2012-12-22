@@ -490,7 +490,9 @@ static int clish_shell_execline(clish_shell_t *this, const char *line, char **ou
 	clish_shell_renew_prompt(this);
 
 	/* Set up the context for tinyrl */
+	/* Prepare context */
 	context.cmd = NULL;
+	context.action = NULL;
 	context.pargv = NULL;
 	context.shell = this;
 

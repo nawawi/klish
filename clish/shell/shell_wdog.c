@@ -50,8 +50,10 @@ int clish_shell_wdog(clish_shell_t *this)
 
 	assert(this->wdog);
 
+	/* Prepare context */
 	context.shell = this;
 	context.cmd = this->wdog;
+	context.action = clish_command__get_action(this->wdog);
 	context.pargv = NULL;
 
 	/* Call watchdog script */

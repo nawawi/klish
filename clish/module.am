@@ -3,7 +3,6 @@ lib_LTLIBRARIES += libclish.la
 
 libclish_la_SOURCES = \
     clish/callback_access.c \
-    clish/callback_script.c \
     clish/callback_config.c \
     clish/callback_log.c \
     clish/private.h

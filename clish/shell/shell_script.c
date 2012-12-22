@@ -3,6 +3,11 @@
  *
  * Callback hook to action a shell script.
  */
+
+#include "private.h"
+#include "lub/string.h"
+#include "konf/buf.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,15 +20,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "lub/string.h"
-#include "konf/buf.h"
-#include "internal.h"
-
 /*--------------------------------------------------------- */
-int clish_script_callback(clish_context_t *context,
-	clish_action_t *action, const char *script, char **out)
+CLISH_PLUGIN_SYM(clish_script)
 {
+	clish_context_t *context = (clish_context_t *)clish_context;
 	clish_shell_t *this = context->shell;
+	const clish_action_t *action = context->action;
 	const char * shebang = NULL;
 	pid_t cpid = -1;
 	int res;
@@ -157,8 +159,7 @@ int clish_script_callback(clish_context_t *context,
 }
 
 /*--------------------------------------------------------- */
-int clish_dryrun_callback(clish_context_t *context,
-	clish_action_t *action, const char *script, char ** out)
+CLISH_PLUGIN_SYM(clish_dryrun)
 {
 #ifdef DEBUG
 	fprintf(stderr, "DRY-RUN: %s\n", script);

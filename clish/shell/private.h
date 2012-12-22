@@ -69,8 +69,11 @@ struct clish_shell_s {
 	bool_t interactive; /* Is shell interactive. */
 	bool_t log; /* If command logging is enabled */
 	struct passwd *user; /* Current user information */
+
+	/* Plugins and symbols */
 	lub_list_t *plugins; /* List of plugins */
 	lub_list_t *syms; /* List of all used symbols. Must be resolved. */
+	clish_sym_t *default_sym; /* The sym to use when builtin is not specified */
 
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;
@@ -131,3 +134,7 @@ void clish_shell__init_pwd(clish_shell_pwd_t *pwd);
 void clish_shell__fini_pwd(clish_shell_pwd_t *pwd);
 int clish_shell_timeout_fn(tinyrl_t *tinyrl);
 int clish_shell_keypress_fn(tinyrl_t *tinyrl, int key);
+
+/* Internal plugin symbols */
+CLISH_PLUGIN_SYM(clish_dryrun);
+CLISH_PLUGIN_SYM(clish_script);

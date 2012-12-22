@@ -16,7 +16,10 @@ typedef struct clish_plugin_s clish_plugin_t;
 #define CLISH_PLUGIN_INIT_NAME "clish_plugin_init"
 #define CLISH_PLUGIN_INIT_FUNC(name) int name(clish_plugin_t *plugin)
 #define CLISH_PLUGIN_INIT CLISH_PLUGIN_INIT_FUNC(CLISH_PLUGIN_INIT_FNAME)
+
 #define CLISH_PLUGIN_SYM(name) int name(void *clish_context, const char *script, char **out)
+
+#define CLISH_DEFAULT_SYM "clish_script@clish"
 
 typedef CLISH_PLUGIN_SYM(clish_plugin_fn_t);
 typedef CLISH_PLUGIN_INIT_FUNC(clish_plugin_init_t);

@@ -196,6 +196,8 @@ CLISH_PLUGIN_INIT
 	clish_plugin_add_sym(plugin, clish_nested_up, "clish_nested_up");
 	clish_plugin_add_sym(plugin, clish_nop, "clish_nop");
 	clish_plugin_add_sym(plugin, clish_wdog, "clish_wdog");
+	clish_plugin_add_sym(plugin, clish_dryrun, "clish_dryrun");
+	clish_plugin_add_sym(plugin, clish_script, "clish_script");
 
 	return 0;
 }

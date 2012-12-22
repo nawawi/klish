@@ -25,9 +25,11 @@ clish_pargv_status_t clish_shell_parse(
 		return result;
 
 	/* Now construct the parameters for the command */
+	/* Prepare context */
 	*pargv = clish_pargv_new();
 	context.shell = this;
 	context.cmd = cmd;
+	context.action = NULL;
 	context.pargv = *pargv;
 
 	idx = lub_argv_wordcount(clish_command__get_name(cmd));

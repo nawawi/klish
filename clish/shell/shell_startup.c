@@ -18,9 +18,12 @@ int clish_shell_startup(clish_shell_t *this)
 	if (banner)
 		tinyrl_printf(this->tinyrl, "%s\n", banner);
 
+	/* Prepare context */
 	context.shell = this;
 	context.cmd = this->startup;
+	context.action = clish_command__get_action(this->startup);
 	context.pargv = NULL;
+	
 	/* Call log initialize */
 	if (clish_shell__get_log(this) && this->client_hooks->log_fn)
 		this->client_hooks->log_fn(&context, NULL, 0);

@@ -86,7 +86,6 @@ int clish_shell_execute(clish_context_t *context, char **out)
 {
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
-	clish_action_t *action;
 	int result = 0;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
@@ -96,7 +95,6 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	unsigned int saved_wdog_timeout = this->wdog_timeout;
 
 	assert(cmd);
-	action = clish_command__get_action(cmd);
 
 	/* Pre-change view if the command is from another depth/view */
 	{
@@ -138,7 +136,8 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Execute ACTION */
-	result = clish_shell_exec_action(action, context, out);
+	context->action = clish_command__get_action(cmd);
+	result = clish_shell_exec_action(context, out);
 
 	/* Restore SIGINT, SIGQUIT, SIGHUP */
 	if (!clish_command__get_interrupt(cmd)) {
@@ -199,13 +198,13 @@ error:
 }
 
 /*----------------------------------------------------------- */
-int clish_shell_exec_action(clish_action_t *action,
-	clish_context_t *context, char **out)
+int clish_shell_exec_action(clish_context_t *context, char **out)
 {
 	int result = -1;
 	clish_sym_t *sym;
 	char *script;
 	clish_plugin_fn_t *func = NULL;
+	const clish_action_t *action = context->action;
 
 	if (!(sym = clish_action__get_builtin(action)))
 		return -1;

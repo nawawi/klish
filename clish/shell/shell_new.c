@@ -22,6 +22,7 @@ static void clish_shell_init(clish_shell_t * this,
 {
 	clish_ptype_t *tmp_ptype = NULL;
 	clish_plugin_t *plugin = NULL;
+	clish_sym_t *sym = NULL;
 
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
@@ -40,13 +41,17 @@ static void clish_shell_init(clish_shell_t * this,
 
 	/* Initialize plugin list */
 	this->plugins = lub_list_new(NULL);
+	/* Create internal plugin "clish" */
 	plugin = clish_plugin_new("clish", NULL);
 	lub_list_add(this->plugins, plugin);
 
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);
+	/* Add default sym and save it to shell structure */
+	sym = clish_shell_add_unresolved_sym(this, CLISH_DEFAULT_SYM);
+	this->default_sym = sym;
 
-	assert((NULL != hooks) && (NULL != hooks->script_fn));
+	assert(NULL != hooks);
 
 	/* set up defaults */
 	this->client_hooks = hooks;

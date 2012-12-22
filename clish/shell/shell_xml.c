@@ -459,6 +459,8 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
 	char *default_shebang =
 		clish_xmlnode_fetch_attr(element, "default_shebang");
+	char *default_builtin =
+		clish_xmlnode_fetch_attr(element, "default_builtin");
 	char *timeout = clish_xmlnode_fetch_attr(element, "timeout");
 	char *lock = clish_xmlnode_fetch_attr(element, "lock");
 	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
@@ -483,6 +485,9 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
+	if (default_builtin)
+		clish_sym__set_name(shell->default_sym, default_builtin);
+
 	if (timeout)
 		clish_shell__set_timeout(shell, atoi(timeout));
 
@@ -504,6 +509,7 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_xml_release(view);
 	clish_xml_release(viewid);
 	clish_xml_release(default_shebang);
+	clish_xml_release(default_builtin);
 	clish_xml_release(timeout);
 	clish_xml_release(lock);
 	clish_xml_release(interrupt);
@@ -705,7 +711,7 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (builtin)
 		sym = clish_shell_add_unresolved_sym(shell, builtin);
 	else
-		sym = clish_shell_add_unresolved_sym(shell, builtin);
+		sym = shell->default_sym;
 	clish_action__set_builtin(action, sym);
 	if (shebang)
 		clish_action__set_shebang(action, shebang);

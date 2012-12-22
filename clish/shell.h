@@ -36,6 +36,7 @@ struct clish_context_s {
 	clish_shell_t *shell;
 	const clish_command_t *cmd;
 	clish_pargv_t *pargv;
+	const clish_action_t *action;
 };
 typedef struct clish_context_s clish_context_t;
 
@@ -280,8 +281,7 @@ clish_ptype_t *clish_shell_find_ptype(clish_shell_t *instance,
 	const char *name);
 int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
-int clish_shell_exec_action(clish_action_t *action,
-	clish_context_t *context, char **out);
+int clish_shell_exec_action(clish_context_t *context, char **out);
 int clish_shell_execute(clish_context_t *context, char **out);
 int clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
 int clish_shell_readline(clish_shell_t *instance, char ** out);
