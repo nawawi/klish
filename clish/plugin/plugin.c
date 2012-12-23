@@ -95,6 +95,20 @@ clish_plugin_t *clish_sym__get_plugin(clish_sym_t *this)
 	return this->plugin;
 }
 
+/*--------------------------------------------------------- */
+int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src)
+{
+	char *name;
+
+	if (!dst || !src)
+		return -1;
+	name = dst->name;
+	*dst = *src;
+	dst->name = name;
+
+	return 0;
+}
+
 /**********************************************************
  * PLUGIN functions                                       *
  **********************************************************/

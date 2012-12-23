@@ -161,8 +161,7 @@ int clish_shell_link_plugins(clish_shell_t *this)
 			return -1;
 		}
 		/* Copy symbol attributes */
-		clish_sym__set_func(sym, clish_sym__get_func(plugin_sym));
-		clish_sym__set_permanent(sym, clish_sym__get_permanent(plugin_sym));
+		clish_sym_clone(sym, plugin_sym);
 	}
 
 	return 0;
