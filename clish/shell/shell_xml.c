@@ -257,6 +257,7 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 {
 	clish_view_t *view;
 	int allowed = 1;
+	int res = -1;
 
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	char *prompt = clish_xmlnode_fetch_attr(element, "prompt");
@@ -273,7 +274,11 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	if (!allowed)
 		goto process_view_end;
 
-	assert(name);
+	/* Check syntax */
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
 
 	/* re-use a view if it already exists */
 	view = clish_shell_find_create_view(shell, name, prompt);
@@ -293,13 +298,15 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	}
 
 process_view_end:
+	res = process_children(shell, element, view);
+error:
 	clish_xml_release(name);
 	clish_xml_release(prompt);
 	clish_xml_release(depth);
 	clish_xml_release(restore);
 	clish_xml_release(access);
 
-	return process_children(shell, element, view);
+	return res;
 ;
 }
 
@@ -308,7 +315,7 @@ static int process_ptype(clish_shell_t * shell, clish_xmlnode_t * element, void 
 {
 	clish_ptype_method_e method;
 	clish_ptype_preprocess_e preprocess;
-	clish_ptype_t *ptype;
+	int res = -1;
 
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	char *help = clish_xmlnode_fetch_attr(element, "help");
@@ -316,24 +323,31 @@ static int process_ptype(clish_shell_t * shell, clish_xmlnode_t * element, void 
 	char *method_name = clish_xmlnode_fetch_attr(element, "method");
 	char *preprocess_name =	clish_xmlnode_fetch_attr(element, "preprocess");
 
-	assert(name);
-	assert(pattern);
+	/* Check syntax */
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
+	if (!pattern) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("pattern"));
+		goto error;
+	}
 
 	method = clish_ptype_method_resolve(method_name);
 
 	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
-	ptype = clish_shell_find_create_ptype(shell,
+	clish_shell_find_create_ptype(shell,
 		name, help, pattern, method, preprocess);
 
-	assert(ptype);
-
+	res = 0;
+error:
 	clish_xml_release(name);
 	clish_xml_release(help);
 	clish_xml_release(pattern);
 	clish_xml_release(method_name);
 	clish_xml_release(preprocess_name);
 
-	return 0;
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -380,6 +394,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	char *alias_name = NULL;
 	clish_view_t *alias_view = NULL;
 	int allowed = 1;
+	int res = -1;
 
 	char *access = clish_xmlnode_fetch_attr(element, "access");
 	char *name = clish_xmlnode_fetch_attr(element, "name");
@@ -393,6 +408,16 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
 	char *ref = clish_xmlnode_fetch_attr(element, "ref");
 
+	/* Check syntax */
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
+	if (!help) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
+		goto error;
+	}
+
 	/* Check permissions */
 	if (access) {
 		allowed = 0;
@@ -402,18 +427,12 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (!allowed)
 		goto process_command_end;
 
-	assert(name);
-
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
 	if (old) {
-		/* flag the duplication then ignore further definition */
-		printf("DUPLICATE COMMAND: %s\n",
-		       clish_command__get_name(old));
-		goto process_command_end;
+		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate COMMAND name=%s.\n", name);
+		goto error;
 	}
-
-	assert(help);
 
 	/* Reference 'ref' field */
 	if (ref) {
@@ -425,9 +444,9 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 
 		cmdn = strtok_r(str, delim, &saveptr);
 		if (!cmdn) {
-			printf("EMPTY REFERENCE COMMAND: %s\n", name);
+			fprintf(stderr, CLISH_XML_ERROR_STR"Invalid \"ref\" attribute value.\n");
 			lub_string_free(str);
-			goto process_command_end;
+			goto error;
 		}
 		alias_name = lub_string_dup(cmdn);
 		view_name = strtok_r(NULL, delim, &saveptr);
@@ -441,7 +460,6 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 
 	/* create a command */
 	cmd = clish_view_new_command(v, name, help);
-	assert(cmd);
 	clish_command__set_pview(cmd, v);
 
 	/* define some specialist escape characters */
@@ -453,7 +471,11 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
-		assert(args_help);
+		/* Check syntax */
+		if (!args_help) {
+			fprintf(stderr, CLISH_XML_ERROR_ATTR("args_help"));
+			goto error;
+		}
 		tmp = clish_shell_find_ptype(shell, "internal_ARGS");
 		assert(tmp);
 		param = clish_param_new(args_name, args_help, tmp);
@@ -487,14 +509,25 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 
 	/* Set alias */
 	if (alias_name) {
-		assert(!((alias_view == v) && (!strcmp(alias_name, name))));
+		/* Check syntax */
+		if (!alias_view) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"Can't find reference VIEW.\n");
+			lub_string_free(alias_name);
+			goto error;
+		}
+		if ((alias_view == v) && (!strcmp(alias_name, name))) {
+			fprintf(stderr, CLISH_XML_ERROR_STR"The COMMAND with reference to itself.\n");
+			lub_string_free(alias_name);
+			goto error;
+		}
 		clish_command__set_alias(cmd, alias_name);
-		assert(alias_view);
 		clish_command__set_alias_view(cmd, alias_view);
 		lub_string_free(alias_name);
 	}
 
 process_command_end:
+	res = process_children(shell, element, cmd);
+error:
 	clish_xml_release(access);
 	clish_xml_release(name);
 	clish_xml_release(help);
@@ -507,7 +540,7 @@ process_command_end:
 	clish_xml_release(interrupt);
 	clish_xml_release(ref);
 
-	return process_children(shell, element, cmd);
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -516,6 +549,7 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_command_t *cmd = NULL;
+	int res = -1;
 
 	char *view = clish_xmlnode_fetch_attr(element, "view");
 	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
@@ -527,9 +561,15 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	char *lock = clish_xmlnode_fetch_attr(element, "lock");
 	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
 
-	assert(!shell->startup);
-
-	assert(view);
+	/* Check syntax */
+	if (!view) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("view"));
+		goto error;
+	}
+	if (shell->startup) {
+		fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP tag duplication.\n");
+		goto error;
+	}
 
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "startup", NULL);
@@ -568,6 +608,8 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	/* remember this command */
 	shell->startup = cmd;
 
+	res = process_children(shell, element, cmd);
+error:
 	clish_xml_release(view);
 	clish_xml_release(viewid);
 	clish_xml_release(default_shebang);
@@ -576,8 +618,7 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_xml_release(lock);
 	clish_xml_release(interrupt);
 
-	return process_children(shell, element, cmd);
-
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -769,7 +810,6 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		action = clish_var__get_action((clish_var_t *)parent);
 	else
 		action = clish_command__get_action((clish_command_t *)parent);
-	assert(action);
 
 	if (pname)
 		free(pname);
@@ -823,6 +863,7 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 {
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_nspace_t *nspace = NULL;
+	int res = -1;
 
 	char *view = clish_xmlnode_fetch_attr(element, "ref");
 	char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
@@ -843,17 +884,20 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 	if (!allowed)
 		goto process_namespace_end;
 
-	assert(view);
+	/* Check syntax */
+	if (!view) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("ref"));
+		goto error;
+	}
+
 	clish_view_t *ref_view = clish_shell_find_create_view(shell,
 		view, NULL);
-	assert(ref_view);
 
 	/* Don't include itself without prefix */
 	if ((ref_view == v) && !prefix)
 		goto process_namespace_end;
 
 	nspace = clish_nspace_new(ref_view);
-	assert(nspace);
 	clish_view_insert_nspace(v, nspace);
 
 	if (prefix) {
@@ -889,6 +933,8 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 		clish_nspace__set_inherit(nspace, BOOL_TRUE);
 
 process_namespace_end:
+	res = 0;
+error:
 	clish_xml_release(view);
 	clish_xml_release(prefix);
 	clish_xml_release(prefix_help);
@@ -898,7 +944,7 @@ process_namespace_end:
 	clish_xml_release(inherit);
 	clish_xml_release(access);
 
-	return 0;
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -995,17 +1041,22 @@ static int
 process_var(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_var_t *var = NULL;
+	int res = -1;
+
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	char *dynamic = clish_xmlnode_fetch_attr(element, "dynamic");
 	char *value = clish_xmlnode_fetch_attr(element, "value");
 
-	assert(name);
-
+	/* Check syntax */
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
 	/* Check if this var doesn't already exist */
 	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
 	if (var) {
-		printf("DUPLICATE VAR: %s\n", name);
-		assert(!var);
+		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate VAR name=%s.\n", name);
+		goto error;
 	}
 
 	/* Create var instance */
@@ -1018,11 +1069,13 @@ process_var(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (value)
 		clish_var__set_value(var, value);
 
+	res = process_children(shell, element, var);
+error:
 	clish_xml_release(name);
 	clish_xml_release(dynamic);
 	clish_xml_release(value);
 
-	return process_children(shell, element, var);
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -1032,17 +1085,24 @@ process_wdog(clish_shell_t *shell,
 {
 	clish_view_t *v = (clish_view_t *)parent;
 	clish_command_t *cmd = NULL;
+	int res = -1;
 
-	assert(!shell->wdog);
+	/* Check syntax */
+	if (shell->wdog) {
+		fprintf(stderr, CLISH_XML_ERROR_STR"WATCHDOG tag duplication.\n");
+		goto error;
+	}
 
-	/* create a command with NULL help */
+	/* Create a command with NULL help */
 	cmd = clish_view_new_command(v, "watchdog", NULL);
 	clish_command__set_lock(cmd, BOOL_FALSE);
 
 	/* Remember this command */
 	shell->wdog = cmd;
 
-	return process_children(shell, element, cmd);
+	res = process_children(shell, element, cmd);
+error:
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -1050,19 +1110,29 @@ static int
 process_hotkey(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 {
 	clish_view_t *v = (clish_view_t *)parent;
+	int res = -1;
 
 	char *key = clish_xmlnode_fetch_attr(element, "key");
 	char *cmd = clish_xmlnode_fetch_attr(element, "cmd");
 
-	assert(key);
-	assert(cmd);
+	/* Check syntax */
+	if (!key) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("key"));
+		goto error;
+	}
+	if (!cmd) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("cmd"));
+		goto error;
+	}
 
-	assert (!clish_view_insert_hotkey(v, key, cmd));
+	clish_view_insert_hotkey(v, key, cmd);
 
+	res = 0;
+error:
 	clish_xml_release(key);
 	clish_xml_release(cmd);
 
-	return 0;
+	return res;
 }
 
 /* ------------------------------------------------------ */
@@ -1074,13 +1144,13 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	int res = -1;
 
+	/* Check syntax */
 	if (!file) {
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("file"));
 		goto error;
 	}
 
 	plugin = clish_plugin_new(name, file);
-	assert(plugin);
 	lub_list_add(shell->plugins, plugin);
 
 	res = 0;
