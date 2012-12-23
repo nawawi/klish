@@ -37,6 +37,8 @@ void clish_sym__set_name(clish_sym_t *instance, const char *name);
 char *clish_sym__get_name(clish_sym_t *instance);
 void clish_sym__set_permanent(clish_sym_t *instance, bool_t permanent);
 bool_t clish_sym__get_permanent(clish_sym_t *instance);
+void clish_sym__set_plugin(clish_sym_t *instance, clish_plugin_t *plugin);
+clish_plugin_t *clish_sym__get_plugin(clish_sym_t *instance);
 
 /* Plugin */
 

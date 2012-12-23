@@ -12,8 +12,11 @@ void clish_sym_dump(const clish_sym_t *this)
 	lub_dump_printf("sym(%p)\n", this);
 
 	lub_dump_indent();
-	lub_dump_printf("name : %s\n", this->name);
-	lub_dump_printf("func : %p\n", this->func);
+	lub_dump_printf("name      : %s\n", this->name);
+	lub_dump_printf("func      : %p\n", this->func);
+	lub_dump_printf("permanent : %s\n",
+		this->permanent ? "true" : "false");
+	lub_dump_printf("plugin    : %p\n", this->plugin);
 	lub_dump_undent();
 }
 
@@ -24,6 +27,7 @@ void clish_plugin_dump(const clish_plugin_t *this)
 	clish_sym_t *sym;
 
 	lub_dump_printf("plugin(%p)\n", this);
+	lub_dump_indent();
 	lub_dump_printf("name  : %s\n", this->name);
 	lub_dump_printf("file  : %s\n", this->file);
 	lub_dump_printf("dlhan : %p\n", this->dlhan);
@@ -34,6 +38,7 @@ void clish_plugin_dump(const clish_plugin_t *this)
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
 		clish_sym_dump(sym);
 	}
+	lub_dump_undent();
 	lub_dump_undent();
 }
 

@@ -83,6 +83,18 @@ char *clish_sym__get_name(clish_sym_t *this)
 	return this->name;
 }
 
+/*--------------------------------------------------------- */
+void clish_sym__set_plugin(clish_sym_t *this, clish_plugin_t *plugin)
+{
+	this->plugin = plugin;
+}
+
+/*--------------------------------------------------------- */
+clish_plugin_t *clish_sym__get_plugin(clish_sym_t *this)
+{
+	return this->plugin;
+}
+
 /**********************************************************
  * PLUGIN functions                                       *
  **********************************************************/
@@ -146,6 +158,7 @@ clish_sym_t *clish_plugin_add_sym(clish_plugin_t *this,
 
 	if (!(sym = clish_sym_new(name, func)))
 		return NULL;
+	clish_sym__set_plugin(sym, this);
 	lub_list_add(this->syms, sym);
 
 	return sym;
