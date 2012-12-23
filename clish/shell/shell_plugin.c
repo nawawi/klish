@@ -42,24 +42,6 @@ int clish_shell_load_plugins(clish_shell_t *this)
 }
 
 /*----------------------------------------------------------------------- */
-/* Find plugin by name. */
-static clish_plugin_t *plugin_by_name(clish_shell_t *this, const char *name)
-{
-	lub_list_node_t *iter;
-	clish_plugin_t *plugin;
-
-	/* Iterate elements */
-	for(iter = lub_list__get_head(this->plugins);
-		iter; iter = lub_list_node__get_next(iter)) {
-		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if (!strcmp(clish_plugin__get_name(plugin), name))
-			return plugin;
-	}
-
-	return NULL;
-}
-
-/*----------------------------------------------------------------------- */
 /* Iterate plugins to find symbol by name.
  * The symbol name can be simple or with namespace:
  * mysym@plugin1
@@ -81,16 +63,23 @@ static clish_sym_t *plugins_find_sym(clish_shell_t *this, const char *name)
 
 	/* Parse name to get sym name and optional plugin name */
 	cmdn = strtok_r(str, delim, &saveptr);
-	if (!cmdn)
-		goto end;
+	if (!cmdn) {
+		lub_string_free(str);
+		return NULL;
+	}
 	plugin_name = strtok_r(NULL, delim, &saveptr);
 
 	if (plugin_name) {
-		/* Search for symbol in specified plugin */
-		plugin = plugin_by_name(this, plugin_name);
-		if (!plugin)
-			goto end;
-		sym = clish_plugin_get_sym(plugin, cmdn);
+		/* Search for symbol in specified namespace */
+		/* Iterate elements */
+		for(iter = lub_list__get_head(this->plugins);
+			iter; iter = lub_list_node__get_next(iter)) {
+			plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
+			if (strcmp(clish_plugin__get_name(plugin), plugin_name))
+				continue;
+			if ((sym = clish_plugin_get_sym(plugin, cmdn)))
+				break;
+		}
 	} else {
 		/* Iterate all plugins */
 		for(iter = lub_list__get_head(this->plugins);
@@ -100,8 +89,8 @@ static clish_sym_t *plugins_find_sym(clish_shell_t *this, const char *name)
 				break;
 		}
 	}
-end:
 	lub_string_free(str);
+
 	return sym;
 }
 
