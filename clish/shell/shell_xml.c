@@ -19,7 +19,7 @@
 #include <dirent.h>
 
 #define CLISH_XML_ERROR_STR "Error parsing XML: "
-
+#define CLISH_XML_ERROR_ATTR(attr) CLISH_XML_ERROR_STR"The \""attr"\" attribute is required.\n"
 
 typedef int (PROCESS_FN) (clish_shell_t * instance,
 	clish_xmlnode_t * element, void *parent);
@@ -211,6 +211,34 @@ static int process_children(clish_shell_t *shell,
 	}
 
 	return 0;
+}
+
+/* ------------------------------------------------------ */
+int clish_shell_xml_read(clish_shell_t * shell, const char *filename)
+{
+	int ret = -1;
+	clish_xmldoc_t *doc;
+
+	doc = clish_xmldoc_read(filename);
+
+	if (clish_xmldoc_is_valid(doc)) {
+		clish_xmlnode_t *root = clish_xmldoc_get_root(doc);
+		ret = process_node(shell, root, NULL);
+	} else {
+		int errcaps = clish_xmldoc_error_caps(doc);
+		printf("Unable to open file '%s'", filename);
+		if ((errcaps & CLISH_XMLERR_LINE) == CLISH_XMLERR_LINE)
+			printf(", at line %d", clish_xmldoc_get_err_line(doc));
+		if ((errcaps & CLISH_XMLERR_COL) == CLISH_XMLERR_COL)
+			printf(", at column %d", clish_xmldoc_get_err_col(doc));
+		if ((errcaps & CLISH_XMLERR_DESC) == CLISH_XMLERR_DESC)
+			printf(", message is %s", clish_xmldoc_get_err_msg(doc));
+		printf("\n");
+	}
+
+	clish_xmldoc_release(doc);
+
+	return ret;
 }
 
 /* ------------------------------------------------------ */
@@ -595,15 +623,15 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 			goto error;
 		}
 		if (!name) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"The \"name\" attribute is required.\n");
+			fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
 			goto error;
 		}
 		if (!help) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"The \"help\" attribute is required.\n");
+			fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
 			goto error;
 		}
 		if (!ptype) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"The \"ptype\" attribute is required.\n");
+			fprintf(stderr, CLISH_XML_ERROR_ATTR("ptype"));
 			goto error;
 		}
 
@@ -1044,45 +1072,23 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 	clish_plugin_t *plugin;
 	char *file = clish_xmlnode_fetch_attr(element, "file");
 	char *name = clish_xmlnode_fetch_attr(element, "name");
+	int res = -1;
 
-	assert(file);
+	if (!file) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("file"));
+		goto error;
+	}
 
 	plugin = clish_plugin_new(name, file);
 	assert(plugin);
 	lub_list_add(shell->plugins, plugin);
 
+	res = 0;
+error:
 	clish_xml_release(file);
 	clish_xml_release(name);
 
-	return 0;
-}
-
-/* ------------------------------------------------------ */
-int clish_shell_xml_read(clish_shell_t * shell, const char *filename)
-{
-	int ret = -1;
-	clish_xmldoc_t *doc;
-
-	doc = clish_xmldoc_read(filename);
-
-	if (clish_xmldoc_is_valid(doc)) {
-		clish_xmlnode_t *root = clish_xmldoc_get_root(doc);
-		ret = process_node(shell, root, NULL);
-	} else {
-		int errcaps = clish_xmldoc_error_caps(doc);
-		printf("Unable to open file '%s'", filename);
-		if ((errcaps & CLISH_XMLERR_LINE) == CLISH_XMLERR_LINE)
-			printf(", at line %d", clish_xmldoc_get_err_line(doc));
-		if ((errcaps & CLISH_XMLERR_COL) == CLISH_XMLERR_COL)
-			printf(", at column %d", clish_xmldoc_get_err_col(doc));
-		if ((errcaps & CLISH_XMLERR_DESC) == CLISH_XMLERR_DESC)
-			printf(", message is %s", clish_xmldoc_get_err_msg(doc));
-		printf("\n");
-	}
-
-	clish_xmldoc_release(doc);
-
-	return ret;
+	return res;
 }
 
 /* ------------------------------------------------------ */
