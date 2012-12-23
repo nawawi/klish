@@ -172,9 +172,23 @@ static int process_node(clish_shell_t * shell, clish_xmlnode_t * node, void *par
 						/* Error message */
 						if (res) {
 							char *ename = clish_xmlnode_fetch_attr(node, "name");
-							fprintf(stderr, CLISH_XML_ERROR_STR"Node %s, name=%s\n",
-								name, ename);
+							char *eref = clish_xmlnode_fetch_attr(node, "ref");
+							char *ekey = clish_xmlnode_fetch_attr(node, "key");
+							char *efile = clish_xmlnode_fetch_attr(node, "file");
+							fprintf(stderr, CLISH_XML_ERROR_STR"Node %s", name);
+							if (ename)
+								fprintf(stderr, ", name=\"%s\"", ename);
+							if (eref)
+								fprintf(stderr, ", ref=\"%s\"", eref);
+							if (ekey)
+								fprintf(stderr, ", key=\"%s\"", ekey);
+							if (efile)
+								fprintf(stderr, ", file=\"%s\"", efile);
+							fprintf(stderr, "\n");
 							clish_xml_release(ename);
+							clish_xml_release(eref);
+							clish_xml_release(ekey);
+							clish_xml_release(efile);
 						}
 						break;
 					}
@@ -430,7 +444,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
 	if (old) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate COMMAND name=%s.\n", name);
+		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate COMMAND name=\"%s\".\n", name);
 		goto error;
 	}
 
@@ -1055,7 +1069,7 @@ process_var(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	/* Check if this var doesn't already exist */
 	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
 	if (var) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate VAR name=%s.\n", name);
+		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate VAR name=\"%s\".\n", name);
 		goto error;
 	}
 
