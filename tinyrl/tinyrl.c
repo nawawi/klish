@@ -926,25 +926,29 @@ bool_t tinyrl_insert_text(tinyrl_t * this, const char *text)
  * This function uses the setting of print-completions-horizontally to select
  * how the matches are displayed
  */
-void
-tinyrl_display_matches(const tinyrl_t * this,
-		       char *const *matches, unsigned len, size_t max)
+void tinyrl_display_matches(const tinyrl_t *this,
+	char *const *matches, unsigned int len, size_t max)
 {
-	unsigned r, c;
-	unsigned width = tinyrl_vt100__get_width(this->term);
-	unsigned cols = width / (max + 1);	/* allow for a space between words */
-	unsigned rows = len / cols + 1;
+	unsigned int width = tinyrl_vt100__get_width(this->term);
+	unsigned int cols, rows;
+
+	if (max < width)
+		cols = width / (max + 1); /* allow for a space between words */
+	else
+		cols = 1;
+	rows = len / cols + 1;
 
 	assert(matches);
 	if (matches) {
-		len--, matches++;	/* skip the subtitution string */
+		unsigned int r, c;
+		len--, matches++; /* skip the subtitution string */
 		/* print out a table of completions */
 		for (r = 0; r < rows && len; r++) {
 			for (c = 0; c < cols && len; c++) {
 				const char *match = *matches++;
 				len--;
-				tinyrl_vt100_printf(this->term, "%-*s ", max,
-					match);
+				tinyrl_vt100_printf(this->term, "%-*s ",
+					(cols == 1) ? 0 : max, match);
 			}
 			tinyrl_crlf(this);
 		}
