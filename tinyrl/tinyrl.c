@@ -932,8 +932,9 @@ void tinyrl_display_matches(const tinyrl_t *this,
 	unsigned int width = tinyrl_vt100__get_width(this->term);
 	unsigned int cols, rows;
 
+	/* Find out column and rows number */
 	if (max < width)
-		cols = width / (max + 1); /* allow for a space between words */
+		cols = (width + 1) / (max + 1); /* allow for a space between words */
 	else
 		cols = 1;
 	rows = len / cols + 1;
@@ -942,13 +943,17 @@ void tinyrl_display_matches(const tinyrl_t *this,
 	if (matches) {
 		unsigned int r, c;
 		len--, matches++; /* skip the subtitution string */
-		/* print out a table of completions */
+		/* Print out a table of completions */
 		for (r = 0; r < rows && len; r++) {
 			for (c = 0; c < cols && len; c++) {
 				const char *match = *matches++;
 				len--;
-				tinyrl_vt100_printf(this->term, "%-*s ",
-					(cols == 1) ? 0 : max, match);
+				if ((c + 1) == cols) /* Last str in row */
+					tinyrl_vt100_printf(this->term, "%s",
+						match);
+				else
+					tinyrl_vt100_printf(this->term, "%-*s ",
+						max, match);
 			}
 			tinyrl_crlf(this);
 		}
