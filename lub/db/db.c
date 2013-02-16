@@ -8,18 +8,21 @@
 #include <grp.h>
 #include <unistd.h>
 
+#define DEFAULT_GETPW_R_SIZE_MAX 1024
+
 struct passwd *lub_db_getpwnam(const char *name)
 {
-	size_t size;
+	long int size;
 	char *buf;
 	struct passwd *pwbuf; 
 	struct passwd *pw = NULL;
 	int res = 0;
 
 #ifdef _SC_GETPW_R_SIZE_MAX
-	size = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if ((size = sysconf(_SC_GETPW_R_SIZE_MAX)) < 0)
+		size = DEFAULT_GETPW_R_SIZE_MAX;
 #else
-	size = 1024;
+	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
 	pwbuf = malloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
@@ -41,16 +44,17 @@ struct passwd *lub_db_getpwnam(const char *name)
 
 struct passwd *lub_db_getpwuid(uid_t uid)
 {
-	size_t size;
+	long int size;
 	char *buf;
 	struct passwd *pwbuf; 
 	struct passwd *pw = NULL;
 	int res = 0;
 
 #ifdef _SC_GETPW_R_SIZE_MAX
-	size = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if ((size = sysconf(_SC_GETPW_R_SIZE_MAX)) < 0)
+		size = DEFAULT_GETPW_R_SIZE_MAX;
 #else
-	size = 1024;
+	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
 	pwbuf = malloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
@@ -73,16 +77,17 @@ struct passwd *lub_db_getpwuid(uid_t uid)
 
 struct group *lub_db_getgrnam(const char *name)
 {
-	size_t size;
+	long int size;
 	char *buf;
 	struct group *grbuf; 
 	struct group *gr = NULL;
 	int res = 0;
 
 #ifdef _SC_GETGR_R_SIZE_MAX
-	size = sysconf(_SC_GETGR_R_SIZE_MAX);
+	if ((size = sysconf(_SC_GETGR_R_SIZE_MAX)) < 0)
+		size = DEFAULT_GETPW_R_SIZE_MAX;
 #else
-	size = 1024;
+	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
 	grbuf = malloc(sizeof(*grbuf) + size);
 	if (!grbuf)
@@ -105,16 +110,17 @@ struct group *lub_db_getgrnam(const char *name)
 
 struct group *lub_db_getgrgid(gid_t gid)
 {
-	size_t size;
+	long int size;
 	char *buf;
 	struct group *grbuf;
 	struct group *gr = NULL;
 	int res = 0;
 
 #ifdef _SC_GETGR_R_SIZE_MAX
-	size = sysconf(_SC_GETGR_R_SIZE_MAX);
+	if ((size = sysconf(_SC_GETGR_R_SIZE_MAX)) < 0)
+		size = DEFAULT_GETPW_R_SIZE_MAX;
 #else
-	size = 1024;
+	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
 	grbuf = malloc(sizeof(struct group) + size);
 	if (!grbuf)
