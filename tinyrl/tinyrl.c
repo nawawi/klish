@@ -64,24 +64,19 @@ static void tty_set_raw_mode(tinyrl_t * this)
 {
 	struct termios new_termios;
 	int fd;
-	int status;
 
 	if (!tinyrl_vt100__get_istream(this->term))
 		return;
 	fd = fileno(tinyrl_vt100__get_istream(this->term));
-	status = tcgetattr(fd, &this->default_termios);
-	if (-1 != status) {
-		status = tcgetattr(fd, &new_termios);
-		assert(-1 != status);
-		new_termios.c_iflag = 0;
-		new_termios.c_oflag = OPOST | ONLCR;
-		new_termios.c_lflag = 0;
-		new_termios.c_cc[VMIN] = 1;
-		new_termios.c_cc[VTIME] = 0;
-		/* Do the mode switch */
-		status = tcsetattr(fd, TCSADRAIN, &new_termios);
-		assert(-1 != status);
-	}
+	if (tcgetattr(fd, &new_termios) < 0)
+		return;
+	new_termios.c_iflag = 0;
+	new_termios.c_oflag = OPOST | ONLCR;
+	new_termios.c_lflag = 0;
+	new_termios.c_cc[VMIN] = 1;
+	new_termios.c_cc[VTIME] = 0;
+	/* Do the mode switch */
+	(void)tcsetattr(fd, TCSADRAIN, &new_termios);
 }
 
 /*----------------------------------------------------------------------- */
@@ -450,7 +445,7 @@ static void tinyrl_fini(tinyrl_t * this)
 /*-------------------------------------------------------- */
 static void
 tinyrl_init(tinyrl_t * this,
-	FILE * instream, FILE * outstream,
+	FILE * istream, FILE * ostream,
 	unsigned stifle, tinyrl_completion_func_t * complete_fn)
 {
 	int i;
@@ -493,17 +488,13 @@ tinyrl_init(tinyrl_t * this,
 	this->kill_string = NULL;
 	this->echo_char = '\0';
 	this->echo_enabled = BOOL_TRUE;
-	if (instream)
-		this->isatty = isatty(fileno(instream)) ?
-			BOOL_TRUE : BOOL_FALSE;
-	else
-		this->isatty = BOOL_FALSE;
 	this->last_buffer = NULL;
 	this->last_point = 0;
 	this->utf8 = BOOL_FALSE;
 
 	/* create the vt100 terminal */
-	this->term = tinyrl_vt100_new(instream, outstream);
+	this->term = tinyrl_vt100_new(NULL, ostream);
+	tinyrl__set_istream(this, istream);
 	this->last_width = tinyrl_vt100__get_width(this->term);
 
 	/* create the history */
@@ -651,14 +642,14 @@ void tinyrl_redisplay(tinyrl_t * this)
 }
 
 /*----------------------------------------------------------------------- */
-tinyrl_t *tinyrl_new(FILE * instream, FILE * outstream,
+tinyrl_t *tinyrl_new(FILE * istream, FILE * ostream,
 	unsigned stifle, tinyrl_completion_func_t * complete_fn)
 {
 	tinyrl_t *this = NULL;
 
 	this = malloc(sizeof(tinyrl_t));
 	if (this)
-		tinyrl_init(this, instream, outstream, stifle, complete_fn);
+		tinyrl_init(this, istream, ostream, stifle, complete_fn);
 
 	return this;
 }
@@ -1300,9 +1291,13 @@ void tinyrl_disable_echo(tinyrl_t * this, char echo_char)
 void tinyrl__set_istream(tinyrl_t * this, FILE * istream)
 {
 	tinyrl_vt100__set_istream(this->term, istream);
-	if (istream)
+	if (istream) {
+		int fd;
 		this->isatty = isatty(fileno(istream)) ? BOOL_TRUE : BOOL_FALSE;
-	else
+		/* Save terminal settings to restore on exit */
+		fd = fileno(istream);
+		tcgetattr(fd, &this->default_termios);
+	} else
 		this->isatty = BOOL_FALSE;
 }
 
