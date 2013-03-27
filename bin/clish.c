@@ -41,8 +41,7 @@ static clish_shell_hooks_t my_hooks = {
     NULL, /* don't worry about cmd_line callback */
     NULL, /* don't worry about fini callback */
     clish_config_callback,
-    clish_log_callback,
-    NULL  /* don't register any builtin functions */
+    clish_log_callback
 };
 
 static void help(int status, const char *argv0);

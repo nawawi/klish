@@ -45,7 +45,7 @@ int clish_shell_load_plugins(clish_shell_t *this)
 /* Iterate plugins to find symbol by name.
  * The symbol name can be simple or with namespace:
  * mysym@plugin1
- * The symbols with prefix will be resolved using specified plugin only.
+ * The symbols with suffix will be resolved using specified plugin only.
  */
 static clish_sym_t *plugins_find_sym(clish_shell_t *this, const char *name)
 {
@@ -109,7 +109,7 @@ clish_sym_t *clish_shell_find_sym(clish_shell_t *this, const char *name)
 		res = strcmp(clish_sym__get_name(sym), name);
 		if (!res)
 			return sym;
-		if (res > 0) /* No chances to find name */
+		if (res > 0) /* No chance to find name */
 			break;
 	}
 

@@ -17,7 +17,6 @@
 #include <signal.h>
 #include <fcntl.h>
 
-
 /*----------------------------------------------------------- */
 /* Terminate the current shell session */
 CLISH_PLUGIN_SYM(clish_close)

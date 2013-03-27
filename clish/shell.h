@@ -175,40 +175,6 @@ typedef bool_t clish_shell_access_fn_t(
 typedef int clish_shell_log_fn_t(
 	clish_context_t *context,
 	const char *line, int retcode);
- /**
-  * A hook function used as a built in command callback
-  * 
-  * This will be invoked from the context of the spawned shell's thread
-  * and will be called during the execution of a builting command.
-  * 
-  * A client may register any number of these callbacks in its 
-  * clish_shell_builtin_cmds_t structure.
-  *
-  * \return
-  * - Retval (int)
-  *
-  */
-typedef int clish_shell_builtin_fn_t(
-	/** 
-         * The shell instance which invoked this call
-         */
-					       clish_context_t *context,
-	/** 
-         * A vector of textual command line arguments.
-         */
-					       const lub_argv_t * argv);
-
-/** 
- * A client of libclish may provide some builtin commands which will be
- * interpreted by the framework, instead of the client's script engine.
- */
-typedef struct {
-	const char *name;		/**< The textual name to be used in 
-                                         *    the 'builtin' XML attribute"
-                                         */
-	clish_shell_builtin_fn_t *callback;
-					/**< The function to be invoked */
-} clish_shell_builtin_t;
 
 /** 
  * A client of libclish will provide hooks for the control of the CLI within 
@@ -219,11 +185,11 @@ typedef struct {
 	clish_shell_init_fn_t *init_fn;         /* Initialisation call */
 	clish_shell_access_fn_t *access_fn;     /* Access control call */
 	clish_shell_cmd_line_fn_t *cmd_line_fn; /* Command line logging call */
-	clish_shell_fini_fn_t *fini_fn;         /* Finalisation call */
+	clish_shell_fini_fn_t *fini_fn;         /* Finalization call */
 	clish_shell_config_fn_t *config_fn;     /* Config call */
 	clish_shell_log_fn_t *log_fn;           /* Logging call */
-	const clish_shell_builtin_t *cmd_list;  /* NULL terminated list */
 } clish_shell_hooks_t;
+
 /*-----------------
  * meta functions
  *----------------- */
