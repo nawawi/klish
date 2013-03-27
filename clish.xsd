@@ -20,6 +20,7 @@
     <xs:element name="WATCHDOG" type="wdog_t"/>
     <xs:element name="HOTKEY" type="hotkey_t"/>
     <xs:element name="PLUGIN" type="plugin_t"/>
+    <xs:element name="HOOK" type="hook_t"/>
  
     <!--
 ***********************************************************
@@ -52,6 +53,7 @@
             <xs:element ref="WATCHDOG" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="PLUGIN" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="HOOK" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
     <!--
@@ -520,6 +522,32 @@
     <xs:complexType name="plugin_t">
         <xs:attribute name="file" type="xs:string" use="required"/>
         <xs:attribute name="name" type="xs:string" use="optional"/>
+    </xs:complexType>
+
+<!--
+*******************************************************
+* <HOOK> is used to redefine internal hooks
+*
+* name - The name of internal hook (init, fini, access, config, log).
+*
+* [builtin] - specify the name of an internally registered
+*           function.
+*
+********************************************************
+-->
+    <xs:simpleType name="hook_list_e">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="init"/>
+            <xs:enumeration value="fini"/>
+            <xs:enumeration value="access"/>
+            <xs:enumeration value="config"/>
+            <xs:enumeration value="log"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="hook_t">
+        <xs:attribute name="name" type="hook_list_e"/>
+        <xs:attribute name="builtin" type="xs:string" use="optional"/>
     </xs:complexType>
 
 </xs:schema>
