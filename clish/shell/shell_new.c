@@ -55,7 +55,7 @@ static void clish_shell_init(clish_shell_t * this,
 	assert(NULL != hooks);
 
 	/* set up defaults */
-	this->client_hooks = hooks;
+	this->hooks = hooks;
 	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
@@ -218,8 +218,8 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 void clish_shell_delete(clish_shell_t * this)
 {
 	/* now call the client finalisation */
-	if (this->client_hooks->fini_fn)
-		this->client_hooks->fini_fn(this);
+	if (this->hooks->fini_fn)
+		this->hooks->fini_fn(this);
 	clish_shell_fini(this);
 
 	free(this);

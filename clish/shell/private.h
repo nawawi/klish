@@ -44,7 +44,7 @@ struct clish_shell_s {
 	lub_bintree_t view_tree; /* Tree of views */
 	lub_bintree_t ptype_tree; /* Tree of ptypes */
 	lub_bintree_t var_tree; /* Tree of global variables */
-	const clish_shell_hooks_t *client_hooks; /* Client callback hooks */
+	const clish_shell_hooks_t *hooks; /* Client callback hooks */
 	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */

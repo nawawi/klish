@@ -149,13 +149,13 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Call config callback */
-	if (!result && this->client_hooks->config_fn)
-		this->client_hooks->config_fn(context);
+	if (!result && this->hooks->config_fn)
+		this->hooks->config_fn(context);
 
 	/* Call logging callback */
-	if (clish_shell__get_log(this) && this->client_hooks->log_fn) {
+	if (clish_shell__get_log(this) && this->hooks->log_fn) {
 		char *full_line = clish_shell__get_full_line(context);
-		this->client_hooks->log_fn(context, full_line, result);
+		this->hooks->log_fn(context, full_line, result);
 		lub_string_free(full_line);
 	}
 

@@ -282,8 +282,8 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	/* Check permissions */
 	if (access) {
 		allowed = 0;
-		if (shell->client_hooks->access_fn)
-			allowed = shell->client_hooks->access_fn(shell, access);
+		if (shell->hooks->access_fn)
+			allowed = shell->hooks->access_fn(shell, access);
 	}
 	if (!allowed)
 		goto process_view_end;
@@ -435,8 +435,8 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	/* Check permissions */
 	if (access) {
 		allowed = 0;
-		if (shell->client_hooks->access_fn)
-			allowed = shell->client_hooks->access_fn(shell, access);
+		if (shell->hooks->access_fn)
+			allowed = shell->hooks->access_fn(shell, access);
 	}
 	if (!allowed)
 		goto process_command_end;
@@ -893,8 +893,8 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 
 	if (access) {
 		allowed = 0;
-		if (shell->client_hooks->access_fn)
-			allowed = shell->client_hooks->access_fn(shell, access);
+		if (shell->hooks->access_fn)
+			allowed = shell->hooks->access_fn(shell, access);
 	}
 	if (!allowed)
 		goto process_namespace_end;
