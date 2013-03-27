@@ -1,3 +1,5 @@
+#ifdef DEBUG
+
 /*
  * plugin_dump.c
  */
@@ -72,3 +74,5 @@ void clish_plugin_dump(const clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
+
+#endif /* DEBUG */

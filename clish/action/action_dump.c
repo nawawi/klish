@@ -1,3 +1,5 @@
+#ifdef DEBUG
+
 /*
  * action_dump.c
  */
@@ -25,3 +27,5 @@ void clish_action_dump(const clish_action_t *this)
 }
 
 /*--------------------------------------------------------- */
+
+#endif /* DEBUG */
