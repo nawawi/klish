@@ -810,7 +810,7 @@ error:
 
 /* ------------------------------------------------------ */
 static int
-process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
+process_action(clish_shell_t *shell, clish_xmlnode_t *element, void *parent)
 {
 	clish_action_t *action = NULL;
 	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
@@ -838,7 +838,8 @@ process_action(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		free(text);
 
 	if (builtin)
-		sym = clish_shell_add_unresolved_sym(shell, builtin);
+		sym = clish_shell_add_unresolved_sym(shell, builtin,
+			CLISH_SYM_TYPE_FN);
 	else
 		sym = shell->default_sym;
 	clish_action__set_builtin(action, sym);

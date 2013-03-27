@@ -48,7 +48,8 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);
 	/* Add default sym and save it to shell structure */
-	sym = clish_shell_add_unresolved_sym(this, CLISH_DEFAULT_SYM);
+	sym = clish_shell_add_unresolved_sym(this,
+		CLISH_DEFAULT_SYM, CLISH_SYM_TYPE_FN);
 	this->default_sym = sym;
 
 	assert(NULL != hooks);

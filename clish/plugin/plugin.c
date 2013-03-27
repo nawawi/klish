@@ -25,13 +25,14 @@ int clish_sym_compare(const void *first, const void *second)
 }
 
 /*--------------------------------------------------------- */
-clish_sym_t *clish_sym_new(const char *name, clish_plugin_fn_t *func)
+clish_sym_t *clish_sym_new(const char *name, void *func, int type)
 {
 	clish_sym_t *this;
 
 	this = malloc(sizeof(*this));
 	this->name = lub_string_dup(name);
 	this->func = func;
+	this->type = type;
 	this->permanent = BOOL_FALSE;
 
 	return this;
@@ -47,7 +48,7 @@ void clish_sym_free(clish_sym_t *this)
 }
 
 /*--------------------------------------------------------- */
-void clish_sym__set_func(clish_sym_t *this, clish_plugin_fn_t *func)
+void clish_sym__set_func(clish_sym_t *this, void *func)
 {
 	this->func = func;
 }
@@ -93,6 +94,18 @@ void clish_sym__set_plugin(clish_sym_t *this, clish_plugin_t *plugin)
 clish_plugin_t *clish_sym__get_plugin(clish_sym_t *this)
 {
 	return this->plugin;
+}
+
+/*--------------------------------------------------------- */
+void clish_sym__set_type(clish_sym_t *this, int type)
+{
+	this->type = type;
+}
+
+/*--------------------------------------------------------- */
+int clish_sym__get_type(clish_sym_t *this)
+{
+	return this->type;
 }
 
 /*--------------------------------------------------------- */
@@ -162,20 +175,28 @@ void clish_plugin_free(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
-clish_sym_t *clish_plugin_add_sym(clish_plugin_t *this,
-	clish_plugin_fn_t *func, const char *name)
+clish_sym_t *clish_plugin_add_generic(clish_plugin_t *this,
+	void *func, const char *name, int type)
 {
 	clish_sym_t *sym;
 
 	if (!name || !func)
 		return NULL;
 
-	if (!(sym = clish_sym_new(name, func)))
+	if (!(sym = clish_sym_new(name, func, type)))
 		return NULL;
 	clish_sym__set_plugin(sym, this);
 	lub_list_add(this->syms, sym);
 
 	return sym;
+}
+
+/*--------------------------------------------------------- */
+clish_sym_t *clish_plugin_add_sym(clish_plugin_t *this,
+	clish_plugin_fn_t *func, const char *name)
+{
+	return clish_plugin_add_generic(this, func,
+		name, CLISH_SYM_TYPE_FN);
 }
 
 /*--------------------------------------------------------- */
@@ -193,7 +214,7 @@ clish_sym_t *clish_plugin_add_psym(clish_plugin_t *this,
 }
 
 /*--------------------------------------------------------- */
-clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
+clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int type)
 {
 	lub_list_node_t *iter;
 	clish_sym_t *sym;
@@ -204,7 +225,7 @@ clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name)
 		int res;
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
 		res = strcmp(clish_sym__get_name(sym), name);
-		if (!res)
+		if (!res && ((CLISH_SYM_TYPE_NONE == type) || (clish_sym__get_type(sym) == type)))
 			return sym;
 		if (res > 0) /* No chances to find name */
 			break;
