@@ -138,6 +138,10 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	}
 	/* tidy up */
 	lub_string_free(buffer);
+
+	/* Add default syms to unresolved table */
+	lub_list_add(this->syms, this->default_sym);
+
 #ifdef DEBUG
 	clish_shell_dump(this);
 #endif
