@@ -306,7 +306,7 @@ int clish_shell_link_plugins(clish_shell_t *instance);
 clish_sym_t *clish_shell_find_sym(clish_shell_t *instance,
 	const char *name, int type);
 clish_sym_t *clish_shell_add_sym(clish_shell_t *instance,
-	clish_plugin_fn_t *func, const char *name, int type);
+	void *func, const char *name, int type);
 clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *instance,
 	const char *name, int type);
 

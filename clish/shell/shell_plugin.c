@@ -119,7 +119,7 @@ clish_sym_t *clish_shell_find_sym(clish_shell_t *this, const char *name, int typ
 /*----------------------------------------------------------------------- */
 /* Add symbol to the table of unresolved symbols */
 clish_sym_t *clish_shell_add_sym(clish_shell_t *this,
-	clish_plugin_fn_t *func, const char *name, int type)
+	void *func, const char *name, int type)
 {
 	clish_sym_t *sym = NULL;
 
