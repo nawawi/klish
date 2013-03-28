@@ -180,8 +180,7 @@ clish_sym_t *clish_shell_add_sym(clish_shell_t *instance,
 	void *func, const char *name, int type);
 clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *instance,
 	const char *name, int type);
-int clish_shell_set_hook(clish_shell_t *instance,
-	void *func, const char *name, int type);
+clish_sym_t *clish_shell_get_hook(const clish_shell_t *instance, int type);
 
 _END_C_DECL
 
