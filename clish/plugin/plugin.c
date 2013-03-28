@@ -54,7 +54,7 @@ void clish_sym__set_func(clish_sym_t *this, void *func)
 }
 
 /*--------------------------------------------------------- */
-clish_plugin_fn_t *clish_sym__get_func(clish_sym_t *this)
+void *clish_sym__get_func(clish_sym_t *this)
 {
 	return this->func;
 }
@@ -193,16 +193,24 @@ clish_sym_t *clish_plugin_add_generic(clish_plugin_t *this,
 
 /*--------------------------------------------------------- */
 clish_sym_t *clish_plugin_add_sym(clish_plugin_t *this,
-	clish_plugin_fn_t *func, const char *name)
+	clish_hook_action_fn_t *func, const char *name)
 {
 	return clish_plugin_add_generic(this, func,
-		name, CLISH_SYM_TYPE_FN);
+		name, CLISH_SYM_TYPE_ACTION);
+}
+
+/*--------------------------------------------------------- */
+clish_sym_t *clish_plugin_add_hook(clish_plugin_t *this,
+	void *func, const char *name, int type)
+{
+	return clish_plugin_add_generic(this, func,
+		name, type);
 }
 
 /*--------------------------------------------------------- */
 /* Add permanent symbol (can't be turned off by dry-run) */
 clish_sym_t *clish_plugin_add_psym(clish_plugin_t *this,
-	clish_plugin_fn_t *func, const char *name)
+	clish_hook_action_fn_t *func, const char *name)
 {
 	clish_sym_t *sym;
 

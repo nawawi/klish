@@ -44,7 +44,16 @@ struct clish_shell_s {
 	lub_bintree_t view_tree; /* Tree of views */
 	lub_bintree_t ptype_tree; /* Tree of ptypes */
 	lub_bintree_t var_tree; /* Tree of global variables */
-	const clish_shell_hooks_t *hooks; /* Client callback hooks */
+
+	/* Hooks */
+	clish_sym_t *hooks[CLISH_SYM_TYPE_MAX]; /* Callback hooks */
+#define hooks_fn hooks[CLISH_SYM_TYPE_ACTION]
+#define hooks_init hooks[CLISH_SYM_TYPE_INIT]
+#define hooks_fini hooks[CLISH_SYM_TYPE_FINI]
+#define hooks_access hooks[CLISH_SYM_TYPE_ACCESS]
+#define hooks_config hooks[CLISH_SYM_TYPE_CONFIG]
+#define hooks_log hooks[CLISH_SYM_TYPE_LOG]
+
 	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */
@@ -76,7 +85,6 @@ struct clish_shell_s {
 	/* Plugins and symbols */
 	lub_list_t *plugins; /* List of plugins */
 	lub_list_t *syms; /* List of all used symbols. Must be resolved. */
-	clish_sym_t *default_sym; /* The sym to use when builtin is not specified */
 
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;

@@ -523,8 +523,8 @@ static int clish_shell_execline(clish_shell_t *this, const char *line, char **ou
 		tinyrl_history_add(history, str);
 	}
 	/* Let the client know the command line has been entered */
-	if (this->hooks->cmd_line_fn)
-		this->hooks->cmd_line_fn(&context, str);
+//	if (this->hooks->cmd_line_fn)
+//		this->hooks->cmd_line_fn(&context, str);
 	free(str);
 
 	/* Execute the provided command */

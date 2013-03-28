@@ -149,13 +149,13 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Call config callback */
-	if (!result && this->hooks->config_fn)
-		this->hooks->config_fn(context);
+	if (!result && this->hooks_config)
+		SYM_FN(config,this->hooks_config)(context);
 
 	/* Call logging callback */
-	if (clish_shell__get_log(this) && this->hooks->log_fn) {
+	if (clish_shell__get_log(this) && this->hooks_log) {
 		char *full_line = clish_shell__get_full_line(context);
-		this->hooks->log_fn(context, full_line, result);
+		SYM_FN(log,this->hooks_log)(context, full_line, result);
 		lub_string_free(full_line);
 	}
 
@@ -196,7 +196,7 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	int result = -1;
 	clish_sym_t *sym;
 	char *script;
-	clish_plugin_fn_t *func = NULL;
+	clish_hook_action_fn_t *func = NULL;
 	const clish_action_t *action = context->action;
 	clish_shell_t *shell = context->shell;
 

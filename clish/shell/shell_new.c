@@ -15,7 +15,6 @@
 
 /*-------------------------------------------------------- */
 static void clish_shell_init(clish_shell_t * this,
-	const clish_shell_hooks_t * hooks,
 	void *cookie, FILE * istream,
 	FILE * ostream,
 	bool_t stop_on_error)
@@ -47,14 +46,20 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);
 
-	/* Add default syms and save them to shell structure */
-	this->default_sym = clish_sym_new(
-		CLISH_DEFAULT_SYM, NULL, CLISH_SYM_TYPE_FN);
-
-	assert(NULL != hooks);
+	/* Default syms and hooks */
+	this->hooks[CLISH_SYM_TYPE_NONE] = NULL;
+	this->hooks[CLISH_SYM_TYPE_ACTION] = clish_sym_new(
+		CLISH_DEFAULT_SYM, NULL, CLISH_SYM_TYPE_ACTION);
+	this->hooks[CLISH_SYM_TYPE_INIT] = NULL;
+	this->hooks[CLISH_SYM_TYPE_FINI] = NULL;
+	this->hooks[CLISH_SYM_TYPE_ACCESS] = clish_sym_new(
+		CLISH_DEFAULT_ACCESS, NULL, CLISH_SYM_TYPE_ACCESS);
+	this->hooks[CLISH_SYM_TYPE_CONFIG] = clish_sym_new(
+		CLISH_DEFAULT_CONFIG, NULL, CLISH_SYM_TYPE_CONFIG);
+	this->hooks[CLISH_SYM_TYPE_LOG] = clish_sym_new(
+		CLISH_DEFAULT_LOG, NULL, CLISH_SYM_TYPE_LOG);
 
 	/* set up defaults */
-	this->hooks = hooks;
 	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
@@ -192,7 +197,7 @@ static void clish_shell_fini(clish_shell_t * this)
 }
 
 /*-------------------------------------------------------- */
-clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
+clish_shell_t *clish_shell_new(
 	void *cookie,
 	FILE * istream,
 	FILE * ostream,
@@ -201,13 +206,13 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 
 	if (this) {
-		clish_shell_init(this, hooks, cookie,
+		clish_shell_init(this, cookie,
 			istream, ostream, stop_on_error);
-		if (hooks->init_fn) {
+//		if (hooks->init_fn) {
 			/* now call the client initialisation */
-			if (BOOL_TRUE != hooks->init_fn(this))
-				this->state = SHELL_STATE_CLOSING;
-		}
+//			if (BOOL_TRUE != hooks->init_fn(this))
+//				this->state = SHELL_STATE_CLOSING;
+//		}
 	}
 
 	return this;
@@ -217,8 +222,8 @@ clish_shell_t *clish_shell_new(const clish_shell_hooks_t * hooks,
 void clish_shell_delete(clish_shell_t * this)
 {
 	/* now call the client finalisation */
-	if (this->hooks->fini_fn)
-		this->hooks->fini_fn(this);
+	if (this->hooks[CLISH_SYM_TYPE_FINI])
+		SYM_FN(fini,this->hooks_fini)(this);
 	clish_shell_fini(this);
 
 	free(this);

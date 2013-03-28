@@ -1,0 +1,8 @@
+libclish_la_SOURCES += \
+	clish/builtin/builtin_init.c \
+	clish/builtin/hook_access.c \
+	clish/builtin/hook_config.c \
+	clish/builtin/hook_log.c \
+	clish/builtin/sym_navy.c \
+	clish/builtin/sym_script.c
+

@@ -14,11 +14,11 @@
 #include <limits.h>
 #include <string.h>
 
-#include "internal.h"
 #include "konf/net.h"
 #include "konf/buf.h"
 #include "konf/query.h"
 #include "lub/string.h"
+#include "clish/shell.h"
 
 static int send_request(konf_client_t * client, char *command);
 
@@ -45,8 +45,9 @@ static unsigned short str2ushort(const char *str)
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_config_callback(clish_context_t *context)
+CLISH_HOOK_CONFIG(clish_hook_config)
 {
+	clish_context_t *context = (clish_context_t *)clish_context;
 	clish_shell_t *this = context->shell;
 	const clish_command_t *cmd = context->cmd;
 	clish_config_t *config;

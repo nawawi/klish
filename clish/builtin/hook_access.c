@@ -22,10 +22,10 @@
 
 #include "lub/string.h"
 #include "lub/db.h"
-#include "internal.h"
+#include "clish/shell.h"
 
 /*--------------------------------------------------------- */
-bool_t clish_access_callback(const clish_shell_t * shell, const char *access)
+CLISH_HOOK_ACCESS(clish_hook_access)
 {
 	bool_t allowed = BOOL_FALSE; /* assume the user is not allowed */
 #ifdef HAVE_GRP_H

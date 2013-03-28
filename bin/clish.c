@@ -34,16 +34,6 @@
 /* #define version(v) printf("%s\n", QUOTE(v)) */
 #define version(v) printf("%s\n", v)
 
-/* Hooks */
-static clish_shell_hooks_t my_hooks = {
-    NULL, /* don't worry about init callback */
-    clish_access_callback,
-    NULL, /* don't worry about cmd_line callback */
-    NULL, /* don't worry about fini callback */
-    clish_config_callback,
-    clish_log_callback
-};
-
 static void help(int status, const char *argv0);
 
 /*--------------------------------------------------------- */
@@ -172,8 +162,8 @@ int main(int argc, char **argv)
 		case 'k':
 			lockless = BOOL_TRUE;
 			dryrun = BOOL_TRUE;
-			my_hooks.config_fn = NULL;
-			break;
+/*			my_hooks.config_fn = NULL;
+*/			break;
 		case 't':
 			istimeout = BOOL_TRUE;
 			timeout = atoi(optarg);
@@ -227,7 +217,7 @@ int main(int argc, char **argv)
 	/* Create shell instance */
 	if (quiet)
 		outfd = fopen("/dev/null", "w");
-	shell = clish_shell_new(&my_hooks, NULL, NULL, outfd, stop_on_error);
+	shell = clish_shell_new(NULL, NULL, outfd, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Error: Can't run clish.\n");
 		goto end;

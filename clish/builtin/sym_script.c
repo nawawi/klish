@@ -1,5 +1,5 @@
 /*
- * shell_script.c
+ * sym_script.c
  *
  * Function to execute a shell script.
  */

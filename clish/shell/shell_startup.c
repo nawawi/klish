@@ -25,8 +25,8 @@ int clish_shell_startup(clish_shell_t *this)
 	context.pargv = NULL;
 	
 	/* Call log initialize */
-	if (clish_shell__get_log(this) && this->hooks->log_fn)
-		this->hooks->log_fn(&context, NULL, 0);
+	if (clish_shell__get_log(this) && this->hooks_log)
+		SYM_FN(log,this->hooks_log)(&context, NULL, 0);
 	/* Call startup script */
 	res = clish_shell_execute(&context, NULL);
 

@@ -1,5 +1,5 @@
 /*
- * shell_internal.c
+ * sym_navy.c
  */
 #include "private.h"
 #include "lub/string.h"
@@ -179,23 +179,6 @@ CLISH_PLUGIN_SYM(clish_wdog)
 	}
 
 	this->wdog_timeout = (unsigned int)atoi(arg);
-
-	return 0;
-}
-
-/*----------------------------------------------------------- */
-/* Initialize internal pseudo-plugin */
-CLISH_PLUGIN_INIT
-{
-	clish_plugin_add_psym(plugin, clish_close, "clish_close");
-	clish_plugin_add_psym(plugin, clish_overview, "clish_overview");
-	clish_plugin_add_psym(plugin, clish_source, "clish_source");
-	clish_plugin_add_psym(plugin, clish_source_nostop, "clish_source_nostop");
-	clish_plugin_add_psym(plugin, clish_history, "clish_history");
-	clish_plugin_add_psym(plugin, clish_nested_up, "clish_nested_up");
-	clish_plugin_add_psym(plugin, clish_nop, "clish_nop");
-	clish_plugin_add_psym(plugin, clish_wdog, "clish_wdog");
-	clish_plugin_add_sym(plugin, clish_script, "clish_script");
 
 	return 0;
 }

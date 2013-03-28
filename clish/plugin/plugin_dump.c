@@ -22,8 +22,8 @@ void clish_sym_dump(const clish_sym_t *this)
 	case CLISH_SYM_TYPE_NONE:
 		type = "none";
 		break;
-	case CLISH_SYM_TYPE_FN:
-		type = "fn";
+	case CLISH_SYM_TYPE_ACTION:
+		type = "action";
 		break;
 	case CLISH_SYM_TYPE_INIT:
 		type = "init";

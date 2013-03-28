@@ -47,7 +47,8 @@ static PROCESS_FN
 	process_var,
 	process_wdog,
 	process_hotkey,
-	process_plugin;
+	process_plugin,
+	process_hook;
 
 static clish_xml_cb_t xml_elements[] = {
 	{"CLISH_MODULE", process_clish_module},
@@ -65,6 +66,7 @@ static clish_xml_cb_t xml_elements[] = {
 	{"WATCHDOG", process_wdog},
 	{"HOTKEY", process_hotkey},
 	{"PLUGIN", process_plugin},
+	{"HOOK", process_hook},
 	{NULL, NULL}
 };
 
@@ -81,6 +83,7 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	char *dirname;
 	char *saveptr;
 	int res = 0;
+	int i = 0;
 
 	/* use the default path */
 	if (!path)
@@ -140,7 +143,10 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	lub_string_free(buffer);
 
 	/* Add default syms to unresolved table */
-	lub_list_add(this->syms, this->default_sym);
+	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+		if (this->hooks[i])
+			lub_list_add(this->syms, this->hooks[i]);
+	}
 
 #ifdef DEBUG
 	clish_shell_dump(this);
@@ -274,7 +280,7 @@ process_clish_module(clish_shell_t * shell, clish_xmlnode_t * element, void *par
 static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_view_t *view;
-	int allowed = 1;
+//	int allowed = 1;
 	int res = -1;
 
 	char *name = clish_xmlnode_fetch_attr(element, "name");
@@ -284,13 +290,13 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	char *access = clish_xmlnode_fetch_attr(element, "access");
 
 	/* Check permissions */
-	if (access) {
-		allowed = 0;
-		if (shell->hooks->access_fn)
-			allowed = shell->hooks->access_fn(shell, access);
-	}
-	if (!allowed)
-		goto process_view_end;
+//	if (access) {
+//		allowed = 0;
+//		if (shell->hooks->access_fn)
+//			allowed = shell->hooks->access_fn(shell, access);
+//	}
+//	if (!allowed)
+//		goto process_view_end;
 
 	/* Check syntax */
 	if (!name) {
@@ -315,7 +321,7 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 			clish_view__set_restore(view, CLISH_RESTORE_NONE);
 	}
 
-process_view_end:
+//process_view_end:
 	res = process_children(shell, element, view);
 error:
 	clish_xml_release(name);
@@ -411,7 +417,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_command_t *old;
 	char *alias_name = NULL;
 	clish_view_t *alias_view = NULL;
-	int allowed = 1;
+//	int allowed = 1;
 	int res = -1;
 
 	char *access = clish_xmlnode_fetch_attr(element, "access");
@@ -437,13 +443,13 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	}
 
 	/* Check permissions */
-	if (access) {
-		allowed = 0;
-		if (shell->hooks->access_fn)
-			allowed = shell->hooks->access_fn(shell, access);
-	}
-	if (!allowed)
-		goto process_command_end;
+//	if (access) {
+//		allowed = 0;
+//		if (shell->hooks->access_fn)
+//			allowed = shell->hooks->access_fn(shell, access);
+//	}
+//	if (!allowed)
+//		goto process_command_end;
 
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
@@ -543,7 +549,7 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		lub_string_free(alias_name);
 	}
 
-process_command_end:
+//process_command_end:
 	res = process_children(shell, element, cmd);
 error:
 	clish_xml_release(access);
@@ -606,7 +612,8 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
 	if (default_builtin)
-		clish_sym__set_name(shell->default_sym, default_builtin);
+		clish_sym__set_name(shell->hooks[CLISH_SYM_TYPE_ACTION],
+			default_builtin);
 
 	if (timeout)
 		clish_shell__set_timeout(shell, atoi(timeout));
@@ -843,9 +850,9 @@ process_action(clish_shell_t *shell, clish_xmlnode_t *element, void *parent)
 
 	if (builtin)
 		sym = clish_shell_add_unresolved_sym(shell, builtin,
-			CLISH_SYM_TYPE_FN);
+			CLISH_SYM_TYPE_ACTION);
 	else
-		sym = shell->default_sym;
+		sym = shell->hooks[CLISH_SYM_TYPE_ACTION];
 	clish_action__set_builtin(action, sym);
 	if (shebang)
 		clish_action__set_shebang(action, shebang);
@@ -893,15 +900,15 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 	char *inherit = clish_xmlnode_fetch_attr(element, "inherit");
 	char *access = clish_xmlnode_fetch_attr(element, "access");
 
-	int allowed = 1;
+//	int allowed = 1;
 
-	if (access) {
-		allowed = 0;
-		if (shell->hooks->access_fn)
-			allowed = shell->hooks->access_fn(shell, access);
-	}
-	if (!allowed)
-		goto process_namespace_end;
+//	if (access) {
+//		allowed = 0;
+//		if (shell->hooks->access_fn)
+//			allowed = shell->hooks->access_fn(shell, access);
+//	}
+//	if (!allowed)
+//		goto process_namespace_end;
 
 	/* Check syntax */
 	if (!view) {
@@ -1176,6 +1183,55 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 error:
 	clish_xml_release(file);
 	clish_xml_release(name);
+
+	return res;
+}
+
+/* ------------------------------------------------------ */
+static int
+process_hook(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
+{
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
+	int res = -1;
+	int type = CLISH_SYM_TYPE_NONE;
+
+	/* Check syntax */
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
+	/* Find out HOOK type */
+	if (!strcmp(name, "init"))
+		type = CLISH_SYM_TYPE_INIT;
+	else if (!strcmp(name, "fini"))
+		type = CLISH_SYM_TYPE_FINI;
+	else if (!strcmp(name, "access"))
+		type = CLISH_SYM_TYPE_ACCESS;
+	else if (!strcmp(name, "config"))
+		type = CLISH_SYM_TYPE_CONFIG;
+	else if (!strcmp(name, "log"))
+		type = CLISH_SYM_TYPE_LOG;
+	if (CLISH_SYM_TYPE_NONE == type) {
+		fprintf(stderr, CLISH_XML_ERROR_STR"Unknown HOOK name %s.\n", name);
+		goto error;
+	}
+
+	if (builtin) {
+		if (shell->hooks[type])
+			clish_sym__set_name(shell->hooks[type], builtin);
+		else
+			shell->hooks[type] = clish_sym_new(builtin, NULL, type);
+	} else {
+		if (shell->hooks[type])
+			clish_sym_free(shell->hooks[type]);
+		shell->hooks[type] = NULL;
+	}
+
+	res = 0;
+error:
+	clish_xml_release(name);
+	clish_xml_release(builtin);
 
 	return res;
 }
