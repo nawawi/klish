@@ -154,6 +154,8 @@ int clish_shell_link_plugins(clish_shell_t *this)
 	for(iter = lub_list__get_head(this->syms);
 		iter; iter = lub_list_node__get_next(iter)) {
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
+		if (clish_sym__get_func(sym)) /* Don't relink non-null fn */
+			continue;
 		sym_name = clish_sym__get_name(sym);
 		sym_type = clish_sym__get_type(sym);
 		plugin_sym = plugins_find_sym(this, sym_name, sym_type);
