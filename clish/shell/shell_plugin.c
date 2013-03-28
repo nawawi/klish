@@ -170,3 +170,16 @@ int clish_shell_link_plugins(clish_shell_t *this)
 
 	return 0;
 }
+
+/*----------------------------------------------------------------------- */
+/* Set params of hooks */
+int clish_shell_set_hook(clish_shell_t *this,
+	void *func, const char *name, int type)
+{
+	if (!name)
+		return -1;
+	clish_sym__set_name(this->hooks[type], name);
+	clish_sym__set_func(this->hooks[type], func);
+
+	return 0;
+}
