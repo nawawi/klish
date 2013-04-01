@@ -214,6 +214,64 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 }
 
 /*----------------------------------------------------------- */
+void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
+{
+	clish_sym_t *sym;
+	clish_context_t *context = (clish_context_t *)clish_context;
+	clish_shell_t *shell = context->shell;
+	void *func;
+
+	if (!(sym = shell->hooks[type]))
+		return NULL;
+	if (shell->dryrun && !clish_sym__get_permanent(sym))
+		return NULL;
+	if (!(func = clish_sym__get_func(sym)))
+		return NULL;
+
+	return func;
+}
+
+/*----------------------------------------------------------- */
+CLISH_HOOK_INIT(clish_shell_exec_init)
+{
+	clish_hook_init_fn_t *func = NULL;
+	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_INIT);
+	return func ? func(clish_context) : 0;
+}
+
+/*----------------------------------------------------------- */
+CLISH_HOOK_FINI(clish_shell_exec_fini)
+{
+	clish_hook_fini_fn_t *func = NULL;
+	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_FINI);
+	return func ? func(clish_context) : 0;
+}
+
+/*----------------------------------------------------------- */
+CLISH_HOOK_ACCESS(clish_shell_exec_access)
+{
+	clish_hook_access_fn_t *func = NULL;
+	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_ACCESS);
+	return func ? func(clish_context, access) : 0;
+}
+
+/*----------------------------------------------------------- */
+CLISH_HOOK_CONFIG(clish_shell_exec_config)
+{
+	clish_hook_config_fn_t *func = NULL;
+	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_CONFIG);
+	return func ? func(clish_context) : 0;
+}
+
+/*----------------------------------------------------------- */
+CLISH_HOOK_LOG(clish_shell_exec_log)
+{
+	clish_hook_log_fn_t *func = NULL;
+	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_LOG);
+	return func ? func(clish_context, line, retcode) : 0;
+}
+
+/*----------------------------------------------------------- */
 const char *clish_shell__get_fifo(clish_shell_t * this)
 {
 	char *name;
