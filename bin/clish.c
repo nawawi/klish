@@ -28,7 +28,6 @@
 #include "lub/list.h"
 #include "lub/system.h"
 #include "clish/shell.h"
-#include "clish/internal.h"
 
 #define QUOTE(t) #t
 /* #define version(v) printf("%s\n", QUOTE(v)) */
