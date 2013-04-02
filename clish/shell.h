@@ -182,6 +182,14 @@ clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *instance,
 	const char *name, int type);
 clish_sym_t *clish_shell_get_hook(const clish_shell_t *instance, int type);
 
+/* Hook wrappers */
+void *clish_shell_check_hook(const clish_context_t *clish_context, int type);
+CLISH_HOOK_INIT(clish_shell_exec_init);
+CLISH_HOOK_FINI(clish_shell_exec_fini);
+CLISH_HOOK_ACCESS(clish_shell_exec_access);
+CLISH_HOOK_CONFIG(clish_shell_exec_config);
+CLISH_HOOK_LOG(clish_shell_exec_log);
+
 _END_C_DECL
 
 #endif				/* _clish_shell_h */

@@ -219,11 +219,13 @@ clish_shell_t *clish_shell_new(
 }
 
 /*--------------------------------------------------------- */
-void clish_shell_delete(clish_shell_t * this)
+void clish_shell_delete(clish_shell_t *this)
 {
-	/* now call the client finalisation */
-	if (this->hooks[CLISH_SYM_TYPE_FINI])
-		SYM_FN(fini,this->hooks_fini)(this);
+	clish_context_t context;
+	context.shell = this;
+
+	/* Now call the client finalization */
+	clish_shell_exec_fini(&context);
 	clish_shell_fini(this);
 
 	free(this);

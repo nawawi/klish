@@ -52,9 +52,11 @@ int main(int argc, char **argv)
 	bool_t bit8 = BOOL_FALSE;
 	bool_t log = BOOL_FALSE;
 	bool_t dryrun = BOOL_FALSE;
+	bool_t dryrun_config = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
+
 	FILE *outfd = stdout;
 	bool_t istimeout = BOOL_FALSE;
 	int timeout = 0;
@@ -64,6 +66,7 @@ int main(int argc, char **argv)
 	const char *histfile = "~/.clish_history";
 	char *histfile_expanded = NULL;
 	unsigned int histsize = 50;
+	clish_sym_t *sym = NULL;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;
@@ -161,8 +164,8 @@ int main(int argc, char **argv)
 		case 'k':
 			lockless = BOOL_TRUE;
 			dryrun = BOOL_TRUE;
-/*			my_hooks.config_fn = NULL;
-*/			break;
+			dryrun_config = BOOL_TRUE;
+			break;
 		case 't':
 			istimeout = BOOL_TRUE;
 			timeout = atoi(optarg);
@@ -271,6 +274,13 @@ int main(int argc, char **argv)
 		goto end;
 	if (clish_shell_link_plugins(shell) < 0)
 		goto end;
+	/* Dryrun config and log hooks */
+	if (dryrun_config) {
+		if ((sym = clish_shell_get_hook(shell, CLISH_SYM_TYPE_CONFIG)))
+			clish_sym__set_permanent(sym, BOOL_FALSE);
+		if ((sym = clish_shell_get_hook(shell, CLISH_SYM_TYPE_LOG)))
+			clish_sym__set_permanent(sym, BOOL_FALSE);
+	}
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {
