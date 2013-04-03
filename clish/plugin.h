@@ -82,12 +82,14 @@ void *clish_plugin_load(clish_plugin_t *instance);
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name, int type);
 clish_sym_t *clish_plugin_add_generic(clish_plugin_t *instance,
-	void *func, const char *name, int type);
+	void *func, const char *name, int type, bool_t permanent);
 clish_sym_t *clish_plugin_add_sym(clish_plugin_t *instance,
 	clish_hook_action_fn_t *func, const char *name);
 clish_sym_t *clish_plugin_add_psym(clish_plugin_t *instance,
 	clish_hook_action_fn_t *func, const char *name);
 clish_sym_t *clish_plugin_add_hook(clish_plugin_t *instance,
+	void *func, const char *name, int type);
+clish_sym_t *clish_plugin_add_phook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
 void clish_plugin_dump(const clish_plugin_t *instance);
 char *clish_plugin__get_name(const clish_plugin_t *instance);

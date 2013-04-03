@@ -12,11 +12,11 @@
 CLISH_PLUGIN_INIT
 {
 	/* Add hooks */
-	clish_plugin_add_hook(plugin, clish_hook_access,
+	clish_plugin_add_phook(plugin, clish_hook_access,
 		"clish_hook_access", CLISH_SYM_TYPE_ACCESS);
-	clish_plugin_add_hook(plugin, clish_hook_config,
+	clish_plugin_add_phook(plugin, clish_hook_config,
 		"clish_hook_config", CLISH_SYM_TYPE_CONFIG);
-	clish_plugin_add_hook(plugin, clish_hook_log,
+	clish_plugin_add_phook(plugin, clish_hook_log,
 		"clish_hook_log", CLISH_SYM_TYPE_LOG);
 
 	/* Add builtin syms */
