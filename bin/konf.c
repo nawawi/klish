@@ -22,11 +22,6 @@
 #include "konf/buf.h"
 #include "lub/string.h"
 
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX 108
-#endif
-#define MAXMSG 1024
-
 #ifndef VERSION
 #define VERSION 1.2.2
 #endif

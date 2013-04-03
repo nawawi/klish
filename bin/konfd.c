@@ -50,16 +50,13 @@
 #define KONFD_PIDFILE "/var/run/konfd.pid"
 
 /* UNIX socket path */
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX 108
-#endif
+/* Don't use UNIX_PATH_MAX due to portability issues */
+#define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
 
 /* OpenBSD has no MSG_NOSIGNAL flag */
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
 #endif
-
-#define MAXMSG 1024
 
 /* Global signal vars */
 static volatile int sigterm = 0;
@@ -151,8 +148,8 @@ int main(int argc, char **argv)
 		goto err;
 	}
 	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, opts->socket_path, UNIX_PATH_MAX);
-	laddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
+	strncpy(laddr.sun_path, opts->socket_path, USOCK_PATH_MAX);
+	laddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
 	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
 		syslog(LOG_ERR, "Can't bind socket: %s\n",
 			strerror(errno));

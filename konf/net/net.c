@@ -15,9 +15,8 @@
 #include "private.h"
 
 /* UNIX socket name in filesystem */
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX 108
-#endif
+/* Don't use UNIX_PATH_MAX due to portability issues */
+#define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
 
 /* OpenBSD has no MSG_NOSIGNAL flag.
  * The SIGPIPE must be ignored in application.
@@ -67,8 +66,8 @@ int konf_client_connect(konf_client_t *this)
 		return this->sock;
 
 	raddr.sun_family = AF_UNIX;
-	strncpy(raddr.sun_path, this->path, UNIX_PATH_MAX);
-	raddr.sun_path[UNIX_PATH_MAX - 1] = '\0';
+	strncpy(raddr.sun_path, this->path, USOCK_PATH_MAX);
+	raddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
 	if (connect(this->sock, (struct sockaddr *)&raddr, sizeof(raddr))) {
 		close(this->sock);
 		this->sock = -1;
