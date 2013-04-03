@@ -126,10 +126,16 @@ if test "$xml_backend" = "expat" -o "$xml_backend" = "auto"; then
                         [expat_h_found=no],
                         [/* force include check */])
         if test "x$expat_h_found" != "xyes"; then
-            if test "$xml_backend" = "auto"; then
-                AC_MSG_WARN([cannot find <expat.h> header file])
-            else
-                AC_MSG_ERROR([cannot find <expat.h> header file])
+            AC_CHECK_HEADER([bsdxml.h],
+                            [expat_h_found=yes],
+                            [expat_h_found=no],
+                            [/* force include check */])
+            if test "x$expat_h_found" != "xyes"; then
+                if test "$xml_backend" = "auto"; then
+                    AC_MSG_WARN([cannot find <expat.h> header file])
+                else
+                    AC_MSG_ERROR([cannot find <expat.h> header file])
+                fi
             fi
         fi
         XML_CFLAGS=""
@@ -140,14 +146,27 @@ if test "$xml_backend" = "expat" -o "$xml_backend" = "auto"; then
                      [expat_lib_found=no],
                      [])
         if test "x$expat_lib_found" != "xyes"; then
-            if test "$xml_backend" = "auto"; then
-                AC_MSG_WARN([cannot find expat library])
+            AC_CHECK_LIB([bsdxml],
+                         [XML_ParserCreate],
+                         [expat_lib_found=yes],
+                         [expat_lib_found=no],
+                         [])
+            if test "x$expat_lib_found" != "xno"; then
+                XML_LIBS="-lbsdxml"
+                AC_DEFINE([HAVE_LIB_BSDXML],
+                          [],
+                          [libbsdxml-based XML backend])
             else
-                AC_MSG_ERROR([cannot find expat library])
+                if test "$xml_backend" = "auto"; then
+                    AC_MSG_WARN([cannot find expat library])
+                else
+                    AC_MSG_ERROR([cannot find expat library])
+                fi
             fi
+        else
+            XML_LIBS="-lexpat"
         fi
         XML_LDFLAGS=""
-        XML_LIBS="-lexpat"
 
         AC_DEFINE([HAVE_LIB_EXPAT],
                   [],

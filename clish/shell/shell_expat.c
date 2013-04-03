@@ -33,7 +33,12 @@
 #include <unistd.h>
 #include <errno.h>
 
+/* FreeBSD have verbatim version of expat named bsdxml */
+#ifdef HAVE_LIB_BSDXML
+#include <bsdxml.h>
+#else
 #include <expat.h>
+#endif
 
 #include "xmlapi.h"
 
