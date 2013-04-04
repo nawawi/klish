@@ -190,6 +190,12 @@ CLISH_HOOK_ACCESS(clish_shell_exec_access);
 CLISH_HOOK_CONFIG(clish_shell_exec_config);
 CLISH_HOOK_LOG(clish_shell_exec_log);
 
+/* User data functions */
+void *clish_shell__get_udata(const clish_shell_t *instance, const char *name);
+void *clish_shell__del_udata(clish_shell_t *instance, const char *name);
+int clish_shell__set_udata(clish_shell_t *instance,
+	const char *name, void *data);
+
 _END_C_DECL
 
 #endif				/* _clish_shell_h */

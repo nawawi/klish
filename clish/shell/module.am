@@ -20,5 +20,6 @@ libclish_la_SOURCES += \
 	clish/shell/xmlapi.h \
 	clish/shell/shell_roxml.c \
 	clish/shell/shell_libxml2.c \
-	clish/shell/shell_expat.c
+	clish/shell/shell_expat.c \
+	clish/shell/shell_udata.c
 

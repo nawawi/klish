@@ -28,7 +28,8 @@ nobase_include_HEADERS += \
 	clish/action.h \
 	clish/config.h \
 	clish/hotkey.h \
-	clish/plugin.h
+	clish/plugin.h \
+	clish/udata.h
 
 EXTRA_DIST += \
 	clish/command/module.am \
@@ -44,6 +45,7 @@ EXTRA_DIST += \
 	clish/hotkey/module.am \
 	clish/plugin/module.am \
 	clish/builtin/module.am \
+	clish/udata/module.am	\
 	clish/README
 
 include $(top_srcdir)/clish/command/module.am
@@ -59,3 +61,4 @@ include $(top_srcdir)/clish/config/module.am
 include $(top_srcdir)/clish/hotkey/module.am
 include $(top_srcdir)/clish/plugin/module.am
 include $(top_srcdir)/clish/builtin/module.am
+include $(top_srcdir)/clish/udata/module.am

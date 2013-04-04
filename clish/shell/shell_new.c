@@ -46,6 +46,10 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);
 
+	/* Create userdata storage */
+	this->udata = lub_list_new(clish_udata_compare);
+	assert(this->udata);
+
 	/* Default syms and hooks */
 	this->hooks[CLISH_SYM_TYPE_NONE] = NULL;
 	this->hooks[CLISH_SYM_TYPE_ACTION] = clish_sym_new(
@@ -159,6 +163,16 @@ static void clish_shell_fini(clish_shell_t * this)
 		lub_list_node_free(iter);
 	}
 	lub_list_free(this->syms);
+
+	/* Free user data storage */
+	while ((iter = lub_list__get_head(this->udata))) {
+		/* Remove the symbol from the list */
+		lub_list_del(this->udata, iter);
+		/* Free the instance */
+		clish_udata_free((clish_udata_t *)lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
+	}
+	lub_list_free(this->udata);
 
 	/* free the textual details */
 	lub_string_free(this->overview);

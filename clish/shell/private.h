@@ -9,6 +9,7 @@
 #include "clish/var.h"
 #include "clish/action.h"
 #include "clish/plugin.h"
+#include "clish/udata.h"
 
 /*-------------------------------------
  * PRIVATE TYPES
@@ -89,6 +90,9 @@ struct clish_shell_s {
 	/* Static params for var expanding. The refactoring is needed. */
 	clish_param_t *param_depth;
 	clish_param_t *param_pwd;
+
+	/* Userdata list holder */
+	lub_list_t *udata;
 };
 
 /**
