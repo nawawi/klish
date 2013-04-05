@@ -219,15 +219,9 @@ clish_shell_t *clish_shell_new(
 {
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 
-	if (this) {
+	if (this)
 		clish_shell_init(this, cookie,
 			istream, ostream, stop_on_error);
-//		if (hooks->init_fn) {
-			/* now call the client initialisation */
-//			if (BOOL_TRUE != hooks->init_fn(this))
-//				this->state = SHELL_STATE_CLOSING;
-//		}
-	}
 
 	return this;
 }

@@ -4,6 +4,7 @@
 #include "private.h"
 #include <assert.h>
 #include <string.h>
+#include <dlfcn.h>
 
 #include "lub/string.h"
 #include "lub/list.h"
@@ -29,12 +30,12 @@ int clish_shell_load_plugins(clish_shell_t *this)
 	for(iter = lub_list__get_head(this->plugins);
 		iter; iter = lub_list_node__get_next(iter)) {
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if (!(plugin_init = clish_plugin_load(plugin))) {
-			fprintf(stderr, "Error: Can't load plugin %s.\n",
-				clish_plugin__get_file(plugin));
+		if (!(plugin_init = clish_plugin_load(plugin)))
 			return -1;
-		}
 		plugin_init(this, plugin);
+		/* TODO: Check plugin_init() retval. If < 0 then
+		   destroy current plugin or exit on error.
+		*/
 #ifdef DEBUG
 		clish_plugin_dump(plugin);
 #endif

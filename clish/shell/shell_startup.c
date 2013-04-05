@@ -11,26 +11,33 @@ int clish_shell_startup(clish_shell_t *this)
 {
 	const char *banner;
 	clish_context_t context;
-	int res = 0;
 
-	assert(this->startup);
-	banner = clish_command__get_detail(this->startup);
-	if (banner)
-		tinyrl_printf(this->tinyrl, "%s\n", banner);
+	if (!this->startup) {
+		fprintf(stderr, "Error: Can't get valid STARTUP tag.\n");
+		return -1;
+	}
 
 	/* Prepare context */
 	context.shell = this;
 	context.cmd = this->startup;
 	context.action = clish_command__get_action(this->startup);
 	context.pargv = NULL;
-	
+
+	/* If an init hook exists - call it. */
+	if (clish_shell_exec_init(&context)) {
+		fprintf(stderr, "Error: Init hook returned error code.\n");
+		return -1;
+	}
+
+	banner = clish_command__get_detail(this->startup);
+	if (banner)
+		tinyrl_printf(this->tinyrl, "%s\n", banner);
+
 	/* Call log initialize */
 	if (clish_shell__get_log(this))
 		clish_shell_exec_log(&context, NULL, 0);
 	/* Call startup script */
-	res = clish_shell_execute(&context, NULL);
-
-	return res;
+	return clish_shell_execute(&context, NULL);
 }
 
 /*----------------------------------------------------------- */

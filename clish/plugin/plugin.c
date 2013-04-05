@@ -254,10 +254,15 @@ clish_plugin_init_t *clish_plugin_load(clish_plugin_t *this)
 	if (!this)
 		return NULL;
 
-	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_LOCAL)))
+	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_LOCAL))) {
+		fprintf(stderr, "Error: Can't open plugin %s: %s\n",
+			this->file, dlerror());
 		return NULL;
+	}
 	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT_NAME);
 	if (!plugin_init) {
+		fprintf(stderr, "Error: Can't get plugin %s init function: %s\n",
+			this->file, dlerror());
 		dlclose(this->dlhan);
 		this->dlhan = NULL;
 	}
