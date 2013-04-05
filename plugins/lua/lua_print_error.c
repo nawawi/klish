@@ -1,4 +1,4 @@
-#include "hook.h"
+#include "private.h"
 
 void
 l_print_error(lua_State *L, const char *func, const char *when, int res)

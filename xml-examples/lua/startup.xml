@@ -6,7 +6,6 @@
 
 	<PLUGIN name="lua_hooks" file="clish_plugin_lua.so"/>
 
-	<HOOK name="init" builtin="hook_init@lua_hooks"/>
 	<HOOK name="fini" builtin="hook_fini@lua_hooks"/>
 
 	<!--
