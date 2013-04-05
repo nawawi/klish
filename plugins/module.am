@@ -1,0 +1,4 @@
+EXTRA_DIST += \
+	plugins/lua/module.am
+
+include $(top_srcdir)/plugins/lua/module.am
