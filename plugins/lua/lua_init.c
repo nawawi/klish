@@ -4,7 +4,7 @@
 
 #include <lub/string.h>
 
-#include "hook.h"
+#include "private.h"
 
 static bool_t
 load_scripts(lua_State *L, char *path)
@@ -57,10 +57,8 @@ load_scripts(lua_State *L, char *path)
 	return result;
 }
 
-CLISH_HOOK_INIT(clish_plugin_hook_init)
+int clish_plugin_init_lua(clish_shell_t *shell)
 {
-	clish_context_t *context = (clish_context_t *) clish_context;
-	clish_shell_t *shell = (clish_shell_t *) context->shell;
 	lua_State *L = NULL;
 	char *scripts_path = getenv("CLISH_SCRIPTS_PATH");
 

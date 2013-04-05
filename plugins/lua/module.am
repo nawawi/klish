@@ -2,7 +2,7 @@ lib_LTLIBRARIES			+= clish_plugin_lua.la
 clish_plugin_lua_la_SOURCES	 = 
 clish_plugin_lua_la_LIBADD	 =
 clish_plugin_lua_la_LDFLAGS	 = -avoid-version -module -shared
-clish_plugin_lua_la_LDFLAGS	+= -export-symbols-regex '^clish_plugin_.*'
+clish_plugin_lua_la_LDFLAGS	+= -export-symbols-regex "^clish_plugin_lua_"
 
 clish_plugin_lua_la_LDFLAGS	+= -L/usr/local/lib -llua-5.1
 clish_plugin_lua_la_CFLAGS	 = -I/usr/local/include/lua51
@@ -16,12 +16,11 @@ clish_plugin_lua_la_DEPENDENCIES = \
 	libclish.la
 
 nobase_include_HEADERS		+= \
-	plugins/lua/hook.h \
-	plugins/lua/hook_spec.h
+	plugins/lua/private.h
 
 clish_plugin_lua_la_SOURCES	+= \
 	plugins/lua/plugin_init.c \
-	plugins/lua/hook_init.c \
-	plugins/lua/hook_fini.c \
-	plugins/lua/hook_action.c \
+	plugins/lua/lua_init.c \
+	plugins/lua/lua_fini.c \
+	plugins/lua/lua_action.c \
 	plugins/lua/lua_print_error.c

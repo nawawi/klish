@@ -1,8 +1,8 @@
 #include <lub/string.h>
 
-#include "hook.h"
+#include "private.h"
 
-CLISH_PLUGIN_SYM(clish_plugin_hook_action)
+CLISH_PLUGIN_SYM(clish_plugin_lua_action)
 {
 	clish_context_t *context = (clish_context_t *) clish_context;
 	lua_State *L = clish_shell__get_udata(context->shell, LUA_UDATA);
