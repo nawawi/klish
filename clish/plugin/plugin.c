@@ -247,24 +247,22 @@ clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int ty
 }
 
 /*--------------------------------------------------------- */
-void *clish_plugin_load(clish_plugin_t *this)
+clish_plugin_init_t *clish_plugin_load(clish_plugin_t *this)
 {
 	clish_plugin_init_t *plugin_init;
 
 	if (!this)
 		return NULL;
 
-	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_GLOBAL)))
+	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_LOCAL)))
 		return NULL;
 	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT_NAME);
 	if (!plugin_init) {
 		dlclose(this->dlhan);
 		this->dlhan = NULL;
-		return NULL;
 	}
-	plugin_init(this);
 
-	return this->dlhan;
+	return plugin_init;
 }
 
 /*--------------------------------------------------------- */
