@@ -11,6 +11,8 @@ CLISH_PLUGIN_SYM(anplug_fn)
 CLISH_PLUGIN_INIT
 {
 	printf("anplug: INIT shell = %p\n", clish_shell);
+	/* Set a name of plugin to use in sym@plugin */
+	clish_plugin__set_name(plugin, "another_plug");
 	clish_plugin_add_sym(plugin, anplug_fn, "an_fn");
 
 	return 0;

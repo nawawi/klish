@@ -127,20 +127,15 @@ int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src)
  **********************************************************/
 
 /*--------------------------------------------------------- */
-clish_plugin_t *clish_plugin_new(const char *name, const char *file)
+clish_plugin_t *clish_plugin_new(const char *file, const char *alias)
 {
 	clish_plugin_t *this;
 
 	this = malloc(sizeof(*this));
 
-	if (file)
-		this->file = lub_string_dup(file);
-	else
-		this->file = NULL; /* For main program binary */
-	if (name)
-		this->name = lub_string_dup(name);
-	else
-		this->name = NULL;
+	this->file = lub_string_dup(file);
+	this->name = NULL;
+	this->alias = lub_string_dup(alias);
 	this->dlhan = NULL;
 	/* Initialise the list of symbols */
 	this->syms = lub_list_new(clish_sym_compare);
@@ -288,9 +283,35 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 }
 
 /*--------------------------------------------------------- */
+void clish_plugin__set_name(clish_plugin_t *this, const char *name)
+{
+	lub_string_free(this->name);
+	this->name = lub_string_dup(name);
+}
+
+/*--------------------------------------------------------- */
 char *clish_plugin__get_name(const clish_plugin_t *this)
 {
 	return this->name;
+}
+
+/*--------------------------------------------------------- */
+void clish_plugin__set_alias(clish_plugin_t *this, const char *alias)
+{
+	lub_string_free(this->alias);
+	this->alias = lub_string_dup(alias);
+}
+
+/*--------------------------------------------------------- */
+char *clish_plugin__get_alias(const clish_plugin_t *this)
+{
+	return this->alias;
+}
+
+/*--------------------------------------------------------- */
+char *clish_plugin__get_pubname(const clish_plugin_t *this)
+{
+	return (this->alias ? this->alias : this->name);
 }
 
 /*--------------------------------------------------------- */

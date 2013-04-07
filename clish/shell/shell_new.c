@@ -40,7 +40,7 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Initialize plugin list */
 	this->plugins = lub_list_new(NULL);
 	/* Create internal plugin "clish" */
-	plugin = clish_plugin_new("clish", NULL);
+	plugin = clish_plugin_new(NULL, "clish");
 	lub_list_add(this->plugins, plugin);
 
 	/* Initialise the list of unresolved (yet) symbols */

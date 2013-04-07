@@ -1176,7 +1176,7 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 		goto error;
 	}
 
-	plugin = clish_plugin_new(name, file);
+	plugin = clish_plugin_new(file, name); /* Really the name is alias */
 	lub_list_add(shell->plugins, plugin);
 
 	res = 0;

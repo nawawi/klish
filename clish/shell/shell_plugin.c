@@ -73,7 +73,7 @@ static clish_sym_t *plugins_find_sym(clish_shell_t *this, const char *name, int 
 		for(iter = lub_list__get_head(this->plugins);
 			iter; iter = lub_list_node__get_next(iter)) {
 			plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-			if (strcmp(clish_plugin__get_name(plugin), plugin_name))
+			if (strcmp(clish_plugin__get_pubname(plugin), plugin_name))
 				continue;
 			if ((sym = clish_plugin_get_sym(plugin, cmdn, type)))
 				break;

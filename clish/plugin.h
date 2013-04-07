@@ -84,7 +84,7 @@ int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src);
 
 /* Plugin */
 
-clish_plugin_t *clish_plugin_new(const char *name, const char *file);
+clish_plugin_t *clish_plugin_new(const char *file, const char *alias);
 void clish_plugin_free(clish_plugin_t *instance, void *userdata);
 int clish_plugin_load(clish_plugin_t *instance, void *userdata);
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
@@ -100,7 +100,11 @@ clish_sym_t *clish_plugin_add_hook(clish_plugin_t *instance,
 clish_sym_t *clish_plugin_add_phook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
 void clish_plugin_dump(const clish_plugin_t *instance);
+void clish_plugin__set_name(clish_plugin_t *instance, const char *name);
 char *clish_plugin__get_name(const clish_plugin_t *instance);
+void clish_plugin__set_alias(clish_plugin_t *instance, const char *alias);
+char *clish_plugin__get_alias(const clish_plugin_t *instance);
+char *clish_plugin__get_pubname(const clish_plugin_t *instance);
 char *clish_plugin__get_file(const clish_plugin_t *instance);
 
 #endif				/* _clish_plugin_h */
