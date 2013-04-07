@@ -161,6 +161,8 @@ void clish_plugin_free(clish_plugin_t *this, void *userdata)
 
 	lub_string_free(this->file);
 	lub_string_free(this->name);
+	lub_string_free(this->alias);
+	lub_string_free(this->conf);
 
 	/* Free symbol list */
 	while ((iter = lub_list__get_head(this->syms))) {
