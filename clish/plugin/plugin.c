@@ -144,17 +144,24 @@ clish_plugin_t *clish_plugin_new(const char *name, const char *file)
 	this->dlhan = NULL;
 	/* Initialise the list of symbols */
 	this->syms = lub_list_new(clish_sym_compare);
+	/* Constructor and destructor */
+	this->init = NULL;
+	this->fini = NULL;
 
 	return this;
 }
 
 /*--------------------------------------------------------- */
-void clish_plugin_free(clish_plugin_t *this)
+void clish_plugin_free(clish_plugin_t *this, void *userdata)
 {
 	lub_list_node_t *iter;
 
 	if (!this)
 		return;
+
+	/* Execute destructor */
+	if (this->fini)
+		this->fini(userdata, this);
 
 	lub_string_free(this->file);
 	lub_string_free(this->name);
@@ -247,27 +254,37 @@ clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int ty
 }
 
 /*--------------------------------------------------------- */
-clish_plugin_init_t *clish_plugin_load(clish_plugin_t *this)
+int clish_plugin_load(clish_plugin_t *this, void *userdata)
 {
-	clish_plugin_init_t *plugin_init;
+	int res;
 
 	if (!this)
-		return NULL;
+		return -1;
 
+	/* Open dynamic library */
 	if (!(this->dlhan = dlopen(this->file, RTLD_NOW | RTLD_LOCAL))) {
 		fprintf(stderr, "Error: Can't open plugin %s: %s\n",
 			this->file, dlerror());
-		return NULL;
-	}
-	plugin_init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT_NAME);
-	if (!plugin_init) {
-		fprintf(stderr, "Error: Can't get plugin %s init function: %s\n",
-			this->file, dlerror());
-		dlclose(this->dlhan);
-		this->dlhan = NULL;
+		return -1;
 	}
 
-	return plugin_init;
+	/* Get plugin init function */
+	this->init = (clish_plugin_init_t *)dlsym(this->dlhan, CLISH_PLUGIN_INIT_NAME);
+	if (!this->init) {
+		fprintf(stderr, "Error: Can't get plugin %s init function: %s\n",
+			this->file, dlerror());
+		return -1;
+	}
+
+	/* Get plugin fini function */
+	this->fini = (clish_plugin_fini_t *)dlsym(this->dlhan, CLISH_PLUGIN_FINI_NAME);
+
+	/* Execute init function */
+	if ((res = this->init(userdata, this)))
+		fprintf(stderr, "Error: Plugin %s init retcode: %d\n",
+			this->file, res);
+
+	return res;
 }
 
 /*--------------------------------------------------------- */

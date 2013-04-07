@@ -22,7 +22,6 @@ int clish_shell_load_plugins(clish_shell_t *this)
 {
 	lub_list_node_t *iter;
 	clish_plugin_t *plugin;
-	clish_plugin_init_t *plugin_init;
 
 	assert(this);
 
@@ -30,12 +29,8 @@ int clish_shell_load_plugins(clish_shell_t *this)
 	for(iter = lub_list__get_head(this->plugins);
 		iter; iter = lub_list_node__get_next(iter)) {
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if (!(plugin_init = clish_plugin_load(plugin)))
+		if (clish_plugin_load(plugin, (void *)this))
 			return -1;
-		plugin_init(this, plugin);
-		/* TODO: Check plugin_init() retval. If < 0 then
-		   destroy current plugin or exit on error.
-		*/
 #ifdef DEBUG
 		clish_plugin_dump(plugin);
 #endif

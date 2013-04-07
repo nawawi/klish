@@ -30,7 +30,12 @@ typedef struct clish_plugin_s clish_plugin_t;
 #define CLISH_PLUGIN_INIT_NAME "clish_plugin_init"
 #define CLISH_PLUGIN_INIT_FUNC(name) int name(void *clish_shell, clish_plugin_t *plugin)
 #define CLISH_PLUGIN_INIT CLISH_PLUGIN_INIT_FUNC(CLISH_PLUGIN_INIT_FNAME)
-#define CLISH_PLUGIN_FINI(name) int name(void *clish_shell, clish_plugin_t *plugin)
+
+/* Name of fini function within plugin */
+#define CLISH_PLUGIN_FINI_FNAME clish_plugin_fini
+#define CLISH_PLUGIN_FINI_NAME "clish_plugin_fini"
+#define CLISH_PLUGIN_FINI_FUNC(name) int name(void *clish_shell, clish_plugin_t *plugin)
+#define CLISH_PLUGIN_FINI CLISH_PLUGIN_FINI_FUNC(CLISH_PLUGIN_FINI_FNAME)
 
 #define CLISH_HOOK_INIT(name) int name(void *clish_context)
 #define CLISH_HOOK_FINI(name) int name(void *clish_context)
@@ -49,7 +54,7 @@ typedef struct clish_plugin_s clish_plugin_t;
 /* typedef void clish_shell_cmd_line_fn_t(clish_context_t *context, const char *cmd_line); */
 
 typedef CLISH_PLUGIN_INIT_FUNC(clish_plugin_init_t);
-typedef CLISH_PLUGIN_FINI(clish_plugin_fini_t);
+typedef CLISH_PLUGIN_FINI_FUNC(clish_plugin_fini_t);
 typedef CLISH_PLUGIN_SYM(clish_hook_action_fn_t);
 typedef CLISH_HOOK_INIT(clish_hook_init_fn_t);
 typedef CLISH_HOOK_FINI(clish_hook_fini_fn_t);
@@ -80,8 +85,8 @@ int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src);
 /* Plugin */
 
 clish_plugin_t *clish_plugin_new(const char *name, const char *file);
-void clish_plugin_free(clish_plugin_t *instance);
-clish_plugin_init_t *clish_plugin_load(clish_plugin_t *instance);
+void clish_plugin_free(clish_plugin_t *instance, void *userdata);
+int clish_plugin_load(clish_plugin_t *instance, void *userdata);
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name, int type);
 clish_sym_t *clish_plugin_add_generic(clish_plugin_t *instance,

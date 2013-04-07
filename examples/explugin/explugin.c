@@ -11,6 +11,8 @@ CLISH_PLUGIN_SYM(explugin_fn)
 CLISH_PLUGIN_INIT
 {
 	clish_plugin_add_sym(plugin, explugin_fn, "hello");
+
+	return 0;
 }
 
 

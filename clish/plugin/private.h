@@ -22,4 +22,6 @@ struct clish_plugin_s {
 	char *name; /* Local plugin name. Can be used in builtin ref. */
 	lub_list_t *syms; /* List of plugin symbols */
 	void *dlhan; /* Handler of dlopen() */
+	clish_plugin_init_t *init; /* Init function (constructor) != NULL */
+	clish_plugin_fini_t *fini; /* Fini function (destructor) */
 };

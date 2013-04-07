@@ -118,13 +118,24 @@ static void clish_shell_init(clish_shell_t * this,
 }
 
 /*--------------------------------------------------------- */
-static void clish_shell_fini(clish_shell_t * this)
+static void clish_shell_fini(clish_shell_t *this)
 {
 	clish_view_t *view;
 	clish_ptype_t *ptype;
 	clish_var_t *var;
 	unsigned i;
 	lub_list_node_t *iter;
+
+	/* Free all loaded plugins */
+	while ((iter = lub_list__get_head(this->plugins))) {
+		/* Remove the symbol from the list */
+		lub_list_del(this->plugins, iter);
+		/* Free the instance */
+		clish_plugin_free((clish_plugin_t *)lub_list_node__get_data(iter),
+			(void *)this);
+		lub_list_node_free(iter);
+	}
+	lub_list_free(this->plugins);
 
 	/* delete each VIEW held  */
 	while ((view = lub_bintree_findfirst(&this->view_tree))) {
@@ -143,16 +154,6 @@ static void clish_shell_fini(clish_shell_t * this)
 		lub_bintree_remove(&this->var_tree, var);
 		clish_var_delete(var);
 	}
-
-	/* Free all loaded plugins */
-	while ((iter = lub_list__get_head(this->plugins))) {
-		/* Remove the symbol from the list */
-		lub_list_del(this->plugins, iter);
-		/* Free the instance */
-		clish_plugin_free((clish_plugin_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->plugins);
 
 	/* Free symbol list */
 	while ((iter = lub_list__get_head(this->syms))) {
