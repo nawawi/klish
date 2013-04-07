@@ -106,6 +106,8 @@ void clish_plugin__set_alias(clish_plugin_t *instance, const char *alias);
 char *clish_plugin__get_alias(const clish_plugin_t *instance);
 char *clish_plugin__get_pubname(const clish_plugin_t *instance);
 char *clish_plugin__get_file(const clish_plugin_t *instance);
+void clish_plugin__set_conf(clish_plugin_t *instance, const char *conf);
+char *clish_plugin__get_conf(const clish_plugin_t *instance);
 
 #endif				/* _clish_plugin_h */
 /** @} clish_plugin */

@@ -10,10 +10,17 @@ CLISH_PLUGIN_SYM(anplug_fn)
 
 CLISH_PLUGIN_INIT
 {
+	char *conf;
+
 	printf("anplug: INIT shell = %p\n", clish_shell);
 	/* Set a name of plugin to use in sym@plugin */
 	clish_plugin__set_name(plugin, "another_plug");
+	/* Add symbols */
 	clish_plugin_add_sym(plugin, anplug_fn, "an_fn");
+	/* Show plugin config from <PLUGIN>...</PLUGIN> */
+	conf = clish_plugin__get_conf(plugin);
+	if (conf)
+		printf("%s", conf);
 
 	return 0;
 }

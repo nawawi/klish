@@ -1169,6 +1169,7 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 	char *file = clish_xmlnode_fetch_attr(element, "file");
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	int res = -1;
+	char *text;
 
 	/* Check syntax */
 	if (!file) {
@@ -1176,8 +1177,15 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 		goto error;
 	}
 
-	plugin = clish_plugin_new(file, name); /* Really the name is alias */
+	plugin = clish_plugin_new(file, name); /* Really - the name is alias */
 	lub_list_add(shell->plugins, plugin);
+
+	/* Get PLUGIN body content */
+	text = clish_xmlnode_get_all_content(element);
+	if (text && *text)
+		clish_plugin__set_conf(plugin, text);
+	if (text)
+		free(text);
 
 	res = 0;
 error:

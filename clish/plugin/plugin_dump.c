@@ -60,8 +60,12 @@ void clish_plugin_dump(const clish_plugin_t *this)
 	lub_dump_printf("plugin(%p)\n", this);
 	lub_dump_indent();
 	lub_dump_printf("name  : %s\n", this->name);
+	lub_dump_printf("alias : %s\n", this->alias);
+	lub_dump_printf("conf  : %s\n", this->conf);
 	lub_dump_printf("file  : %s\n", this->file);
 	lub_dump_printf("dlhan : %p\n", this->dlhan);
+	lub_dump_printf("init  : %p\n", this->init);
+	lub_dump_printf("fini  : %p\n", this->fini);
 	lub_dump_indent();
 	/* Iterate child elements */
 	for(iter = lub_list__get_head(this->syms);

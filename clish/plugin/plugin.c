@@ -135,6 +135,7 @@ clish_plugin_t *clish_plugin_new(const char *file, const char *alias)
 
 	this->file = lub_string_dup(file);
 	this->name = NULL;
+	this->conf = NULL;
 	this->alias = lub_string_dup(alias);
 	this->dlhan = NULL;
 	/* Initialise the list of symbols */
@@ -318,6 +319,19 @@ char *clish_plugin__get_pubname(const clish_plugin_t *this)
 char *clish_plugin__get_file(const clish_plugin_t *this)
 {
 	return this->file;
+}
+
+/*--------------------------------------------------------- */
+void clish_plugin__set_conf(clish_plugin_t *this, const char *conf)
+{
+	lub_string_free(this->conf);
+	this->conf = lub_string_dup(conf);
+}
+
+/*--------------------------------------------------------- */
+char *clish_plugin__get_conf(const clish_plugin_t *this)
+{
+	return this->conf;
 }
 
 /*--------------------------------------------------------- */
