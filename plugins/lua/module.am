@@ -9,11 +9,13 @@ clish_plugin_lua_la_CFLAGS	 = -I/usr/local/include/lua51
 
 clish_plugin_lua_la_LIBADD	+= \
 	liblub.la \
-	libclish.la 
+	libclish.la \
+	libkonf.la
 
 clish_plugin_lua_la_DEPENDENCIES = \
 	liblub.la \
-	libclish.la
+	libclish.la \
+	libkonf.la
 
 nobase_include_HEADERS		+= \
 	plugins/lua/private.h

@@ -1,37 +1,60 @@
+#include <stdlib.h>
+#include <sys/wait.h>
+
+#include <konf/buf.h>
 #include <lub/string.h>
 
 #include "private.h"
+
+static int exec_action(lua_State *L, const char *script)
+{
+	int res = 0;
+
+	if ((res = luaL_loadstring(L, script))) {
+		l_print_error(L, __func__, "load", res);
+	} else if ((res = lua_pcall(L, 0, 0, 0))) {
+		l_print_error(L, __func__, "exec", res);
+	}
+
+	lua_gc(L, LUA_GCCOLLECT, 0);
+
+	return res;
+}
 
 CLISH_PLUGIN_SYM(clish_plugin_lua_action)
 {
 	clish_context_t *context = (clish_context_t *) clish_context;
 	lua_State *L = clish_shell__get_udata(context->shell, LUA_UDATA);
-
-	int res = 0, result = -1, retnum = 0;
+	konf_buf_t *buf;
+	pid_t childpid;
+	int res = 0, origstdout = -1, fd[2];
 
 	if (!script) /* Nothing to do */
 		return (0);
 
-	if (out) {
-		*out = NULL;
-		retnum = 1;
+	if (!out) /* Handle trivial case */
+		return exec_action(L, script);
+
+	pipe(fd);
+
+	if ((childpid = fork()) == -1) {
+		perror("fork");
+		return -1;
 	}
 
-
-	if ((res = luaL_loadstring(L, script))) {
-		l_print_error(L, __func__, "load", res);
-	} else if ((res = lua_pcall(L, 0, retnum, 0))) {
-		l_print_error(L, __func__, "exec", res);
-	} else {
-		if (retnum) {
-			if (lua_isstring(L, -1))
-				*out = lub_string_dup(lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
-		result = 0;
+	if (childpid == 0) { /* Child */
+		dup2(fd[1], 1);
+		close(fd[0]);
+		close(fd[1]);
+		exit(exec_action(L, script));
+	} else { /* Parent */
+		close(fd[1]);
+		buf = konf_buf_new(fd[0]);
+		while(konf_buf_read(buf) > 0);
+		*out = konf_buf__dup_line(buf);
+		konf_buf_delete(buf);
+		close(fd[0]);
 	}
 
-	lua_gc(L, LUA_GCCOLLECT, 0);
-
-	return (result);
+	return WEXITSTATUS(res);
 }
