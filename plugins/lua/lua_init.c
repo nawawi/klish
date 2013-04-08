@@ -6,7 +6,7 @@
 
 #include "private.h"
 
-char *scripts_path = NULL;
+extern char *scripts_path = NULL;
 
 static bool_t
 load_scripts(lua_State *L, char *path)
@@ -71,8 +71,10 @@ int clish_plugin_init_lua(clish_shell_t *shell)
 	luaL_openlibs(L);
 
 	if (scripts_path && !load_scripts(L, scripts_path)) {
+		free(scripts_path);
 		return (-1);
 	}
+	free(scripts_path);
 
 	clish_shell__set_udata(shell, LUA_UDATA, L);
 
