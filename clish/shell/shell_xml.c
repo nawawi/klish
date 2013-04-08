@@ -508,11 +508,8 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 
 	/* define the view which this command changes to */
 	if (view) {
-		clish_view_t *next = clish_shell_find_create_view(shell, view,
-			NULL);
-
 		/* reference the next view */
-		clish_command__set_view(cmd, next);
+		clish_command__set_viewname(cmd, view);
 	}
 
 	/* define the view id which this command changes to */
@@ -599,10 +596,8 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	cmd = clish_view_new_command(v, "startup", NULL);
 	clish_command__set_lock(cmd, BOOL_FALSE);
 
-	/* define the view which this command changes to */
-	clish_view_t *next = clish_shell_find_create_view(shell, view, NULL);
 	/* reference the next view */
-	clish_command__set_view(cmd, next);
+	clish_command__set_viewname(cmd, view);
 
 	/* define the view id which this command changes to */
 	if (viewid)

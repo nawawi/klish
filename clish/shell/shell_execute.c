@@ -166,13 +166,17 @@ int clish_shell_execute(clish_context_t *context, char **out)
 
 	/* Move into the new view */
 	if (!result) {
-		clish_view_t *view = clish_command__get_view(cmd);
-		/* Save the PWD */
-		if (view) {
-			char *line = clish_shell__get_line(context);
-			clish_shell__set_pwd(this, line, view,
-				clish_command__get_viewid(cmd), context);
-			lub_string_free(line);
+		const char *viewname = clish_shell_expand(clish_command__get_viewname(cmd), SHELL_VAR_NONE, context);
+		if (viewname) {
+			/* Search for the view */
+			clish_view_t *view = clish_shell_find_create_view(this, viewname, NULL);
+			/* Save the PWD */
+			if (view) {
+				char *line = clish_shell__get_line(context);
+				clish_shell__set_pwd(this, line, view,
+					clish_command__get_viewid(cmd), context);
+				lub_string_free(line);
+			}
 		}
 	}
 

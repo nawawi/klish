@@ -32,7 +32,7 @@ clish_command_init(clish_command_t *this, const char *name, const char *text)
 	this->alias_view = NULL;
 	this->paramv = clish_paramv_new();
 	this->viewid = NULL;
-	this->view = NULL;
+	this->viewname = NULL;
 	this->action = clish_action_new();
 	this->config = clish_config_new();
 	this->detail = NULL;
@@ -250,22 +250,22 @@ clish_config_t *clish_command__get_config(const clish_command_t *this)
 }
 
 /*--------------------------------------------------------- */
-void clish_command__set_view(clish_command_t * this, clish_view_t * view)
+void clish_command__set_viewname(clish_command_t * this, const char *viewname)
 {
-	assert(NULL == this->view);
-	clish_command__force_view(this, view);
+	assert(NULL == this->viewname);
+	clish_command__force_viewname(this, viewname);
 }
 
 /*--------------------------------------------------------- */
-void clish_command__force_view(clish_command_t * this, clish_view_t * view)
+void clish_command__force_viewname(clish_command_t * this, const char *viewname)
 {
-	this->view = view;
+	this->viewname = lub_string_dup(viewname);
 }
 
 /*--------------------------------------------------------- */
-clish_view_t *clish_command__get_view(const clish_command_t * this)
+char *clish_command__get_viewname(const clish_command_t * this)
 {
-	return this->view;
+	return this->viewname;
 }
 
 /*--------------------------------------------------------- */

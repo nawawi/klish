@@ -198,7 +198,7 @@ clish_command_t *clish_view_resolve_command(clish_view_t *this,
 			(!clish_action__get_builtin(action)) &&
 			(CLISH_CONFIG_NONE == clish_config__get_op(config)) &&
 			(!clish_command__get_param_count(result)) &&
-			(!clish_command__get_view(result))) {
+			(!clish_command__get_viewname(result))) {
 			/* if this doesn't do anything we've
 			 * not resolved a command
 			 */
