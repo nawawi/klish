@@ -12,8 +12,6 @@
 typedef enum {
 	CLISH_SYM_TYPE_NONE = 0, /* None */
 	CLISH_SYM_TYPE_ACTION, /* Common builtin symbol */
-	CLISH_SYM_TYPE_INIT,
-	CLISH_SYM_TYPE_FINI,
 	CLISH_SYM_TYPE_ACCESS,
 	CLISH_SYM_TYPE_CONFIG,
 	CLISH_SYM_TYPE_LOG,
@@ -37,27 +35,14 @@ typedef struct clish_plugin_s clish_plugin_t;
 #define CLISH_PLUGIN_FINI_FUNC(name) int name(void *clish_shell, clish_plugin_t *plugin)
 #define CLISH_PLUGIN_FINI CLISH_PLUGIN_FINI_FUNC(CLISH_PLUGIN_FINI_FNAME)
 
-#define CLISH_HOOK_INIT(name) int name(void *clish_context)
-#define CLISH_HOOK_FINI(name) int name(void *clish_context)
-
 #define CLISH_PLUGIN_SYM(name) int name(void *clish_context, const char *script, char **out)
 #define CLISH_HOOK_ACCESS(name) int name(void *clish_context, const char *access)
 #define CLISH_HOOK_CONFIG(name) int name(void *clish_context)
 #define CLISH_HOOK_LOG(name) int name(void *clish_context, const char *line, int retcode)
 
-/* Default syms */
-#define CLISH_DEFAULT_SYM "clish_script@clish" /* Builtin symbol to use by default */
-#define CLISH_DEFAULT_ACCESS "clish_hook_access@clish"
-#define CLISH_DEFAULT_CONFIG "clish_hook_config@clish"
-#define CLISH_DEFAULT_LOG "clish_hook_log@clish"
-
-/* typedef void clish_shell_cmd_line_fn_t(clish_context_t *context, const char *cmd_line); */
-
 typedef CLISH_PLUGIN_INIT_FUNC(clish_plugin_init_t);
 typedef CLISH_PLUGIN_FINI_FUNC(clish_plugin_fini_t);
 typedef CLISH_PLUGIN_SYM(clish_hook_action_fn_t);
-typedef CLISH_HOOK_INIT(clish_hook_init_fn_t);
-typedef CLISH_HOOK_FINI(clish_hook_fini_fn_t);
 typedef CLISH_HOOK_ACCESS(clish_hook_access_fn_t);
 typedef CLISH_HOOK_CONFIG(clish_hook_config_fn_t);
 typedef CLISH_HOOK_LOG(clish_hook_log_fn_t);

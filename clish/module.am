@@ -44,8 +44,7 @@ EXTRA_DIST += \
 	clish/config/module.am \
 	clish/hotkey/module.am \
 	clish/plugin/module.am \
-	clish/builtin/module.am \
-	clish/udata/module.am	\
+	clish/udata/module.am \
 	clish/README
 
 include $(top_srcdir)/clish/command/module.am
@@ -60,5 +59,4 @@ include $(top_srcdir)/clish/action/module.am
 include $(top_srcdir)/clish/config/module.am
 include $(top_srcdir)/clish/hotkey/module.am
 include $(top_srcdir)/clish/plugin/module.am
-include $(top_srcdir)/clish/builtin/module.am
 include $(top_srcdir)/clish/udata/module.am

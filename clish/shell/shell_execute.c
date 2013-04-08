@@ -29,7 +29,7 @@ static int clish_shell_lock(const char *lock_path)
 		return -1;
 	lock_fd = open(lock_path, O_WRONLY | O_CREAT, 00644);
 	if (-1 == lock_fd) {
-		fprintf(stderr, "Can't open lockfile %s.\n", lock_path);
+		fprintf(stderr, "Warning: Can't open lockfile %s.\n", lock_path);
 		return -1;
 	}
 	lock.l_type = F_WRLCK;
@@ -45,14 +45,14 @@ static int clish_shell_lock(const char *lock_path)
 		if ((EAGAIN == errno) || (EACCES == errno)) {
 			if (0 == i)
 				fprintf(stderr,
-					"Try to get lock. Please wait...\n");
+					"Warning: Try to get lock. Please wait...\n");
 			sleep(1);
 			continue;
 		}
 		break;
 	}
 	if (res == -1) {
-		fprintf(stderr, "Can't get lock.\n");
+		fprintf(stderr, "Error: Can't get lock.\n");
 		close(lock_fd);
 		return -1;
 	}
@@ -210,8 +210,10 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 		return 0;
 	if (shell->dryrun && !clish_sym__get_permanent(sym))
 		return 0;
-	if (!(func = clish_sym__get_func(sym)))
+	if (!(func = clish_sym__get_func(sym))) {
+		fprintf(stderr, "Error: Default ACTION symbol is not specified.\n");
 		return -1;
+	}
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
 	result = func(context, script, out);
 	lub_string_free(script);
@@ -235,22 +237,6 @@ void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
 		return NULL;
 
 	return func;
-}
-
-/*----------------------------------------------------------- */
-CLISH_HOOK_INIT(clish_shell_exec_init)
-{
-	clish_hook_init_fn_t *func = NULL;
-	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_INIT);
-	return func ? func(clish_context) : 0;
-}
-
-/*----------------------------------------------------------- */
-CLISH_HOOK_FINI(clish_shell_exec_fini)
-{
-	clish_hook_fini_fn_t *func = NULL;
-	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_FINI);
-	return func ? func(clish_context) : 0;
 }
 
 /*----------------------------------------------------------- */

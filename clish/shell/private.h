@@ -48,12 +48,7 @@ struct clish_shell_s {
 
 	/* Hooks */
 	clish_sym_t *hooks[CLISH_SYM_TYPE_MAX]; /* Callback hooks */
-#define hooks_fn hooks[CLISH_SYM_TYPE_ACTION]
-#define hooks_init hooks[CLISH_SYM_TYPE_INIT]
-#define hooks_fini hooks[CLISH_SYM_TYPE_FINI]
-#define hooks_access hooks[CLISH_SYM_TYPE_ACCESS]
-#define hooks_config hooks[CLISH_SYM_TYPE_CONFIG]
-#define hooks_log hooks[CLISH_SYM_TYPE_LOG]
+	bool_t hooks_use[CLISH_SYM_TYPE_MAX]; /* Is hook defined */
 
 	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
@@ -82,6 +77,7 @@ struct clish_shell_s {
 	bool_t interactive; /* Is shell interactive. */
 	bool_t log; /* If command logging is enabled */
 	bool_t dryrun; /* Is this a dry-running */
+	bool_t default_plugin; /* Use or not default plugin */
 
 	/* Plugins and symbols */
 	lub_list_t *plugins; /* List of plugins */

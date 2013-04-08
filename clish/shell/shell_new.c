@@ -20,7 +20,7 @@ static void clish_shell_init(clish_shell_t * this,
 	bool_t stop_on_error)
 {
 	clish_ptype_t *tmp_ptype = NULL;
-	clish_plugin_t *plugin = NULL;
+	int i;
 
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
@@ -39,9 +39,6 @@ static void clish_shell_init(clish_shell_t * this,
 
 	/* Initialize plugin list */
 	this->plugins = lub_list_new(NULL);
-	/* Create internal plugin "clish" */
-	plugin = clish_plugin_new(NULL, "clish");
-	lub_list_add(this->plugins, plugin);
 
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare);
@@ -50,20 +47,13 @@ static void clish_shell_init(clish_shell_t * this,
 	this->udata = lub_list_new(clish_udata_compare);
 	assert(this->udata);
 
-	/* Default syms and hooks */
-	this->hooks[CLISH_SYM_TYPE_NONE] = NULL;
-	this->hooks[CLISH_SYM_TYPE_ACTION] = clish_sym_new(
-		CLISH_DEFAULT_SYM, NULL, CLISH_SYM_TYPE_ACTION);
-	this->hooks[CLISH_SYM_TYPE_INIT] = NULL;
-	this->hooks[CLISH_SYM_TYPE_FINI] = NULL;
-	this->hooks[CLISH_SYM_TYPE_ACCESS] = clish_sym_new(
-		CLISH_DEFAULT_ACCESS, NULL, CLISH_SYM_TYPE_ACCESS);
-	this->hooks[CLISH_SYM_TYPE_CONFIG] = clish_sym_new(
-		CLISH_DEFAULT_CONFIG, NULL, CLISH_SYM_TYPE_CONFIG);
-	this->hooks[CLISH_SYM_TYPE_LOG] = clish_sym_new(
-		CLISH_DEFAULT_LOG, NULL, CLISH_SYM_TYPE_LOG);
+	/* Hooks */
+	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+		this->hooks[i] = clish_sym_new(NULL, NULL, i);
+		this->hooks_use[i] = BOOL_FALSE;
+	}
 
-	/* set up defaults */
+	/* Set up defaults */
 	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
@@ -86,6 +76,7 @@ static void clish_shell_init(clish_shell_t * this,
 	this->log = BOOL_FALSE; /* Disable logging by default */
 	this->dryrun = BOOL_FALSE; /* Disable dry-run by default */
 	this->user = lub_db_getpwuid(getuid()); /* Get user information */
+	this->default_plugin = BOOL_TRUE; /* Load default plugin by default */
 
 	/* Create internal ptypes and params */
 	/* Current depth */
@@ -153,6 +144,13 @@ static void clish_shell_fini(clish_shell_t *this)
 	while ((var = lub_bintree_findfirst(&this->var_tree))) {
 		lub_bintree_remove(&this->var_tree, var);
 		clish_var_delete(var);
+	}
+
+	/* Free empty hooks */
+	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+		if (clish_sym__get_name(this->hooks[i]))
+			continue;
+		clish_sym_free(this->hooks[i]);
 	}
 
 	/* Free symbol list */
@@ -230,13 +228,7 @@ clish_shell_t *clish_shell_new(
 /*--------------------------------------------------------- */
 void clish_shell_delete(clish_shell_t *this)
 {
-	clish_context_t context;
-	context.shell = this;
-
-	/* Now call the client finalization */
-	clish_shell_exec_fini(&context);
 	clish_shell_fini(this);
-
 	free(this);
 }
 

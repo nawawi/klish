@@ -23,12 +23,6 @@ int clish_shell_startup(clish_shell_t *this)
 	context.action = clish_command__get_action(this->startup);
 	context.pargv = NULL;
 
-	/* If an init hook exists - call it. */
-	if (clish_shell_exec_init(&context)) {
-		fprintf(stderr, "Error: Init hook returned error code.\n");
-		return -1;
-	}
-
 	banner = clish_command__get_detail(this->startup);
 	if (banner)
 		tinyrl_printf(this->tinyrl, "%s\n", banner);
