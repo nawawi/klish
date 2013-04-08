@@ -17,7 +17,7 @@ static char * trim(char *str)
 
 	len = last - first + 1;
 	new = malloc(len + 1);
-	bcopy(first, new, len);
+	memcpy(new, first, len);
 	new[len] = '\0';
 
 	return new;
