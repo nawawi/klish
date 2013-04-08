@@ -45,12 +45,6 @@ typedef struct clish_plugin_s clish_plugin_t;
 #define CLISH_HOOK_CONFIG(name) int name(void *clish_context)
 #define CLISH_HOOK_LOG(name) int name(void *clish_context, const char *line, int retcode)
 
-/* Default syms */
-#define CLISH_DEFAULT_SYM "clish_script@clish" /* Builtin symbol to use by default */
-#define CLISH_DEFAULT_ACCESS "clish_hook_access@clish"
-#define CLISH_DEFAULT_CONFIG "clish_hook_config@clish"
-#define CLISH_DEFAULT_LOG "clish_hook_log@clish"
-
 /* typedef void clish_shell_cmd_line_fn_t(clish_context_t *context, const char *cmd_line); */
 
 typedef CLISH_PLUGIN_INIT_FUNC(clish_plugin_init_t);

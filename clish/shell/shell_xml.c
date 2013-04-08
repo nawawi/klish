@@ -18,6 +18,18 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+/* Default hooks */
+#define CLISH_PLUGIN_DEFAULT "clish_plugin_default.so"
+const char* clish_plugin_default_hook[] = {
+	NULL,
+	"clish_script@clish",
+	NULL,
+	NULL,
+	"clish_hook_access@clish",
+	"clish_hook_config@clish",
+	"clish_hook_log@clish"
+	};
+
 #define CLISH_XML_ERROR_STR "Error parsing XML: "
 #define CLISH_XML_ERROR_ATTR(attr) CLISH_XML_ERROR_STR"The \""attr"\" attribute is required.\n"
 
@@ -142,9 +154,25 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	/* tidy up */
 	lub_string_free(buffer);
 
+	/* Load default plugin */
+	if (this->default_plugin) {
+		clish_plugin_t *plugin;
+		plugin = clish_plugin_new(CLISH_PLUGIN_DEFAULT, "clish");
+		lub_list_add(this->plugins, plugin);
+		/* Default hooks */
+		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+			if (this->hooks_use[i])
+				continue;
+			if (!clish_plugin_default_hook[i])
+				continue;
+			clish_sym__set_name(this->hooks[i],
+				clish_plugin_default_hook[i]);
+		}
+	}
+
 	/* Add default syms to unresolved table */
 	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
-		if (this->hooks[i])
+		if (clish_sym__get_name(this->hooks[i]))
 			lub_list_add(this->syms, this->hooks[i]);
 	}
 
@@ -576,11 +604,11 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
 	char *default_shebang =
 		clish_xmlnode_fetch_attr(element, "default_shebang");
-	char *default_builtin =
-		clish_xmlnode_fetch_attr(element, "default_builtin");
 	char *timeout = clish_xmlnode_fetch_attr(element, "timeout");
 	char *lock = clish_xmlnode_fetch_attr(element, "lock");
 	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
+	char *default_plugin = clish_xmlnode_fetch_attr(element,
+		"default_plugin");
 
 	/* Check syntax */
 	if (!view) {
@@ -606,10 +634,6 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
-	if (default_builtin)
-		clish_sym__set_name(shell->hooks[CLISH_SYM_TYPE_ACTION],
-			default_builtin);
-
 	if (timeout)
 		clish_shell__set_timeout(shell, atoi(timeout));
 
@@ -625,6 +649,10 @@ process_startup(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	else
 		clish_command__set_interrupt(cmd, BOOL_FALSE);
 
+	/* If we need the default plugin */
+	if (default_plugin && (0 == strcmp(default_plugin, "false")))
+		shell->default_plugin = BOOL_FALSE;
+
 	/* remember this command */
 	shell->startup = cmd;
 
@@ -633,7 +661,6 @@ error:
 	clish_xml_release(view);
 	clish_xml_release(viewid);
 	clish_xml_release(default_shebang);
-	clish_xml_release(default_builtin);
 	clish_xml_release(timeout);
 	clish_xml_release(lock);
 	clish_xml_release(interrupt);
@@ -848,6 +875,7 @@ process_action(clish_shell_t *shell, clish_xmlnode_t *element, void *parent)
 			CLISH_SYM_TYPE_ACTION);
 	else
 		sym = shell->hooks[CLISH_SYM_TYPE_ACTION];
+
 	clish_action__set_builtin(action, sym);
 	if (shebang)
 		clish_action__set_shebang(action, shebang);
@@ -1209,6 +1237,8 @@ process_hook(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 		type = CLISH_SYM_TYPE_INIT;
 	else if (!strcmp(name, "fini"))
 		type = CLISH_SYM_TYPE_FINI;
+	else if (!strcmp(name, "action"))
+		type = CLISH_SYM_TYPE_ACTION;
 	else if (!strcmp(name, "access"))
 		type = CLISH_SYM_TYPE_ACCESS;
 	else if (!strcmp(name, "config"))
@@ -1220,16 +1250,14 @@ process_hook(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 		goto error;
 	}
 
-	if (builtin) {
-		if (shell->hooks[type])
-			clish_sym__set_name(shell->hooks[type], builtin);
-		else
-			shell->hooks[type] = clish_sym_new(builtin, NULL, type);
-	} else {
-		if (shell->hooks[type])
-			clish_sym_free(shell->hooks[type]);
-		shell->hooks[type] = NULL;
+	/* Check duplicate HOOK tag */
+	if (shell->hooks_use[type]) {
+		fprintf(stderr,
+			CLISH_XML_ERROR_STR"HOOK %s duplication.\n", name);
+		goto error;
 	}
+	shell->hooks_use[type] = BOOL_TRUE;
+	clish_sym__set_name(shell->hooks[type], builtin);
 
 	res = 0;
 error:
