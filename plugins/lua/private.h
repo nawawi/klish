@@ -9,10 +9,10 @@
 
 #define LUA_UDATA	"lua state"
 
+extern char *scripts_path;
 void l_print_error(lua_State *, const char *, const char *, int);
 int clish_plugin_init_lua(clish_shell_t *shell);
 
-CLISH_HOOK_FINI(clish_plugin_lua_fini);
 CLISH_PLUGIN_SYM(clish_plugin_lua_action);
 
 #endif /* _PLUGIN_H_ */

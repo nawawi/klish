@@ -6,6 +6,8 @@
 
 #include "private.h"
 
+char *scripts_path = NULL;
+
 static bool_t
 load_scripts(lua_State *L, char *path)
 {
@@ -60,13 +62,6 @@ load_scripts(lua_State *L, char *path)
 int clish_plugin_init_lua(clish_shell_t *shell)
 {
 	lua_State *L = NULL;
-	char *scripts_path = getenv("CLISH_SCRIPTS_PATH");
-
-	if (!scripts_path)
-		if(!(scripts_path = getenv("CLISH_PATH"))) {
-			printf("%s: Lua scripts dir not specified\n", __func__);
-			return (-1);
-		}
 
 	if (!(L = luaL_newstate())) {
 		printf("%s: Failed to instantiate Lua interpreter\n", __func__);
@@ -75,7 +70,7 @@ int clish_plugin_init_lua(clish_shell_t *shell)
 
 	luaL_openlibs(L);
 
-	if (!load_scripts(L, scripts_path)) {
+	if (scripts_path && !load_scripts(L, scripts_path)) {
 		return (-1);
 	}
 
