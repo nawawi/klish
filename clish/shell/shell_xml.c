@@ -23,8 +23,6 @@
 const char* clish_plugin_default_hook[] = {
 	NULL,
 	"clish_script@clish",
-	NULL,
-	NULL,
 	"clish_hook_access@clish",
 	"clish_hook_config@clish",
 	"clish_hook_log@clish"
@@ -1233,11 +1231,7 @@ process_hook(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 		goto error;
 	}
 	/* Find out HOOK type */
-	if (!strcmp(name, "init"))
-		type = CLISH_SYM_TYPE_INIT;
-	else if (!strcmp(name, "fini"))
-		type = CLISH_SYM_TYPE_FINI;
-	else if (!strcmp(name, "action"))
+	if (!strcmp(name, "action"))
 		type = CLISH_SYM_TYPE_ACTION;
 	else if (!strcmp(name, "access"))
 		type = CLISH_SYM_TYPE_ACCESS;

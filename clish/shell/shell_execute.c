@@ -240,22 +240,6 @@ void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
 }
 
 /*----------------------------------------------------------- */
-CLISH_HOOK_INIT(clish_shell_exec_init)
-{
-	clish_hook_init_fn_t *func = NULL;
-	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_INIT);
-	return func ? func(clish_context) : 0;
-}
-
-/*----------------------------------------------------------- */
-CLISH_HOOK_FINI(clish_shell_exec_fini)
-{
-	clish_hook_fini_fn_t *func = NULL;
-	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_FINI);
-	return func ? func(clish_context) : 0;
-}
-
-/*----------------------------------------------------------- */
 CLISH_HOOK_ACCESS(clish_shell_exec_access)
 {
 	clish_hook_access_fn_t *func = NULL;

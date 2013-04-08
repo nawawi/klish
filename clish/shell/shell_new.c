@@ -228,13 +228,7 @@ clish_shell_t *clish_shell_new(
 /*--------------------------------------------------------- */
 void clish_shell_delete(clish_shell_t *this)
 {
-	clish_context_t context;
-	context.shell = this;
-
-	/* Now call the client finalization */
-	clish_shell_exec_fini(&context);
 	clish_shell_fini(this);
-
 	free(this);
 }
 
