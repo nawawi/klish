@@ -20,12 +20,6 @@ nobase_include_HEADERS		+= \
 
 clish_plugin_lua_la_SOURCES	+= \
 	plugins/lua/plugin_init.c \
-<<<<<<< HEAD
 	plugins/lua/plugin_fini.c \
-	plugins/lua/lua_init.c \
-=======
-	plugins/lua/lua_init.c \
-	plugins/lua/lua_fini.c \
->>>>>>> b9e9072034ce6f652f230161cea580b52cf5a9b9
 	plugins/lua/lua_action.c \
 	plugins/lua/lua_print_error.c
