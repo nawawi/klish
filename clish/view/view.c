@@ -75,24 +75,22 @@ static void clish_view_fini(clish_view_t * this)
 		clish_command_delete(cmd);
 	}
 
-	/* free our memory */
-	lub_string_free(this->name);
-	this->name = NULL;
-	lub_string_free(this->prompt);
-	this->prompt = NULL;
-
 	/* finalize each of the namespace instances */
 	for (i = 0; i < this->nspacec; i++) {
 		clish_nspace_delete(this->nspacev[i]);
 	}
 
-	/* Free hotkey structures */
-	clish_hotkeyv_delete(this->hotkeys);
-
 	/* free the namespace vector */
 	free(this->nspacev);
 	this->nspacec = 0;
 	this->nspacev = NULL;
+
+	/* Free hotkey structures */
+	clish_hotkeyv_delete(this->hotkeys);
+
+	/* free our memory */
+	lub_string_free(this->name);
+	lub_string_free(this->prompt);
 }
 
 /*---------------------------------------------------------

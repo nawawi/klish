@@ -58,10 +58,11 @@ static void clish_command_fini(clish_command_t * this)
 	/* finalize each of the parameter instances */
 	clish_paramv_delete(this->paramv);
 
-	lub_string_free(this->alias);
-	lub_string_free(this->viewid);
 	clish_action_delete(this->action);
 	clish_config_delete(this->config);
+	lub_string_free(this->alias);
+	lub_string_free(this->viewname);
+	lub_string_free(this->viewid);
 	lub_string_free(this->detail);
 	lub_string_free(this->escape_chars);
 	lub_string_free(this->regex_chars);

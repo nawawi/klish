@@ -41,17 +41,15 @@ int clish_shell_startup(clish_shell_t *this)
 }
 
 /*----------------------------------------------------------- */
-void clish_shell__set_startup_view(clish_shell_t * this, const char * viewname)
+void clish_shell__set_startup_view(clish_shell_t *this, const char *viewname)
 {
-	clish_view_t *view;
-
 	assert(this);
 	assert(this->startup);
 	clish_command__force_viewname(this->startup, viewname);
 }
 
 /*----------------------------------------------------------- */
-void clish_shell__set_startup_viewid(clish_shell_t * this, const char * viewid)
+void clish_shell__set_startup_viewid(clish_shell_t *this, const char *viewid)
 {
 	assert(this);
 	assert(this->startup);
@@ -59,7 +57,7 @@ void clish_shell__set_startup_viewid(clish_shell_t * this, const char * viewid)
 }
 
 /*----------------------------------------------------------- */
-void clish_shell__set_default_shebang(clish_shell_t * this, const char * shebang)
+void clish_shell__set_default_shebang(clish_shell_t *this, const char *shebang)
 {
 	assert(this);
 	lub_string_free(this->default_shebang);
@@ -67,7 +65,7 @@ void clish_shell__set_default_shebang(clish_shell_t * this, const char * shebang
 }
 
 /*----------------------------------------------------------- */
-const char * clish_shell__get_default_shebang(const clish_shell_t * this)
+const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 {
 	assert(this);
 	return this->default_shebang;

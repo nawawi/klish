@@ -166,10 +166,11 @@ int clish_shell_execute(clish_context_t *context, char **out)
 
 	/* Move into the new view */
 	if (!result) {
-		const char *viewname = clish_shell_expand(clish_command__get_viewname(cmd), SHELL_VAR_NONE, context);
+		char *viewname = clish_shell_expand(clish_command__get_viewname(cmd), SHELL_VAR_NONE, context);
 		if (viewname) {
 			/* Search for the view */
-			clish_view_t *view = clish_shell_find_create_view(this, viewname, NULL);
+			clish_view_t *view = clish_shell_find_view(this, viewname);
+			lub_string_free(viewname);
 			/* Save the PWD */
 			if (view) {
 				char *line = clish_shell__get_line(context);
