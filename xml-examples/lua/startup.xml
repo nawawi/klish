@@ -4,8 +4,14 @@
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 
+<<<<<<< HEAD
      <PLUGIN name="lua_hooks"
 	     file="clish_plugin_lua.so">/usr2/klish-rw/xml-examples/lua</PLUGIN>
+=======
+	<PLUGIN name="lua_hooks" file="clish_plugin_lua.so"/>
+
+	<HOOK name="fini" builtin="hook_fini@lua_hooks"/>
+>>>>>>> b9e9072034ce6f652f230161cea580b52cf5a9b9
 
 	<!--
 	<STARTUP view="test-view"/>
