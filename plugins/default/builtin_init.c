@@ -11,6 +11,9 @@
 /* Initialize internal pseudo-plugin */
 CLISH_PLUGIN_INIT
 {
+	/* Set plugin name */
+	clish_plugin__set_name(plugin, "clish");
+
 	/* Add hooks */
 	clish_plugin_add_phook(plugin, clish_hook_access,
 		"clish_hook_access", CLISH_SYM_TYPE_ACCESS);

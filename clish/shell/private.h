@@ -1,5 +1,5 @@
 /*
- * shell.h - private interface to the shell class
+ * shell/private.h - private interface to the shell class
  */
 #include "lub/bintree.h"
 #include "lub/list.h"
@@ -41,6 +41,15 @@ typedef struct {
 	lub_bintree_t viewid;
 } clish_shell_pwd_t;
 
+/* Context structure */
+struct clish_context_s {
+	clish_shell_t *shell;
+	const clish_command_t *cmd;
+	clish_pargv_t *pargv;
+	const clish_action_t *action;
+};
+
+/* Shell structure */
 struct clish_shell_s {
 	lub_bintree_t view_tree; /* Tree of views */
 	lub_bintree_t ptype_tree; /* Tree of ptypes */
@@ -50,7 +59,6 @@ struct clish_shell_s {
 	clish_sym_t *hooks[CLISH_SYM_TYPE_MAX]; /* Callback hooks */
 	bool_t hooks_use[CLISH_SYM_TYPE_MAX]; /* Is hook defined */
 
-	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */
 	unsigned int idle_timeout; /* This is the idle timeout */
@@ -145,6 +153,3 @@ void clish_shell__init_pwd(clish_shell_pwd_t *pwd);
 void clish_shell__fini_pwd(clish_shell_pwd_t *pwd);
 int clish_shell_timeout_fn(tinyrl_t *tinyrl);
 int clish_shell_keypress_fn(tinyrl_t *tinyrl, int key);
-
-/* Internal plugin symbols */
-CLISH_PLUGIN_SYM(clish_script);

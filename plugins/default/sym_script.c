@@ -23,10 +23,9 @@
 /*--------------------------------------------------------- */
 CLISH_PLUGIN_SYM(clish_script)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = context->shell;
-	const clish_action_t *action = context->action;
-	const char * shebang = NULL;
+	clish_shell_t *this = clish_context__get_shell(clish_context);
+	const clish_action_t *action = clish_context__get_action(clish_context);
+	const char *shebang = NULL;
 	pid_t cpid = -1;
 	int res;
 	const char *fifo_name;
