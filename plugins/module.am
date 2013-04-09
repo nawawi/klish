@@ -5,4 +5,6 @@ EXTRA_DIST += \
 	plugins/default/module.am
 
 include $(top_srcdir)/plugins/default/module.am
+if WITH_LUA
 include $(top_srcdir)/plugins/lua/module.am
+endif
