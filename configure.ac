@@ -90,6 +90,13 @@ AC_SUBST(LUA_LDFLAGS)
 AC_SUBST(LUA_CFLAGS)
 AC_SUBST(LUA_LIBS)
 
+#AX_PROG_LUA([5.1], [5.2], ,[:])
+LUA_VERSION="5.1"
+AX_LUA_LIBS([
+    AM_CONDITIONAL(WITH_LUA, true)
+])
+AX_LUA_HEADERS()
+
 ################################
 # Check for the roxml library
 ################################
