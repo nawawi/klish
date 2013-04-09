@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	/* Create shell instance */
 	if (quiet)
 		outfd = fopen("/dev/null", "w");
-	shell = clish_shell_new(NULL, NULL, outfd, stop_on_error);
+	shell = clish_shell_new(NULL, outfd, stop_on_error);
 	if (!shell) {
 		fprintf(stderr, "Error: Can't run clish.\n");
 		goto end;

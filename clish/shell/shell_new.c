@@ -15,9 +15,7 @@
 
 /*-------------------------------------------------------- */
 static void clish_shell_init(clish_shell_t * this,
-	void *cookie, FILE * istream,
-	FILE * ostream,
-	bool_t stop_on_error)
+	FILE * istream, FILE * ostream, bool_t stop_on_error)
 {
 	clish_ptype_t *tmp_ptype = NULL;
 	int i;
@@ -54,7 +52,6 @@ static void clish_shell_init(clish_shell_t * this,
 	}
 
 	/* Set up defaults */
-	this->client_cookie = cookie;
 	this->global = NULL;
 	this->startup = NULL;
 	this->idle_timeout = 0; /* No idle timeout by default */
@@ -211,7 +208,6 @@ static void clish_shell_fini(clish_shell_t *this)
 
 /*-------------------------------------------------------- */
 clish_shell_t *clish_shell_new(
-	void *cookie,
 	FILE * istream,
 	FILE * ostream,
 	bool_t stop_on_error)
@@ -219,8 +215,7 @@ clish_shell_t *clish_shell_new(
 	clish_shell_t *this = malloc(sizeof(clish_shell_t));
 
 	if (this)
-		clish_shell_init(this, cookie,
-			istream, ostream, stop_on_error);
+		clish_shell_init(this, istream, ostream, stop_on_error);
 
 	return this;
 }

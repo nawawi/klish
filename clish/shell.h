@@ -66,7 +66,6 @@ _BEGIN_C_DECL
  *----------------- */
 
 clish_shell_t *clish_shell_new(
-	void *cookie,
 	FILE * istream,
 	FILE * ostream,
 	bool_t stop_on_error);
@@ -123,9 +122,7 @@ unsigned clish_shell__get_depth(const clish_shell_t * instance);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
 const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
-void *clish_shell__get_client_cookie(const clish_shell_t * instance);
-void
-clish_shell__set_pwd(clish_shell_t *instance, const char * line,
+void clish_shell__set_pwd(clish_shell_t *instance, const char * line,
 	clish_view_t * view, char * viewid, clish_context_t *context);
 char *clish_shell__get_pwd_line(const clish_shell_t * instance,
 	 unsigned int index);

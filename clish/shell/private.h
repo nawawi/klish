@@ -50,7 +50,6 @@ struct clish_shell_s {
 	clish_sym_t *hooks[CLISH_SYM_TYPE_MAX]; /* Callback hooks */
 	bool_t hooks_use[CLISH_SYM_TYPE_MAX]; /* Is hook defined */
 
-	void *client_cookie; /* Client callback cookie */
 	clish_view_t *global; /* Reference to the global view. */
 	clish_command_t *startup; /* This is the startup command */
 	unsigned int idle_timeout; /* This is the idle timeout */
