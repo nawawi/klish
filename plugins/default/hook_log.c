@@ -17,8 +17,7 @@
 /*--------------------------------------------------------- */
 CLISH_HOOK_LOG(clish_hook_log)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = context->shell;
+	clish_shell_t *this = clish_context__get_shell(clish_context);
 	struct passwd *user = NULL;
 	char *uname = "unknown";
 

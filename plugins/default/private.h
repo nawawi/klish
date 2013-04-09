@@ -4,7 +4,6 @@
 
 #include "clish/plugin.h"
 #include "clish/shell.h"
-#include "clish/shell/private.h"
 
 /* Hooks */
 CLISH_HOOK_ACCESS(clish_hook_access);

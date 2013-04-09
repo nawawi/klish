@@ -21,11 +21,8 @@
 /* Terminate the current shell session */
 CLISH_PLUGIN_SYM(clish_close)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = (clish_shell_t *)context->shell;
-
-	this->state = SHELL_STATE_CLOSING;
-
+	clish_shell_t *this = clish_context__get_shell(clish_context);
+	clish_shell__set_state(this, SHELL_STATE_CLOSING);
 	return 0;
 }
 
@@ -43,7 +40,7 @@ static int clish_source_internal(clish_context_t *context,
 	struct stat fileStat;
 
 	/* the exception proves the rule... */
-	clish_shell_t *this = (clish_shell_t *)context->shell;
+	clish_shell_t *this = clish_context__get_shell(context);
 
 	/*
 	 * Check file specified is not a directory 
@@ -92,20 +89,18 @@ CLISH_PLUGIN_SYM(clish_source_nostop)
 */
 CLISH_PLUGIN_SYM(clish_overview)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = context->shell;
-
-	tinyrl_printf(this->tinyrl, "%s\n", context->shell->overview);
-
+	clish_shell_t *this = clish_context__get_shell(clish_context);
+	tinyrl_t *tinyrl = clish_shell__get_tinyrl(this);
+	tinyrl_printf(tinyrl, "%s\n", clish_shell__get_overview(this));
 	return 0;
 }
 
 /*----------------------------------------------------------- */
 CLISH_PLUGIN_SYM(clish_history)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = context->shell;
-	tinyrl_history_t *history = tinyrl__get_history(this->tinyrl);
+	clish_shell_t *this = clish_context__get_shell(clish_context);
+	tinyrl_t *tinyrl = clish_shell__get_tinyrl(this);
+	tinyrl_history_t *history = tinyrl__get_history(tinyrl);
 	tinyrl_history_iterator_t iter;
 	const tinyrl_history_entry_t *entry;
 	unsigned limit = 0;
@@ -124,7 +119,7 @@ CLISH_PLUGIN_SYM(clish_history)
 	for (entry = tinyrl_history_getfirst(history, &iter);
 		entry; entry = tinyrl_history_getnext(&iter)) {
 		/* dump the details of this entry */
-		tinyrl_printf(this->tinyrl,
+		tinyrl_printf(tinyrl,
 			"%5d  %s\n",
 			tinyrl_history_entry__get_index(entry),
 			tinyrl_history_entry__get_line(entry));
@@ -138,17 +133,18 @@ CLISH_PLUGIN_SYM(clish_history)
  */
 CLISH_PLUGIN_SYM(clish_nested_up)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *this = context->shell;
+	clish_shell_t *this = clish_context__get_shell(clish_context);
+	unsigned int depth;
+
 	if (!this)
 		return -1;
-
 	/* If depth=0 than exit */
-	if (0 == this->depth) {
-		this->state = SHELL_STATE_CLOSING;
+	if ((depth = clish_shell__get_depth(this)) == 0) {
+		clish_shell__set_state(this, SHELL_STATE_CLOSING);
 		return 0;
 	}
-	this->depth--;
+	depth--;
+	clish_shell__set_depth(this, depth);
 
 	return 0;
 }
@@ -168,17 +164,16 @@ CLISH_PLUGIN_SYM(clish_nop)
  */
 CLISH_PLUGIN_SYM(clish_wdog)
 {
-	clish_context_t *context = (clish_context_t *)clish_context;
 	const char *arg = script;
-	clish_shell_t *this = context->shell;
+	clish_shell_t *this = clish_context__get_shell(clish_context);
 
 	/* Turn off watchdog if no args */
 	if (!arg || ('\0' == *arg)) {
-		this->wdog_timeout = 0;
+		clish_shell__set_wdog_timeout(this, 0);
 		return 0;
 	}
 
-	this->wdog_timeout = (unsigned int)atoi(arg);
+	clish_shell__set_wdog_timeout(this, (unsigned int)atoi(arg));
 
 	return 0;
 }

@@ -30,16 +30,22 @@
 #define CLISH_LOCK_WAIT 20
 
 typedef struct clish_shell_s clish_shell_t;
-
-/* This is used to hold context during callbacks */
-struct clish_context_s {
-	clish_shell_t *shell;
-	const clish_command_t *cmd;
-	clish_pargv_t *pargv;
-	const clish_action_t *action;
-};
 typedef struct clish_context_s clish_context_t;
 
+/* Context functions */
+_BEGIN_C_DECL
+clish_context_t *clish_context_new(clish_shell_t *shell);
+void clish_context_free(clish_context_t *instance);
+clish_shell_t *clish_context__get_shell(const void *instance);
+void clish_context__set_cmd(void *instance, clish_command_t *cmd);
+const clish_command_t *clish_context__get_cmd(const void *instance);
+void clish_context__set_pargv(void *instance, clish_pargv_t *pargv);
+clish_pargv_t *clish_context__get_pargv(const void *instance);
+void clish_context__set_action(void *instance, clish_action_t *action);
+const clish_action_t *clish_context__get_action(const void *instance);
+_END_C_DECL
+
+/* Shell */
 typedef enum {
 	SHELL_STATE_OK = 0,
 	SHELL_STATE_UNKNOWN = 1,
@@ -65,9 +71,7 @@ _BEGIN_C_DECL
  * meta functions
  *----------------- */
 
-clish_shell_t *clish_shell_new(
-	FILE * istream,
-	FILE * ostream,
+clish_shell_t *clish_shell_new(FILE * istream, FILE * ostream,
 	bool_t stop_on_error);
 /*-----------------
  * methods
@@ -118,7 +122,8 @@ char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context
  * attributes
  *----------------- */
 clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
-unsigned clish_shell__get_depth(const clish_shell_t * instance);
+unsigned int clish_shell__get_depth(const clish_shell_t * instance);
+void clish_shell__set_depth(clish_shell_t *instance, unsigned int depth);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
 const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
@@ -126,7 +131,8 @@ void clish_shell__set_pwd(clish_shell_t *instance, const char * line,
 	clish_view_t * view, char * viewid, clish_context_t *context);
 char *clish_shell__get_pwd_line(const clish_shell_t * instance,
 	 unsigned int index);
-char *clish_shell__get_pwd_full(const clish_shell_t * instance, unsigned depth);
+char *clish_shell__get_pwd_full(const clish_shell_t * instance,
+	unsigned int depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
 	unsigned int index);
 konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
