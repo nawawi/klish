@@ -23,8 +23,8 @@ static int exec_action(lua_State *L, const char *script)
 
 CLISH_PLUGIN_SYM(clish_plugin_lua_action)
 {
-	clish_context_t *context = (clish_context_t *) clish_context;
-	lua_State *L = clish_shell__get_udata(context->shell, LUA_UDATA);
+	clish_shell_t *shell = clish_context__get_shell(clish_context);
+	lua_State *L = clish_shell__get_udata(shell, LUA_UDATA);
 	konf_buf_t *buf;
 	pid_t childpid;
 	int res = 0, origstdout = -1, fd[2];

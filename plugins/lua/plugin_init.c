@@ -31,7 +31,7 @@ CLISH_PLUGIN_INIT
 		scripts_path = trim(conf);
 	}
 
-	if(clish_plugin_init_lua((clish_shell_t *)clish_shell))
+	if(clish_plugin_init_lua(clish_shell))
 		return (-1);
 
 	clish_plugin__set_name(plugin, "lua_hooks");
