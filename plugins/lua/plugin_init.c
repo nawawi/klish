@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "private.h"
 
@@ -8,7 +10,6 @@ static char * trim(char *str)
 	const char *first = str;
 	char *last = str + strlen(str) - 1;
 	char *new = NULL;
-	int i = 0;
 
 	while (first < last && isspace(*first))
 		++first;

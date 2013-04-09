@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include <konf/buf.h>
 #include <lub/string.h>
@@ -27,7 +28,7 @@ CLISH_PLUGIN_SYM(clish_plugin_lua_action)
 	lua_State *L = clish_shell__get_udata(shell, LUA_UDATA);
 	konf_buf_t *buf;
 	pid_t childpid;
-	int res = 0, origstdout = -1, fd[2];
+	int res = 0, fd[2];
 
 	if (!script) /* Nothing to do */
 		return (0);

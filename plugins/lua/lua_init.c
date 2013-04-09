@@ -6,7 +6,7 @@
 
 #include "private.h"
 
-extern char *scripts_path = NULL;
+char *scripts_path = NULL;
 
 static bool_t
 load_scripts(lua_State *L, char *path)
