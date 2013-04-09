@@ -65,10 +65,9 @@ static int available_params(clish_shell_t *this,
 	pargv = clish_pargv_new();
 
 	/* Prepare context */
-	context.shell = this;
-	context.cmd = cmd;
-	context.action = NULL;
-	context.pargv = pargv;
+	clish_context_init(&context, this);
+	clish_context__set_cmd(&context, cmd);
+	clish_context__set_pargv(&context, pargv);
 
 	status = clish_shell_parse_pargv(pargv, cmd, &context,
 		clish_command__get_paramv(cmd),

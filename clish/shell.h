@@ -38,11 +38,11 @@ clish_context_t *clish_context_new(clish_shell_t *shell);
 int clish_context_init(clish_context_t *instance, clish_shell_t *shell);
 void clish_context_free(clish_context_t *instance);
 clish_shell_t *clish_context__get_shell(const void *instance);
-void clish_context__set_cmd(void *instance, clish_command_t *cmd);
+void clish_context__set_cmd(void *instance, const clish_command_t *cmd);
 const clish_command_t *clish_context__get_cmd(const void *instance);
 void clish_context__set_pargv(void *instance, clish_pargv_t *pargv);
 clish_pargv_t *clish_context__get_pargv(const void *instance);
-void clish_context__set_action(void *instance, clish_action_t *action);
+void clish_context__set_action(void *instance, const clish_action_t *action);
 const clish_action_t *clish_context__get_action(const void *instance);
 _END_C_DECL
 

@@ -140,7 +140,7 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 	/* Try to execute ACTION */
 	if (!res) {
 		char *out = NULL;
-		context->action = clish_var__get_action(var);
+		clish_context__set_action(context, clish_var__get_action(var));
 		if (clish_shell_exec_action(context, &out)) {
 			lub_string_free(out);
 			return NULL;
@@ -158,16 +158,18 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 /*--------------------------------------------------------- */
 static char *find_global_var(const char *name, clish_context_t *context)
 {
-	return find_var(name, &context->shell->var_tree, context);
+	clish_shell_t *shell = clish_context__get_shell(context);
+	return find_var(name, &shell->var_tree, context);
 }
 
 /*--------------------------------------------------------- */
 static char *find_viewid_var(const char *name, clish_context_t *context)
 {
-	int depth = clish_shell__get_depth(context->shell);
+	clish_shell_t *shell = clish_context__get_shell(context);
+	int depth = clish_shell__get_depth(shell);
 	if (depth < 0)
 		return NULL;
-	return find_var(name, &context->shell->pwdv[depth]->viewid, context);
+	return find_var(name, &shell->pwdv[depth]->viewid, context);
 }
 
 static char * chardiff(const char *syms, const char *minus)
@@ -342,7 +344,7 @@ char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context
 {
 	char *seg, *result = NULL;
 	const char *escape_chars = NULL;
-	const clish_command_t *cmd = context->cmd;
+	const clish_command_t *cmd = clish_context__get_cmd(context);
 
 	/* Escape special characters */
 	if (SHELL_VAR_REGEX == vtype) {
@@ -369,7 +371,7 @@ char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context
 /*--------------------------------------------------------- */
 char *clish_shell__get_params(clish_context_t *context)
 {
-	clish_pargv_t *pargv = context->pargv;
+	clish_pargv_t *pargv = clish_context__get_pargv(context);
 	char *line = NULL;
 	unsigned i, cnt;
 	const clish_param_t *param;
@@ -401,8 +403,8 @@ char *clish_shell__get_params(clish_context_t *context)
 /*--------------------------------------------------------- */
 static char *internal_get_line(clish_context_t *context, int cmd_type)
 {
-	const clish_command_t *cmd = context->cmd;
-	clish_pargv_t *pargv = context->pargv;
+	const clish_command_t *cmd = clish_context__get_cmd(context);
+	clish_pargv_t *pargv = clish_context__get_pargv(context);
 	char *line = NULL;
 	char *params = NULL;
 
@@ -449,9 +451,9 @@ char *clish_shell_expand_var(const char *name, clish_context_t *context)
 	assert(name);
 	if (!context)
 		return NULL;
-	this = context->shell;
-	cmd = context->cmd;
-	pargv = context->pargv;
+	this = clish_context__get_shell(context);
+	cmd = clish_context__get_cmd(context);
+	pargv = clish_context__get_pargv(context);
 
 	/* try and substitute a parameter value */
 	if (pargv) {

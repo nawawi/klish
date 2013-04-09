@@ -52,7 +52,7 @@ clish_shell_t *clish_context__get_shell(const void *this)
 }
 
 /*--------------------------------------------------------- */
-void clish_context__set_cmd(void *this, clish_command_t *cmd)
+void clish_context__set_cmd(void *this, const clish_command_t *cmd)
 {
 	clish_context_t *context = (clish_context_t *)this;
 	assert(context);
@@ -82,7 +82,7 @@ clish_pargv_t *clish_context__get_pargv(const void *this)
 }
 
 /*--------------------------------------------------------- */
-void clish_context__set_action(void *this, clish_action_t *action)
+void clish_context__set_action(void *this, const clish_action_t *action)
 {
 	clish_context_t *context = (clish_context_t *)this;
 	assert(context);

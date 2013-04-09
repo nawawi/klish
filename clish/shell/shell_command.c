@@ -97,10 +97,9 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 
 		/* Parse command line to get completion pargv's */
 		/* Prepare context */
-		context.shell = this;
-		context.cmd = cmd;
-		context.action = NULL;
-		context.pargv = pargv;
+		clish_context_init(&context, this);
+		clish_context__set_cmd(&context, cmd);
+		clish_context__set_pargv(&context, pargv);
 
 		clish_shell_parse_pargv(pargv, cmd, &context,
 			clish_command__get_paramv(cmd),
