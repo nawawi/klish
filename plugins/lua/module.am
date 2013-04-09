@@ -1,0 +1,28 @@
+lib_LTLIBRARIES			+= clish_plugin_lua.la
+clish_plugin_lua_la_SOURCES	 = 
+clish_plugin_lua_la_LIBADD	 = @LUA_LIBS@
+clish_plugin_lua_la_LDFLAGS	 = -avoid-version -module -shared
+clish_plugin_lua_la_LDFLAGS	+= -export-symbols-regex "^clish_plugin_lua_"
+
+clish_plugin_lua_la_LDFLAGS	+= @LUA_LDFLAGS@
+clish_plugin_lua_la_CFLAGS	 = @LUA_CFLAGS@
+
+clish_plugin_lua_la_LIBADD	+= \
+	liblub.la \
+	libclish.la \
+	libkonf.la
+
+clish_plugin_lua_la_DEPENDENCIES = \
+	liblub.la \
+	libclish.la \
+	libkonf.la
+
+nobase_include_HEADERS		+= \
+	plugins/lua/private.h
+
+clish_plugin_lua_la_SOURCES	+= \
+	plugins/lua/plugin_init.c \
+	plugins/lua/plugin_fini.c \
+	plugins/lua/lua_init.c \
+	plugins/lua/lua_action.c \
+	plugins/lua/lua_print_error.c

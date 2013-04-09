@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+                     http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+     <PLUGIN name="lua_hooks" file="clish_plugin_lua.so">
+	 /usr2/klish-rw/xml-examples/lua
+     </PLUGIN>
+     <STARTUP view="test-view" default_builtin="hook_action@lua_hooks"/>
+
+</CLISH_MODULE>
+
