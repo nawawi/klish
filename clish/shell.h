@@ -35,6 +35,7 @@ typedef struct clish_context_s clish_context_t;
 /* Context functions */
 _BEGIN_C_DECL
 clish_context_t *clish_context_new(clish_shell_t *shell);
+int clish_context_init(clish_context_t *instance, clish_shell_t *shell);
 void clish_context_free(clish_context_t *instance);
 clish_shell_t *clish_context__get_shell(const void *instance);
 void clish_context__set_cmd(void *instance, clish_command_t *cmd);

@@ -9,6 +9,17 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
+int clish_context_init(clish_context_t *this, clish_shell_t *shell)
+{
+	if (!this)
+		return -1;
+	memset(this, 0, sizeof(*this));
+	this->shell = shell;
+
+	return 0;
+}
+
+/*--------------------------------------------------------- */
 clish_context_t *clish_context_new(clish_shell_t *shell)
 {
 	clish_context_t *this;
@@ -17,8 +28,7 @@ clish_context_t *clish_context_new(clish_shell_t *shell)
 		return NULL;
 	if (!(this = malloc(sizeof(*this))))
 		return NULL;
-	memset(this, 0, sizeof(*this));
-	this->shell = shell;
+	clish_context_init(this, shell);
 
 	return this;
 }
