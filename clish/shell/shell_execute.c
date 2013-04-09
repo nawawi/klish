@@ -77,8 +77,8 @@ static void clish_shell_unlock(int lock_fd)
 /*----------------------------------------------------------- */
 int clish_shell_execute(clish_context_t *context, char **out)
 {
-	clish_shell_t *this = context->shell;
-	const clish_command_t *cmd = context->cmd;
+	clish_shell_t *this = clish_context__get_shell(context);
+	const clish_command_t *cmd = clish_context__get_cmd(context);
 	int result = 0;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
@@ -129,7 +129,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Execute ACTION */
-	context->action = clish_command__get_action(cmd);
+	clish_context__set_action(context, clish_command__get_action(cmd));
 	result = clish_shell_exec_action(context, out);
 
 	/* Restore SIGINT, SIGQUIT, SIGHUP */
@@ -203,8 +203,8 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	clish_sym_t *sym;
 	char *script;
 	clish_hook_action_fn_t *func = NULL;
-	const clish_action_t *action = context->action;
-	clish_shell_t *shell = context->shell;
+	const clish_action_t *action = clish_context__get_action(context);
+	clish_shell_t *shell = clish_context__get_shell(context);
 
 	if (!(sym = clish_action__get_builtin(action)))
 		return 0;
@@ -225,8 +225,7 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
 {
 	clish_sym_t *sym;
-	clish_context_t *context = (clish_context_t *)clish_context;
-	clish_shell_t *shell = context->shell;
+	clish_shell_t *shell = clish_context__get_shell(clish_context);
 	void *func;
 
 	if (!(sym = shell->hooks[type]))

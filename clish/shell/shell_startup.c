@@ -18,10 +18,10 @@ int clish_shell_startup(clish_shell_t *this)
 	}
 
 	/* Prepare context */
-	context.shell = this;
-	context.cmd = this->startup;
-	context.action = clish_command__get_action(this->startup);
-	context.pargv = NULL;
+	clish_context_init(&context, this);
+	clish_context__set_cmd(&context, this->startup);
+	clish_context__set_action(&context,
+		clish_command__get_action(this->startup));
 
 	banner = clish_command__get_detail(this->startup);
 	if (banner)
