@@ -7,7 +7,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#define LUA_UDATA	"lua state"
+#define LUA_UDATA "lua_state"
+#define LUA_PLUGIN_NAME "lua"
 
 extern char *scripts_path;
 void l_print_error(lua_State *, const char *, const char *, int);

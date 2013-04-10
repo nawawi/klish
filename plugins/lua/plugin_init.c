@@ -35,9 +35,9 @@ CLISH_PLUGIN_INIT
 	if(clish_plugin_init_lua(clish_shell))
 		return (-1);
 
-	clish_plugin__set_name(plugin, "lua_hooks");
+	clish_plugin__set_name(plugin, LUA_PLUGIN_NAME);
 
-	clish_plugin_add_sym(plugin, clish_plugin_lua_action, "hook_action");
+	clish_plugin_add_sym(plugin, clish_plugin_lua_action, "lua");
 
 	return 0;
 }
