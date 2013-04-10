@@ -202,7 +202,6 @@
         </xs:sequence>
         <xs:attribute name="view" type="xs:string" use="required"/>
         <xs:attribute name="viewid" type="xs:string" use="optional"/>
-        <xs:attribute name="default_builtin" type="xs:string" use="optional" default="clish_script@clish"/>
         <xs:attribute name="default_shebang" type="xs:string" use="optional"/>
         <xs:attribute name="timeout" type="xs:string" use="optional"/>
         <xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
