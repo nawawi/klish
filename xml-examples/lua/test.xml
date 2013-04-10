@@ -81,14 +81,12 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 	</COMMAND>
 
 	<COMMAND name="test8" help="Call a Lua function">
-		<ACTION builtin="hook_action@lua_hooks">hello_world()</ACTION>
+		<ACTION builtin="lua@lua">hello_world()</ACTION>
 	</COMMAND>
 
 	<COMMAND name="eval" help="Evaluate a string as Lua chunk">
 		<PARAM name="str" help="String to evaluate" ptype="STRING"/>
-		<ACTION builtin="hook_action@lua_hooks">
-			loadstring("${str}")()
-		</ACTION>
+		<ACTION builtin="lua@lua">loadstring("${str}")()</ACTION>
 	</COMMAND>
 
 	<COMMAND name="test9" ref="eval" help="Alias for the eval command"/>
