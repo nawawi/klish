@@ -492,7 +492,8 @@ int main(int argc, char ** argv)
                 sed "s|^Lua \(.*\)|\1|" | \
                 grep -o "^@<:@0-9@:>@\+\\.@<:@0-9@:>@\+"`
             ],
-            [ax_cv_lua_header_version='unknown'])
+            [ax_cv_lua_header_version='unknown'],
+            [ax_cv_lua_header_version=$LUA_VERSION])
           CPPFLAGS=$_ax_lua_saved_cppflags
         ])
 

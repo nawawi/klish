@@ -49,53 +49,15 @@ AC_ARG_WITH(lua,
             [use_lua=no])
 AM_CONDITIONAL(WITH_LUA,test x$use_lua != xno)
 
-LUA_LDFLAGS=""
-LUA_CFLAGS=""
-LUA_LIBS=""
-
-if test x$use_lua = xyes; then
-    AC_CHECK_LIB([lua],
-                 [lua_close],
-                 [lua_lib_found=yes],
-                 [lua_lib_found=no],
-                 [])
-    if test x$lua_lib_found = xno; then
-        AC_MSG_ERROR([cannot find Lua library])
+if test x$use_lua != xno; then
+    if test x$use_lua != xyes; then
+        CPPFLAGS="${CPPFLAGS} -I$use_lua/include"
+	LDFLAGS="${LDFLAGS} -L$use_lua/lib"
     fi
-    LUA_LIBS="-llua -lm"
-    AC_CHECK_HEADER([lua.h],
-                    [lua_h_found=yes],
-                    [lua_h_found=no],
-                    [/* force include check */])
-    if test x$lua_h_found = xno; then
-        AC_MSG_ERROR([cannot find <lua.h> header file])
-    fi
-    AC_CHECK_HEADER([lualib.h],
-                    [lualib_h_found=yes],
-                    [lualib_h_found=no],
-                    [/* force include check */])
-    if test x$lualib_h_found = xno; then
-        AC_MSG_ERROR([cannot find <lualib.h> header file])
-    fi
-    AC_CHECK_HEADER([lauxlib.h],
-                    [lauxlib_h_found=yes],
-                    [lauxlib_h_found=no],
-                    [/* force include check */])
-    if test x$lauxlib_h_found = xno; then
-        AC_MSG_ERROR([cannot find <lauxlib.h> header file])
-    fi
+    LUA_VERSION="5.1"
+    AX_LUA_HEADERS()
+    AX_LUA_LIBS()
 fi
-
-AC_SUBST(LUA_LDFLAGS)
-AC_SUBST(LUA_CFLAGS)
-AC_SUBST(LUA_LIBS)
-
-#AX_PROG_LUA([5.1], [5.2], ,[:])
-LUA_VERSION="5.1"
-AX_LUA_LIBS([
-    AM_CONDITIONAL(WITH_LUA, true)
-])
-AX_LUA_HEADERS()
 
 ################################
 # Check for the roxml library
