@@ -36,7 +36,10 @@ CLISH_PLUGIN_SYM(clish_plugin_lua_action)
 	if (!out) /* Handle trivial case */
 		return exec_action(L, script);
 
-	pipe(fd);
+	if (pipe(fd) == -1) {
+		perror("pipe");
+		return -1;
+	}
 
 	if ((childpid = fork()) == -1) {
 		perror("fork");
