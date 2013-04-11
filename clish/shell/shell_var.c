@@ -98,8 +98,8 @@ static char *find_context_var(const char *name, clish_context_t *this)
 	} else if (lub_string_nocasestr(name, "_prefix") == name) {
 		int idx = 0;
 		int pnum = 0;
-		pnum = lub_argv_wordcount(clish_command__get_name(this->cmd)) -
-			lub_argv_wordcount(clish_command__get_name(
+		pnum = lub_string_wordcount(clish_command__get_name(this->cmd)) -
+			lub_string_wordcount(clish_command__get_name(
 			clish_command__get_cmd(this->cmd)));
 		idx = atoi(name + strlen("_prefix"));
 		if (idx < pnum) {

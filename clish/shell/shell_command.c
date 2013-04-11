@@ -79,9 +79,9 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 	const char *name = clish_command__get_name(cmd);
 	char *text = lub_string_dup(&line[offset]);
 	clish_ptype_t *ptype;
-	unsigned idx = lub_argv_wordcount(name);
+	unsigned idx = lub_string_wordcount(name);
 	/* get the index of the current parameter */
-	unsigned index = lub_argv_wordcount(line) - idx;
+	unsigned index = lub_string_wordcount(line) - idx;
 	clish_context_t context;
 
 	if ((0 != index) || (offset && line[offset - 1] == ' ')) {

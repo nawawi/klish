@@ -42,8 +42,8 @@ static int available_params(clish_shell_t *this,
 	clish_help_t *help, const clish_command_t *cmd,
 	const char *line, size_t *max_width)
 {
-	unsigned index = lub_argv_wordcount(line);
-	unsigned idx = lub_argv_wordcount(clish_command__get_name(cmd));
+	unsigned index = lub_string_wordcount(line);
+	unsigned idx = lub_string_wordcount(clish_command__get_name(cmd));
 	lub_argv_t *argv;
 	clish_pargv_t *completion, *pargv;
 	unsigned i;

@@ -31,7 +31,7 @@ clish_pargv_status_t clish_shell_parse(
 	clish_context__set_cmd(&context, cmd);
 	clish_context__set_pargv(&context, *pargv);
 
-	idx = lub_argv_wordcount(clish_command__get_name(cmd));
+	idx = lub_string_wordcount(clish_command__get_name(cmd));
 	argv = lub_argv_new(line, 0);
 	result = clish_shell_parse_pargv(*pargv, cmd, &context,
 		clish_command__get_paramv(cmd),

@@ -256,7 +256,7 @@ static const clish_command_t *find_next_completion(clish_view_t * this,
 		/* Make command link from command alias */
 		cmd = clish_command_alias_to_link(cmd);
 		name = clish_command__get_name(cmd);
-		if (words == lub_argv_wordcount(name)) {
+		if (words == lub_string_wordcount(name)) {
 			/* only bother with commands of which this line is a prefix */
 			/* this is a completion */
 			if (lub_string_nocasestr(name, line) == name)
