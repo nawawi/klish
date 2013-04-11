@@ -5,7 +5,7 @@
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 
      <PLUGIN name="lua" file="clish_plugin_lua.so">
-	 /usr2/klish-rw/xml-examples/lua
+	 scripts_dir="/usr2/klish-rw/xml-examples/lua"
      </PLUGIN>
      <HOOK name="action" builtin="lua@lua"/>
 

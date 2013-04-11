@@ -1,35 +1,19 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <lub/ini.h>
+#include <lub/string.h>
 
 #include "private.h"
 
-static char * trim(char *str)
-{
-	size_t len = 0;
-	const char *first = str;
-	char *last = str + strlen(str) - 1;
-	char *new = NULL;
-
-	while (first < last && isspace(*first))
-		++first;
-	while (first < last && isspace(*last))
-		--last;
-
-	len = last - first + 1;
-	new = malloc(len + 1);
-	memcpy(new, first, len);
-	new[len] = '\0';
-
-	return new;
-}
-
 CLISH_PLUGIN_INIT
 {
+	lub_ini_t *ini;
 	char *conf = clish_plugin__get_conf(plugin);
 
 	if (conf) {
-		scripts_path = trim(conf);
+		ini = lub_ini_new();
+		lub_ini_parse_str(ini, conf);
+		scripts_path =
+			lub_string_dup(lub_ini_find(ini, LUA_SCRIPTS_DIR));
+		lub_ini_free(ini);
 	}
 
 	if(clish_plugin_init_lua(clish_shell))

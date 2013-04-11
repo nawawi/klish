@@ -71,10 +71,10 @@ int clish_plugin_init_lua(clish_shell_t *shell)
 	luaL_openlibs(L);
 
 	if (scripts_path && !load_scripts(L, scripts_path)) {
-		free(scripts_path);
+		lub_string_free(scripts_path);
 		return (-1);
 	}
-	free(scripts_path);
+	lub_string_free(scripts_path);
 
 	clish_shell__set_udata(shell, LUA_UDATA, L);
 
