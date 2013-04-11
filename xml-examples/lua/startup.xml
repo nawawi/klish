@@ -7,7 +7,9 @@
      <PLUGIN name="lua" file="clish_plugin_lua.so">
 	 /usr2/klish-rw/xml-examples/lua
      </PLUGIN>
-     <STARTUP view="test-view" default_builtin="lua@lua"/>
+     <HOOK name="action" builtin="lua@lua"/>
+
+     <STARTUP view="test-view"/>
 
 </CLISH_MODULE>
 

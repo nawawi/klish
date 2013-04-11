@@ -15,7 +15,9 @@
 	</COMMAND>
 
 	<COMMAND name="test1" help="" lock="false">
-		<ACTION> echo "Empty attribute" </ACTION>
+		<ACTION builtin="clish_script@clish">
+			echo "Empty attribute"
+		</ACTION>
 	</COMMAND>
 
 	<COMMAND name="test2" help='Single quotes' lock="false">
@@ -81,12 +83,12 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 	</COMMAND>
 
 	<COMMAND name="test8" help="Call a Lua function">
-		<ACTION builtin="lua@lua">hello_world()</ACTION>
+		<ACTION>hello_world()</ACTION>
 	</COMMAND>
 
 	<COMMAND name="eval" help="Evaluate a string as Lua chunk">
 		<PARAM name="str" help="String to evaluate" ptype="STRING"/>
-		<ACTION builtin="lua@lua">loadstring("${str}")()</ACTION>
+		<ACTION>loadstring("${str}")()</ACTION>
 	</COMMAND>
 
 	<COMMAND name="test9" ref="eval" help="Alias for the eval command"/>
