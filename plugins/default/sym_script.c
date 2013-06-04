@@ -41,7 +41,7 @@ CLISH_PLUGIN_SYM(clish_script)
 
 	assert(this);
 	if (!script) /* Nothing to do */
-		return BOOL_TRUE;
+		return 0;
 
 	/* Find out shebang */
 	if (action)
@@ -62,17 +62,17 @@ CLISH_PLUGIN_SYM(clish_script)
 		/* Get FIFO */
 		fifo_name = clish_shell__get_fifo(this);
 		if (!fifo_name) {
-			fprintf(stderr, "System error. Can't create temporary FIFO.\n"
-				"The ACTION will be not executed.\n");
-			return BOOL_FALSE;
+			fprintf(stderr, "Error: Can't create temporary FIFO.\n"
+				"Error: The ACTION will be not executed.\n");
+			return -1;
 		}
 
 		/* Create process to write to FIFO */
 		cpid = fork();
 		if (cpid == -1) {
-			fprintf(stderr, "System error. Can't fork the write process.\n"
-				"The ACTION will be not executed.\n");
-			return BOOL_FALSE;
+			fprintf(stderr, "Error: Can't fork the write process.\n"
+				"Error: The ACTION will be not executed.\n");
+			return -1;
 		}
 
 		/* Child: write to FIFO */
@@ -111,8 +111,8 @@ CLISH_PLUGIN_SYM(clish_script)
 		/* Execute shebang with FIFO as argument */
 		rpipe = popen(command, "r");
 		if (!rpipe) {
-			fprintf(stderr, "System error. Can't fork the script.\n"
-				"The ACTION will be not executed.\n");
+			fprintf(stderr, "Error: Can't fork the script.\n"
+				"Error: The ACTION will be not executed.\n");
 			lub_string_free(command);
 			if (!is_sh) {
 				kill(cpid, SIGTERM);
@@ -123,7 +123,7 @@ CLISH_PLUGIN_SYM(clish_script)
 			sigaction(SIGINT, &sig_old_int, NULL);
 			sigaction(SIGQUIT, &sig_old_quit, NULL);
 
-			return BOOL_FALSE;
+			return -1;
 		}
 		/* Read the result of script execution */
 		buf = konf_buf_new(fileno(rpipe));
