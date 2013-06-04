@@ -251,10 +251,16 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 					} else if ('~' == *q) {
 						mod_esc = 1;
 						mod_esc_chars = 0;
+					/* Internal automatic variable like ${__line} */
 					} else if (('_' == *q) && ('_' == *(q+1))) {
 						mod_esc_dec = 1;
 						q++;
 						break;
+					/* No escaping at all. Usefull for macros VAR */
+					} else if ('^' == *q) {
+						mod_quote = 0;
+						mod_esc = 0;
+						mod_esc_chars = 0;
 					} else
 						break;
 					q++;
