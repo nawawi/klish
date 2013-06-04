@@ -178,4 +178,16 @@ CLISH_PLUGIN_SYM(clish_wdog)
 	return 0;
 }
 
+/*--------------------------------------------------------- */
+/*
+ * Get the ACTION context as a macros
+ */
+CLISH_PLUGIN_SYM(clish_macros)
+{
+	if (!script) /* Nothing to do */
+		return 0;
+	*out = lub_string_dup(script);
+	return 0;
+}
+
 /*----------------------------------------------------------- */
