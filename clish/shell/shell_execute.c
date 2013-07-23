@@ -170,6 +170,9 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		if (viewname) {
 			/* Search for the view */
 			clish_view_t *view = clish_shell_find_view(this, viewname);
+			if (!view)
+				fprintf(stderr, "System error: Can't "
+					"change view to %s\n", viewname);
 			lub_string_free(viewname);
 			/* Save the PWD */
 			if (view) {
