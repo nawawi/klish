@@ -33,6 +33,7 @@
 /* #define version(v) printf("%s\n", QUOTE(v)) */
 #define version(v) printf("%s\n", v)
 
+static void sighandler(int signo);
 static void help(int status, const char *argv0);
 
 /*--------------------------------------------------------- */
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
 	sigaddset(&sigpipe_set, SIGPIPE);
 	sigpipe_act.sa_flags = 0;
 	sigpipe_act.sa_mask = sigpipe_set;
-	sigpipe_act.sa_handler = SIG_IGN;
+	sigpipe_act.sa_handler = &sighandler;
 	sigaction(SIGPIPE, &sigpipe_act, NULL);
 
 #if HAVE_LOCALE_H
@@ -381,4 +382,15 @@ static void help(int status, const char *argv0)
 		printf("\t-f <path>, --histfile=<path>\tFile to save command history.\n");
 		printf("\t-z <num>, --histsize=<num>\tCommand history size in lines.\n");
 	}
+}
+
+/*--------------------------------------------------------- */
+/*
+ * Signal handler for SIGPIPE.
+ * It's empty but it's needed to don't ignore SIGPIPE because
+ * SIG_IGN will be inherited while ACTION execution.
+ */
+static void sighandler(int signo)
+{
+	return;
 }
