@@ -37,8 +37,13 @@ int clish_shell_startup(clish_shell_t *this)
 /*----------------------------------------------------------- */
 void clish_shell__set_startup_view(clish_shell_t *this, const char *viewname)
 {
+	clish_view_t *view;
+
 	assert(this);
 	assert(this->startup);
+	/* Search for the view */
+	view = clish_shell_find_view(this, viewname);
+	assert(view);
 	clish_command__force_viewname(this->startup, viewname);
 }
 

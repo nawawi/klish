@@ -260,6 +260,8 @@ void clish_command__set_viewname(clish_command_t * this, const char *viewname)
 /*--------------------------------------------------------- */
 void clish_command__force_viewname(clish_command_t * this, const char *viewname)
 {
+	if (this->viewname)
+		lub_string_free(this->viewname);
 	this->viewname = lub_string_dup(viewname);
 }
 
@@ -279,6 +281,8 @@ void clish_command__set_viewid(clish_command_t * this, const char *viewid)
 /*--------------------------------------------------------- */
 void clish_command__force_viewid(clish_command_t * this, const char *viewid)
 {
+	if (this->viewid)
+		lub_string_free(this->viewid);
 	this->viewid = lub_string_dup(viewid);
 }
 
