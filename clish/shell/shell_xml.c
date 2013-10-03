@@ -736,6 +736,7 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		if (prefix) {
 			const char *ptype_name = "__SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
+			char *str = NULL;
 
 			/* Create a ptype for prefix-named subcommand that
 			 * will contain the nested optional parameter. The
@@ -748,9 +749,14 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 				tmp = clish_shell_find_create_ptype(shell,
 					ptype_name, "Option", "[^\\\\]+",
 					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
-			opt_param = clish_param_new(prefix, help, tmp);
+			assert(tmp);
+			lub_string_cat(&str, "__prefix_");
+			lub_string_cat(&str, name);
+			opt_param = clish_param_new(str, help, tmp);
+			lub_string_free(str);
 			clish_param__set_mode(opt_param,
 				CLISH_PARAM_SUBCOMMAND);
+			clish_param__set_value(opt_param, prefix);
 			clish_param__set_optional(opt_param, BOOL_TRUE);
 
 			if (test)
