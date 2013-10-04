@@ -307,7 +307,9 @@ int main(int argc, char **argv)
 		for(iter = lub_list__get_head(cmds);
 			iter; iter = lub_list_node__get_next(iter)) {
 			char *str = (char *)lub_list_node__get_data(iter);
-			clish_shell_forceline(shell, str, NULL);
+			result = clish_shell_forceline(shell, str, NULL);
+			if (stop_on_error && result)
+				break;
 		}
 	} else {
 		/* Main loop */
