@@ -750,7 +750,7 @@ process_param(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 					ptype_name, "Option", "[^\\\\]+",
 					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
 			assert(tmp);
-			lub_string_cat(&str, "__prefix_");
+			lub_string_cat(&str, "_prefix_");
 			lub_string_cat(&str, name);
 			opt_param = clish_param_new(str, help, tmp);
 			lub_string_free(str);
