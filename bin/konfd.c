@@ -40,6 +40,7 @@
 #include "konf/net.h"
 #include "lub/argv.h"
 #include "lub/string.h"
+#include "lub/log.h"
 
 #ifndef VERSION
 #define VERSION 1.2.2
@@ -79,6 +80,7 @@ struct options {
 	int debug; /* Don't daemonize in debug mode */
 	uid_t uid;
 	gid_t gid;
+	int log_facility;
 };
 
 /*--------------------------------------------------------- */
@@ -104,13 +106,14 @@ int main(int argc, char **argv)
 	struct sigaction sig_act, sigpipe_act;
 	sigset_t sig_set, sigpipe_set;
 
-	/* Initialize syslog */
-	openlog(argv[0], LOG_CONS, LOG_DAEMON);
-
 	/* Parse command line options */
 	opts = opts_init();
 	if (opts_parse(argc, argv, opts))
 		goto err;
+
+	/* Initialize syslog */
+	openlog(argv[0], LOG_CONS, opts->log_facility);
+	syslog(LOG_ERR, "Start daemon.\n");
 
 	/* Fork the daemon */
 	if (!opts->debug) {
@@ -311,6 +314,8 @@ err:
 
 	/* Free command line options */
 	opts_free(opts);
+
+	syslog(LOG_ERR, "Stop daemon.\n");
 
 	return retval;
 }
@@ -536,6 +541,7 @@ struct options *opts_init(void)
 	opts->chroot = NULL;
 	opts->uid = getuid();
 	opts->gid = getgid();
+	opts->log_facility = LOG_DAEMON;
 
 	return opts;
 }
@@ -557,7 +563,7 @@ void opts_free(struct options *opts)
 /* Parse command line options */
 static int opts_parse(int argc, char *argv[], struct options *opts)
 {
-	static const char *shortopts = "hvs:p:u:g:dr:";
+	static const char *shortopts = "hvs:p:u:g:dr:O:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -568,6 +574,7 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 		{"group",	1, NULL, 'g'},
 		{"debug",	0, NULL, 'd'},
 		{"chroot",	1, NULL, 'r'},
+		{"facility",	1, NULL, 'O'},
 		{NULL,		0, NULL, 0}
 	};
 #endif
@@ -598,7 +605,7 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 				free(opts->chroot);
 			opts->chroot = strdup(optarg);
 #else
-			syslog(LOG_ERR, "The --chroot option is not supported\n");
+			fprintf(stderr, "Error: The --chroot option is not supported.\n");
 			return -1;
 #endif
 			break;
@@ -609,13 +616,13 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 #ifdef HAVE_PWD_H
 			struct passwd *pwd = getpwnam(optarg);
 			if (!pwd) {
-				syslog(LOG_ERR, "Can't identify user \"%s\"\n",
+				fprintf(stderr, "Error: Can't identify user \"%s\"\n",
 					optarg);
 				return -1;
 			}
 			opts->uid = pwd->pw_uid;
 #else
-			syslog(LOG_ERR, "The --user option is not supported\n");
+			fprintf(stderr, "The --user option is not supported.\n");
 			return -1;
 #endif
 			break;
@@ -624,17 +631,24 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 #ifdef HAVE_GRP_H
 			struct group *grp = getgrnam(optarg);
 			if (!grp) {
-				syslog(LOG_ERR, "Can't identify group \"%s\"\n",
+				fprintf(stderr, "Can't identify group \"%s\"\n",
 					optarg);
 				return -1;
 			}
 			opts->gid = grp->gr_gid;
 #else
-			syslog(LOG_ERR, "The --group option is not supported\n");
+			fprintf(stderr, "The --group option is not supported.\n");
 			return -1;
 #endif
 			break;
 		}
+		case 'O':
+			if (lub_log_facility(optarg, &(opts->log_facility))) {
+				fprintf(stderr, "Error: Illegal syslog facility %s.\n", optarg);
+				help(-1, argv[0]);
+				exit(-1);
+			}
+			break;
 		case 'h':
 			help(0, argv[0]);
 			exit(0);
@@ -688,5 +702,6 @@ static void help(int status, const char *argv0)
 			" specified user.\n");
 		printf("\t-g <group>, --group=<group>\tExecute process as"
 			" specified group.\n");
+		printf("\t-O, --facility\tSyslog facility. Default is DAEMON.\n");
 	}
 }

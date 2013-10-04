@@ -391,7 +391,7 @@ static void help(int status, const char *argv0)
 		printf("\t-u, --utf8\tForce UTF-8 encoding.\n");
 		printf("\t-8, --8bit\tForce 8-bit encoding.\n");
 		printf("\t-o, --log\tEnable command logging to syslog's.\n");
-		printf("\t-O, --facility\tSyslog facility.\n");
+		printf("\t-O, --facility\tSyslog facility. Default is LOCAL0.\n");
 		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
 		printf("\t-t <timeout>, --timeout=<timeout>\tIdle timeout in seconds.\n");
 		printf("\t-c <command>, --command=<command>\tExecute specified command(s).\n\t\tMultiple options are possible.\n");
