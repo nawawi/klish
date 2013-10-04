@@ -12,7 +12,6 @@
 #include "clish/shell.h"
 
 #define SYSLOG_IDENT "klish"
-#define SYSLOG_FACILITY LOG_LOCAL0
 
 /*--------------------------------------------------------- */
 CLISH_HOOK_LOG(clish_hook_log)
@@ -23,7 +22,8 @@ CLISH_HOOK_LOG(clish_hook_log)
 
 	/* Initialization */
 	if (!line) {
-		openlog(SYSLOG_IDENT, LOG_PID, SYSLOG_FACILITY);
+		openlog(SYSLOG_IDENT, LOG_PID,
+			clish_shell__get_facility(this));
 		return 0;
 	}
 

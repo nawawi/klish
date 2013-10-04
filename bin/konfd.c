@@ -504,8 +504,10 @@ int daemonize(int nochdir, int noclose)
 		_exit(0); /* Exit parent */
 	if (setsid() == -1)
 		return -1;
-	if (!nochdir)
-		chdir("/");
+	if (!nochdir) {
+		if (chdir("/"))
+			return -1;
+	}
 	if (!noclose) {
 		fd = open("/dev/null", O_RDWR, 0);
 		if (fd < 0)
