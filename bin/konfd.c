@@ -71,6 +71,8 @@ int daemonize(int nochdir, int noclose);
 struct options *opts_init(void);
 void opts_free(struct options *opts);
 static int opts_parse(int argc, char *argv[], struct options *opts);
+static int create_listen_socket(const char *path,
+	uid_t uid, gid_t gid);
 
 /* Command line options */
 struct options {
@@ -97,10 +99,8 @@ int main(int argc, char **argv)
 
 	/* Network vars */
 	int sock = -1;
-	struct sockaddr_un laddr;
 	struct sockaddr_un raddr;
 	fd_set active_fd_set, read_fd_set;
-	const int reuseaddr = 1;
 
 	/* Signal vars */
 	struct sigaction sig_act, sigpipe_act;
@@ -139,31 +139,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Create listen socket */
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		syslog(LOG_ERR, "Can't create listen socket: %s\n",
-			strerror(errno));
+	/* Create RW listen socket */
+	if ((sock = create_listen_socket(opts->socket_path,
+		opts->uid, opts->gid)) == -1) {
 		goto err;
 	}
-	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-		&reuseaddr, sizeof(reuseaddr))) {
-		syslog(LOG_ERR, "Can't set socket options: %s\n", strerror(errno));
-		goto err;
-	}
-	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, opts->socket_path, USOCK_PATH_MAX);
-	laddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
-	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
-		syslog(LOG_ERR, "Can't bind socket: %s\n",
-			strerror(errno));
-		goto err;
-	}
-	if (chown(opts->socket_path, opts->uid, opts->gid)) {
-		syslog(LOG_ERR, "Can't chown UNIX socket: %s\n",
-			strerror(errno));
-		goto err;
-	}
-	listen(sock, 5);
 
 	/* Change GID */
 	if (opts->gid != getgid()) {
@@ -253,7 +233,6 @@ int main(int argc, char **argv)
 				new = accept(sock,
 					(struct sockaddr *)&raddr, &size);
 				if (new < 0) {
-					fprintf(stderr, "accept");
 					continue;
 				}
 #ifdef DEBUG
@@ -318,6 +297,50 @@ err:
 	syslog(LOG_ERR, "Stop daemon.\n");
 
 	return retval;
+}
+
+/*--------- Create listen socket--------------------------- */
+static int create_listen_socket(const char *path,
+	uid_t uid, gid_t gid)
+{
+	int sock = -1;
+	struct sockaddr_un laddr;
+	const int reuseaddr = 1;
+
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		syslog(LOG_ERR, "Can't create socket: %s\n", strerror(errno));
+		goto err1;
+	}
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+		&reuseaddr, sizeof(reuseaddr))) {
+		syslog(LOG_ERR, "Can't set socket options: %s\n", strerror(errno));
+		goto err1;
+	}
+	laddr.sun_family = AF_UNIX;
+	strncpy(laddr.sun_path, path, USOCK_PATH_MAX);
+	laddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
+	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
+		syslog(LOG_ERR, "Can't bind socket: %s\n", strerror(errno));
+		goto err1;
+	}
+	if (chown(path, uid, gid)) {
+		syslog(LOG_ERR, "Can't chown socket: %s\n", strerror(errno));
+		goto err2;
+	}
+	if (listen(sock, 10)) {
+		syslog(LOG_ERR, "Can't listen socket: %s\n", strerror(errno));
+		goto err2;
+	}
+
+	return sock;
+
+err2:
+	unlink(path);
+err1:
+	if (sock >= 0)
+		close(sock);
+
+	return -1;
 }
 
 /*--------------------------------------------------------- */
