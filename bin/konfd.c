@@ -64,7 +64,7 @@ static volatile int sigterm = 0;
 static void sighandler(int signo);
 
 static void help(int status, const char *argv0);
-static char * process_query(int sock, konf_tree_t * conf, char *str);
+static char * process_query(konf_buf_t *tbuf, konf_tree_t * conf, char *str);
 int answer_send(int sock, char *command);
 static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query);
 int daemonize(int nochdir, int noclose);
@@ -72,11 +72,12 @@ struct options *opts_init(void);
 void opts_free(struct options *opts);
 static int opts_parse(int argc, char *argv[], struct options *opts);
 static int create_listen_socket(const char *path,
-	uid_t uid, gid_t gid);
+	uid_t uid, gid_t gid, mode_t mode);
 
 /* Command line options */
 struct options {
 	char *socket_path;
+	char *ro_path;
 	char *pidfile;
 	char *chroot;
 	int debug; /* Don't daemonize in debug mode */
@@ -89,7 +90,7 @@ struct options {
 int main(int argc, char **argv)
 {
 	int retval = -1;
-	unsigned i;
+	unsigned int i;
 	char *str;
 	konf_tree_t *conf;
 	lub_bintree_t bufs;
@@ -99,6 +100,7 @@ int main(int argc, char **argv)
 
 	/* Network vars */
 	int sock = -1;
+	int ro_sock = -1;
 	struct sockaddr_un raddr;
 	fd_set active_fd_set, read_fd_set;
 
@@ -141,7 +143,13 @@ int main(int argc, char **argv)
 
 	/* Create RW listen socket */
 	if ((sock = create_listen_socket(opts->socket_path,
-		opts->uid, opts->gid)) == -1) {
+		opts->uid, opts->gid, 0660)) == -1) {
+		goto err;
+	}
+
+	/* Create RO listen socket */
+	if (opts->ro_path && (ro_sock = create_listen_socket(opts->ro_path,
+		opts->uid, opts->gid, 0666)) == -1) {
 		goto err;
 	}
 
@@ -206,6 +214,8 @@ int main(int argc, char **argv)
 	/* Initialize the set of active sockets. */
 	FD_ZERO(&active_fd_set);
 	FD_SET(sock, &active_fd_set);
+	if (ro_sock >= 0)
+		FD_SET(ro_sock, &active_fd_set);
 
 	/* Main loop */
 	while (!sigterm) {
@@ -226,35 +236,45 @@ int main(int argc, char **argv)
 		for (i = 0; i < FD_SETSIZE; ++i) {
 			if (!FD_ISSET(i, &read_fd_set))
 				continue;
-			if (i == sock) {
-				/* Connection request on listen socket. */
+			/* Connection request on listen socket. */
+			if ((i == sock) || (i == ro_sock)) {
 				int new;
 				socklen_t size = sizeof(raddr);
-				new = accept(sock,
+				new = accept(i,
 					(struct sockaddr *)&raddr, &size);
 				if (new < 0) {
 					continue;
 				}
 #ifdef DEBUG
+				fprintf(stderr, "------------------------------\n");
 				fprintf(stderr, "Connection established %u\n", new);
 #endif
 				konf_buftree_remove(&bufs, new);
 				tbuf = konf_buf_new(new);
-				/* insert it into the binary tree for this conf */
+				/* Insert it into the binary tree */
 				lub_bintree_insert(&bufs, tbuf);
+				/* In a case of RW socket we use buf's data pointer
+				  to indicate RW or RO socket. NULL=RO, not-NULL=RW */
+				if (i == sock)
+					konf_buf__set_data(tbuf, (void *)1);
 				FD_SET(new, &active_fd_set);
 			} else {
 				int nbytes;
+
+				tbuf = konf_buftree_find(&bufs, i);
 				/* Data arriving on an already-connected socket. */
-				if ((nbytes = konf_buftree_read(&bufs, i)) <= 0) {
+				if ((nbytes = konf_buf_read(tbuf)) <= 0) {
 					close(i);
 					FD_CLR(i, &active_fd_set);
 					konf_buftree_remove(&bufs, i);
+#ifdef DEBUG
+					fprintf(stderr, "Connection closed %u\n", i);
+#endif
 					continue;
 				}
-				while ((str = konf_buftree_parse(&bufs, i))) {
+				while ((str = konf_buf_parse(tbuf))) {
 					char *answer;
-					if (!(answer = process_query(i, conf, str)))
+					if (!(answer = process_query(tbuf, conf, str)))
 						answer = strdup("-e");
 					free(str);
 					answer_send(i, answer);
@@ -277,10 +297,16 @@ int main(int argc, char **argv)
 
 	retval = 0;
 err:
-	/* Close listen socket */
+	/* Close RW socket */
 	if (sock >= 0) {
 		close(sock);
 		unlink(opts->socket_path);
+	}
+
+	/* Close RO socket */
+	if (ro_sock >= 0) {
+		close(ro_sock);
+		unlink(opts->ro_path);
 	}
 
 	/* Remove pidfile */
@@ -301,7 +327,7 @@ err:
 
 /*--------- Create listen socket--------------------------- */
 static int create_listen_socket(const char *path,
-	uid_t uid, gid_t gid)
+	uid_t uid, gid_t gid, mode_t mode)
 {
 	int sock = -1;
 	struct sockaddr_un laddr;
@@ -327,6 +353,10 @@ static int create_listen_socket(const char *path,
 		syslog(LOG_ERR, "Can't chown socket: %s\n", strerror(errno));
 		goto err2;
 	}
+	if (chmod(path, mode)) {
+		syslog(LOG_ERR, "Can't chmod socket: %s\n", strerror(errno));
+		goto err2;
+	}
 	if (listen(sock, 10)) {
 		syslog(LOG_ERR, "Can't listen socket: %s\n", strerror(errno));
 		goto err2;
@@ -344,9 +374,9 @@ err1:
 }
 
 /*--------------------------------------------------------- */
-static char * process_query(int sock, konf_tree_t * conf, char *str)
+static char * process_query(konf_buf_t *tbuf, konf_tree_t * conf, char *str)
 {
-	unsigned i;
+	unsigned int i;
 	int res;
 	konf_tree_t *iconf;
 	konf_tree_t *tmpconf;
@@ -355,7 +385,6 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	konf_query_op_t ret = KONF_QUERY_OP_ERROR;
 
 #ifdef DEBUG
-	fprintf(stderr, "----------------------\n");
 	fprintf(stderr, "REQUEST: %s\n", str);
 #endif
 	/* Parse query */
@@ -369,6 +398,16 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	konf_query_dump(query);
 #endif
 
+	/* Restrict RO socket for non-DUMP operation */
+	if (!konf_buf__get_data(tbuf) &&
+		(konf_query__get_op(query) != KONF_QUERY_OP_DUMP)) {
+#ifdef DEBUG
+		fprintf(stderr, "Permission denied. Read-only socket.\n");
+#endif
+		konf_query_free(query);
+		return NULL;
+	}
+
 	/* Go through the pwd */
 	iconf = conf;
 	for (i = 0; i < konf_query__get_pwdc(query); i++) {
@@ -380,7 +419,9 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 	}
 
 	if (!iconf) {
-		fprintf(stderr, "Unknown path\n");
+#ifdef DEBUG
+		fprintf(stderr, "Unknown path.\n");
+#endif
 		konf_query_free(query);
 		return NULL;
 	}
@@ -427,7 +468,7 @@ static char * process_query(int sock, konf_tree_t * conf, char *str)
 		break;
 
 	case KONF_QUERY_OP_DUMP:
-		if (dump_running_config(sock, iconf, query))
+		if (dump_running_config(konf_buf__get_fd(tbuf), iconf, query))
 			break;
 		ret = KONF_QUERY_OP_OK;
 		break;
@@ -560,6 +601,7 @@ struct options *opts_init(void)
 	assert(opts);
 	opts->debug = 0; /* daemonize by default */
 	opts->socket_path = strdup(KONFD_SOCKET_PATH);
+	opts->ro_path = NULL;
 	opts->pidfile = strdup(KONFD_PIDFILE);
 	opts->chroot = NULL;
 	opts->uid = getuid();
@@ -575,6 +617,8 @@ void opts_free(struct options *opts)
 {
 	if (opts->socket_path)
 		free(opts->socket_path);
+	if (opts->ro_path)
+		free(opts->ro_path);
 	if (opts->pidfile)
 		free(opts->pidfile);
 	if (opts->chroot)
@@ -586,12 +630,13 @@ void opts_free(struct options *opts)
 /* Parse command line options */
 static int opts_parse(int argc, char *argv[], struct options *opts)
 {
-	static const char *shortopts = "hvs:p:u:g:dr:O:";
+	static const char *shortopts = "hvs:S:p:u:g:dr:O:";
 #ifdef HAVE_GETOPT_H
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
 		{"socket",	1, NULL, 's'},
+		{"ro-socket",	1, NULL, 'S'},
 		{"pid",		1, NULL, 'p'},
 		{"user",	1, NULL, 'u'},
 		{"group",	1, NULL, 'g'},
@@ -616,6 +661,11 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 			if (opts->socket_path)
 				free(opts->socket_path);
 			opts->socket_path = strdup(optarg);
+			break;
+		case 'S':
+			if (opts->ro_path)
+				free(opts->ro_path);
+			opts->ro_path = strdup(optarg);
 			break;
 		case 'p':
 			if (opts->pidfile)
