@@ -92,10 +92,6 @@ struct clish_shell_s {
 	lub_list_t *plugins; /* List of plugins */
 	lub_list_t *syms; /* List of all used symbols. Must be resolved. */
 
-	/* Static params for var expanding. The refactoring is needed. */
-	clish_param_t *param_depth;
-	clish_param_t *param_pwd;
-
 	/* Userdata list holder */
 	lub_list_t *udata;
 };
