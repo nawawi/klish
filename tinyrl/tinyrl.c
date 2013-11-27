@@ -349,12 +349,24 @@ static bool_t tinyrl_key_clear_screen(tinyrl_t * this, int key)
 /*-------------------------------------------------------- */
 static bool_t tinyrl_key_erase_line(tinyrl_t * this, int key)
 {
+	unsigned int end;
 
-	if (this->point) {
-		unsigned end = this->point - 1;
-		tinyrl_delete_text(this, 0, end);
-		this->point = 0;
-	}
+	/* release any old kill string */
+	lub_string_free(this->kill_string);
+
+	if (!this->point)
+		return BOOL_TRUE;
+
+	end = this->point - 1;
+
+	/* store the killed string */
+	this->kill_string = malloc(this->point + 1);
+	memcpy(this->kill_string, this->buffer, this->point);
+	this->kill_string[this->point] = '\0';
+
+	/* delete the text from the start of the line */
+	tinyrl_delete_text(this, 0, end);
+	this->point = 0;
 
 	/* keep the compiler happy */
 	key = key;
