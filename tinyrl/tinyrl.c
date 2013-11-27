@@ -126,13 +126,9 @@ static bool_t tinyrl_key_default(tinyrl_t * this, int key)
 		/* inject this text into the buffer */
 		result = tinyrl_insert_text(this, tmp);
 	} else {
-		char tmp[10];
 		/* Call the external hotkey analyzer */
-		if (!this->hotkey_fn || !this->hotkey_fn(this, key)) {
-			sprintf(tmp, "~%d", key);
-			/* inject control characters as ~N where N is the ASCII code */
-			result = tinyrl_insert_text(this, tmp);
-		}
+		if (this->hotkey_fn)
+			this->hotkey_fn(this, key);
 	}
 	return result;
 }
