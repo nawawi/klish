@@ -19,7 +19,7 @@
 #include <dirent.h>
 
 /* Default hooks */
-#define CLISH_PLUGIN_DEFAULT "clish_plugin_default.so"
+#define CLISH_PLUGIN_DEFAULT "clish_plugin_clish.so"
 const char* clish_plugin_default_hook[] = {
 	NULL,
 	"clish_script@clish",
@@ -155,7 +155,7 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	/* Load default plugin */
 	if (this->default_plugin) {
 		clish_plugin_t *plugin;
-		plugin = clish_plugin_new(CLISH_PLUGIN_DEFAULT, "clish");
+		plugin = clish_plugin_new("clish");
 		lub_list_add(this->plugins, plugin);
 		/* Default hooks */
 		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
@@ -1195,17 +1195,24 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 	clish_plugin_t *plugin;
 	char *file = clish_xmlnode_fetch_attr(element, "file");
 	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *alias = clish_xmlnode_fetch_attr(element, "alias");
 	int res = -1;
 	char *text;
 
 	/* Check syntax */
-	if (!file) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("file"));
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
 		goto error;
 	}
 
-	plugin = clish_plugin_new(file, name); /* Really - the name is alias */
+	plugin = clish_plugin_new(name);
 	lub_list_add(shell->plugins, plugin);
+
+	if (alias && *alias)
+		clish_plugin__set_alias(plugin, alias);
+
+	if (file && *file)
+		clish_plugin__set_file(plugin, file);
 
 	/* Get PLUGIN body content */
 	text = clish_xmlnode_get_all_content(element);
@@ -1218,6 +1225,7 @@ process_plugin(clish_shell_t *shell, clish_xmlnode_t* element, void *parent)
 error:
 	clish_xml_release(file);
 	clish_xml_release(name);
+	clish_xml_release(alias);
 
 	return res;
 }

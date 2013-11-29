@@ -310,6 +310,7 @@ clish_xmldoc_t *clish_xmldoc_read(const char *filename)
 	int fd;
 	char *buffer;
 	XML_Parser parser;
+	int rb;
 
 	doc = malloc(sizeof(clish_xmldoc_t));
 	if (!doc)
@@ -330,7 +331,11 @@ clish_xmldoc_t *clish_xmldoc_read(const char *filename)
 		goto error_open;
 	fstat(fd, &sb);
 	buffer = malloc(sb.st_size+1);
-	read(fd, buffer, sb.st_size);
+	rb = read(fd, buffer, sb.st_size);
+	if (rb < 0) {
+		close(fd);
+		goto error_parse;
+	}
 	buffer[sb.st_size] = 0;
 	close(fd);
 

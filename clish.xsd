@@ -523,8 +523,9 @@
 ********************************************************
 -->
     <xs:complexType name="plugin_t">
-        <xs:attribute name="file" type="xs:string" use="required"/>
-        <xs:attribute name="name" type="xs:string" use="optional"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="alias" type="xs:string" use="optional"/>
+        <xs:attribute name="file" type="xs:string" use="optional"/>
     </xs:complexType>
 
 <!--

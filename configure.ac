@@ -534,12 +534,17 @@ AC_CHECK_FUNCS(chroot, [],
 ################################
 # Check for dlopen
 ################################
+CLISH_PLUGIN_BUILTIN_LIST=
 AC_CHECK_HEADERS(dlfcn.h, [
         AC_SEARCH_LIBS([dlopen], [dl dld], [], [
-          AC_MSG_WARN([unable to find the dlopen() function])
+          AC_MSG_ERROR([unable to find the dlopen() function])
         ])
-    ],
-    AC_MSG_WARN([dlfcn.h not found: the dl operations is not supported]))
+    ],[
+          AC_MSG_WARN([dlfcn.h not found: the dl operations is not supported])
+          CLISH_PLUGIN_BUILTIN_LIST="$CLISH_PLUGIN_BUILTIN_LIST clish_clish_plugin_init,"
+    ])
+AC_SUBST([CLISH_PLUGIN_BUILTIN_LIST])
+AC_CONFIG_FILES([clish/plugin_builtin.c])
 
-AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

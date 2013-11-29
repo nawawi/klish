@@ -14,7 +14,8 @@
 /aux_scripts
 /config.log
 /config.status
-/stamp-h1
+/stamp-*
+/clish/stamp-*
 /Makefile
 /config.h
 /libtool
@@ -22,6 +23,7 @@
 /config.h.in
 /aclocal.m4
 /Makefile.in
+/clish/plugin_builtin.c
 
 # Debian files
 /build-stamp
