@@ -10,7 +10,14 @@ CLISH_PLUGIN_SYM(anplug_fn)
 	return 0;
 }
 
-CLISH_PLUGIN_INIT
+CLISH_PLUGIN_FINI(clish_plugin_anplug_fini)
+{
+	printf("anplug: FINI this = %p\n", clish_shell);
+
+	return 0;
+}
+
+CLISH_PLUGIN_INIT(anplug)
 {
 	char *conf;
 	lub_ini_t *ini;
@@ -18,8 +25,8 @@ CLISH_PLUGIN_INIT
 	lub_pair_t *pair;
 
 	printf("anplug: INIT shell = %p\n", clish_shell);
-	/* Set a name of plugin to use in sym@plugin */
-	clish_plugin__set_name(plugin, "another_plug");
+	/* Set a fini function */
+	clish_plugin_add_fini(plugin, clish_plugin_anplug_fini);
 	/* Add symbols */
 	clish_plugin_add_sym(plugin, anplug_fn, "an_fn");
 	/* Show plugin config from <PLUGIN>...</PLUGIN> */
@@ -43,11 +50,5 @@ CLISH_PLUGIN_INIT
 	return 0;
 }
 
-CLISH_PLUGIN_FINI
-{
-	printf("anplug: FINI this = %p\n", clish_shell);
-
-	return 0;
-}
 
 
