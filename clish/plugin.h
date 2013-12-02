@@ -51,7 +51,12 @@ typedef CLISH_HOOK_LOG(clish_hook_log_fn_t);
 #define SYM_FN(TYPE,SYM) (*((clish_hook_##TYPE##_fn_t *)(clish_sym__get_func(SYM))))
 
 /* Create an array of builtin plugin's init functions */
-extern clish_plugin_init_t * clish_plugin_builtin_list[];
+struct clish_plugin_builtin_list_s {
+	const char *name; /* Plugin name */
+	clish_plugin_init_t *init; /* Plugin init function */
+};
+typedef struct clish_plugin_builtin_list_s clish_plugin_builtin_list_t;
+extern clish_plugin_builtin_list_t * clish_plugin_builtin_list[];
 
 /* Symbol */
 

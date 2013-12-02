@@ -541,7 +541,7 @@ AC_CHECK_HEADERS(dlfcn.h, [
         ])
     ],[
           AC_MSG_WARN([dlfcn.h not found: the dl operations is not supported])
-          CLISH_PLUGIN_BUILTIN_LIST="$CLISH_PLUGIN_BUILTIN_LIST clish_clish_plugin_init,"
+          CLISH_PLUGIN_BUILTIN_LIST="$CLISH_PLUGIN_BUILTIN_LIST { "clish", clish_clish_plugin_init },"
     ])
 AC_SUBST([CLISH_PLUGIN_BUILTIN_LIST])
 AC_CONFIG_FILES([clish/plugin_builtin.c])

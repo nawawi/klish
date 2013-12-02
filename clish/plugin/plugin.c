@@ -320,8 +320,6 @@ static int clish_plugin_load_builtin(clish_plugin_t *this)
 int clish_plugin_load(clish_plugin_t *this, void *userdata)
 {
 	int res;
-	char *file = NULL; /* Plugin so file name */
-	char *init_name = NULL; /* Init function name */
 
 	if (!this)
 		return -1;
@@ -331,7 +329,7 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 	   no such builtin plugin then try to find plugin 
 	   shared object */
 	if (clish_plugin_load_builtin(this) < 0) {
-		if (clish_load_plugin_shared(this) < 0)
+		if (clish_plugin_load_shared(this) < 0)
 			return -1;
 	}
 
