@@ -267,17 +267,12 @@ clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int ty
 }
 
 /*--------------------------------------------------------- */
-int clish_plugin_load(clish_plugin_t *this, void *userdata)
+static int clish_plugin_load_shared(clish_plugin_t *this)
 {
-	int res;
+#ifdef HAVE_DLFCN_H
 	char *file = NULL; /* Plugin so file name */
 	char *init_name = NULL; /* Init function name */
 
-	if (!this)
-		return -1;
-	assert(this->name);
-
-#ifdef HAVE_DLFCN_H
 	if (this->file) {
 		file = lub_string_dup(this->file);
 	} else {
@@ -307,11 +302,38 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 		return -1;
 	}
 
+	return 0;
 #else /* HAVE_DLFCN_H */
 	/* We have no any dl functions. */
 
-
+	return -1;
 #endif /* HAVE_DLFCN_H */
+}
+
+/*--------------------------------------------------------- */
+static int clish_plugin_load_builtin(clish_plugin_t *this)
+{
+	return -1;
+}
+
+/*--------------------------------------------------------- */
+int clish_plugin_load(clish_plugin_t *this, void *userdata)
+{
+	int res;
+	char *file = NULL; /* Plugin so file name */
+	char *init_name = NULL; /* Init function name */
+
+	if (!this)
+		return -1;
+	assert(this->name);
+
+	/* Firstly try to find builtin plugin and if there is
+	   no such builtin plugin then try to find plugin 
+	   shared object */
+	if (clish_plugin_load_builtin(this) < 0) {
+		if (clish_load_plugin_shared(this) < 0)
+			return -1;
+	}
 
 	/* Execute init function */
 	if ((res = this->init(userdata, this)))

@@ -19,7 +19,6 @@
 #include <dirent.h>
 
 /* Default hooks */
-#define CLISH_PLUGIN_DEFAULT "clish_plugin_clish.so"
 const char* clish_plugin_default_hook[] = {
 	NULL,
 	"clish_script@clish",
