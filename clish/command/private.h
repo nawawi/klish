@@ -19,6 +19,7 @@ struct clish_command_s {
 	char *detail;
 	char *escape_chars;
 	char *regex_chars;
+	char *access;
 	clish_param_t *args;
 	const struct clish_command_s *link;
 	clish_view_t *alias_view;

@@ -65,6 +65,8 @@ void clish_nspace__set_help(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_completion(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_context_help(clish_nspace_t * instance, bool_t help);
 void clish_nspace__set_inherit(clish_nspace_t * instance, bool_t inherit);
+void clish_nspace__set_access(clish_nspace_t *instance, const char *access);
+char *clish_nspace__get_access(const clish_nspace_t *instance);
 
 #endif				/* _clish_nspace_h */
 /** @} clish_nspace */

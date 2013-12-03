@@ -16,8 +16,9 @@ void clish_view_dump(clish_view_t * this)
 	lub_dump_printf("view(%p)\n", this);
 	lub_dump_indent();
 
-	lub_dump_printf("name  : %s\n", clish_view__get_name(this));
-	lub_dump_printf("depth : %u\n", clish_view__get_depth(this));
+	lub_dump_printf("name   : %s\n", clish_view__get_name(this));
+	lub_dump_printf("depth  : %u\n", clish_view__get_depth(this));
+	lub_dump_printf("access : %u\n", clish_view__get_access(this));
 
 	/* Get each namespace to dump their details */
 	for (i = 0; i < this->nspacec; i++) {

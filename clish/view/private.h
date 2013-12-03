@@ -13,6 +13,7 @@ struct clish_view_s {
 	lub_bintree_node_t bt_node;
 	char *name;
 	char *prompt;
+	char *access;
 	unsigned int nspacec;
 	clish_nspace_t **nspacev;
 	clish_hotkeyv_t *hotkeys;

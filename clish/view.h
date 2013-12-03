@@ -75,6 +75,8 @@ clish_view_restore_t clish_view__get_restore(const clish_view_t * instance);
 int clish_view_insert_hotkey(const clish_view_t *instance, const char *key, const char *cmd);
 const char *clish_view_find_hotkey(const clish_view_t *instance, int code);
 lub_bintree_t *clish_view__cmd_tree(clish_view_t *instance);
+void clish_view__set_access(clish_view_t *instance, const char *access);
+char *clish_view__get_access(const clish_view_t *instance);
 
 #endif				/* _clish_view_h */
 /** @} clish_view */

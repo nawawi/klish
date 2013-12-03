@@ -28,6 +28,7 @@ static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
 	this->context_help = BOOL_FALSE;
 	this->inherit = BOOL_TRUE;
 	this->prefix_cmd = NULL;
+	this->access = NULL;
 
 	/* initialise the tree of commands links for this nspace */
 	lub_bintree_init(&this->tree,
@@ -57,6 +58,7 @@ static void clish_nspace_fini(clish_nspace_t * this)
 		clish_command_delete(this->prefix_cmd);
 		this->prefix_cmd = NULL;
 	}
+	lub_string_free(this->access);
 }
 
 /*--------------------------------------------------------- */
@@ -377,6 +379,20 @@ bool_t clish_nspace__get_visibility(const clish_nspace_t * instance,
 	}
 
 	return result;
+}
+
+/*--------------------------------------------------------- */
+void clish_nspace__set_access(clish_nspace_t *this, const char *access)
+{
+	if (this->access)
+		lub_string_free(this->access);
+	this->access = lub_string_dup(access);
+}
+
+/*--------------------------------------------------------- */
+char *clish_nspace__get_access(const clish_nspace_t *this)
+{
+	return this->access;
 }
 
 /*--------------------------------------------------------- */

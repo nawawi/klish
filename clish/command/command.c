@@ -43,6 +43,7 @@ clish_command_init(clish_command_t *this, const char *name, const char *text)
 	this->lock = BOOL_TRUE;
 	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
+	this->access = NULL;
 }
 
 /*--------------------------------------------------------- */
@@ -66,6 +67,7 @@ static void clish_command_fini(clish_command_t * this)
 	lub_string_free(this->detail);
 	lub_string_free(this->escape_chars);
 	lub_string_free(this->regex_chars);
+	lub_string_free(this->access);
 	if (this->args)
 		clish_param_delete(this->args);
 }
@@ -121,7 +123,7 @@ clish_command_t *clish_command_new_link(const char *name,
 	*this = *ref;
 	/* Initialise the name (other than original name) */
 	this->name = lub_string_dup(name);
-	/* Initialise the name (other than original name) */
+	/* Initialise the help (other than original help) */
 	this->text = lub_string_dup(help);
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -465,4 +467,18 @@ bool_t clish_command__get_interrupt(const clish_command_t * this)
 void clish_command__set_interrupt(clish_command_t * this, bool_t interrupt)
 {
 	this->interrupt = interrupt;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_access(clish_command_t *this, const char *access)
+{
+	if (this->access)
+		lub_string_free(this->access);
+	this->access = lub_string_dup(access);
+}
+
+/*--------------------------------------------------------- */
+char *clish_command__get_access(const clish_command_t *this)
+{
+	return this->access;
 }

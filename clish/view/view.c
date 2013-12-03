@@ -45,6 +45,7 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	this->nspacev = NULL;
 	this->depth = 0;
 	this->restore = CLISH_RESTORE_NONE;
+	this->access = NULL;
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -91,6 +92,7 @@ static void clish_view_fini(clish_view_t * this)
 	/* free our memory */
 	lub_string_free(this->name);
 	lub_string_free(this->prompt);
+	lub_string_free(this->access);
 }
 
 /*---------------------------------------------------------
@@ -404,6 +406,20 @@ const char *clish_view_find_hotkey(const clish_view_t *this, int code)
 lub_bintree_t *clish_view__cmd_tree(clish_view_t *this)
 {
 	return &this->tree;
+}
+
+/*--------------------------------------------------------- */
+void clish_view__set_access(clish_view_t *this, const char *access)
+{
+	if (this->access)
+		lub_string_free(this->access);
+	this->access = lub_string_dup(access);
+}
+
+/*--------------------------------------------------------- */
+char *clish_view__get_access(const clish_view_t *this)
+{
+	return this->access;
 }
 
 /*--------------------------------------------------------- */

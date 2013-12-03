@@ -16,6 +16,8 @@ void clish_nspace_dump(const clish_nspace_t * this)
 			clish_view__get_name(this->view));
 	lub_dump_printf("prefix       : %s\n",
 			this->prefix ? this->prefix : "(null)");
+	lub_dump_printf("access       : %s\n",
+			this->access ? this->access : "(null)");
 	lub_dump_printf("help         : %s\n", this->help ? "true" : "false");
 	lub_dump_printf("completion   : %s\n",
 			this->completion ? "true" : "false");

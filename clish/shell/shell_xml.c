@@ -305,7 +305,6 @@ process_clish_module(clish_shell_t * shell, clish_xmlnode_t * element, void *par
 static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 {
 	clish_view_t *view;
-//	int allowed = 1;
 	int res = -1;
 
 	char *name = clish_xmlnode_fetch_attr(element, "name");
@@ -313,15 +312,6 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 	char *depth = clish_xmlnode_fetch_attr(element, "depth");
 	char *restore = clish_xmlnode_fetch_attr(element, "restore");
 	char *access = clish_xmlnode_fetch_attr(element, "access");
-
-	/* Check permissions */
-//	if (access) {
-//		allowed = 0;
-//		if (shell->hooks->access_fn)
-//			allowed = shell->hooks->access_fn(shell, access);
-//	}
-//	if (!allowed)
-//		goto process_view_end;
 
 	/* Check syntax */
 	if (!name) {
@@ -345,6 +335,9 @@ static int process_view(clish_shell_t * shell, clish_xmlnode_t * element, void *
 		else
 			clish_view__set_restore(view, CLISH_RESTORE_NONE);
 	}
+
+	if (access)
+		clish_view__set_access(view, access);
 
 //process_view_end:
 	res = process_children(shell, element, view);
@@ -442,7 +435,6 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 	clish_command_t *old;
 	char *alias_name = NULL;
 	clish_view_t *alias_view = NULL;
-//	int allowed = 1;
 	int res = -1;
 
 	char *access = clish_xmlnode_fetch_attr(element, "access");
@@ -466,15 +458,6 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
 		goto error;
 	}
-
-	/* Check permissions */
-//	if (access) {
-//		allowed = 0;
-//		if (shell->hooks->access_fn)
-//			allowed = shell->hooks->access_fn(shell, access);
-//	}
-//	if (!allowed)
-//		goto process_command_end;
 
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
@@ -552,6 +535,9 @@ process_command(clish_shell_t * shell, clish_xmlnode_t * element, void *parent)
 		clish_command__set_interrupt(cmd, BOOL_TRUE);
 	else
 		clish_command__set_interrupt(cmd, BOOL_FALSE);
+
+	if (access)
+		clish_command__set_access(cmd, access);
 
 	/* Set alias */
 	if (alias_name) {
@@ -926,16 +912,6 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 	char *inherit = clish_xmlnode_fetch_attr(element, "inherit");
 	char *access = clish_xmlnode_fetch_attr(element, "access");
 
-//	int allowed = 1;
-
-//	if (access) {
-//		allowed = 0;
-//		if (shell->hooks->access_fn)
-//			allowed = shell->hooks->access_fn(shell, access);
-//	}
-//	if (!allowed)
-//		goto process_namespace_end;
-
 	/* Check syntax */
 	if (!view) {
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("ref"));
@@ -983,6 +959,9 @@ process_namespace(clish_shell_t * shell, clish_xmlnode_t * element, void *parent
 		clish_nspace__set_inherit(nspace, BOOL_FALSE);
 	else
 		clish_nspace__set_inherit(nspace, BOOL_TRUE);
+
+	if (access)
+		clish_nspace__set_access(nspace, access);
 
 process_namespace_end:
 	res = 0;

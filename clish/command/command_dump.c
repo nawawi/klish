@@ -24,6 +24,7 @@ void clish_command_dump(const clish_command_t * this)
 	lub_dump_printf("paramc      : %d\n", clish_paramv__get_count(this->paramv));
 	lub_dump_printf("detail      : %s\n",
 			this->detail ? this->detail : "(null)");
+	lub_dump_printf("access      : %s\n", this->access);
 	clish_action_dump(this->action);
 	clish_config_dump(this->config);
 
