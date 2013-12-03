@@ -56,7 +56,7 @@ struct clish_plugin_builtin_list_s {
 	clish_plugin_init_t *init; /* Plugin init function */
 };
 typedef struct clish_plugin_builtin_list_s clish_plugin_builtin_list_t;
-extern clish_plugin_builtin_list_t * clish_plugin_builtin_list[];
+extern clish_plugin_builtin_list_t clish_plugin_builtin_list[];
 
 /* Symbol */
 

@@ -285,7 +285,7 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 	this->dlhan = dlopen(file, RTLD_NOW | RTLD_LOCAL);
 	lub_string_free(file);
 	if (!this->dlhan) {
-		fprintf(stderr, "Error: Can't open plugin %s: %s\n",
+		fprintf(stderr, "Error: Can't open plugin \"%s\": %s\n",
 			this->name, dlerror());
 		return -1;
 	}
@@ -297,7 +297,7 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 	this->init = (clish_plugin_init_t *)dlsym(this->dlhan, init_name);
 	lub_string_free(init_name);
 	if (!this->init) {
-		fprintf(stderr, "Error: Can't get plugin %s init function: %s\n",
+		fprintf(stderr, "Error: Can't get plugin \"%s\" init function: %s\n",
 			this->name, dlerror());
 		return -1;
 	}
@@ -305,7 +305,8 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 	return 0;
 #else /* HAVE_DLFCN_H */
 	/* We have no any dl functions. */
-
+	fprintf(stderr, "Error: Can't get plugin \"%s\" init function.\n",
+		this->name);
 	return -1;
 #endif /* HAVE_DLFCN_H */
 }
@@ -313,6 +314,18 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 /*--------------------------------------------------------- */
 static int clish_plugin_load_builtin(clish_plugin_t *this)
 {
+	int i = 0;
+
+	/* Search plugin in the list of builtin plugins */
+	while (clish_plugin_builtin_list[i].name) {
+		if (strcmp(clish_plugin_builtin_list[i].name, this->name))
+			continue;
+		this->init = clish_plugin_builtin_list[i].init;
+		break;
+	}
+	if (this->init)
+		return 0;
+
 	return -1;
 }
 

@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include "clish/plugin.h"
 
+/* Declare builtin plugin's init functions */
+@CLISH_PLUGIN_BUILTIN_DEFS@
+
 /* The array of builtin plugin's filled by configure script. */
-clish_plugin_builtin_list_t *clish_plugin_builtin_list[] = {@CLISH_PLUGIN_BUILTIN_LIST@ NULL};
+clish_plugin_builtin_list_t clish_plugin_builtin_list[] = {@CLISH_PLUGIN_BUILTIN_LIST@ { NULL, NULL } };
 

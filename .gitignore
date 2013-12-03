@@ -24,6 +24,7 @@
 /aclocal.m4
 /Makefile.in
 /clish/plugin_builtin.c
+/*.patch
 
 # Debian files
 /build-stamp
