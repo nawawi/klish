@@ -28,7 +28,7 @@
 #if defined(HAVE_LIB_EXPAT)
 #include <string.h>
 #include <stdlib.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
