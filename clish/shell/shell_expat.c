@@ -226,7 +226,9 @@ static void clish_expat_chardata_handler(void *data, const char *s, int len)
 	clish_xmldoc_t *doc = data;
 
 	if (doc->current) {
-		char *content = strndup(s, len);
+		char *content = malloc(len + 1);
+		strncpy(content, s, len);
+		content[len] = '\0';
 
 		clish_expat_make_node(doc->current, CLISH_XMLNODE_TEXT, NULL, content, NULL);
 		/*
