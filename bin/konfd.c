@@ -24,9 +24,15 @@
 #include <sys/select.h>
 #include <signal.h>
 #include <syslog.h>
+
+#if WITH_INTERNAL_GETOPT
+#include "libc/getopt.h"
+#else
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#endif
+
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -631,7 +637,7 @@ void opts_free(struct options *opts)
 static int opts_parse(int argc, char *argv[], struct options *opts)
 {
 	static const char *shortopts = "hvs:S:p:u:g:dr:O:";
-#ifdef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_LONG
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
@@ -649,7 +655,7 @@ static int opts_parse(int argc, char *argv[], struct options *opts)
 	optind = 1;
 	while(1) {
 		int opt;
-#ifdef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_LONG
 		opt = getopt_long(argc, argv, shortopts, longopts, NULL);
 #else
 		opt = getopt(argc, argv, shortopts);

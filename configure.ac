@@ -29,6 +29,9 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE(subdir-objects)
 AM_PROG_CC_C_O
 
+# Dir for libc replacements
+AC_CONFIG_LIBOBJ_DIR([libc])
+
 # needed to handle 64-bit architecture
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
@@ -488,10 +491,30 @@ AC_CHECK_HEADERS(regex.h, [],
     AC_MSG_ERROR([regex.h not found: regular expressions are not supported]))
 
 ################################
-# Check for getopt_long()
+# Internal getopt()
 ################################
-AC_CHECK_HEADERS(getopt.h, [],
-    AC_MSG_WARN([getopt.h not found: only short parameters can be used on command line]))
+AC_ARG_WITH(internal-getopt,
+            [AS_HELP_STRING([--with-internal-getopt],
+            [Use internal implementation of getopt [default=no]])],
+            [],
+            [with_internal_getopt=no])
+
+if test x$with_internal_getopt != xno; then
+    AC_DEFINE([WITH_INTERNAL_GETOPT], [1], [Use internal getopt() implementation])
+    AC_LIBOBJ([getopt])
+    AC_MSG_WARN([Use internal implementation of getopt() and getopt_long()])
+else
+    AC_CHECK_HEADERS(getopt.h, [found_getopt_h=yes],
+        AC_MSG_WARN([getopt.h not found: only short parameters can be used on command line]))
+fi
+
+AC_MSG_CHECKING([for getopt_long()])
+if test x$with_internal_getopt = xyes -o x$found_getopt_h = xyes; then
+    AC_DEFINE([HAVE_GETOPT_LONG], [1], [getopt_long() function])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
 
 ################################
 # Check for locale.h

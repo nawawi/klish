@@ -26,6 +26,7 @@ EXTRA_DIST = \
 	tinyrl/module.am \
 	konf/module.am \
 	plugins/module.am \
+	libc/module.am \
 	contrib \
 	xml-examples \
 	debian \
@@ -41,3 +42,4 @@ include $(top_srcdir)/konf/module.am
 include $(top_srcdir)/clish/module.am
 include $(top_srcdir)/bin/module.am
 include $(top_srcdir)/plugins/module.am
+include $(top_srcdir)/libc/module.am

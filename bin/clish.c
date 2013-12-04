@@ -15,9 +15,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+
+#if WITH_INTERNAL_GETOPT
+#include "libc/getopt.h"
+#else
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#endif
+
 #include <signal.h>
 #if HAVE_LOCALE_H
 #include <locale.h>
@@ -77,7 +83,7 @@ int main(int argc, char **argv)
 	sigset_t sigpipe_set;
 
 	static const char *shortopts = "hvs:ledx:w:i:bqu8oO:kt:c:f:z:";
-#ifdef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_LONG
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
 		{"version",	0, NULL, 'v'},
@@ -122,7 +128,7 @@ int main(int argc, char **argv)
 	/* Parse command line options */
 	while(1) {
 		int opt;
-#ifdef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_LONG
 		opt = getopt_long(argc, argv, shortopts, longopts, NULL);
 #else
 		opt = getopt(argc, argv, shortopts);
