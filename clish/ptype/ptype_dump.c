@@ -13,7 +13,7 @@ void clish_ptype_dump(clish_ptype_t * this)
 	lub_dump_indent();
 	lub_dump_printf("name       : %s\n", clish_ptype__get_name(this));
 	lub_dump_printf("text       : %s\n", clish_ptype__get_text(this));
-	lub_dump_printf("pattern    : %s\n", this->pattern);
+	lub_dump_printf("pattern    : %s\n", LUB_DUMP_STR(this->pattern));
 	lub_dump_printf("method     : %s\n",
 		clish_ptype_method__get_name(this->method));
 	lub_dump_printf("postprocess: %s\n",
