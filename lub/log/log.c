@@ -22,14 +22,18 @@ int lub_log_facility(const char *str, int *facility)
 		*facility = LOG_LOCAL7;
 	else if (!lub_string_nocasecmp(str, "auth"))
 		*facility = LOG_AUTH;
+#ifdef LOG_AUTHPRIV
 	else if (!lub_string_nocasecmp(str, "authpriv"))
 		*facility = LOG_AUTHPRIV;
+#endif
 	else if (!lub_string_nocasecmp(str, "cron"))
 		*facility = LOG_CRON;
 	else if (!lub_string_nocasecmp(str, "daemon"))
 		*facility = LOG_DAEMON;
+#ifdef LOG_FTP
 	else if (!lub_string_nocasecmp(str, "ftp"))
 		*facility = LOG_FTP;
+#endif
 	else if (!lub_string_nocasecmp(str, "kern"))
 		*facility = LOG_KERN;
 	else if (!lub_string_nocasecmp(str, "lpr"))
