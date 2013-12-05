@@ -70,7 +70,7 @@ tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
 	 * with a character between 64 - 126
 	 */
 	while (1) {
-		c = getc(this->istream);
+		c = fgetc(this->istream);
 
 		/* ignore no-character condition */
 		if (-1 != c) {
