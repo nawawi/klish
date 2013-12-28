@@ -354,8 +354,10 @@ static bool_t tinyrl_key_erase_line(tinyrl_t * this, int key)
 	/* release any old kill string */
 	lub_string_free(this->kill_string);
 
-	if (!this->point)
+	if (!this->point) {
+		this->kill_string = NULL;
 		return BOOL_TRUE;
+	}
 
 	end = this->point - 1;
 
