@@ -708,6 +708,7 @@ static char *internal_readline(tinyrl_t * this,
 	this->context = context;
 
 	if (this->isatty && !str) {
+		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
 		/* set the terminal into raw input mode */
 		tty_set_raw_mode(this);
 		tinyrl_reset_line_state(this);
@@ -735,10 +736,25 @@ static char *internal_readline(tinyrl_t * this,
 							this->end - 1,
 							this->end);
 				} else {
-					/* Update the display if the key
-					is not first UTF8 byte */
-					if (!(this->utf8 &&
-						(UTF8_11 == (key & UTF8_MASK))))
+					if (this->utf8) {
+						if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
+							utf8_cont = 0;
+						else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
+							utf8_cont--;
+						else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
+							/* Find out number of char's bytes */
+							int b = key;
+							utf8_cont = 0;
+							while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
+								utf8_cont++;
+								b = b << 1;
+							}
+						}
+					}
+					/* For non UTF-8 encoding the utf8_cont is always 0.
+					   For UTF-8 it's 0 when one-byte symbol or we get
+					   all bytes for the current multibyte character. */
+					if (!utf8_cont)
 						tinyrl_redisplay(this);
 				}
 			} else { /* Error || EOF || Timeout */
