@@ -34,43 +34,23 @@ static vt100_decode_t cmds[] = {
 };
 
 /*--------------------------------------------------------- */
-static void _tinyrl_vt100_setInputNonBlocking(const tinyrl_vt100_t * this)
-{
-#if defined(STDIN_FILENO)
-	int flags = (fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
-	fcntl(STDIN_FILENO, F_SETFL, flags);
-#endif				/* STDIN_FILENO */
-}
-
-/*--------------------------------------------------------- */
-static void _tinyrl_vt100_setInputBlocking(const tinyrl_vt100_t * this)
-{
-#if defined(STDIN_FILENO)
-	int flags = (fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
-	fcntl(STDIN_FILENO, F_SETFL, flags);
-#endif				/* STDIN_FILENO */
-}
-
-/*--------------------------------------------------------- */
 tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
 {
 	tinyrl_vt100_escape_t result = tinyrl_vt100_UNKNOWN;
 	char sequence[10], *p = sequence;
 	int c;
-	unsigned i;
+	unsigned int i;
 
 	if (!this->istream)
 		return tinyrl_vt100_UNKNOWN;
-
-	/* before the while loop, set the input as non-blocking */
-	_tinyrl_vt100_setInputNonBlocking(this);
 
 	/* dump the control sequence into our sequence buffer 
 	 * ANSI standard control sequences will end 
 	 * with a character between 64 - 126
 	 */
 	while (1) {
-		c = fgetc(this->istream);
+		c = tinyrl_vt100_getchar(this);
+		if (c < 0) { /* Some error or timeout */
 
 		/* ignore no-character condition */
 		if (-1 != c) {
@@ -87,9 +67,6 @@ tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
 	}
 	/* terminate the string */
 	*p = '\0';
-
-	/* restore the blocking status */
-	_tinyrl_vt100_setInputBlocking(this);
 
 	if (tinyrl_vt100_UNKNOWN != result) {
 		p = sequence;
