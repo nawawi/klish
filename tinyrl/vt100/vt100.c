@@ -34,52 +34,18 @@ static vt100_decode_t cmds[] = {
 };
 
 /*--------------------------------------------------------- */
-tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t * this)
+tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t *this,
+	const char *esc_seq)
 {
 	tinyrl_vt100_escape_t result = tinyrl_vt100_UNKNOWN;
-	char sequence[10], *p = sequence;
-	int c;
 	unsigned int i;
 
-	if (!this->istream)
-		return tinyrl_vt100_UNKNOWN;
-
-	/* dump the control sequence into our sequence buffer 
-	 * ANSI standard control sequences will end 
-	 * with a character between 64 - 126
-	 */
-	while (1) {
-		c = tinyrl_vt100_getchar(this);
-		if (c < 0) { /* Some error or timeout */
-
-		/* ignore no-character condition */
-		if (-1 != c) {
-			*p++ = (c & 0xFF);
-			if ((c != '[') && (c > 63)) {
-				/* this is an ANSI control sequence terminator code */
-				result = tinyrl_vt100_CURSOR_UP;	/* just a non-UNKNOWN value */
-				break;
-			}
-		} else {
-			result = tinyrl_vt100_UNKNOWN;
-			break;
-		}
-	}
-	/* terminate the string */
-	*p = '\0';
-
-	if (tinyrl_vt100_UNKNOWN != result) {
-		p = sequence;
-		result = tinyrl_vt100_UNKNOWN;
-
-		/* now decode the sequence */
-		for (i = 0; i < sizeof(cmds) / sizeof(vt100_decode_t); i++) {
-			if (strcmp(cmds[i].sequence, p) == 0) {
-				/* found the code in the lookup table */
-				result = cmds[i].code;
-				break;
-			}
-		}
+	/* Decode the sequence to macros */
+	for (i = 0; i < (sizeof(cmds) / sizeof(vt100_decode_t)); i++) {
+		if (strcmp(cmds[i].sequence, esc_seq))
+			continue;
+		result = cmds[i].code;
+		break;
 	}
 
 	return result;

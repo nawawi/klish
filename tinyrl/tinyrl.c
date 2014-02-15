@@ -377,11 +377,12 @@ static bool_t tinyrl_key_erase_line(tinyrl_t * this, int key)
 	return BOOL_TRUE;
 }/*-------------------------------------------------------- */
 
-static bool_t tinyrl_key_escape(tinyrl_t * this, int key)
+static bool_t tinyrl_escape_seq(tinyrl_t *this, const char *esc_seq)
 {
+	int key = 0;
 	bool_t result = BOOL_FALSE;
 
-	switch (tinyrl_vt100_escape_decode(this->term)) {
+	switch (tinyrl_vt100_escape_decode(this->term, esc_seq)) {
 	case tinyrl_vt100_CURSOR_UP:
 		result = tinyrl_key_up(this, key);
 		break;
@@ -409,6 +410,7 @@ static bool_t tinyrl_key_escape(tinyrl_t * this, int key)
 	case tinyrl_vt100_UNKNOWN:
 		break;
 	}
+
 	return result;
 }
 
@@ -453,9 +455,7 @@ static void tinyrl_fini(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-static void
-tinyrl_init(tinyrl_t * this,
-	FILE * istream, FILE * ostream,
+static void tinyrl_init(tinyrl_t * this, FILE * istream, FILE * ostream,
 	unsigned stifle, tinyrl_completion_func_t * complete_fn)
 {
 	int i;
@@ -463,14 +463,13 @@ tinyrl_init(tinyrl_t * this,
 	for (i = 0; i < NUM_HANDLERS; i++) {
 		this->handlers[i] = tinyrl_key_default;
 	}
-	/* default handlers */
+	/* Default handlers */
 	this->handlers[KEY_CR] = tinyrl_key_crlf;
 	this->handlers[KEY_LF] = tinyrl_key_crlf;
 	this->handlers[KEY_ETX] = tinyrl_key_interrupt;
 	this->handlers[KEY_DEL] = tinyrl_key_backspace;
 	this->handlers[KEY_BS] = tinyrl_key_backspace;
 	this->handlers[KEY_EOT] = tinyrl_key_delete;
-	this->handlers[KEY_ESC] = tinyrl_key_escape;
 	this->handlers[KEY_FF] = tinyrl_key_clear_screen;
 	this->handlers[KEY_NAK] = tinyrl_key_erase_line;
 	this->handlers[KEY_SOH] = tinyrl_key_start_of_line;
@@ -698,7 +697,6 @@ static char *internal_readline(tinyrl_t * this,
 	char *result = NULL;
 	int lerrno = 0;
 
-	/* initialise for reading a line */
 	this->done = BOOL_FALSE;
 	this->point = 0;
 	this->end = 0;
@@ -707,70 +705,102 @@ static char *internal_readline(tinyrl_t * this,
 	this->line = this->buffer;
 	this->context = context;
 
+	/* Interactive session */
 	if (this->isatty && !str) {
 		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
-		/* set the terminal into raw input mode */
+		unsigned int esc_cont = 0; /* Escape sequence continues */
+		char esc_seq[10]; /* Buffer for ESC sequence */
+		char *esc_p = esc_seq;
+
+		/* Set the terminal into raw mode */
 		tty_set_raw_mode(this);
 		tinyrl_reset_line_state(this);
 
 		while (!this->done) {
 			int key;
-			/* get a key */
+
 			key = tinyrl_getchar(this);
-			/* has the input stream terminated? */
-			if (key >= 0) { /* Real key pressed */
-				/* Common callback for any key */
-				if (this->keypress_fn)
-					this->keypress_fn(this, key);
-				/* Call the handler for this key */
-				if (!this->handlers[key](this, key))
-					tinyrl_ding(this);
-				if (this->done) {
-					/*
-					 * If the last character in the line (other than
-					 * the null) is a space remove it.
-					 */
-					if (this->end &&
-						isspace(this->line[this->end - 1]))
-						tinyrl_delete_text(this,
-							this->end - 1,
-							this->end);
-				} else {
-					if (this->utf8) {
-						if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
-							utf8_cont = 0;
-						else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
-							utf8_cont--;
-						else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
-							/* Find out number of char's bytes */
-							int b = key;
-							utf8_cont = 0;
-							while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
-								utf8_cont++;
-								b = b << 1;
-							}
-						}
-					}
-					/* For non UTF-8 encoding the utf8_cont is always 0.
-					   For UTF-8 it's 0 when one-byte symbol or we get
-					   all bytes for the current multibyte character. */
-					if (!utf8_cont)
-						tinyrl_redisplay(this);
-				}
-			} else { /* Error || EOF || Timeout */
+
+			/* Error || EOF || Timeout */
+			if (key < 0) {
 				if ((VT100_TIMEOUT == key) &&
 					!this->timeout_fn(this))
 					continue;
-				/* time to finish the session */
+				/* It's time to finish the session */
 				this->done = BOOL_TRUE;
 				this->line = NULL;
 				lerrno = ENOENT;
+				continue;
 			}
+
+			/* Real key pressed */
+			/* Common callback for any key */
+			if (this->keypress_fn)
+				this->keypress_fn(this, key);
+
+			/* Check for ESC sequence. It's a special case. */
+			if (!esc_cont && (key == KEY_ESC)) {
+				esc_cont = 1; /* Start ESC sequence */
+				esc_p = esc_seq;
+				continue;
+			}
+			if (esc_cont) {
+				/* Broken sequence */
+				if (esc_p >= (esc_seq + sizeof(esc_seq) - 1)) {
+					esc_cont = 0;
+					continue;
+				}
+				/* Dump the control sequence into sequence buffer
+				   ANSI standard control sequences will end
+				   with a character between 64 - 126 */
+				*esc_p = key & 0xff;
+				esc_p++;
+				/* This is an ANSI control sequence terminator code */
+				if ((key != '[') && (key > 63)) {
+					*esc_p = '\0';
+					tinyrl_escape_seq(this, esc_seq);
+					esc_cont = 0;
+					tinyrl_redisplay(this);
+				}
+				continue;
+			}
+
+			/* Call the handler for this key */
+			if (!this->handlers[key](this, key))
+				tinyrl_ding(this);
+			if (this->done) /* Some handler set the done flag */
+				continue; /* It will break the loop */
+
+			if (this->utf8) {
+				if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
+					utf8_cont = 0;
+				else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
+					utf8_cont--;
+				else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
+					/* Find out number of char's bytes */
+					int b = key;
+					utf8_cont = 0;
+					while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
+						utf8_cont++;
+						b = b << 1;
+					}
+				}
+			}
+			/* For non UTF-8 encoding the utf8_cont is always 0.
+			   For UTF-8 it's 0 when one-byte symbol or we get
+			   all bytes for the current multibyte character. */
+			if (!utf8_cont)
+				tinyrl_redisplay(this);
 		}
-		/* restores the terminal mode */
+		/* If the last character in the line (other than NULL)
+		   is a space remove it. */
+		if (this->end && isspace(this->line[this->end - 1]))
+			tinyrl_delete_text(this, this->end - 1, this->end);
+		/* Restores the terminal mode */
 		tty_restore_mode(this);
+
+	/* Non-interactive session */
 	} else {
-		/* This is a non-interactive set of commands */
 		char *s = NULL, buffer[80];
 		size_t len = sizeof(buffer);
 		char *tmp = NULL;
