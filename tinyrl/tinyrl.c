@@ -21,12 +21,12 @@
 #include "private.h"
 
 /*-------------------------------------------------------- */
-#if 0
-int get_utf8(const char *sp, unsigned long *sym_out)
+static int utf8_wchar(const char *sp, unsigned long *sym_out)
 {
-	int i = 0, l = 0;
+	int i = 0;
+	int l = 0; /* Number of 0x10 UTF sequence bytes */
 	unsigned long sym = 0;
-	const unsigned char *p = (const unsigned char*)sp;
+	const unsigned char *p = (const unsigned char *)sp;
 
 	if (sym_out)
 		*sym_out = *p;
@@ -34,9 +34,11 @@ int get_utf8(const char *sp, unsigned long *sym_out)
 	if (!*p)
 		return 0;
 
+	/* Check for first byte of UTF-8 */
 	if (!(*p & 0xc0))
 		return 1;
 
+	/* Analyze first byte */
 	if ((*p & 0xe0) == 0xc0) {
 		l = 1;
 		sym = (*p & 0x1f);
@@ -55,19 +57,22 @@ int get_utf8(const char *sp, unsigned long *sym_out)
 	} else {
 		return 1;
 	}
-	p ++;
-	for (i = 0; i < l; i ++) {
+	p++;
+
+	/* Analyze next UTF-8 bytes */
+	for (i = 0; i < l; i++) {
 		sym <<= 6;
-		if ((*p & 0xc0) != 0x80) {
+		/* Check if it's really UTF-8 bytes */
+		if ((*p & 0xc0) != 0x80)
 			return 1;
-		}
-		sym |= (*p++ & 0x3f);
+		sym |= (*p & 0x3f);
+		p++;
 	}
+
 	if (sym_out)
 		*sym_out = sym;
-	return l + 1;
+	return (l + 1);
 }
-#endif
 
 /*-------------------------------------------------------- */
 static int utf8_is_cjk(unsigned long sym)
@@ -173,19 +178,31 @@ static void utf8_point_right(tinyrl_t * this)
 }
 
 /*-------------------------------------------------------- */
-static unsigned utf8_nsyms(const tinyrl_t * this, const char *str, unsigned num)
+static unsigned utf8_nsyms(const tinyrl_t *this, const char *str,
+	unsigned int num)
 {
-	unsigned nsym = 0;
-	unsigned i;
+	unsigned int nsym = 0;
+	unsigned long sym = 0;
+	unsigned int i = 0;
 
 	if (!this->utf8)
 		return num;
-	for (i = 0; i < num; i++) {
+
+	while (i < num) {
 		if ('\0' == str[i])
 			break;
-		if (UTF8_10 == (str[i] & UTF8_MASK))
+		/* ASCII char */
+		if (!(UTF8_7BIT_MASK & str[i])) {
+			i++;
+			nsym++;
 			continue;
-		nsym++;
+		}
+		/* Multibyte */
+		i += utf8_wchar(&str[i], &sym);
+		if (utf8_is_cjk(sym)) /* CJK chars have double-width */
+			nsym += 2;
+		else
+			nsym += 1;
 	}
 
 	return nsym;
