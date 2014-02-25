@@ -25,7 +25,7 @@ lub_list_t *lub_list_new(lub_list_compare_fn compareFn)
 }
 
 /*--------------------------------------------------------- */
-void inline lub_list_free(lub_list_t *this)
+inline void lub_list_free(lub_list_t *this)
 {
 	free(this);
 }
@@ -93,7 +93,7 @@ inline lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *this)
 }
 
 /*--------------------------------------------------------- */
-void inline lub_list_node_free(lub_list_node_t *this)
+inline void lub_list_node_free(lub_list_node_t *this)
 {
 	free(this);
 }
