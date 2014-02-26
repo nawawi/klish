@@ -96,7 +96,7 @@ struct options {
 int main(int argc, char **argv)
 {
 	int retval = -1;
-	unsigned int i;
+	int i;
 	char *str;
 	konf_tree_t *conf;
 	lub_bintree_t bufs;
@@ -382,7 +382,7 @@ err1:
 /*--------------------------------------------------------- */
 static char * process_query(konf_buf_t *tbuf, konf_tree_t * conf, char *str)
 {
-	unsigned int i;
+	int i;
 	int res;
 	konf_tree_t *iconf;
 	konf_tree_t *tmpconf;
@@ -516,6 +516,8 @@ static char * process_query(konf_buf_t *tbuf, konf_tree_t * conf, char *str)
  */
 static void sighandler(int signo)
 {
+	signo = signo; /* Happy compiler */
+
 	sigterm = 1;
 }
 

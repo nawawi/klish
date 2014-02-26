@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	char *line = NULL;
 	char *str = NULL;
 	const char *socket_path = KONFD_SOCKET_PATH;
-	unsigned i = 0;
+	int i = 0;
 
 	/* Signal vars */
 	struct sigaction sigpipe_act;

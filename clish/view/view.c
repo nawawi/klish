@@ -318,7 +318,7 @@ void clish_view_insert_nspace(clish_view_t * this, clish_nspace_t * nspace)
 /*--------------------------------------------------------- */
 void clish_view_clean_proxy(clish_view_t * this)
 {
-	int i;
+	unsigned int i;
 
 	/* Iterate namespace instances */
 	for (i = 0; i < this->nspacec; i++) {

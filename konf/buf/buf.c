@@ -146,7 +146,7 @@ int konf_buf_read(konf_buf_t *this)
 /*--------------------------------------------------------- */
 char * konf_buf_string(char *buf, int len)
 {
-	unsigned i;
+	int i;
 	char *str;
 
 	for (i = 0; i < len; i++) {

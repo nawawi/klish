@@ -268,6 +268,8 @@ static void clish_expat_element_end(void *data, const char *el)
 	if (doc->current) {
 		doc->current = doc->current->parent;
 	}
+
+	el = el; /* Happy compiler */
 }
 
 /** Free a node, its children and its attributes
@@ -383,21 +385,29 @@ int clish_xmldoc_is_valid(clish_xmldoc_t *doc)
 
 int clish_xmldoc_error_caps(clish_xmldoc_t *doc)
 {
+	doc = doc; /* Happy compiler */
+
 	return CLISH_XMLERR_NOCAPS;
 }
 
 int clish_xmldoc_get_err_line(clish_xmldoc_t *doc)
 {
+	doc = doc; /* Happy compiler */
+
 	return -1;
 }
 
 int clish_xmldoc_get_err_col(clish_xmldoc_t *doc)
 {
+	doc = doc; /* Happy compiler */
+
 	return -1;
 }
 
 const char *clish_xmldoc_get_err_msg(clish_xmldoc_t *doc)
 {
+	doc = doc; /* Happy compiler */
+
 	return "";
 }
 
@@ -449,7 +459,7 @@ char *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
 int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content,
 			      unsigned int *contentlen)
 {
-	int minlen = 1;
+	unsigned int minlen = 1;
 
 	if (node && content && contentlen) {
 		clish_xmlnode_t *children = node->children;
@@ -509,6 +519,7 @@ void clish_xmlnode_print(clish_xmlnode_t *node, FILE *out)
 
 void clish_xml_release(void *p)
 {
+	p = p; /* Happy compiler */
 	/* nothing to release */
 }
 

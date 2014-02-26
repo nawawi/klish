@@ -261,6 +261,8 @@ static void changed_line(tinyrl_t * this)
 /*----------------------------------------------------------------------- */
 static int tinyrl_timeout_default(tinyrl_t *this)
 {
+	this = this; /* Happy compiler */
+
 	/* Return -1 to close session on timeout */
 	return -1;
 }

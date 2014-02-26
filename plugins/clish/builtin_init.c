@@ -31,6 +31,8 @@ CLISH_PLUGIN_INIT(clish)
 	clish_plugin_add_psym(plugin, clish_macros, "clish_macros");
 	clish_plugin_add_sym(plugin, clish_script, "clish_script");
 
+	clish_shell = clish_shell; /* Happy compiler */
+
 	return 0;
 }
 

@@ -185,6 +185,8 @@ void clish_param_help(const clish_param_t * this, clish_help_t *help)
 void clish_param_help_arrow(const clish_param_t * this, size_t offset)
 {
 	fprintf(stderr, "%*c\n", (int)offset, '^');
+
+	this = this; /* Happy compiler */
 }
 
 /*--------------------------------------------------------- */

@@ -48,6 +48,8 @@ tinyrl_vt100_escape_t tinyrl_vt100_escape_decode(const tinyrl_vt100_t *this,
 		break;
 	}
 
+	this = this; /* Happy compiler */
+
 	return result;
 }
 

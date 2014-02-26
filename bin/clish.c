@@ -414,5 +414,7 @@ static void help(int status, const char *argv0)
  */
 static void sighandler(int signo)
 {
+	signo = signo; /* Happy compiler */
+
 	return;
 }

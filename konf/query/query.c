@@ -87,7 +87,7 @@ void konf_query_free(konf_query_t *this)
 /* Parse query */
 int konf_query_parse(konf_query_t *this, int argc, char **argv)
 {
-	unsigned i = 0;
+	int i = 0;
 	int pwdc = 0;
 
 	static const char *shortopts = "suoedtp:q:r:l:f:inh:";

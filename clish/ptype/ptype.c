@@ -148,7 +148,7 @@ static const char *method_names[] = {
 /*--------------------------------------------------------- */
 const char *clish_ptype_method__get_name(clish_ptype_method_e method)
 {
-	int max_method = sizeof(method_names) / sizeof(char *);
+	unsigned int max_method = sizeof(method_names) / sizeof(char *);
 
 	if (method >= max_method)
 		return NULL;

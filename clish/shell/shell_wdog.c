@@ -40,6 +40,8 @@ int clish_shell_keypress_fn(tinyrl_t *tinyrl, int key)
 		tinyrl__set_timeout(tinyrl, this->idle_timeout);
 	}
 
+	key = key; /* Happy compiler */
+
 	return 0;
 }
 

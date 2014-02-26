@@ -75,6 +75,9 @@ CLISH_HOOK_ACCESS(clish_hook_access)
 	lub_string_free(full_access);
 	free(group_list);
 #endif
+
+	clish_context = clish_context; /* Happy compiler */
+
 	return allowed;
 }
 

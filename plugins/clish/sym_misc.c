@@ -23,6 +23,10 @@ CLISH_PLUGIN_SYM(clish_close)
 {
 	clish_shell_t *this = clish_context__get_shell(clish_context);
 	clish_shell__set_state(this, SHELL_STATE_CLOSING);
+
+	script = script; /* Happy compiler */
+	out = out; /* Happy compiler */
+
 	return 0;
 }
 
@@ -68,6 +72,9 @@ static int clish_source_internal(clish_context_t *context,
 CLISH_PLUGIN_SYM(clish_source)
 {
 	clish_context_t *context = (clish_context_t *)clish_context;
+
+	out = out; /* Happy compiler */
+
 	return (clish_source_internal(context, script, BOOL_TRUE));
 }
 
@@ -80,6 +87,9 @@ CLISH_PLUGIN_SYM(clish_source)
 CLISH_PLUGIN_SYM(clish_source_nostop)
 {
 	clish_context_t *context = (clish_context_t *)clish_context;
+
+	out = out; /* Happy compiler */
+
 	return (clish_source_internal(context, script, BOOL_FALSE));
 }
 
@@ -92,6 +102,10 @@ CLISH_PLUGIN_SYM(clish_overview)
 	clish_shell_t *this = clish_context__get_shell(clish_context);
 	tinyrl_t *tinyrl = clish_shell__get_tinyrl(this);
 	tinyrl_printf(tinyrl, "%s\n", clish_shell__get_overview(this));
+
+	script = script; /* Happy compiler */
+	out = out; /* Happy compiler */
+
 	return 0;
 }
 
@@ -124,6 +138,9 @@ CLISH_PLUGIN_SYM(clish_history)
 			tinyrl_history_entry__get_index(entry),
 			tinyrl_history_entry__get_line(entry));
 	}
+
+	out = out; /* Happy compiler */
+
 	return 0;
 }
 
@@ -146,6 +163,9 @@ CLISH_PLUGIN_SYM(clish_nested_up)
 	depth--;
 	clish_shell__set_depth(this, depth);
 
+	script = script; /* Happy compiler */
+	out = out; /* Happy compiler */
+
 	return 0;
 }
 
@@ -155,6 +175,10 @@ CLISH_PLUGIN_SYM(clish_nested_up)
  */
 CLISH_PLUGIN_SYM(clish_nop)
 {
+	script = script; /* Happy compiler */
+	out = out; /* Happy compiler */
+	clish_context = clish_context; /* Happy compiler */
+
 	return 0;
 }
 
@@ -175,6 +199,8 @@ CLISH_PLUGIN_SYM(clish_wdog)
 
 	clish_shell__set_wdog_timeout(this, (unsigned int)atoi(arg));
 
+	out = out; /* Happy compiler */
+
 	return 0;
 }
 
@@ -187,6 +213,9 @@ CLISH_PLUGIN_SYM(clish_macros)
 	if (!script) /* Nothing to do */
 		return 0;
 	*out = lub_string_dup(script);
+
+	clish_context = clish_context; /* Happy compiler */
+
 	return 0;
 }
 

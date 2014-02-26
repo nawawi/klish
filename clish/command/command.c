@@ -174,6 +174,8 @@ void clish_command_insert_param(clish_command_t * this, clish_param_t * param)
 /*--------------------------------------------------------- */
 int clish_command_help(const clish_command_t *this)
 {
+	this = this; /* Happy compiler */
+
 	return 0;
 }
 
@@ -374,7 +376,7 @@ clish_view_t *clish_command__get_pview(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-unsigned clish_command__get_depth(const clish_command_t * this)
+int clish_command__get_depth(const clish_command_t * this)
 {
 	if (!this->pview)
 		return 0;
