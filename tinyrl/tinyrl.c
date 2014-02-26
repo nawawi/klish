@@ -962,7 +962,7 @@ static char *internal_readline(tinyrl_t * this,
 
 		if (str) {
 			tmp = lub_string_dup(str);
-			s = internal_insertline(this, tmp);
+			internal_insertline(this, tmp);
 		} else {
 			while (istream && (sizeof(buffer) == len) &&
 				(s = fgets(buffer, sizeof(buffer), istream))) {
