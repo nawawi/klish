@@ -56,19 +56,15 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 {
 	char tmp[80];
 
-	/* now set up the range values */
+	/* Now set up the range values */
 	switch (this->method) {
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_REGEXP:
-		/*
-		 * nothing more to do 
-		 */
+		/* Nothing more to do */
 		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_INTEGER:
-		/*
-		 * Setup the integer range
-		 */
+		/* Setup the integer range */
 		sprintf(tmp,
 			"%d..%d",
 			this->u.integer.min, this->u.integer.max);
@@ -76,9 +72,7 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_UNSIGNEDINTEGER:
-		/*
-		 * Setup the unsigned integer range
-		 */
+		/* Setup the unsigned integer range */
 		sprintf(tmp,
 			"%u..%u",
 			(unsigned int)this->u.integer.min,
@@ -88,20 +82,16 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_SELECT:
 	{
-		/*
-		 * Setup the selection values to the help text
-		 */
-		unsigned i;
+		/* Setup the selection values to the help text */
+		unsigned int i;
 
-		for (i = 0;
-			i < lub_argv__get_count(this->u.select.items);
-			i++) {
+		for (i = 0; i < lub_argv__get_count(this->u.select.items); i++) {
 			char *p = tmp;
 			char *name = clish_ptype_select__get_name(this, i);
 
 			if (i > 0)
 				p += sprintf(p, "/");
-			p += sprintf(p, "%s", name);
+			sprintf(p, "%s", name);
 			lub_string_cat(&this->range, tmp);
 			lub_string_free(name);
 		}
