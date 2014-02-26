@@ -945,7 +945,7 @@ static char *internal_readline(tinyrl_t * this,
 		}
 		/* If the last character in the line (other than NULL)
 		   is a space remove it. */
-		if (this->end && isspace(this->line[this->end - 1]))
+		if (this->end && this->line && isspace(this->line[this->end - 1]))
 			tinyrl_delete_text(this, this->end - 1, this->end);
 		/* Restores the terminal mode */
 		tty_restore_mode(this);
