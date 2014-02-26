@@ -417,7 +417,13 @@ static int process_overview(clish_shell_t *shell, clish_xmlnode_t *element,
 	 * Ergo, it -should- be safe.
 	 */
 	do {
-		content = (char*)realloc(content, content_len);
+		char *new = (char*)realloc(content, content_len);
+		if (!new) {
+			if (content)
+				free(content);
+			return -1;
+		}
+		content = new;
 		result = clish_xmlnode_get_content(element, content,
 			&content_len);
 	} while (result == -E2BIG);
