@@ -18,7 +18,8 @@ void clish_shell__expand_viewid(const char *viewid, lub_bintree_t *tree,
 	clish_context_t *context)
 {
 	char *expanded;
-	char *q, *saveptr;
+	char *q;
+	char *saveptr = NULL;
 
 	expanded = clish_shell_expand(viewid, SHELL_VAR_NONE, context);
 	if (!expanded)
@@ -240,7 +241,7 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
 		if (p[-1] == '}') {
 			bool_t valid = BOOL_FALSE;
 			char *text, *q;
-			char *saveptr;
+			char *saveptr = NULL;
 
 			/* get the variable text */
 			text = lub_string_dupn(tmp, len);

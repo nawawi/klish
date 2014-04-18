@@ -51,7 +51,7 @@ static clish_sym_t *plugins_find_sym(clish_shell_t *this, const char *name, int 
 	clish_plugin_t *plugin;
 	clish_sym_t *sym = NULL;
 	/* To parse command name */
-	char *saveptr;
+	char *saveptr = NULL;
 	const char *delim = "@";
 	char *plugin_name = NULL;
 	char *cmdn = NULL;

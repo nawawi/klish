@@ -90,7 +90,7 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	const char *path = xml_path;
 	char *buffer;
 	char *dirname;
-	char *saveptr;
+	char *saveptr = NULL;
 	int res = 0;
 	int i = 0;
 
@@ -485,7 +485,7 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	/* Reference 'ref' field */
 	if (ref) {
-		char *saveptr;
+		char *saveptr = NULL;
 		const char *delim = "@";
 		char *view_name = NULL;
 		char *cmdn = NULL;

@@ -34,7 +34,7 @@ CLISH_HOOK_ACCESS(clish_hook_access)
 	gid_t *group_list;
 	int i;
 	char *tmp_access, *full_access;
-	char *saveptr;
+	char *saveptr = NULL;
 
 	assert(access);
 	full_access = lub_string_dup(access);

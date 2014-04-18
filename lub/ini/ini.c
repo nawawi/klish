@@ -99,7 +99,7 @@ const char *lub_ini_find(const lub_ini_t *this, const char *name)
 int lub_ini_parse_str(lub_ini_t *this, const char *ini)
 {
 	char *buffer;
-	char *saveptr;
+	char *saveptr = NULL;
 	char *line;
 
 	buffer = lub_string_dup(ini);
