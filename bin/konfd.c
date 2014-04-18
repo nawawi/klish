@@ -592,7 +592,7 @@ int daemonize(int nochdir, int noclose)
 		dup2(fd, STDIN_FILENO);
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
-		if (fd > 2)
+		if (fd > STDERR_FILENO)
 			close(fd);
 	}
 
