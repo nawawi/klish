@@ -101,7 +101,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 			arg = lub_argv__get_arg(argv, *idx);
 
 		/* Is parameter in "switch" mode? */
-		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
+		if (param && (CLISH_PARAM_SWITCH == clish_param__get_mode(param)))
 			is_switch = 1;
 
 		/* Check the 'test' conditions */
