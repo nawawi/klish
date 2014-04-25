@@ -9,6 +9,7 @@ static inline void lub_list_init(lub_list_t * this,
 	lub_list_compare_fn compareFn)
 {
 	this->head = NULL;
+	this->tail = NULL;
 	this->compareFn = compareFn;
 }
 
