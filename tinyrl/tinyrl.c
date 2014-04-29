@@ -650,6 +650,7 @@ static void tinyrl_init(tinyrl_t * this, FILE * istream, FILE * ostream,
 	this->echo_enabled = BOOL_TRUE;
 	this->last_buffer = NULL;
 	this->last_point = 0;
+	this->last_line_size = 0;
 	this->utf8 = BOOL_FALSE;
 
 	/* create the vt100 terminal */
@@ -780,7 +781,9 @@ void tinyrl_redisplay(tinyrl_t * this)
 	cols = (this->prompt_len + line_len) % width;
 	if (!cols && (line_size - eq_chars))
 		tinyrl_vt100_next_line(this->term);
-	tinyrl_vt100_erase_down(this->term);
+	/* Erase down if current line is shorter than previous one */
+	if (this->last_line_size > line_size)
+		tinyrl_vt100_erase_down(this->term);
 	/* Move the cursor to the insertion point */
 	if (this->point < line_size) {
 		unsigned int pre_len = utf8_nsyms(this,
@@ -799,6 +802,7 @@ void tinyrl_redisplay(tinyrl_t * this)
 	this->last_buffer = lub_string_dup(this->line);
 	this->last_point = this->point;
 	this->last_width = width;
+	this->last_line_size = line_size;
 }
 
 /*----------------------------------------------------------------------- */
@@ -1317,6 +1321,8 @@ void tinyrl_reset_line_state(tinyrl_t * this)
 	/* start from scratch */
 	lub_string_free(this->last_buffer);
 	this->last_buffer = NULL;
+	this->last_line_size = 0;
+/*	this->last_point = 0; */
 
 	tinyrl_redisplay(this);
 }
