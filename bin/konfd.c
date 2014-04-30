@@ -71,7 +71,7 @@ static void sighandler(int signo);
 
 static void help(int status, const char *argv0);
 static char * process_query(konf_buf_t *tbuf, konf_tree_t * conf, char *str);
-int answer_send(int sock, char *command);
+int answer_send(int sock, const char *command);
 static int dump_running_config(int sock, konf_tree_t *conf, konf_query_t *query);
 int daemonize(int nochdir, int noclose);
 struct options *opts_init(void);
@@ -522,8 +522,12 @@ static void sighandler(int signo)
 }
 
 /*--------------------------------------------------------- */
-int answer_send(int sock, char *command)
+int answer_send(int sock, const char *command)
 {
+	if (!command) {
+		errno = EINVAL;
+		return -1;
+	}
 	return send(sock, command, strlen(command) + 1, MSG_NOSIGNAL);
 }
 
