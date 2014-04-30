@@ -92,7 +92,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 
 	while (index < paramc) {
 		const char *arg = NULL;
-		clish_param_t *param = clish_paramv__get_param(paramv,index);
+		clish_param_t *param = clish_paramv__get_param(paramv, index);
 		clish_param_t *cparam = NULL;
 		int is_switch = 0;
 
@@ -111,7 +111,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 		}
 
 		/* Add param for help and completion */
-		if (last && (*idx == need_index) &&
+		if (param && last && (*idx == need_index) &&
 			(NULL == clish_pargv_find_arg(pargv, clish_param__get_name(param)))) {
 			if (is_switch) {
 				unsigned rec_paramc = clish_param__get_param_count(param);
