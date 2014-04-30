@@ -275,7 +275,8 @@ static int i_get_name(node_t *n, char *v, unsigned int *vl)
 	if (c) {
 		len = strlen(c) + 1;
 		if (len <= *vl) {
-			sprintf(v, "%s", c);
+			snprintf(v, *vl, "%s", c);
+			v[*vl - 1] = '\0';
 			roxml_release(c);
 			return 0;
 		} else {

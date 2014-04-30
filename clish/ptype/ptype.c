@@ -65,18 +65,18 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_INTEGER:
 		/* Setup the integer range */
-		sprintf(tmp,
-			"%d..%d",
+		snprintf(tmp, sizeof(tmp), "%d..%d",
 			this->u.integer.min, this->u.integer.max);
+		tmp[sizeof(tmp) - 1] = '\0';
 		this->range = lub_string_dup(tmp);
 		break;
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_UNSIGNEDINTEGER:
 		/* Setup the unsigned integer range */
-		sprintf(tmp,
-			"%u..%u",
+		snprintf(tmp, sizeof(tmp), "%u..%u",
 			(unsigned int)this->u.integer.min,
 			(unsigned int)this->u.integer.max);
+		tmp[sizeof(tmp) - 1] = '\0';
 		this->range = lub_string_dup(tmp);
 		break;
 	/*------------------------------------------------- */
@@ -86,12 +86,12 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 		unsigned int i;
 
 		for (i = 0; i < lub_argv__get_count(this->u.select.items); i++) {
-			char *p = tmp;
 			char *name = clish_ptype_select__get_name(this, i);
 
 			if (i > 0)
-				p += sprintf(p, "/");
-			sprintf(p, "%s", name);
+				lub_string_cat(&this->range, "/");
+			snprintf(tmp, sizeof(tmp), "%s", name);
+			tmp[sizeof(tmp) - 1] = '\0';
 			lub_string_cat(&this->range, tmp);
 			lub_string_free(name);
 		}
@@ -316,7 +316,7 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 		/* first of all check that this is a number */
 		bool_t ok = BOOL_TRUE;
 		const char *p = result;
-		while (*p) {
+		while (p && *p) {
 			if (!lub_ctype_isdigit(*p++)) {
 				ok = BOOL_FALSE;
 				break;

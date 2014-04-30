@@ -486,14 +486,15 @@ int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content,
 }
 
 int clish_xmlnode_get_name(clish_xmlnode_t *node, char *name,
-			    unsigned int *namelen)
+	unsigned int *namelen)
 {
 	if (node && name && namelen) {
 		if (strlen(node->name) >= *namelen) {
 			*namelen = strlen(node->name) + 1;
 			return -E2BIG;
 		}
-		sprintf(name, "%s", node->name);
+		snprintf(name, *namelen, "%s", node->name);
+		name[*namelen - 1] = '\0';
 		return 0;
 	}
 	return -EINVAL;

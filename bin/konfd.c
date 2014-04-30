@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 		} else {
 			char str[20];
 			snprintf(str, sizeof(str), "%u\n", getpid());
+			str[sizeof(str) - 1] = '\0';
 			if (write(pidfd, str, strlen(str)) < 0)
 				syslog(LOG_WARNING, "Can't write to %s: %s",
 					opts->pidfile, strerror(errno));
