@@ -96,22 +96,25 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 		clish_param_t *cparam = NULL;
 		int is_switch = 0;
 
+		if (!param)
+			return CLISH_BAD_PARAM;
+
 		/* Use real arg or PARAM's default value as argument */
 		if (*idx < argc)
 			arg = lub_argv__get_arg(argv, *idx);
 
 		/* Is parameter in "switch" mode? */
-		if (param && (CLISH_PARAM_SWITCH == clish_param__get_mode(param)))
+		if (CLISH_PARAM_SWITCH == clish_param__get_mode(param))
 			is_switch = 1;
 
 		/* Check the 'test' conditions */
-		if (param && !line_test(param, context)) {
+		if (!line_test(param, context)) {
 			index++;
 			continue;
 		}
 
 		/* Add param for help and completion */
-		if (param && last && (*idx == need_index) &&
+		if (last && (*idx == need_index) &&
 			(NULL == clish_pargv_find_arg(pargv, clish_param__get_name(param)))) {
 			if (is_switch) {
 				unsigned rec_paramc = clish_param__get_param_count(param);
@@ -150,7 +153,7 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 		}
 
 		/* Set parameter value */
-		if (param) {
+		{
 			char *validated = NULL;
 			clish_paramv_t *rec_paramv =
 			    clish_param__get_paramv(param);
@@ -248,8 +251,6 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 						return CLISH_BAD_PARAM;
 				}
 			}
-		} else {
-			return CLISH_BAD_PARAM;
 		}
 	}
 
