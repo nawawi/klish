@@ -21,7 +21,7 @@
 static int clish_shell_lock(const char *lock_path)
 {
 	int i;
-	int res;
+	int res = -1;
 	int lock_fd = -1;
 	struct flock lock;
 
