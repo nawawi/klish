@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "lub/string.h"
 #include "private.h"
@@ -107,6 +109,12 @@ static char *find_context_var(const char *name, clish_context_t *this)
 			result = strdup("1");
 		else
 			result = strdup("0");
+
+	} else if (!lub_string_nocasecmp(name, "_pid")) {
+		char tmp[10];
+		snprintf(tmp, sizeof(tmp), "%u", getpid());
+		tmp[sizeof(tmp) - 1] = '\0';
+		result = strdup(tmp);
 
 	} else if (lub_string_nocasestr(name, "_prefix") == name) {
 		int idx = 0;
