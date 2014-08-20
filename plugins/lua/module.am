@@ -20,12 +20,10 @@ clish_plugin_lua_la_DEPENDENCIES = \
 	libclish.la \
 	libkonf.la
 
-nobase_include_HEADERS		+= \
-	plugins/lua/private.h
-
 clish_plugin_lua_la_SOURCES	+= \
 	plugins/lua/plugin_init.c \
 	plugins/lua/plugin_fini.c \
 	plugins/lua/lua_init.c \
 	plugins/lua/lua_action.c \
-	plugins/lua/lua_print_error.c
+	plugins/lua/lua_print_error.c \
+	plugins/lua/private.h
