@@ -15,6 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <fcntl.h>
 
 #if WITH_INTERNAL_GETOPT
 #include "libc/getopt.h"
@@ -313,8 +314,11 @@ int main(int argc, char **argv)
 			clish_shell_push_file(shell, argv[i], stop_on_error);
 	} else {
 		/* The interactive shell */
-		clish_shell_push_fd(shell, fdopen(dup(fileno(stdin)), "r"),
-			stop_on_error);
+		int tmpfd = dup(fileno(stdin));
+#ifdef FD_CLOEXEC
+		fcntl(tmpfd, F_SETFD, fcntl(tmpfd, F_GETFD) | FD_CLOEXEC);
+#endif
+		clish_shell_push_fd(shell, fdopen(tmpfd, "r"), stop_on_error);
 	}
 
 	/* Execute startup */
