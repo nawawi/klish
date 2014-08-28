@@ -32,6 +32,9 @@ static int clish_shell_lock(const char *lock_path)
 		fprintf(stderr, "Warning: Can't open lockfile %s.\n", lock_path);
 		return -1;
 	}
+#ifdef FD_CLOEXEC
+	fcntl(lock_fd, F_SETFD, fcntl(lock_fd, F_GETFD) | FD_CLOEXEC);
+#endif
 	lock.l_type = F_WRLCK;
 	lock.l_whence = SEEK_SET;
 	lock.l_start = 0;
