@@ -54,9 +54,9 @@ The Klish incorporates all the features of clish. See the clish documentation on
 The utilities reference:
 
   * [clish](#utility_clish) - The CLI utility.
-  * konfd konfd - The daemon to store configuration.
-  * utility_konf konf - The utility to communicate to konfd daemon from shell.
-  * sigexec - The utility to start daemons from non-interruptable ACTION scripts.
+  * [konfd](#utility_konfd) - The daemon to store current configuration.
+  * [konf](#utility_konf) - The utility to communicate to konfd daemon from shell.
+  * [sigexec](#utility_sigexec) - The utility to start daemons from non-interruptable ACTION scripts.
 
 ----
 == XML tags/parameters ==
@@ -1042,35 +1042,127 @@ Default is "none". See the [nested views](nested_views) wiki page for the additi
 
 ## Utilities
 
-# The initial view redefinition.
+### clish {#utility_clish}
 
-<wiki:toc max_depth="2"/>
+Command line interface shell.
 
-# Introduction
+#### Synopsis
+
+```
+$ clish [options] [script_filename]
+```
+
+#### Description
+
+The clish is command line interface shell. The available shell commands and its actions are defined by XML configuration files. The clish utility can get input commands from terminal in interactive mode, from files specified in command line (multiply "script_filename" arguments) or standard input.
+
+#### Options
+
+##### `-v, --version`
+
+Print the version of clish utility.
+
+##### `-h, --help`
+
+Print help.
+
+##### `-s <path>, --socket=<path>`
+
+The clish utility can work together with the [konfd](#utility_konfd) daemon. This daemon can store commands entered in clish. It's usefull to implement config file like CISCO's running-config that stores current system configuration i.e. sequence of commands to achieve current system state. The command sequence can be saved to file (CISCO's startup-config) and executed in batch mode later by clish utility.
+
+The [daemon listens for connections on UNIX domain socket. You can specify the filesystem path to this UNIX domain socket to connect to.
+
+##### `-l, --lockless`
+
+Don't use locking mechanism.
+
+##### `-e, --stop-on-error`
+
+Stop programm execution on error.
+
+##### `-b, --background`
+
+Start shell using non-interactive mode.
+
+##### `-q, --quiet`
+
+Disable echo while executing commands from the file stream.
+
+##### `-d, --dry-run`
+
+Don't actually execute ACTION scripts.
+
+##### `-x <path>, --xml-path=<path>`
+
+Path to XML scheme files.
+
+##### `-w <view_name>, --view=<view_name>`
+
+Set the startup view.
+
+##### `-i <vars>, --viewid=<vars>`
+
+Set the startup viewid.
+
+##### `-u, --utf8`
+
+Force UTF-8 encoding.
+
+##### `-8, --8bit`
+
+Force 8-bit encoding.
+
+##### `-o, --log`
+
+Enable command logging to syslog's local0.
+
+#### Environment
+
+##### CLISH_VIEW
 
 User can define CLISH_VIEW environment variable to set initial view. This value will be used instead of the initial view from STARTUP tag.
 
-The feature is available starting with Klish-1.1.0.
+The feature is available starting with klish-1.1.0.
 
-# CLISH_VIEWID
+##### CLISH_VIEWID
 
 The CLISH_VIEWID environment variable can redefine the viewid field from STARTUP tag.
 
-The feature is available starting with Klish-1.1.0.# The daemon to store running-config.
+The feature is available starting with klish-1.1.0.
 
-<wiki:toc max_depth="2"/>
+#### Files
 
-# Introduction
+#### Return codes
+
+The clish utility can return the following codes:
+
+- 0 - OK
+- 1 - Unknown internal error.
+- 2 - IO error. Can't find stdin for example.
+- 3 - Error while the [ACTION](konfd]) script execution.
+- 4 - Syntax error.
+- 255 - The system error like wrong command line option for clish utility.
+
+#### Notes
+
+The return codes are available since klish-1.5.2 or SVN's revision #516.
+
+
+
+
+
+
+### konfd {#utility_konfd}
 
 The konfd is a daemon to store current running-config. You can consider running-config as a current system settings or as a list of commands that have been executed for now by the user or automatically (by the script).
 
-The name "konfd" is used since Klish-1.1.0. The earlier versions use name "confd" for the configuration daemon.
+The name "konfd" is used since klish-1.1.0. The earlier versions use name "confd" for the configuration daemon.
 
-# The running-config
+#### The running-config
 
 Generally the running-config consists of the the arbitrary text lines. Each entry may contain another nested text lines. Note the **konfd knows nothing about Klish commands and Klish syntax**. The commands is just a **text strings** for the konfd. It's important to realize. The example of running-config:
 
-<code>
+```
 hostname Router
 !
 interface ethernet 0
@@ -1079,15 +1171,15 @@ interface ethernet 0
 !
 interface ethernet 1
  ip address 10.0.0.1
-</code>
+```
 
 The "hostname Router" entry has no nested entries. The "interface ethernet 0" and "interface ethernet 1" contain nested entries.
 
-## Comments
+##### Comments
 
 The "!" symbol is a comment for the Klish. Each line starting with the "!" consider as a comment so this line will be ignored by the Klish. The konfd daemon can output a current state of running-config. The previous text is an example of such output. Generally the comments are not really stored by the konfd. The konfd automatically inserts "!" beetween first level running-config entries for more human readable view.
 
-## Path
+##### Path
 
 The running-config structure can be considered as a filesystem-like structure. The "interface ethernet 0" entry can be considered as a directory with the nested "files". So each entry has a "path". The first level entries have an empty path but the nested entries like a "enable" entry has a non-empty path:
 <code>
@@ -1107,7 +1199,7 @@ In this case the "mtu 1500" entry has a following path:
 </code>
 The "path" concept is important for running-config entries manipulations.
 
-## Priority
+##### Priority
 
 Each entry has a priority. The priority is a 16-bit unsigned integer. The entries with minimal priority resides on the begining of the running-config. The default priority is "0". The entries with the same priority will be ordered alphabetically.
 
@@ -1117,7 +1209,7 @@ The high and low bytes within priority value have a little different meanings. T
 
 The high and low bytes within priority value have no special meanings for nested entries.
 
-## Sequences
+##### Sequences
 
 The konfd supports ordered lists a.k.a. "sequences". The entry can be or not to be a part of the sequence. It can be specified by a special options while entry creation. All entries in sequence must have the same priority value. The priority can be considered as an identifier of the sequence. The running-config can contain many sequences at the same time. The sequences will be identified by the priority value. 
 
@@ -1127,51 +1219,51 @@ The konfd can output entries without or with sequence numbers prepending the ent
 
 See the konfd communication protocol description for detail about sequence using.
 
-# Communicate to konfd daemon
+#### Communicate to konfd daemon
 
 The konfd daemon is accessible via UNIX socket interface. The socket path can be specified via command line. So it's possible to have a several konfd executed simultaneously. The default socket path is /tmp/konfd.socket.
 
 The konfd uses text based protocol for communication with another processes. The syntax of protocol is like a command line with options. It will be documented later in this document.
 
-# Options
+#### Options
 
-## `-v, --version`
+##### `-v, --version`
 
 Print the version of clish utility.
 
-## `-h, --help`
+##### `-h, --help`
 
 Print help.
 
-## `-d, --debug`
+##### `-d, --debug`
 
 Enable debug mode. Don't daemonize konfd.
 
-## `-s <path>, --socket=<path>`
+##### `-s <path>, --socket=<path>`
 
 Specify the UNIX socket filesystem path to listen on.
 
-## `-p <path>, --pid=<path>`
+##### `-p <path>, --pid=<path>`
 
 File to save daemon's PID to.
 
-## `-r <path>, --chroot=<path>`
+##### `-r <path>, --chroot=<path>`
 
 Path to chroot to. Used for security reasons.
 
-## `-u <user>, --user=<user>`
+##### `-u <user>, --user=<user>`
 
 Execute daemon as specified user.
 
-## `-g <group>, --group=<group>`
+##### `-g <group>, --group=<group>`
 
 Execute process as specified group.
 
-# The konfd protocol
+#### The konfd protocol
 
 The syntax of protocol is like a command line with options. The actions and options are specified by the arguments prepend with "-" or "--" (for long options) and after all arguments the "path" is specified. Each element of path must be quoted. Firstly the action must be specified:
 
-## Add entry: `-s, --set`
+##### Add entry: `-s, --set`
 
 To add new entry to the running-config the `"-s"` or `"--set"` argument is used. The following arguments are mandatory for this action:
 - `-l <string>, --line=<string>`. This argument defines the text line to add to the running-config.
@@ -1197,142 +1289,53 @@ This code will add "mtu 1500" nested entry to the path "interface ethernet 0" "i
 interface ethernet 0
  ip options
   mtu 1500
-</code># The sigexec utility.
+</code>
 
-<wiki:toc max_depth="2"/>
 
-# Synopsis
 
-*`sigexec [<command to execute>`*
 
-# Description
+### konf {#utility_konf}
+
+
+
+
+### sigexec {#utility_sigexec}
+
+#### Synopsis
+
+```
+$ sigexec <command to execute>
+```
+
+#### Description
 
 The sigexec utility unblocks (by sigprocmask()) all signals and executes specified command. It's usefull within [atomic_action non-interruptable](options]) [ACTION] scripts for daemon starting. The daemon will have clean signal mask.
 
-# Options
+#### Options
 
-## `-v, --version`
+##### `-v, --version`
 
 Print the version of utility.
 
-## `-h, --help`
+##### `-h, --help`
 
 Print help.
 
-### clish{#utility_clish}
-Command line interface shell.
-
-<wiki:toc max_depth="2"/>
-
-# Synopsis
-
-*`clish [[script_filename](options]) [...`*
-
-# Description
-
-This clish is command line interface shell. The available shell commands and its actions are defined by XML configuration files. The clish utility can get input commands from terminal in interactive mode, from files specified in command line (multiply "script_filename" arguments) or standard input.
-
-# Options
-
-## `-v, --version`
-
-Print the version of clish utility.
-
-## `-h, --help`
-
-Print help.
-
-## `-s <path>, --socket=<path>`
-
-The clish utility can work together with the [konfd](script_filename]) daemon. This daemon can store commands entered in clish. It's usefull to implement config file like CISCO's running-config that stores current system configuration i.e. sequence of commands to achieve current system state. The command sequence can be saved to file (CISCO's startup-config) and executed in batch mode later by clish utility.
-
-The [daemon listens for connections on UNIX domain socket. You can specify the filesystem path to this UNIX domain socket to connect to.
-
-## `-l, --lockless`
-
-Don't use locking mechanism.
-
-## `-e, --stop-on-error`
-
-Stop programm execution on error.
-
-## `-b, --background`
-
-Start shell using non-interactive mode.
-
-## `-q, --quiet`
-
-Disable echo while executing commands from the file stream.
-
-## `-d, --dry-run`
-
-Don't actually execute ACTION scripts.
-
-## `-x <path>, --xml-path=<path>`
-
-Path to XML scheme files.
-
-## `-w <view_name>, --view=<view_name>`
-
-Set the startup view.
-
-## `-i <vars>, --viewid=<vars>`
-
-Set the startup viewid.
-
-## `-u, --utf8`
-
-Force UTF-8 encoding.
-
-## `-8, --8bit`
-
-Force 8-bit encoding.
-
-## `-o, --log`
-
-Enable command logging to syslog's local0.
 
 
-# Environment
-
-# Files
-
-# Return codes
-
-The clish utility can return the following codes:
-
-- *0* - OK
-- *1* - Unknown internal error.
-- *2* - IO error. Can't find stdin for example.
-- *3* - Error while the [ACTION](konfd]) script execution.
-- **4** - Syntax error.
-- **255** - The system error like wrong command line option for clish utility.
-
-# Notes
-
-The return codes are available since Klish-1.5.2 or SVN's revision #516.# One-sentence summary of this page.
-
-<wiki:toc max_depth="2"/>
-
-# Introduction
-
-Te page is under construction.
 
 
-# Details
-# The buildroot environment
+## Build
 
-<wiki:toc max_depth="2"/>
+### The buildroot environment
 
-# Introduction
+Buildroot is a set of Makefiles and patches that makes it easy to generate a complete embedded Linux system. See the <http://www.buildroot.net/> for the details. The Klish can be used as the "package" with the buildroot environment to get into the buildroot's target embedded system.
 
-Buildroot is a set of Makefiles and patches that makes it easy to generate a complete embedded Linux system. See the [http://www.buildroot.net/] for the details. The Klish can be used as the "package" with the buildroot environment to get into the buildroot's target embedded system.
+The Klish source tree contain the contrib/buildroot directory with the files to embed the Klish package into the buildroot environment. The contrib/buildroot/package/klish must be copied to the buildroot's source tree package/klish directory. Then the package/Config.in file must be changed. Add the following line
 
-# Details
-
-The Klish source tree contain the contrib/buildroot directory with the files to embed the Klish package into the buildroot environment. The contrib/buildroot/package/Klish must be copied to the buildroot's source tree package/Klish directory. Then the package/Config.in file must be changed. Add the following line
-
-    source "package/Klish/Config.in"
+```
+source "package/klish/Config.in"
+```
 
 to the section started with 'menu "Shell and utilities"' (or to the another
 section if you think it will be better and you know what you do). After that you
@@ -1341,13 +1344,13 @@ the menu for the Klish within "Package Selection for the target"->"Shell and uti
 
 These files were tested with buildroot-2010.11.
 The current predefined stable version of Klish package that used in the
-buildroot's Klish.mk file is 1.3.1.# Supported XML backends
+buildroot's klish.mk file is 1.3.1.
 
-<wiki:toc max_depth="2"/>
+## XML backends
 
-# XML backends
+### Supported XML backends
 
-The Klish engine uses external (since version Klish-1.6.0) XML backends to parse XML config files. Now Klish supports three XML backends:
+The Klish engine uses external (since version klish-1.6.0) XML backends to parse XML config files. Now Klish supports three XML backends:
 
 - libxml2
 - expat
@@ -1361,134 +1364,154 @@ You can specify preferred XML backend by project configure script argument:
 - --with-libexpat for using expat
 - --with-libroxml for using libroxml
 
-## libxml2
+### libxml2
 
 The libxml2 project homepage is [The tested versions are:
-### 2.7.8
 
-The Klish-1.6.0 tests are passed on:
+#### 2.7.8
+
+The klish-1.6.0 tests are passed on:
 - Linux (ArchLinux)
 - FreeBSD 8.2
 
-## expat
+### expat
 
 The expat project homepage is [http://expat.sourceforge.net/](http://www.xmlsoft.org/].).
 The tested versions are:
-### 2.0.1
 
-The Klish-1.6.0 tests are passed on:
+#### 2.0.1
+
+The klish-1.6.0 tests are passed on:
 - Solaris 11
 - FreeBSD 8.2
-### 2.1.0
 
-The Klish-1.6.0 tests are passed on:
+#### 2.1.0
+
+The klish-1.6.0 tests are passed on:
 - Linux (ArchLinux)
 
-## libroxml
+### libroxml
 
 The expat project homepage is [Don't use versions earlier than libroxml-2.2.0.
 The tested versions are:
 
-### 2.1.1
+#### 2.1.1
 
- The Klish-1.6.0 test are passed. 
+ The klish-1.6.0 test are passed. 
 - FreeBSD 8.2
  Probably the recent version of libroxml can be build on this systems.
 
-### 2.2.0
+#### 2.2.0
 
- The Klish-1.6.0 tests are NOT passed. The "test5" is failed (broken quotes within comment). Now libroxml git repository contain the patch to solve this problem. It was tested on:
+ The klish-1.6.0 tests are NOT passed. The "test5" is failed (broken quotes within comment). Now libroxml git repository contain the patch to solve this problem. It was tested on:
 - Linux (ArchLinux)
 
-# Legacy backend
+### Legacy backend
 
-The Klish earlier than Klish-1.6.0 version uses internal implementation of [http://sourceforge.net/projects/tinyxml/ tinyXML]([https://code.google.com/p/libroxml/].) engine. It was frozen snapshot and it was rather good but tinyXML is written in C++. So Klish can't be build without C++. It's not good for embedded devices. The Klish-1.6.0 and later versions can be build without C++.
+The Klish earlier than klish-1.6.0 version uses internal implementation of [http://sourceforge.net/projects/tinyxml/ tinyXML]([https://code.google.com/p/libroxml/].) engine. It was frozen snapshot and it was rather good but tinyXML is written in C++. So Klish can't be build without C++. It's not good for embedded devices. The klish-1.6.0 and later versions can be build without C++.
 
-# FreeBSD note
+### FreeBSD note
 
 The FreeBSD use "ports" system for third party open source projects. All ports are installed to /usr/local. So the Klish configuration with installed XML backends is something like this:
-    # CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" ./configure --with-libxml2
 
-# Solaris note
+```
+$ CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" ./configure --with-libxml2
+```
+
+### Solaris note
 
 The Solaris 11 has no pkg-config package. The configure script use pkg-config to search for libxml2 headers and libs. So to build Klish with libxml2 backend you need to configure libxml2 path manually:
-    # ./configure --with-libxml2=/usr
+
+```
+$ ./configure --with-libxml2=/usr
+``` 
     
-    
-# HOWTO
 
-<wiki:toc max_depth="2"/>
 
-# Introduction
 
-The HOWTO.
 
-# The XML files validation
+
+## HOWTO
+
+### The XML files validation
 
 The XML files can be validated by the xmllint utility.
-            $xmllint --noout --schema <schema_filename>.xsd <xml_filename>.xml
-Or you can validate all XML file in the specified dir:
-            $xmllint --noout --schema <schema_filename>.xsd <xml_dir>/*.xml
 
-# Static build
+``` 
+$ xmllint --noout --schema <schema_filename>.xsd <xml_filename>.xml
+```
+Or you can validate all XML file in the specified dir:
+
+```
+$ xmllint --noout --schema <schema_filename>.xsd <xml_dir>/*.xml
+```
+
+### Static build
 
 To build Klish statically use:
-<code>
+
+```
 $ ./configure --disable-shared
 $ make LDFLAGS+="-all-static"
-</code>
+```
 
 The LDFLAGS is global so shared libraries can't be build and building of shared libraries must be disabled.
 
-# Leak of dlopen()
+### Leak of dlopen()
 
 If target system doesn't support dlopen() then configure script will configure building process to don't use dlopen() (and other dl functions) but link to plugin's shared objects.
 
 If you need to link statically with plugins use:
-<code>
-$  ac_cv_header_dlfcn_h=no ./configure --prefix=/usr --with-lua --disable-shared
+
+```
+$ ac_cv_header_dlfcn_h=no ./configure --prefix=/usr --with-lua --disable-shared
 $ make LDFLAGS+="-all-static"
-</code># The Klish XML examples.
+```
 
-<wiki:toc max_depth="2"/>
 
-# Introduction
 
-The Klish source tree contain the Klish specific XML examples that show the basic CISCO-like (not exactly copy) interface to configure network interfaces and routing on Linux system. You can find it in xml-examples/Klish dir in the Klish source tree.
+
+## XML examples
+
+The Klish source tree contain the Klish specific XML examples that show the basic CISCO-like (not exactly copy) interface to configure network interfaces and routing on Linux system. You can find it in xml-examples/klish dir in the Klish source tree.
 
 The original clish examples is also available and workable. You can find it in xml-examples/clish dir.
 
-# The KLISH specific examples
+### The KLISH specific examples
 
-The Klish has some new features that is not supported in clish. So the Klish specific examples show some of these new features. The dir xml-examples/Klish is more complex than clish examples dir. That is needed to show CISCO-like 'enable' command that allow to get privileged mode and execute administration commands.
+The Klish has some new features that is not supported in clish. So the Klish specific examples show some of these new features. The dir xml-examples/klish is more complex than clish examples dir. That is needed to show CISCO-like 'enable' command that allow to get privileged mode and execute administration commands.
 
-## The 'enable' command implementation
+#### The 'enable' command implementation
 
 The 'enable' command is implemented by using 'su' linux command and executing new clish instance. It's the right way to get privilegies because the clish/Klish is not enough tool to distribute system permissions. When the 'su -c clish' is used the operation system is responsible to permit or deny some system operations to the current user. For example unprivileged user cannot change the network interfaces settings and routing table. So if even the unprivileged user will be able to enter network specific commands in Klish the system will deny his commands.
 
 If the some kind of role model is needed the 'su' command can be used to became non-root user with additional permissions. The additional permissions can be set using 'sudo' for example.
 
-## Directory structure
+#### Directory structure
 
 The directory structure resulting from the realization of 'enable' command. The privileged and unprivileged users must have the different set of XML files. The example suppose that Klish was configured with './configure --prefix=/usr' so the installed clish binary will be located in /usr/bin dir. The 'etc' dir of the example must be copied to the / dir to the target system.
 
 The etc/ dir contain clish/ clish-enable/ and clish-xml/ dirs. The clish-xml/ dir contain the all (privileged and unprivileged) XMLs. The clish/ dir contain symbolic links to the ../clish-xml/`<name>`.xml files that is needed in non-privileged mode. The clish-enable/ dir contain symbolic links to the ../clish-xml/`<name>`.xml files that is needed in privileged mode.
 
-The etc/ also contain init.d/Klish-init script that will init Klish subsystem on the boot time. It starts the konfd daemon that will store all the configuration (all the configuration commands user will enter). Then the saved configuration file /etc/startup-config is executed via Klish to restore previous (pre-reboot) system configuration. The init.d/Klish-init script can be included in some init script like rc.local so it will be executed automatically on system startup.
+The etc/ also contain init.d/klish-init script that will init Klish subsystem on the boot time. It starts the konfd daemon that will store all the configuration (all the configuration commands user will enter). Then the saved configuration file /etc/startup-config is executed via Klish to restore previous (pre-reboot) system configuration. The init.d/klish-init script can be included in some init script like rc.local so it will be executed automatically on system startup.
 
-## The testing purposes only
+#### The testing purposes only
 
 If you don't want to install all Klish infrastructure to your system and don't want to use 'enable' command you can use the following commands to see the ability of unprivileged and privileged examples (suppose the current dir is a Klish source tree):
 
-    ~/Klish$ CLISH_PATH=xml-examples/Klish/etc/clish bin/clish
-    ~/Klish$ CLISH_PATH=xml-examples/Klish/etc/clish-enable bin/clish
+```
+~/klish$ CLISH_PATH=xml-examples/klish/etc/clish bin/clish
+~/klish$ CLISH_PATH=xml-examples/klish/etc/clish-enable bin/clish
+```
 
 Note privileged commands can be entered by the common user but the real system commands execution will be denied.
 
-# The CLISH original examples
+### The CLISH original examples
 
 To test Klish over the clish original examples the project must be configured and built. Unarchive the source code tarball and 'cd' to the klish-`<version>` tree. Then execute the following commands:
 
-    $ ./configure
-    $ make
-    $ CLISH_PATH=xml-examples/clish bin/clish
+```
+$ ./configure
+$ make
+$ CLISH_PATH=xml-examples/clish bin/clish
+```
