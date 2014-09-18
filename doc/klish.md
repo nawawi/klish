@@ -1,4 +1,6 @@
-== About ==
+# The Klish user manual
+
+## About ##
 
 The klish is a framework for implementing a CISCO-like CLI on a UNIX systems. It is configurable by XML files. The KLISH stands for Kommand Line Interface Shell. I know that "command" starts with "c" :) .
 
@@ -117,6 +119,9 @@ The clish was developed by [Graeme McKerrell](gmckerrell).
 
 The author of the clish project.
 http://sourceforge.net/projects/clish/# The atomic actions
+
+
+## Features
 
 <wiki:toc max_depth="2"/>
 
