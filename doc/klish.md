@@ -1,6 +1,10 @@
-# The Klish user manual
+---
+title: The Klish user manual
+author: Sergey Kalichev <serj.kalichev@gmail.com>
+...
 
-## About ##
+
+# About
 
 The Klish is a framework for implementing a CISCO-like CLI on a UNIX systems. It is configurable by XML files. The KLISH stands for Kommand Line Interface Shell. I know that "command" starts with "c" :) .
 
@@ -10,7 +14,7 @@ The main target for the Klish is a Linux platform. Additionally it can be build 
 
 The Klish development is sponsored by ["Factor-TS"](http://www.factor-ts.ru/) company <http://www.factor-ts.ru/.>
 
-### Klish related links
+## Klish related links
 
 There are the Klish related links:
 
@@ -21,35 +25,35 @@ There are the Klish related links:
 * Klish development mailing list <http://groups.oogle.com/group/klish-dev>
 * News blog <http://klish-cli.blogspot.com>
 
-### Features
+## Features
 
 The Klish incorporates all the features of clish. See the clish documentation on http://clish.sourceforge.net for details. Additionally Klish has some native features:
 
- * _[nested_views Namespaces or logically nested views]_. The tag [NAMESPACE] allows to import the command set from the specified view into another view. So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode).
- * _[nested_views Namespaces with prefix]_ support. The command set can be included into another view with the prefix. All included commands will obtain specified prefix when used from target view. These feature allow to implement CISCO-like "do show ..." commands.
- * _[optional_arguments Optional arguments]_ support. The command arguments can be optional. The [PARAM] tag supports "optional" option that specify whether parameter is optional.
- * _[subcommands Subcommands]_ support. The special type of PARAMs was implemented. It's a fixed word (the sequence of symbols with no spaces) that can be found among another arguments. It can be optional and mean a flag.
- * _[nested_params Nested parameters]_ support. The parameters can be nested. The child (nested) parameters follow the parent parameter. This feature use in parameter branching and with optional parameters. If optional parameter is entered then all the child parameters follow. If the optional parameter was not entered than the child parameters will not be used.
- * _[switch_subcommand Switch subcommands]_ support. The special type of subcommand allows to choose one argument of the list of possible arguments as a next positional parameter. So together with the [nested_params nested parameters] it implements the branching. The argument list can be non-linear.
- * _[cisco_config CISCO-like config]_ support. In some cases the CLI is rather useless without configuration commands storing. The new XML tag [CONFIG] was implemented to support interaction beetween Klish and some external (or internal) mechanism to store some commands sequence i.e. CISCO-like configuration. On each succesfully executed command the Klish can execute special callback function that get current command information and can communicate to external tool to store commands or use the internal mechanisms.
- * _[konfd Configuration daemon]_. The configuration daemon [konfd] can store the current CISCO-like configuration information (running-config). Any Klish or another process can communicate to [konfd] via socket. There is special string-oriented protocol to set new entries to the running-config, remove existent entries or get current config state.
- * _[CLISH_VIEW The initial view redefinition]_. User can define CLISH_VIEW environment variable to set initial view instead of the initial view from STARTUP tag.
- * _[Klish_examples The Klish specific XML examples]_. The Klish source tree contain the Klish specific XML examples that show basic CISCO-like interface to configure network interfaces and routing in Linux system.
- * _[sequence The ordered sequences]_ support in user configuration. In some cases the ordered numerated lists is needed. The example is a CISCO-like access lists in which the order of entries is important. The entries can be addressed by the line number.
- * _[internal_variables The automatic internal variables]_. For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from PARAM tags. These are current command line (${__cmd}), the whole entered line (${__line}) etc.
- * _[builtin_functions The Klish specific builtin functions]_. The clish contain a set of builtin functions (that don't need a scripting within ACTION tag). The additional Klish specific builtin functions is available.
- * _[conditional_param The conditional parameters]_ support. The [PARAM parameter] can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the [PARAM parameter] visibility can depend on the previous [PARAM parameters] values.
- * _[locking_mechanism The locking mechanism]_. The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts.
- * _[atomic_action The atomic actions]_ support. The [ACTION] script can be non-interruptable for the user. It's a default behaviour.
- * _[shebang The choosing of the scripting language]_ is supported. The scripting language for the [ACTION] script execution can be customized.
- * _[command_alias The command aliases]_ are supported. The [COMMAND command] can have the aliases. The resulting alias is equal to the original command. To find out what name (original or alias) was used the `${__cmd}` internal variable can be analyzed.
- * _[buildroot The buildroot contrib files]_. The Klish source tree contain the contrib files for the [http://www.buildroot.net buildroot] to be embedded into it as an additional package.
- * _[utf8 The UTF-8 encoding support]_. The clish utility can autodetect if current locale use UTF-8 encoding or 8-bit encoding.
- * _[xml_backend XML backends]_. The Klish engine supports a several XML backends. That backends parses Klish's XML configuration files.
- * _[hotkeys Programmable hotkeys]_. The programmable hotkeys were implemented.
+ * [nested_views Namespaces or logically nested views]. The tag [NAMESPACE] allows to import the command set from the specified view into another view. So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode).
+ * [nested_views Namespaces with prefix] support. The command set can be included into another view with the prefix. All included commands will obtain specified prefix when used from target view. These feature allow to implement CISCO-like "do show ..." commands.
+ * [optional_arguments Optional arguments] support. The command arguments can be optional. The [PARAM] tag supports "optional" option that specify whether parameter is optional.
+ * [subcommands Subcommands] support. The special type of PARAMs was implemented. It's a fixed word (the sequence of symbols with no spaces) that can be found among another arguments. It can be optional and mean a flag.
+ * [nested_params Nested parameters] support. The parameters can be nested. The child (nested) parameters follow the parent parameter. This feature use in parameter branching and with optional parameters. If optional parameter is entered then all the child parameters follow. If the optional parameter was not entered than the child parameters will not be used.
+ * [switch_subcommand Switch subcommands] support. The special type of subcommand allows to choose one argument of the list of possible arguments as a next positional parameter. So together with the [nested_params nested parameters] it implements the branching. The argument list can be non-linear.
+ * [cisco_config CISCO-like config] support. In some cases the CLI is rather useless without configuration commands storing. The new XML tag [CONFIG] was implemented to support interaction beetween Klish and some external (or internal) mechanism to store some commands sequence i.e. CISCO-like configuration. On each succesfully executed command the Klish can execute special callback function that get current command information and can communicate to external tool to store commands or use the internal mechanisms.
+ * [konfd Configuration daemon]. The configuration daemon [konfd] can store the current CISCO-like configuration information (running-config). Any Klish or another process can communicate to [konfd] via socket. There is special string-oriented protocol to set new entries to the running-config, remove existent entries or get current config state.
+ * [CLISH_VIEW The initial view redefinition]. User can define CLISH_VIEW environment variable to set initial view instead of the initial view from STARTUP tag.
+ * [Klish_examples The Klish specific XML examples]. The Klish source tree contain the Klish specific XML examples that show basic CISCO-like interface to configure network interfaces and routing in Linux system.
+ * [sequence The ordered sequences] support in user configuration. In some cases the ordered numerated lists is needed. The example is a CISCO-like access lists in which the order of entries is important. The entries can be addressed by the line number.
+ * [internal_variables The automatic internal variables]. For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from PARAM tags. These are current command line (`${__cmd}`), the whole entered line (`${__line}`) etc.
+ * [builtin_functions The Klish specific builtin functions]. The clish contain a set of builtin functions (that don't need a scripting within ACTION tag). The additional Klish specific builtin functions is available.
+ * [conditional_param The conditional parameters] support. The [PARAM parameter] can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the [PARAM parameter] visibility can depend on the previous [PARAM parameters] values.
+ * _[locking_mechanism The locking mechanism]. The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts.
+ * [atomic_action The atomic actions] support. The [ACTION] script can be non-interruptable for the user. It's a default behaviour.
+ * [shebang The choosing of the scripting language] is supported. The scripting language for the [ACTION] script execution can be customized.
+ * [command_alias The command aliases] are supported. The [COMMAND command] can have the aliases. The resulting alias is equal to the original command. To find out what name (original or alias) was used the `${__cmd}` internal variable can be analyzed.
+ * [buildroot The buildroot contrib files]. The Klish source tree contain the contrib files for the [http://www.buildroot.net buildroot] to be embedded into it as an additional package.
+ * [utf8 The UTF-8 encoding support]. The clish utility can autodetect if current locale use UTF-8 encoding or 8-bit encoding.
+ * [xml_backend XML backends]. The Klish engine supports a several XML backends. That backends parses Klish's XML configuration files.
+ * [hotkeys Programmable hotkeys]. The programmable hotkeys were implemented.
 ----
 
-### Utilities
+## Utilities
 
 The utilities reference:
 
@@ -58,8 +62,7 @@ The utilities reference:
   * [konf](#utility_konf) - The utility to communicate to konfd daemon from shell.
   * [sigexec](#utility_sigexec) - The utility to start daemons from non-interruptable ACTION scripts.
 
-----
-== XML tags/parameters ==
+## XML tags/parameters
 
 The following list represents the Klish native XML tags of early-known tags with Klish native options:
 
@@ -72,21 +75,20 @@ The following list represents the Klish native XML tags of early-known tags with
   * [STARTUP]
   * [HOTKEY]
 
-----
-== HOWTO ==
+## HOWTO
 
 See the [HOWTO] to find out some Klish related questions.
 
 ----
-(C) _Serj Kalichev <serj.kalichev(`_at_`)gmail.com>, 2010_
+(C) Serj Kalichev <serj.kalichev(`_at_`)gmail.com>, 2010
 
 
 
 
 
-# A modular framework for implementing a CISCO-like CLI on a UNIX system.
+A modular framework for implementing a CISCO-like CLI on a UNIX system.
 
-# CLISH
+CLISH
 
 A modular framework for implementing a CISCO-like CLI on a UNIX system. Arbitary command menus and actions can be defined using XML files. This software handles the user interaction, and forks the appropriate system commands to perform any actions.
 
@@ -95,7 +97,7 @@ The clish was developed by [Graeme McKerrell](gmckerrell).
 - http://sourceforge.net/projects/clish/
 - http://clish.sourceforge.net# Graeme McKerrell
 
-# Graeme !McKerrell
+Graeme !McKerrell
 
 The author of the clish project.
 http://sourceforge.net/projects/clish/
@@ -107,9 +109,9 @@ http://sourceforge.net/projects/clish/
 
 
 
-## Features
+# Features
 
-### The atomic actions
+## The atomic actions
 The [script can be interruptable or non-interruptable (atomic). It's often usefull together with the [locking_mechanism locking mechanism](ACTION]). 
 
 To make the action atomic the [script must be non-interruptable for the user. The following signals can be blocked while [ACTION](ACTION]) script execution:
@@ -132,7 +134,7 @@ To make action interruptable the [COMMAND](ACTION]) tag must contain interrupt="
 
 See the [field 'interrupt'. The atomic actions is available since SVN revision 347 or Klish-1.4.0. The SIGHUP signal is blocked since Klish-1.5.6 and Klish-1.6.1.
 
-### Daemon execution
+## Daemon execution
 
 Note when the [ACTION](COMMAND]) is non-interruptable the daemon execution within script is not safe enough because many services (daemons) use SIGHUP (or some another signals) for its work. For example the SIGHUP is signal to reread configuration files often. But when the [is non-interruptable the service will inherit signal mask from script so some signals will be masked and service will never get these signals. The right way to start services is to use special utility [sigexec](ACTION]). This utility will unmask all signals and then execute command specified in its command line:
 
@@ -142,7 +144,7 @@ Note when the [ACTION](COMMAND]) is non-interruptable the daemon execution withi
 
 Use [sigexec] utility everytime you start service and the service environment will be more suitable.
 
-### The builtin functions.
+## The builtin functions.
 
 The original clish contain a set of builtin functions that don't need a scripting within ACTION tag. The example of of using builtin function from original clish. This command closes the current clish session.
 
@@ -155,19 +157,19 @@ The original clish contain a set of builtin functions that don't need a scriptin
 
 The additional Klish specific builtin functions is available.
 
-#### clish_nested_up
+### clish_nested_up
 
 The Klish supports the [nested views. When user moves deeper in the [VIEW](nested_views])'s hierarchy (the 'depth' of [is increasing) the engine create entries in the "nesting" stack to save previous [VIEW](VIEW]s) and its state. The clish_nested_up function make 'pop' stack operation so it restores previous [and its state. If the current depth is 0 then the clish_nested_up function will be an analog of clish_close builtin function and will close the current Klish session.
 
 The feature is available starting with Klish-1.2.1.
 
-#### clish_nop
+### clish_nop
 
 The NOP command. It does nothing. It's usefull for commands like comment. The CISCO uses "!" as a comment. If the command has no [ACTION](VIEW]) tag at all then this command is unfinished so the "Enter" can't be pressed. Use clish_nop for empty commands. Don't use `<ACTION></ACTION>` because it's slower.
 
 The feature is available starting with Klish-1.4.2.
 
-### CISCO-like config support.
+## CISCO-like config support.
 
 In some cases the CLI is rather useless without configuration commands storing. The new XML tag [was implemented to support interaction beetween Klish and some external (or internal) mechanism to store some commands sequence i.e. CISCO-like configuration. On each succesfully executed command the Klish can execute special callback function that get current command information and can communicate to external tool to store commands or the internal mechanisms can be used for config storing. 
 
@@ -175,7 +177,7 @@ The default tool to store configuration is [konfd](CONFIG]) daemon accessible ov
 
 The [tag is used to make Klish to store the current command or execute other actions (remove old entries, dump entries to file) on config. See [CONFIG](CONFIG]) page for details about tag syntax.
 
-### The command aliases
+## The command aliases
 
 The [command](COMMAND) can have the aliases. The resulting alias is equal to the original command except the name of command, help text and the value of internal variable `${__cmd}`.
 
@@ -193,7 +195,7 @@ The following example creates alias (named "conf") for the command "info" from t
 <COMMAND name="conf" ref="info" help="Alias for the info command"/>
 ```    
 
-### The conditional parameters.
+## The conditional parameters.
 
 The [parameter](PARAM) can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the [parameter](PARAM) visibility can depend on the previous [parameters](PARAM) values.
 
@@ -287,7 +289,7 @@ The example demonstrate the parameter "size" that will be enabled if "proto" is 
 </COMMAND>
 ```
                     
-### The programmable hotkeys
+## The programmable hotkeys
 
 The key combinations (hotkeys) can be programmed to execute specified actions. Use [tag to define hotkey and its action.
 
@@ -300,7 +302,7 @@ This example defines two hotkeys. The "`Ctrl^Z`" for exit. It is defined in the 
 
 The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinations give this key code. This hotkey will execute "show" command in the "enable-view" [and all its subviews but the "do show" command in "configure-view" [VIEW](VIEW]) and all its subviews.
 
-#### Possible keys
+### Possible keys
 
 Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [tag) now.
 
@@ -340,74 +342,73 @@ Some keys has predefined hardcoded behaviour. If key has a predefined behaviour 
   <tr><td>31</td><td>US</td><td>`^_`</td><td></td><td>Unit separator</td></tr>
 </table>
 
-### The automatic internal variables.
+## The automatic internal variables.
 
 For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from [tags. To specify these variables use ${`<name>`} syntax. The variables will be expanded before execution of ACTION, before using some tag's fields that is dynamic and allow the using of variables. The example of such field is [CONFIG](PARAM])'s 'pattern'.
 
-#### `${__cmd}`
+### `${__cmd}`
 
 The `${__cmd}` contain the name of the current command.
 
-#### `${__orig_cmd}`
+### `${__orig_cmd}`
 
 The `${__orig_cmd}` contain the name of the original command if the current command is [alias](command_alias). If the current command is not [alias](command_alias) the `${__orig_cmd}` is equal to the `${__cmd}`.
 
-#### `${__full_cmd}`
+### `${__full_cmd}`
 
 The `${__full_cmd}` is the entered name of command. When the using of command is simple the `${__full_cmd}` will be equal to `${__cmd}` variable. But when the command was imported from another [using the [NAMESPACE](VIEW]) tag with specified 'prefix' field, the `${__full_cmd}` will contain the full name of command "`<prefix>` `<command>`".
 
 For example the "show" command is defined in the ["enable-view". The current [VIEW](VIEW]) is "configure-view". The ["enable-view" is imported into "configure-view" using [NAMESPACE](VIEW]) tag with field prefix="do". If user enters "do show" in command line than the `${__cmd}`="show" but `${__full_cmd}`="do show".
 
-#### `${__params}`
+### `${__params}`
 
 The `${__params}` contain all the entered command parameters. It's equal to line entered by user without command name. If one of the parameters contain spaces than this parameter will be quoted within `${__params}` line.
 
-#### `${__line}`
+### `${__line}`
 
 The `${__line}` is equal to "`${__cmd}` `${__params}`".
 
-#### `${__full_line}`
+### `${__full_line}`
 
 The `${__full_line}` is equal to "`${__full_cmd}` `${__params}`".
 
-#### `${__prefix}`
+### `${__prefix}`
 
 If the current command is imported from another [using [NAMESPACE](VIEW]) tag with specified prefix than the `${__prefix}` will contain the actually entered prefix (the prefix definition can be a regexp).
 
-#### `${__prefix<num>}`
+### `${__prefix<num>}`
 
 If the current command has several prefixes in a case of nested imports than the `${__prefix<num>}` will contain the actually entered prefix with number `<num>` in a line. The `${__prefix0}` is equal to `${__prefix}`.
 
-#### `${__cur_depth}`
+### `${__cur_depth}`
 
 The `${__cur_depth}` contain the current depth of [nested views](nested_views). Note it's not a depth of current command's [but a depth of current [VIEW](VIEW]). These values is not equal when the command is imported from the another [## `${__cur_pwd}`
 
 The `${__cur_pwd}` contain the "path" to the current [VIEW](VIEW].). The views can be [nested](nested_views) and the commands that lead to changing view to the current [is the current "path". These commands is quoted and delimeted by the space. Usually the "path" is used while communication to the [konfd](VIEW]) daemon. It allows to find out the position and depth of current command in the user config.
 
-#### `${__interactive}`
+### `${__interactive}`
 
 The `${__interactive}` can be used to find out if the [clish](utility_clish) session is interactive (`${__interactive}` is equal to "1") or non-interactive (`${__interactive}` is equal to "0"). By default the session is interactive. But the [clish utility](utility_clish) can be executed with the "--background" option to make session non-interactive.
 
-#### `${__isatty}`
+### `${__isatty}`
 
 The `${__isatty}` variable indicates if command was entered manually (using interactive tty) or it come from file or piped stdin. The value will be equal to "1" if command was entered manually and user have interactive tty. The value will be equal to "0" if command came from file.
 
 The variable is available since SVN revision #546 or Klish-1.5.2 release.
 
-
-#### `${__width}`
+### `${__width}`
 
 The current terminal width (columns).
 
-#### `${__height}`
+### `${__height}`
 
 The current terminal height (rows).
 
-#### `${__watchdog_timeout}`
+### `${__watchdog_timeout}`
 
 The current watchdog timeout. When the watchdog is inactive the value is "0".
 
-#### The automatic variables using example
+### The automatic variables using example
 
 The example shows the using of automatic internal variable `${__line}` in CONFIG's pattern field.
 
@@ -425,7 +426,7 @@ The example shows the using of automatic internal variable `${__line}` in CONFIG
 </COMMAND>
 ```
             
-### The locking mechanism.
+## The locking mechanism.
 
 The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts. It's often usefull together with the [atomic actions](atomic_action).
 
@@ -456,7 +457,7 @@ The example of nested clish execution:
 </COMMAND>
 ```
 
-### Nested parameters and parameter branching.
+## Nested parameters and parameter branching.
 
 The parameters can be nested i.e. [can contain another sub-PARAMs. 
 
@@ -464,11 +465,11 @@ The sub-parameters will be taken into account then the parent parameter is set. 
 
 There is a good example of using nested parameters in [optional parameters](optional_arguments) page. See the Klish native variant. Another good example of nesting you can find in [switch subcommand](switch_subcommand) page.
 
-### The namespaces or logically nested views.
+## The namespaces or logically nested views.
 
 The tag [allows to import the command set from the specified view into another view. So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode). See the [NAMESPACE](NAMESPACE]) for the tag description.
 
-#### Logically nested views
+### Logically nested views
 
 The following code demonstrates the using of command set import. Assume the current view is "view2". The command "com1" will be available although it belogs to "view1". Additionally the help and completion for commands from "view1" is enabled while import.
 
@@ -499,7 +500,7 @@ The following code demonstrates the using of command set import. Assume the curr
 </VIEW>
 ```
 
-#### Namespaces with prefix
+### Namespaces with prefix
 
 The following code do the same thing as a previous example but the commands from "view1" is available with **prefix** "do". Note the new command within "view2" named "do". This command is necessary for Klish to resolve any command with this prefix.
 
@@ -533,7 +534,7 @@ The following code do the same thing as a previous example but the commands from
 </VIEW>
 ```
 
-#### Restore the command context
+### Restore the command context
 
 When the hierarchy of nested [views](VIEW) is built the lower views inherit the [commands](COMMAND) from the higher [views](VIEW) often. It's true for the CISCO-like configuration mode. See the [Klish XML examples](Klish_examples) in the source tree. For example if the current view is the "configure-if-view" (the nested view to define network interface settings) it's not necessary to obviously "exit" from the current view to the higher level view ("configure-view") to use commands from this higher level view. You can execute these commands directly if the same commands was not redefined in the current view. This feature is used to process the plain [config](cisco_config) files. 
 
@@ -576,7 +577,7 @@ The typical "configure-view" has the restore="depth" field:
 	</VIEW>
 ```	
 	
-### The optional arguments
+## The optional arguments
 
 The command arguments can be optional. The [tag supports "optional" parameter that specify whether parameter is optional. It can be a sequence of optional parameters. The order of optional parameters define the order to validate values. If the value was succesfully validated by optional parameter the next optional parameters will not validate this value. Each parameter can be specified only once. See the [PARAM](PARAM]) for the tag description.
 
@@ -623,7 +624,7 @@ The following code creates three optional arguments and the mandatory one:
 
 If optional parameters has not been entered then corresponding variable will not be set. The optional parameters can be used in arbitrary order.
 
-#### Ordered optional parameters
+### Ordered optional parameters
 
 In previous example all three optional parameters can be used in arbitrary order i.e. you can enter the "-c" parameter first and "flag" parameter later or any other order. The "order" field of [tag makes the sequence of optional parameters ordered.
 
@@ -649,7 +650,7 @@ In previous example all three optional parameters can be used in arbitrary order
 
 Notice the order="true" field within "-c" subcommand definition. Now the "flag" optional parameter can't be entered if "-c" is already entered. So the parameter with order field cut off all previously declared optional parameters.
 
-#### The clish compatibility
+### The clish compatibility
 
 The [clish](PARAM]) has the optional parameters support too but there is a differencies. The "prefix" [option definition means that parameter is optional and the prefix must be followed by argument with "ptype" specified in the same [PARAM](PARAM]). So the parameter without prefix cannot be optional.
 
@@ -665,11 +666,11 @@ The internal representation of these parameters is the same. The Klish native va
 
 The clish variant seems to be shorter but it doesn't work if you need several sub-parameters or if you don't need any sub-parameters at all but only the flag.
 
-### The ordered sequences
+## The ordered sequences
 
 In some cases the ordered numerated lists is needed. The example is a CISCO-like access lists in which the order of entries is important. The entries can be addressed by the line number.
 
-### The choosing of the scripting language
+## The choosing of the scripting language
 
 
 The scripting language for the [script execution can be customized. Additionally the user can define the default scripting language for the whole session.
@@ -691,7 +692,7 @@ To define the default shebang for the whole session the 'default_shebang' field 
 <STARTUP default_shebang="/bin/bash" ... />
 ```  
     
-### The subcommands description
+## The subcommands description
 
 The special type of [was implemented. It's a fixed word (the sequence of symbols with no spaces) that can be found among another arguments. The subcommand is identified by its name (or "value" field if specified) and can be used as optional flag or for the branching. If the subcommand was used then the value of parameter is its name ("value" field if specified). The value of parameter is undefined if parameter is optional and was not used. See the [PARAM](PARAM]) for the tag description.
 
@@ -715,7 +716,7 @@ The [tag contain "mode" option. This option must be "subcommand" for subcommands
 
 I think there is no reason to use subcommands without optional="true" or without [switch_subcommand branching](PARAM]). See the [optional arguments](optional_arguments) and [switch subcommands](switch_subcommand) for additional information.
 
-#### Subcommand duplication
+### Subcommand duplication
 
 The displayable subcommand name can be duplicated by the "value" field. For example the user can use two subcommands "host":
 
@@ -748,7 +749,7 @@ The internal [variable names will be "host1" and "host2" but the displayable nam
 
 The feature is available since version 1.2.0.
 
-### The switch subcommand.
+## The switch subcommand.
 
 The special type of [was implemented. The switch subcommand is a container that allow to choose the only one of its sub-parameters for further analyzing.
 
@@ -800,7 +801,7 @@ When the user types "com" he must choose the one of two variants: "one" or "two"
 
 Suppose we choose the "two" sub-parameter. This [subcommand](subcommands) contain [nested parameter](nested_params) named "nint". The next command line argument will parsed for the "nint" parameter. Then the engine will return to the normal flow and will analyze "mandatory" parameter. The "one" variable will be unset and the "choice" value will be "two". So it implements branching. The "one" branch was not used at all.
 
-### The UTF-8 support
+## The UTF-8 support
 
 The Klish ([clish](utility_clish) console utility) supports UTF-8 and 8-bit encodings.
 
@@ -816,15 +817,15 @@ The UTF-8 support is available since SVN revision 345 or Klish-1.4.0.
 
 
 
-## Tags
+# Tags
 
-### ACTION
+## ACTION
 
 
 The ACTION tag defines the script to execute. This document describes Klish native options only. See the clish documentation for the other ACTION options.
 
 
-#### [shebang]
+### [shebang]
 Defines the scripting language (the binary file) to use for the ACTION script execution.
 
 Default is the shebang defined within [STARTUP](shebang]`) tag using 'default_shebang' field. If the 'default_sheband' is undefined the "/bin/sh" is used.
@@ -832,29 +833,29 @@ Default is the shebang defined within [STARTUP](shebang]`) tag using 'default_sh
 
 
 
-### COMMAND
+## COMMAND
 
 The COMMAND tag defines the command. This document describes Klish native options only. See the [documentation for  the other COMMAND options. See the [locking_mechanism locking mechanism](clish]) for the information about using new features of COMMAND tag.
 
-#### [lock]
+### [lock]
  `[A boolean flag. It can enable (true) or disable (false) the [locking_mechanism locking mechanism](lock]`) for the current command.
 
 Default is true.
 
-#### [ref]
+### [ref]
  `[The 'ref' field is used to create a [command_alias command alias](ref]`). If the 'ref' field is used within COMMAND definition that command is not standalone but it's an [alias](command_alias). The 'ref' contain the name of target original command to make alias of. In the case if the target command belongs to the another view than the view of alias then the target command's view must be specified after the target command name. The delimeter beetween the command name and view name is "@" symbol. See the [command alias](command_alias) page for the details and examples.
 
-#### [interrupt]
+### [interrupt]
  `[The 'interrupt' field specifies if the [ACTION](interrupt]`) script is interruptable or non-interruptable by the user. If the interrupt="true" than the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](atomic_action) for the details. The 'interrupt' field is available since SVN revision 347 or Klish-1.4.0.
  
 
 
 
-### CONFIG
+## CONFIG
 
 The CONFIG tag was implemented to support interaction beetween Klish engine and some external (or internal) mechanism to store a commands sequence i.e. CISCO-like configuration.
 
-#### [operation]
+### [operation]
 Defines the action on current configuration (running-config):
 
 - set - write currently entered command line to the running-config. If the command is already in the running-config it will be no changes. The "pattern" field define the uniqueness of command. If the running-config already contain entries starting with the "pattern" than these entries will be removed.
@@ -863,7 +864,7 @@ Defines the action on current configuration (running-config):
 
 The default is "set".
  
-#### [priority]
+### [priority]
 
 The "priority" field define the sort order within running-config. Note the order of commands is important. For example to setup routing table the interfaces must be already configured.
 
@@ -871,34 +872,34 @@ The "priority" is a two-byte hex number (for example "0x2345"). The high byte de
 
 The default is "0x7f00". It's a medium value of the high-byte.
 
-#### [pattern]
+### [pattern]
 The field specify the pattern to remove entries from running-config while "unset" operation and the identifier of unique command while "set" operation.
 
 The default is the name of the current command (`${__cmd}`).
 
-#### [file]
+### [file]
 
 This field defines the filename to dump running-config to.
 
-#### [splitter]
+### [splitter]
 A boolean flag. The allowed values is true or false. If the "splitter" is "true" than the current command will be separated with the "!" symbol within its configuration group. See the "priority" description for details about configuration groups.
 
 Default is true.
 
-#### Notes
+### Notes
 
 The CISCO-like config supports nested commands. It uses indention as a syntax for the nesting. To specify nesting depth of command the "depth" option of [VIEW](splitter]`) tag is used. All the commands of view have the same depth.
 
 
 
 
-### HOTKEY
+## HOTKEY
 
 The HOTKEY tag allows to implement programmable hotkeys. The global view (XML configuration without explicit view definition) and [can contain HOTKEY tags. See [hotkeys](VIEW]s) page for additional information.
 
 The HOTKEY tag was implemented since Klish-1.5.7 and Klish-1.6.2.
 
-#### key
+### key
 The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`" symbol) only. Some combination are internally reserved (like a Ctrl`^`C and some other keys). To define a key use "`^[key_simbol](key]`)`". For example:
 
 ```
@@ -908,7 +909,7 @@ The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`"
 
 The first line is for `Ctrl^Z` and the second is for `Ctrl^S` combinations accordingly.
 
-#### cmd
+### cmd
 The Klish [COMMAND](cmd]`) with arguments to execute on specified hotkey combination. This command must be defined in XML config. The command string can contain dynamically expanded [VAR]s.
 
 ```
@@ -920,45 +921,45 @@ The Klish [COMMAND](cmd]`) with arguments to execute on specified hotkey combina
 
 
 
-### NAMESPACE
+## NAMESPACE
 
 The NAMESPACE tag allows to import the command set from the specified view into another view. See the [logically nested views](nested_views) for details on using this tag.
 
-#### ref
+### ref
 
 Reference to the view to import commands from.
 
-#### [prefix]
+### [prefix]
 The prefix for imported commands.
 
-#### [inherit]
+### [inherit]
 
 A boolean flag whether to inherit nested namespace commands recursively. Can be true or false. Default is true.
 
-#### [help]
+### [help]
 A boolean flag whether to use imported commands while help. Can be true or false. Default is false.
 
-#### [completion]
+### [completion]
 
 A boolean flag whether to use imported commands while command completion. Can be true or false. Default is true.
 
-#### [context_help]
+### [context_help]
 
 A boolean flag whether to use imported commands while context help. Can be true or false. Default is false.
 
 
 
 
-### PARAM
+## PARAM
 
 The PARAM tag defines command parameters. This document describes Klish native options only. See the [documentation for  the other PARAM options. See the [optional_arguments optional arguments](clish]), [subcommands](subcommands) and [switch subcommands](switch_subcommand) for the information about using new features of PARAM tag.
 
-#### [optional]
+### [optional]
 A boolean flag. Specify whether parameter is optional. The allowed values is true or false. 
 
 Default is false.
 
-#### [order]
+### [order]
 
 A boolean flag. Can be used with optional (optional="true") parameters only. If current parameter is specified in command line then previously declared (in XML file) other optional parameters can't be entered later. So this option set the order of available optional parameters. See the [Optional arguments](optional_arguments) page for example.
 
@@ -966,7 +967,7 @@ The allowed values is true or false. Default is false.
 
 The feature is available since version 1.5.2 or SVN revision #522.
 
-#### [mode]
+### [mode]
 Define parameter behaviour. It can be:
 
 - common - the standard mode for ordinary parameter. Nothing special.
@@ -975,21 +976,21 @@ Define parameter behaviour. It can be:
 
 Default is "common".
 
-#### [value]
+### [value]
 The [subcommands subcommand](value]`) specific option. This field is used to separate the name of internal variable and the displayable name (that user will enter). The "name" field is a name of the internal variable. The "value" is a displayable subcommand name. It allows to duplicate displayable subcommand names.
 
 The "value" field forces the mode of PARAM to "subcommand".
 
 The feature is available since version 1.2.0.
 
-#### [hidden]
+### [hidden]
 The 'hidden' field specify the visibility of the parameter while [internal_variables `${__line}`](hidden]`) and [`${__params}`](internal_variables) automatic variables expanding. The expanding of variable with the PARAM name is performed by the usual way. The allowed values is "true" or "false".
 
 Default is "false".
 
 For example this feature can be used while the [ordered sequences](sequence) implementation. The hidden parameter can specify the line number in [ordered sequence](sequence). So it must be passed to the [daemon via [sequence](konfd]) field of CONFIG tag but the `${__line}` (that will be set to the user config) doesn't need to contain line number.
 
-#### [test]
+### [test]
 The parameter can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the parameter visibility can depend on the previous parameters values and [internal_variables internal variables](test]`). See the [conditional parameters](conditional_param) for details.
 
 By default the parameter is enabled.
@@ -997,37 +998,37 @@ By default the parameter is enabled.
 
 
 
-### STARTUP
+## STARTUP
 
 The STARTUP tag defines the starting view, viewid and the other startup settings. This document describes Klish native options only. See the [documentation for the other STARTUP options.
 
-#### [default_shebang]
+### [default_shebang]
 
 Defines the scripting language (the binary file) to use for the [script execution by default.
 
 Default is the "/bin/sh". The [ACTION](ACTION]) tag with 'shebang' field can locally redefine the shebang for its execution.
 
-#### [timeout]
+### [timeout]
 Without any user activity for the specified timeout the Klish can autologout (close current input stream and exit). It can be used to automatically close privileged sessions when the administrator have forgot to close session manually.
 
-#### [lock]
+### [lock]
 
 The same as "lock" field of [tag.
 
-#### [interrupt]
+### [interrupt]
 
 The same as "interrupt" field of [COMMAND] tag.
 
-### VIEW
+## VIEW
 
 The VIEW tag defines a view. The view aggregates the commands.
 
-#### [depth]
+### [depth]
 A depth of nested view. It is used together with the [CONFIG](depth]`) tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](cisco_config). All the commands within current VIEW have the same depth.
 
 The default is "0".
 
-#### [restore]
+### [restore]
 The commands contained by the view can be executed from the nested views or parallel views using the [NAMESPACE](restore]`). While the command execution the depth (and a context) or the view of command can be restored. The value of 'restore' field can be:
 
 - none - Don't change the current view.
@@ -1040,99 +1041,99 @@ Default is "none". See the [nested views](nested_views) wiki page for the additi
 
 
 
-## Utilities
+# Utilities
 
-### clish {#utility_clish}
+## clish {#utility_clish}
 
 Command line interface shell.
 
-#### Synopsis
+### Synopsis
 
 ```
 $ clish [options] [script_filename]
 ```
 
-#### Description
+### Description
 
 The clish is command line interface shell. The available shell commands and its actions are defined by XML configuration files. The clish utility can get input commands from terminal in interactive mode, from files specified in command line (multiply "script_filename" arguments) or standard input.
 
-#### Options
+### Options
 
-##### `-v, --version`
+#### `-v, --version`
 
 Print the version of clish utility.
 
-##### `-h, --help`
+#### `-h, --help`
 
 Print help.
 
-##### `-s <path>, --socket=<path>`
+#### `-s <path>, --socket=<path>`
 
 The clish utility can work together with the [konfd](#utility_konfd) daemon. This daemon can store commands entered in clish. It's usefull to implement config file like CISCO's running-config that stores current system configuration i.e. sequence of commands to achieve current system state. The command sequence can be saved to file (CISCO's startup-config) and executed in batch mode later by clish utility.
 
 The [daemon listens for connections on UNIX domain socket. You can specify the filesystem path to this UNIX domain socket to connect to.
 
-##### `-l, --lockless`
+#### `-l, --lockless`
 
 Don't use locking mechanism.
 
-##### `-e, --stop-on-error`
+#### `-e, --stop-on-error`
 
 Stop programm execution on error.
 
-##### `-b, --background`
+#### `-b, --background`
 
 Start shell using non-interactive mode.
 
-##### `-q, --quiet`
+#### `-q, --quiet`
 
 Disable echo while executing commands from the file stream.
 
-##### `-d, --dry-run`
+#### `-d, --dry-run`
 
 Don't actually execute ACTION scripts.
 
-##### `-x <path>, --xml-path=<path>`
+#### `-x <path>, --xml-path=<path>`
 
 Path to XML scheme files.
 
-##### `-w <view_name>, --view=<view_name>`
+#### `-w <view_name>, --view=<view_name>`
 
 Set the startup view.
 
-##### `-i <vars>, --viewid=<vars>`
+#### `-i <vars>, --viewid=<vars>`
 
 Set the startup viewid.
 
-##### `-u, --utf8`
+#### `-u, --utf8`
 
 Force UTF-8 encoding.
 
-##### `-8, --8bit`
+#### `-8, --8bit`
 
 Force 8-bit encoding.
 
-##### `-o, --log`
+#### `-o, --log`
 
 Enable command logging to syslog's local0.
 
-#### Environment
+### Environment
 
-##### CLISH_VIEW
+#### CLISH_VIEW
 
 User can define CLISH_VIEW environment variable to set initial view. This value will be used instead of the initial view from STARTUP tag.
 
 The feature is available starting with klish-1.1.0.
 
-##### CLISH_VIEWID
+#### CLISH_VIEWID
 
 The CLISH_VIEWID environment variable can redefine the viewid field from STARTUP tag.
 
 The feature is available starting with klish-1.1.0.
 
-#### Files
+### Files
 
-#### Return codes
+### Return codes
 
 The clish utility can return the following codes:
 
@@ -1143,7 +1144,7 @@ The clish utility can return the following codes:
 - 4 - Syntax error.
 - 255 - The system error like wrong command line option for clish utility.
 
-#### Notes
+### Notes
 
 The return codes are available since klish-1.5.2 or SVN's revision #516.
 
@@ -1152,13 +1153,13 @@ The return codes are available since klish-1.5.2 or SVN's revision #516.
 
 
 
-### konfd {#utility_konfd}
+## konfd {#utility_konfd}
 
 The konfd is a daemon to store current running-config. You can consider running-config as a current system settings or as a list of commands that have been executed for now by the user or automatically (by the script).
 
 The name "konfd" is used since klish-1.1.0. The earlier versions use name "confd" for the configuration daemon.
 
-#### The running-config
+### The running-config
 
 Generally the running-config consists of the the arbitrary text lines. Each entry may contain another nested text lines. Note the **konfd knows nothing about Klish commands and Klish syntax**. The commands is just a **text strings** for the konfd. It's important to realize. The example of running-config:
 
@@ -1175,11 +1176,11 @@ interface ethernet 1
 
 The "hostname Router" entry has no nested entries. The "interface ethernet 0" and "interface ethernet 1" contain nested entries.
 
-##### Comments
+#### Comments
 
 The "!" symbol is a comment for the Klish. Each line starting with the "!" consider as a comment so this line will be ignored by the Klish. The konfd daemon can output a current state of running-config. The previous text is an example of such output. Generally the comments are not really stored by the konfd. The konfd automatically inserts "!" beetween first level running-config entries for more human readable view.
 
-##### Path
+#### Path
 
 The running-config structure can be considered as a filesystem-like structure. The "interface ethernet 0" entry can be considered as a directory with the nested "files". So each entry has a "path". The first level entries have an empty path but the nested entries like a "enable" entry has a non-empty path:
 <code>
@@ -1199,7 +1200,7 @@ In this case the "mtu 1500" entry has a following path:
 </code>
 The "path" concept is important for running-config entries manipulations.
 
-##### Priority
+#### Priority
 
 Each entry has a priority. The priority is a 16-bit unsigned integer. The entries with minimal priority resides on the begining of the running-config. The default priority is "0". The entries with the same priority will be ordered alphabetically.
 
@@ -1209,7 +1210,7 @@ The high and low bytes within priority value have a little different meanings. T
 
 The high and low bytes within priority value have no special meanings for nested entries.
 
-##### Sequences
+#### Sequences
 
 The konfd supports ordered lists a.k.a. "sequences". The entry can be or not to be a part of the sequence. It can be specified by a special options while entry creation. All entries in sequence must have the same priority value. The priority can be considered as an identifier of the sequence. The running-config can contain many sequences at the same time. The sequences will be identified by the priority value. 
 
@@ -1219,51 +1220,51 @@ The konfd can output entries without or with sequence numbers prepending the ent
 
 See the konfd communication protocol description for detail about sequence using.
 
-#### Communicate to konfd daemon
+### Communicate to konfd daemon
 
 The konfd daemon is accessible via UNIX socket interface. The socket path can be specified via command line. So it's possible to have a several konfd executed simultaneously. The default socket path is /tmp/konfd.socket.
 
 The konfd uses text based protocol for communication with another processes. The syntax of protocol is like a command line with options. It will be documented later in this document.
 
-#### Options
+### Options
 
-##### `-v, --version`
+#### `-v, --version`
 
 Print the version of clish utility.
 
-##### `-h, --help`
+#### `-h, --help`
 
 Print help.
 
-##### `-d, --debug`
+#### `-d, --debug`
 
 Enable debug mode. Don't daemonize konfd.
 
-##### `-s <path>, --socket=<path>`
+#### `-s <path>, --socket=<path>`
 
 Specify the UNIX socket filesystem path to listen on.
 
-##### `-p <path>, --pid=<path>`
+#### `-p <path>, --pid=<path>`
 
 File to save daemon's PID to.
 
-##### `-r <path>, --chroot=<path>`
+#### `-r <path>, --chroot=<path>`
 
 Path to chroot to. Used for security reasons.
 
-##### `-u <user>, --user=<user>`
+#### `-u <user>, --user=<user>`
 
 Execute daemon as specified user.
 
-##### `-g <group>, --group=<group>`
+#### `-g <group>, --group=<group>`
 
 Execute process as specified group.
 
-#### The konfd protocol
+### The konfd protocol
 
 The syntax of protocol is like a command line with options. The actions and options are specified by the arguments prepend with "-" or "--" (for long options) and after all arguments the "path" is specified. Each element of path must be quoted. Firstly the action must be specified:
 
-##### Add entry: `-s, --set`
+#### Add entry: `-s, --set`
 
 To add new entry to the running-config the `"-s"` or `"--set"` argument is used. The following arguments are mandatory for this action:
 - `-l <string>, --line=<string>`. This argument defines the text line to add to the running-config.
@@ -1294,30 +1295,30 @@ interface ethernet 0
 
 
 
-### konf {#utility_konf}
+## konf {#utility_konf}
 
 
 
 
-### sigexec {#utility_sigexec}
+## sigexec {#utility_sigexec}
 
-#### Synopsis
+### Synopsis
 
 ```
 $ sigexec <command to execute>
 ```
 
-#### Description
+### Description
 
 The sigexec utility unblocks (by sigprocmask()) all signals and executes specified command. It's usefull within [atomic_action non-interruptable](options]) [ACTION] scripts for daemon starting. The daemon will have clean signal mask.
 
-#### Options
+### Options
 
-##### `-v, --version`
+#### `-v, --version`
 
 Print the version of utility.
 
-##### `-h, --help`
+#### `-h, --help`
 
 Print help.
 
@@ -1325,9 +1326,9 @@ Print help.
 
 
 
-## Build
+# Build
 
-### The buildroot environment
+## The buildroot environment
 
 Buildroot is a set of Makefiles and patches that makes it easy to generate a complete embedded Linux system. See the <http://www.buildroot.net/> for the details. The Klish can be used as the "package" with the buildroot environment to get into the buildroot's target embedded system.
 
@@ -1431,9 +1432,9 @@ $ ./configure --with-libxml2=/usr
 
 
 
-## HOWTO
+# HOWTO
 
-### The XML files validation
+## The XML files validation
 
 The XML files can be validated by the xmllint utility.
 
@@ -1446,7 +1447,7 @@ Or you can validate all XML file in the specified dir:
 $ xmllint --noout --schema <schema_filename>.xsd <xml_dir>/*.xml
 ```
 
-### Static build
+## Static build
 
 To build Klish statically use:
 
@@ -1457,7 +1458,7 @@ $ make LDFLAGS+="-all-static"
 
 The LDFLAGS is global so shared libraries can't be build and building of shared libraries must be disabled.
 
-### Leak of dlopen()
+## Leak of dlopen()
 
 If target system doesn't support dlopen() then configure script will configure building process to don't use dlopen() (and other dl functions) but link to plugin's shared objects.
 
@@ -1471,23 +1472,23 @@ $ make LDFLAGS+="-all-static"
 
 
 
-## XML examples
+# XML examples
 
 The Klish source tree contain the Klish specific XML examples that show the basic CISCO-like (not exactly copy) interface to configure network interfaces and routing on Linux system. You can find it in xml-examples/klish dir in the Klish source tree.
 
 The original clish examples is also available and workable. You can find it in xml-examples/clish dir.
 
-### The KLISH specific examples
+## The KLISH specific examples
 
 The Klish has some new features that is not supported in clish. So the Klish specific examples show some of these new features. The dir xml-examples/klish is more complex than clish examples dir. That is needed to show CISCO-like 'enable' command that allow to get privileged mode and execute administration commands.
 
-#### The 'enable' command implementation
+### The 'enable' command implementation
 
 The 'enable' command is implemented by using 'su' linux command and executing new clish instance. It's the right way to get privilegies because the clish/Klish is not enough tool to distribute system permissions. When the 'su -c clish' is used the operation system is responsible to permit or deny some system operations to the current user. For example unprivileged user cannot change the network interfaces settings and routing table. So if even the unprivileged user will be able to enter network specific commands in Klish the system will deny his commands.
 
 If the some kind of role model is needed the 'su' command can be used to became non-root user with additional permissions. The additional permissions can be set using 'sudo' for example.
 
-#### Directory structure
+### Directory structure
 
 The directory structure resulting from the realization of 'enable' command. The privileged and unprivileged users must have the different set of XML files. The example suppose that Klish was configured with './configure --prefix=/usr' so the installed clish binary will be located in /usr/bin dir. The 'etc' dir of the example must be copied to the / dir to the target system.
 
@@ -1495,7 +1496,7 @@ The etc/ dir contain clish/ clish-enable/ and clish-xml/ dirs. The clish-xml/ di
 
 The etc/ also contain init.d/klish-init script that will init Klish subsystem on the boot time. It starts the konfd daemon that will store all the configuration (all the configuration commands user will enter). Then the saved configuration file /etc/startup-config is executed via Klish to restore previous (pre-reboot) system configuration. The init.d/klish-init script can be included in some init script like rc.local so it will be executed automatically on system startup.
 
-#### The testing purposes only
+### The testing purposes only
 
 If you don't want to install all Klish infrastructure to your system and don't want to use 'enable' command you can use the following commands to see the ability of unprivileged and privileged examples (suppose the current dir is a Klish source tree):
 
@@ -1506,7 +1507,7 @@ If you don't want to install all Klish infrastructure to your system and don't w
 
 Note privileged commands can be entered by the common user but the real system commands execution will be denied.
 
-### The CLISH original examples
+## The CLISH original examples
 
 To test Klish over the clish original examples the project must be configured and built. Unarchive the source code tarball and 'cd' to the klish-`<version>` tree. Then execute the following commands:
 
