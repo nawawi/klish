@@ -1,6 +1,6 @@
 ---
 title: The Klish user manual
-author: Sergey Kalichev <serj.kalichev@gmail.com>
+author: Sergey Kalichev &lt;serj.kalichev@gmail.com&gt;
 ...
 
 
