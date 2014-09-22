@@ -1,6 +1,7 @@
 ---
 title: The Klish user manual
 author: Sergey Kalichev &lt;serj.kalichev@gmail.com&gt;
+date: 2014
 ...
 
 
