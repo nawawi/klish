@@ -44,7 +44,7 @@ The Klish incorporates all the features of clish. See the clish documentation on
  * [internal_variables The automatic internal variables]. For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from PARAM tags. These are current command line (`${__cmd}`), the whole entered line (`${__line}`) etc.
  * [builtin_functions The Klish specific builtin functions]. The clish contain a set of builtin functions (that don't need a scripting within ACTION tag). The additional Klish specific builtin functions is available.
  * [conditional_param The conditional parameters] support. The [PARAM parameter] can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the [PARAM parameter] visibility can depend on the previous [PARAM parameters] values.
- * _[locking_mechanism The locking mechanism]. The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts.
+ * [locking_mechanism The locking mechanism]. The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts.
  * [atomic_action The atomic actions] support. The [ACTION] script can be non-interruptable for the user. It's a default behaviour.
  * [shebang The choosing of the scripting language] is supported. The scripting language for the [ACTION] script execution can be customized.
  * [command_alias The command aliases] are supported. The [COMMAND command] can have the aliases. The resulting alias is equal to the original command. To find out what name (original or alias) was used the `${__cmd}` internal variable can be analyzed.
@@ -52,7 +52,6 @@ The Klish incorporates all the features of clish. See the clish documentation on
  * [utf8 The UTF-8 encoding support]. The clish utility can autodetect if current locale use UTF-8 encoding or 8-bit encoding.
  * [xml_backend XML backends]. The Klish engine supports a several XML backends. That backends parses Klish's XML configuration files.
  * [hotkeys Programmable hotkeys]. The programmable hotkeys were implemented.
-----
 
 ## Utilities
 
@@ -162,13 +161,13 @@ The additional Klish specific builtin functions is available.
 
 The Klish supports the [nested views. When user moves deeper in the [VIEW](nested_views])'s hierarchy (the 'depth' of [is increasing) the engine create entries in the "nesting" stack to save previous [VIEW](VIEW]s) and its state. The clish_nested_up function make 'pop' stack operation so it restores previous [and its state. If the current depth is 0 then the clish_nested_up function will be an analog of clish_close builtin function and will close the current Klish session.
 
-The feature is available starting with Klish-1.2.1.
+The feature is available starting with klish-1.2.1.
 
 ### clish_nop
 
 The NOP command. It does nothing. It's usefull for commands like comment. The CISCO uses "!" as a comment. If the command has no [ACTION](VIEW]) tag at all then this command is unfinished so the "Enter" can't be pressed. Use clish_nop for empty commands. Don't use `<ACTION></ACTION>` because it's slower.
 
-The feature is available starting with Klish-1.4.2.
+The feature is available starting with klish-1.4.2.
 
 ## CISCO-like config support.
 
@@ -307,41 +306,41 @@ The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinati
 
 Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [tag) now.
 
-<table>
-  <tr><td>*Code*</td><td>*Id*</td><td>*Key*</td><td>*Action*</td><td>*Comment*</td></tr>
-  <tr><td>0</td><td>NUL</td><td>^@</td><td></td><td>Null character</td></tr>
-  <tr><td>1</td><td>SOH</td><td>^A</td><td>Home</td><td>Start of heading, = console interrupt</td></tr>
-  <tr><td>2</td><td>STX</td><td>^B</td><td></td><td>Start of text, maintenance mode on HP console</td></tr>
-  <tr><td>3</td><td>ETX</td><td>^C</td><td>Break</td><td>End of text</td></tr>
-  <tr><td>4</td><td>EOT</td><td>^D</td><td>Delete</td><td>End of transmission, not the same as ETB</td></tr>
-  <tr><td>5</td><td>ENQ</td><td>^E</td><td>End</td><td>Enquiry, goes with ACK; old HP flow control</td></tr>
-  <tr><td>6</td><td>ACK</td><td>^F</td><td></td><td>Acknowledge, clears ENQ logon hand</td></tr>
-  <tr><td>7</td><td>BEL</td><td>^G</td><td></td><td>Bell, rings the bell...</td></tr>
-  <tr><td>8</td><td>BS</td><td>^H</td><td>Backspace</td><td>Backspace, works on HP terminals/computers</td></tr>
-  <tr><td>9</td><td>HT</td><td>^I</td><td>Tab</td><td>Horizontal tab, move to next tab stop</td></tr>
-  <tr><td>10</td><td>LF</td><td>^J</td><td>Enter</td><td>Line Feed</td></tr>
-  <tr><td>11</td><td>VT</td><td>^K</td><td>Kill line</td><td>Vertical tab</td></tr>
-  <tr><td>12</td><td>FF</td><td>^L</td><td>Clear screen</td><td>Form Feed, page eject</td></tr>
-  <tr><td>13</td><td>CR</td><td>^M</td><td>Enter</td><td>Carriage Return</td></tr>
-  <tr><td>14</td><td>SO</td><td>^N</td><td></td><td>Shift Out, alternate character set</td></tr>
-  <tr><td>15</td><td>SI</td><td>^O</td><td></td><td>Shift In, resume defaultn character set</td></tr>
-  <tr><td>16</td><td>DLE</td><td>^P</td><td></td><td>Data link escape</td></tr>
-  <tr><td>17</td><td>DC1</td><td>^Q</td><td></td><td>XON, with XOFF to pause listings; "okay to send".</td></tr>
-  <tr><td>18</td><td>DC2</td><td>^R</td><td></td><td>Device control 2, block-mode flow control</td></tr>
-  <tr><td>19</td><td>DC3</td><td>^S</td><td></td><td>XOFF, with XON is TERM=18 flow control</td></tr>
-  <tr><td>20</td><td>DC4</td><td>^T</td><td></td><td>Device control 4</td></tr>
-  <tr><td>21</td><td>NAK</td><td>^U</td><td>Erase line</td><td>Negative acknowledge</td></tr>
-  <tr><td>22</td><td>SYN</td><td>^V</td><td></td><td>Synchronous idle</td></tr>
-  <tr><td>23</td><td>ETB</td><td>^W</td><td>Erase word</td><td>End transmission block, not the same as EOT</td></tr>
-  <tr><td>24</td><td>CAN</td><td>^X</td><td></td><td>Cancel line, MPE echoes !!!</td></tr>
-  <tr><td>25</td><td>EM</td><td>^Y</td><td>Yank</td><td>End of medium, Control-Y interrupt</td></tr>
-  <tr><td>26</td><td>SUB</td><td>^Z</td><td></td><td>Substitute</td></tr>
-  <tr><td>27</td><td>ESC</td><td>^[</td><td>Escape</td><td>Escape, next character is not echoed</td></tr>
-  <tr><td>28</td><td>FS</td><td>^\</td><td></td><td>File separator</td></tr>
-  <tr><td>29</td><td>GS</td><td>^](HOTKEY])</td><td></td><td>Group separator</td></tr>
-  <tr><td>30</td><td>RS</td><td>^^</td><td></td><td>Record separator, block-mode terminator</td></tr>
-  <tr><td>31</td><td>US</td><td>`^_`</td><td></td><td>Unit separator</td></tr>
-</table>
+
+Code Id  Key Action Comment
+
+0  NUL  ^@         Null character
+1  SOH  ^A  Home   Start of heading, = console interrupt
+2  STX  ^B         Start of text, maintenance mode on HP console
+3  ETX  ^C  Break  End of text
+4  EOT  ^D  Delete  End of transmission, not the same as ETB
+5  ENQ  ^E  End     Enquiry, goes with ACK; old HP flow control
+6  ACK  ^F          Acknowledge, clears ENQ logon hand
+7  BEL  ^G          Bell, rings the bell...</td></tr>
+8  BS   ^H  Backspace Backspace, works on HP terminals/computers</td></tr>
+9  HT   ^I  Tab</td><td>Horizontal tab, move to next tab stop</td></tr>
+10 LF   ^J  Enter</td><td>Line Feed</td></tr>
+11 VT   ^K  Kill line</td><td>Vertical tab</td></tr>
+12 FF   ^L  Clear screen</td><td>Form Feed, page eject</td></tr>
+13 CR   ^M</td><td>Enter</td><td>Carriage Return</td></tr>
+14 SO   ^N</td><td></td><td>Shift Out, alternate character set</td></tr>
+15 SI   ^O</td><td></td><td>Shift In, resume defaultn character set</td></tr>
+16 DLE  ^P</td><td></td><td>Data link escape</td></tr>
+17 DC1  ^Q</td><td></td><td>XON, with XOFF to pause listings; "okay to send".</td></tr>
+18 DC2  ^R</td><td></td><td>Device control 2, block-mode flow control</td></tr>
+19 DC3  ^S</td><td></td><td>XOFF, with XON is TERM=18 flow control</td></tr>
+20 DC4  ^T</td><td></td><td>Device control 4</td></tr>
+21 NAK  ^U</td><td>Erase line</td><td>Negative acknowledge</td></tr>
+22 SYN  ^V</td><td></td><td>Synchronous idle</td></tr>
+23 ETB  ^W</td><td>Erase word</td><td>End transmission block, not the same as EOT</td></tr>
+24 CAN  ^X</td><td></td><td>Cancel line, MPE echoes !!!</td></tr>
+25 EM   ^Y</td><td>Yank</td><td>End of medium, Control-Y interrupt</td></tr>
+26 SUB  ^Z</td><td></td><td>Substitute</td></tr>
+27 ESC  ^[</td><td>Escape</td><td>Escape, next character is not echoed</td></tr>
+28 FS   ^\</td><td></td><td>File separator</td></tr>
+29 GS   ^](HOTKEY])</td><td></td><td>Group separator</td></tr>
+30 RS   ^^</td><td></td><td>Record separator, block-mode terminator</td></tr>
+31 US   `^_`</td><td></td><td>Unit separator</td></tr>
 
 ## The automatic internal variables.
 
