@@ -807,7 +807,7 @@ The [clish utility](utility_clish) autodetects the current encoding using locale
 
 If the locale is broken user can force using of the UTF-8 encoding by "-u" (--utf8) option on the clish's utility command line. The "-8" (--8bit) option is used to force 8-bit encoding.
 
-The UTF-8 support is available since SVN revision 345 or Klish-1.4.0.
+The UTF-8 support is available since klish-1.4.0.
 
 
 
@@ -817,16 +817,42 @@ The UTF-8 support is available since SVN revision 345 or Klish-1.4.0.
 
 # Tags
 
-## ACTION
+## CLISH_MODULE
+
+The CLISH_MODULE is a highest level tag. It contains all the other tags. Typically each XML configuration file for the Klish begins with the opening CLISH_MODULE and ends with closing CLISH_MODULE tags.
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+	http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+...
+
+</CLISH_MODULE>
+```
+
+The first line (`<?xml ...`) is defined within XML specification. Use it as is.
 
 
-The ACTION tag defines the script to execute. This document describes Klish native options only. See the clish documentation for the other ACTION options.
+## VIEW
 
+The VIEW tag defines a view. The view aggregates the commands.
 
-### [shebang]
-Defines the scripting language (the binary file) to use for the ACTION script execution.
+### [depth]
+A depth of nested view. It is used together with the [CONFIG](depth]`) tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](cisco_config). All the commands within current VIEW have the same depth.
 
-Default is the shebang defined within [STARTUP](shebang]`) tag using 'default_shebang' field. If the 'default_sheband' is undefined the "/bin/sh" is used.
+The default is "0".
+
+### [restore]
+The commands contained by the view can be executed from the nested views or parallel views using the [NAMESPACE](restore]`). While the command execution the depth (and a context) or the view of command can be restored. The value of 'restore' field can be:
+
+- none - Don't change the current view.
+- view - The current view will be set to the command's native view.
+- depth - The Klish engine will find out the depth of command's native view. Then it will search for this depth in the current nested views stack. The current view will be set to the saved view from the stack with the depth equal to command's depth. Additionally the context (the viewid) will be restored from the stack.
+
+Default is "none". See the [nested views](nested_views) wiki page for the additional information and example.
 
 
 
@@ -845,108 +871,50 @@ Default is true.
 
 ### [interrupt]
  `[The 'interrupt' field specifies if the [ACTION](interrupt]`) script is interruptable or non-interruptable by the user. If the interrupt="true" than the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](atomic_action) for the details. The 'interrupt' field is available since SVN revision 347 or Klish-1.4.0.
- 
 
 
 
-## CONFIG
+## STARTUP
 
-The CONFIG tag was implemented to support interaction beetween Klish engine and some external (or internal) mechanism to store a commands sequence i.e. CISCO-like configuration.
+The STARTUP tag defines the starting view, viewid and the other startup settings. This document describes Klish native options only. See the [documentation for the other STARTUP options.
 
-### [operation]
-Defines the action on current configuration (running-config):
+### [default_shebang]
 
-- set - write currently entered command line to the running-config. If the command is already in the running-config it will be no changes. The "pattern" field define the uniqueness of command. If the running-config already contain entries starting with the "pattern" than these entries will be removed.
-- unset - remove entries from the running-config due to specified "pattern".
-- dump - write the running-config to the specified "file". If the "file" is not specified than running-config will be written directly to the communication channel (the socket in the case of "[konfd](operation]`)" configuration backend). So the config callback function must care about data receiving. The standard callback can receive and show the data from "[daemon.
+Defines the scripting language (the binary file) to use for the [script execution by default.
 
-The default is "set".
- 
-### [priority]
+Default is the "/bin/sh". The [ACTION](ACTION]) tag with 'shebang' field can locally redefine the shebang for its execution.
 
-The "priority" field define the sort order within running-config. Note the order of commands is important. For example to setup routing table the interfaces must be already configured.
+### [timeout]
+Without any user activity for the specified timeout the Klish can autologout (close current input stream and exit). It can be used to automatically close privileged sessions when the administrator have forgot to close session manually.
 
-The "priority" is a two-byte hex number (for example "0x2345"). The high byte defines the configuration group of command. The low byte defines the priority within the group. The configuration groups is separated from each other with "!" symbol. The commands within group can be separated or not separated with "!". The separation behaviour within group is defined by "splitter" field. For example the CISCO-like running-config will separate the definitions of interfaces with "!" but will not separate "ip route ..." and "ip default-gateway ..." commands.
+### [lock]
 
-The default is "0x7f00". It's a medium value of the high-byte.
+The same as "lock" field of [tag.
 
-### [pattern]
-The field specify the pattern to remove entries from running-config while "unset" operation and the identifier of unique command while "set" operation.
+### [interrupt]
 
-The default is the name of the current command (`${__cmd}`).
-
-### [file]
-
-This field defines the filename to dump running-config to.
-
-### [splitter]
-A boolean flag. The allowed values is true or false. If the "splitter" is "true" than the current command will be separated with the "!" symbol within its configuration group. See the "priority" description for details about configuration groups.
-
-Default is true.
-
-### Notes
-
-The CISCO-like config supports nested commands. It uses indention as a syntax for the nesting. To specify nesting depth of command the "depth" option of [VIEW](splitter]`) tag is used. All the commands of view have the same depth.
+The same as "interrupt" field of [COMMAND] tag.
 
 
 
 
-## HOTKEY
-
-The HOTKEY tag allows to implement programmable hotkeys. The global view (XML configuration without explicit view definition) and [can contain HOTKEY tags. See [hotkeys](VIEW]s) page for additional information.
-
-The HOTKEY tag was implemented since Klish-1.5.7 and Klish-1.6.2.
-
-### key
-The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`" symbol) only. Some combination are internally reserved (like a Ctrl`^`C and some other keys). To define a key use "`^[key_simbol](key]`)`". For example:
-
-```
-<HOTKEY key="^Z" .../>
-<HOTKEY key="^S" .../>
-```
-
-The first line is for `Ctrl^Z` and the second is for `Ctrl^S` combinations accordingly.
-
-### cmd
-The Klish [COMMAND](cmd]`) with arguments to execute on specified hotkey combination. This command must be defined in XML config. The command string can contain dynamically expanded [VAR]s.
-
-```
-    <HOTKEY key="^Z" cmd="exit"/>
-    <HOTKEY key="^@" cmd="show running-config"/>
-    <HOTKEY key="^S" cmd="echo ${HOSTNAME}"/>
-    <VAR name="HOSTNAME" ... />
-```
+## ACTION
 
 
-
-## NAMESPACE
-
-The NAMESPACE tag allows to import the command set from the specified view into another view. See the [logically nested views](nested_views) for details on using this tag.
-
-### ref
-
-Reference to the view to import commands from.
-
-### [prefix]
-The prefix for imported commands.
-
-### [inherit]
-
-A boolean flag whether to inherit nested namespace commands recursively. Can be true or false. Default is true.
-
-### [help]
-A boolean flag whether to use imported commands while help. Can be true or false. Default is false.
-
-### [completion]
-
-A boolean flag whether to use imported commands while command completion. Can be true or false. Default is true.
-
-### [context_help]
-
-A boolean flag whether to use imported commands while context help. Can be true or false. Default is false.
+The ACTION tag defines the script to execute. This document describes Klish native options only. See the clish documentation for the other ACTION options.
 
 
+### [shebang]
+Defines the scripting language (the binary file) to use for the ACTION script execution.
 
+Default is the shebang defined within [STARTUP](shebang]`) tag using 'default_shebang' field. If the 'default_sheband' is undefined the "/bin/sh" is used.
+
+
+## OVERVIEW
+
+## DETAIL
+
+## PTYPE
 
 ## PARAM
 
@@ -992,49 +960,111 @@ For example this feature can be used while the [ordered sequences](sequence) imp
 The parameter can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the parameter visibility can depend on the previous parameters values and [internal_variables internal variables](test]`). See the [conditional parameters](conditional_param) for details.
 
 By default the parameter is enabled.
+ 
+
+
+## NAMESPACE
+
+The NAMESPACE tag allows to import the command set from the specified view into another view. See the [logically nested views](nested_views) for details on using this tag.
+
+### ref
+
+Reference to the view to import commands from.
+
+### [prefix]
+The prefix for imported commands.
+
+### [inherit]
+
+A boolean flag whether to inherit nested namespace commands recursively. Can be true or false. Default is true.
+
+### [help]
+A boolean flag whether to use imported commands while help. Can be true or false. Default is false.
+
+### [completion]
+
+A boolean flag whether to use imported commands while command completion. Can be true or false. Default is true.
+
+### [context_help]
+
+A boolean flag whether to use imported commands while context help. Can be true or false. Default is false.
 
 
 
+## CONFIG
 
-## STARTUP
+The CONFIG tag was implemented to support interaction beetween Klish engine and some external (or internal) mechanism to store a commands sequence i.e. CISCO-like configuration.
 
-The STARTUP tag defines the starting view, viewid and the other startup settings. This document describes Klish native options only. See the [documentation for the other STARTUP options.
+### [operation]
+Defines the action on current configuration (running-config):
 
-### [default_shebang]
+- set - write currently entered command line to the running-config. If the command is already in the running-config it will be no changes. The "pattern" field define the uniqueness of command. If the running-config already contain entries starting with the "pattern" than these entries will be removed.
+- unset - remove entries from the running-config due to specified "pattern".
+- dump - write the running-config to the specified "file". If the "file" is not specified than running-config will be written directly to the communication channel (the socket in the case of "[konfd](operation]`)" configuration backend). So the config callback function must care about data receiving. The standard callback can receive and show the data from "[daemon.
 
-Defines the scripting language (the binary file) to use for the [script execution by default.
+The default is "set".
+ 
+### [priority]
 
-Default is the "/bin/sh". The [ACTION](ACTION]) tag with 'shebang' field can locally redefine the shebang for its execution.
+The "priority" field define the sort order within running-config. Note the order of commands is important. For example to setup routing table the interfaces must be already configured.
 
-### [timeout]
-Without any user activity for the specified timeout the Klish can autologout (close current input stream and exit). It can be used to automatically close privileged sessions when the administrator have forgot to close session manually.
+The "priority" is a two-byte hex number (for example "0x2345"). The high byte defines the configuration group of command. The low byte defines the priority within the group. The configuration groups is separated from each other with "!" symbol. The commands within group can be separated or not separated with "!". The separation behaviour within group is defined by "splitter" field. For example the CISCO-like running-config will separate the definitions of interfaces with "!" but will not separate "ip route ..." and "ip default-gateway ..." commands.
 
-### [lock]
+The default is "0x7f00". It's a medium value of the high-byte.
 
-The same as "lock" field of [tag.
+### [pattern]
+The field specify the pattern to remove entries from running-config while "unset" operation and the identifier of unique command while "set" operation.
 
-### [interrupt]
+The default is the name of the current command (`${__cmd}`).
 
-The same as "interrupt" field of [COMMAND] tag.
+### [file]
 
-## VIEW
+This field defines the filename to dump running-config to.
 
-The VIEW tag defines a view. The view aggregates the commands.
+### [splitter]
+A boolean flag. The allowed values is true or false. If the "splitter" is "true" than the current command will be separated with the "!" symbol within its configuration group. See the "priority" description for details about configuration groups.
 
-### [depth]
-A depth of nested view. It is used together with the [CONFIG](depth]`) tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](cisco_config). All the commands within current VIEW have the same depth.
+Default is true.
 
-The default is "0".
+### Notes
 
-### [restore]
-The commands contained by the view can be executed from the nested views or parallel views using the [NAMESPACE](restore]`). While the command execution the depth (and a context) or the view of command can be restored. The value of 'restore' field can be:
+The CISCO-like config supports nested commands. It uses indention as a syntax for the nesting. To specify nesting depth of command the "depth" option of [VIEW](splitter]`) tag is used. All the commands of view have the same depth.
 
-- none - Don't change the current view.
-- view - The current view will be set to the command's native view.
-- depth - The Klish engine will find out the depth of command's native view. Then it will search for this depth in the current nested views stack. The current view will be set to the saved view from the stack with the depth equal to command's depth. Additionally the context (the viewid) will be restored from the stack.
+## VAR
 
-Default is "none". See the [nested views](nested_views) wiki page for the additional information and example.
+## WATCHDOG
 
+
+## HOTKEY
+
+The HOTKEY tag allows to implement programmable hotkeys. The global view (XML configuration without explicit view definition) and [can contain HOTKEY tags. See [hotkeys](VIEW]s) page for additional information.
+
+The HOTKEY tag was implemented since Klish-1.5.7 and Klish-1.6.2.
+
+### key
+The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`" symbol) only. Some combination are internally reserved (like a Ctrl`^`C and some other keys). To define a key use "`^[key_simbol](key]`)`". For example:
+
+```
+<HOTKEY key="^Z" .../>
+<HOTKEY key="^S" .../>
+```
+
+The first line is for `Ctrl^Z` and the second is for `Ctrl^S` combinations accordingly.
+
+### cmd
+The Klish [COMMAND](cmd]`) with arguments to execute on specified hotkey combination. This command must be defined in XML config. The command string can contain dynamically expanded [VAR]s.
+
+```
+    <HOTKEY key="^Z" cmd="exit"/>
+    <HOTKEY key="^@" cmd="show running-config"/>
+    <HOTKEY key="^S" cmd="echo ${HOSTNAME}"/>
+    <VAR name="HOSTNAME" ... />
+```
+
+
+## PLUGIN
+
+## HOOK
 
 
 
