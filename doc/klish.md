@@ -1,9 +1,8 @@
 ---
 title: The Klish user manual
-author: Sergey Kalichev &lt;serj.kalichev@gmail.com&gt;
+author: Sergey Kalichev &lt;serj.kalichev(at)gmail.com&gt;
 date: 2014
 ...
-
 
 # About
 
@@ -13,7 +12,7 @@ The Klish is a fork of [clish-0.7.3](http://sourceforge.net/projects/clish/) pro
 
 The main target for the Klish is a Linux platform. Additionally it can be build on FreeBSD, OpenBSD, Solaris. The QNX support is planned. The Klish project is written in C.
 
-The Klish development is sponsored by ["Factor-TS"](http://www.factor-ts.ru/) company <http://www.factor-ts.ru/.>
+The Klish development is sponsored by "Factor-TS" company <http://www.factor-ts.ru/.>
 
 ## Klish related links
 
@@ -304,43 +303,42 @@ The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinati
 
 ### Possible keys
 
-Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [tag) now.
+Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [HOTKEY] tag) now.
 
-
-Code Id   Key Action        Comment
-
-0    NUL  ^@                Null character
-1    SOH  ^A  Home          Start of heading, console interrupt
-2    STX  ^B                Start of text, maintenance mode on HP console
-3    ETX  ^C  Break         End of text
-4    EOT  ^D  Delete        End of transmission, not the same as ETB
-5    ENQ  ^E  End           Enquiry, goes with ACK; old HP flow control
-6    ACK  ^F                Acknowledge, clears ENQ logon hand
-7    BEL  ^G                Bell, rings the bell
-8    BS   ^H  Backspace     Backspace, works on HP terminals/computers
-9    HT   ^I  Tab           Horizontal tab, move to next tab stop
-10   LF   ^J  Enter         Line Feed
-11   VT   ^K  Kill line     Vertical tab
-12   FF   ^L  Clear screen  Form Feed, page eject
-13   CR   ^M  Enter         Carriage Return
-14   SO   ^N                Shift Out, alternate character set
-15   SI   ^O                Shift In, resume defaultn character set
-16   DLE  ^P                Data link escape
-17   DC1  ^Q                XON, with XOFF to pause listings; "okay to send"
-18   DC2  ^R                Device control 2, block-mode flow control
-19   DC3  ^S                XOFF, with XON is TERM=18 flow control
-20   DC4  ^T                Device control 4
-21   NAK  ^U  Erase line    Negative acknowledge
-22   SYN  ^V                Synchronous idle
-23   ETB  ^W  Erase word    End transmission block, not the same as EOT
-24   CAN  ^X                Cancel line, MPE echoes
-25   EM   ^Y  Yank          End of medium, Control-Y interrupt
-26   SUB  ^Z                Substitute
-27   ESC  ^[  Escape        Escape, next character is not echoed
-28   FS   ^\                File separator
-29   GS   ^]                Group separator
-30   RS   ^^                Record separator, block-mode terminator
-31   US   `^_`              Unit separator
+| Code | Id  | Key | Action       | Comment |
+|------|-----|-----|--------------|---------|
+| 0    | NUL | ^@  |              | Null character |
+| 1    | SOH | ^A  | Home         | Start of heading, console interrupt |
+| 2    | STX | ^B  |              | Start of text, maintenance mode on HP console |
+| 3    | ETX | ^C  | Break        | End of text |
+| 4    | EOT | ^D  | Delete       | End of transmission, not the same as ETB |
+| 5    | ENQ | ^E  | End          | Enquiry, goes with ACK; old HP flow control |
+| 6    | ACK | ^F  |              | Acknowledge, clears ENQ logon hand |
+| 7    | BEL | ^G  |              | Bell, rings the bell |
+| 8    | BS  | ^H  | Backspace    | Backspace, works on HP terminals/computers |
+| 9    | HT  | ^I  | Tab          | Horizontal tab, move to next tab stop |
+| 10   | LF  | ^J  | Enter        | Line Feed |
+| 11   | VT  | ^K  | Kill line    | Vertical tab |
+| 12   | FF  | ^L  | Clear screen | Form Feed, page eject |
+| 13   | CR  | ^M  | Enter        | Carriage Return |
+| 14   | SO  | ^N  |              | Shift Out, alternate character set |
+| 15   | SI  | ^O  |              | Shift In, resume defaultn character set |
+| 16   | DLE | ^P  |              | Data link escape |
+| 17   | DC1 | ^Q  |              | XON, with XOFF to pause listings; "okay to send" |
+| 18   | DC2 | ^R  |              | Device control 2, block-mode flow control |
+| 19   | DC3 | ^S  |              | XOFF, with XON is TERM=18 flow control |
+| 20   | DC4 | ^T  |              | Device control 4 |
+| 21   | NAK | ^U  | Erase line   | Negative acknowledge |
+| 22   | SYN | ^V  |              | Synchronous idle |
+| 23   | ETB | ^W  | Erase word   | End transmission block, not the same as EOT |
+| 24   | CAN | ^X  |              | Cancel line, MPE echoes |
+| 25   | EM  | ^Y  | Yank         | End of medium, Control-Y interrupt |
+| 26   | SUB | ^Z  |              | Substitute |
+| 27   | ESC | ^\[ | Escape       | Escape, next character is not echoed |
+| 28   | FS  | ^\  |              | File separator |
+| 29   | GS  | ^\] |              | Group separator |
+| 30   | RS  | ^^  |              | Record separator, block-mode terminator |
+| 31   | US  | `^_`|              | Unit separator |
 
 ## The automatic internal variables.
 
