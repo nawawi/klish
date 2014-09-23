@@ -22,7 +22,7 @@ There are the Klish related links:
 * Downloads is <http://klish.libcode.org/files>
 * Issue tracker is <http://klish.libcode.org/issues/new>
 * Klish discussion mailing list <http://groups.google.com/group/klish>
-* Klish development mailing list <http://groups.oogle.com/group/klish-dev>
+* Klish development mailing list <http://groups.google.com/group/klish-dev>
 * News blog <http://klish-cli.blogspot.com>
 
 ## Features
@@ -168,7 +168,7 @@ The NOP command. It does nothing. It's usefull for commands like comment. The CI
 
 The feature is available starting with klish-1.4.2.
 
-## CISCO-like config support.
+## CISCO-like config support {#cisco_config}
 
 In some cases the CLI is rather useless without configuration commands storing. The new XML tag [was implemented to support interaction beetween Klish and some external (or internal) mechanism to store some commands sequence i.e. CISCO-like configuration. On each succesfully executed command the Klish can execute special callback function that get current command information and can communicate to external tool to store commands or the internal mechanisms can be used for config storing. 
 
@@ -467,7 +467,7 @@ There is a good example of using nested parameters in [optional parameters](opti
 
 The tag [allows to import the command set from the specified view into another view. So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode). See the [NAMESPACE](NAMESPACE]) for the tag description.
 
-### Logically nested views
+### Logically nested views {#nested_views}
 
 The following code demonstrates the using of command set import. Assume the current view is "view2". The command "com1" will be available although it belogs to "view1". Additionally the help and completion for commands from "view1" is enabled while import.
 
@@ -833,43 +833,70 @@ The CLISH_MODULE is a highest level tag. It contains all the other tags. Typical
 </CLISH_MODULE>
 ```
 
-The first line (`<?xml ...`) is defined within XML specification. Use it as is.
+The first line (`<?xml ...`) is defined within XML specification. Use it as is with your preferred encoding.
+
+The CLISH_MODULE can contain the following tags:
+
+* [OVERVIEW] - once
+* [STARTUP] - once
+* [PTYPE] - multiply
+* [COMMAND] - multiply
+* [VIEW] - multiply
+* [NAMESPACE] - multiply
+* [VAR] - multiply
+* [WATCHDOG] - once
+* [HOTKEY] - multiply
+* [PLUGIN] - multiply
+* [HOOK] - multiply
 
 
 ## VIEW
 
-The VIEW tag defines a view. The view aggregates the commands.
+The VIEW tag defines a view. The view aggregates the commands. While the Klish execution it has a current view i.e. a group of currently accessible commands. The view can be changed by special command. Then the another view become current and this view's commands become accessible.
 
-### [depth]
-A depth of nested view. It is used together with the [CONFIG](depth]`) tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](cisco_config). All the commands within current VIEW have the same depth.
+The VIEW tag can contain the following tags:
+
+* [NAMESPACE] - multiply
+* [COMMAND] - multiply
+* [HOTKEY] - multiply
+
+### name
+The unique name of the VIEW. The VIEW can be referred by this name. For example the "view" field of [COMMAND] tag can refer to this name. The "name" field can contain letters, digits, hyphens, underscores. The name must not begin with the underscore.
+
+### prompt
+Command line prompt. This string will be a prompt when the view is a active one. The "prompt" field can contain the Klish's variables and will be expanded.
+
+### \[depth\]
+A depth of nested view. It is used together with the [CONFIG] tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](#cisco_config). All the commands within current VIEW have the same depth.
 
 The default is "0".
 
-### [restore]
-The commands contained by the view can be executed from the nested views or parallel views using the [NAMESPACE](restore]`). While the command execution the depth (and a context) or the view of command can be restored. The value of 'restore' field can be:
+### \[restore\]
+The commands contained by the view can be executed from the nested views or parallel views (see the [NAMESPACE]). Some commands need their own context to be executed properly. While the command execution the depth (and a context) or the view of command can be restored. The value of the "restore" field can be:
 
-- none - Don't change the current view.
-- view - The current view will be set to the command's native view.
-- depth - The Klish engine will find out the depth of command's native view. Then it will search for this depth in the current nested views stack. The current view will be set to the saved view from the stack with the depth equal to command's depth. Additionally the context (the viewid) will be restored from the stack.
+* none - Don't change the current view.
+* view - The current view will be set to the command's native view.
+* depth - The Klish engine will find out the depth of command's native view. Then it will search for this depth in the current nested views stack. The current view will be set to the saved view from the stack with the depth equal to command's depth. Additionally the context (the "viewid" value) will be restored from the stack.
 
-Default is "none". See the [nested views](nested_views) wiki page for the additional information and example.
+Default is "none". See the [nested views](#nested_views) for the additional information and example.
 
-
+### \[access\]
+This field controls the access rights for the VIEW. If the access is denied then the user can't use [COMMAND]s from this VIEW. Generally the content of this field is arbitrary. It means that the real function that controls permissions can be set by [HOOK] tag. By default (builtin function) the "access" field contain the list of UNIX groups to grant access to. The groups are separated by ":" symbol. If access field is not defined the access is granted.
 
 
 ## COMMAND
 
 The COMMAND tag defines the command. This document describes Klish native options only. See the [documentation for  the other COMMAND options. See the [locking_mechanism locking mechanism](clish]) for the information about using new features of COMMAND tag.
 
-### [lock]
- `[A boolean flag. It can enable (true) or disable (false) the [locking_mechanism locking mechanism](lock]`) for the current command.
+### \[lock\]
+A boolean flag. It can enable (true) or disable (false) the [locking mechanism](#locking_mechanism) for the current command.
 
 Default is true.
 
-### [ref]
+### \[ref\]
  `[The 'ref' field is used to create a [command_alias command alias](ref]`). If the 'ref' field is used within COMMAND definition that command is not standalone but it's an [alias](command_alias). The 'ref' contain the name of target original command to make alias of. In the case if the target command belongs to the another view than the view of alias then the target command's view must be specified after the target command name. The delimeter beetween the command name and view name is "@" symbol. See the [command alias](command_alias) page for the details and examples.
 
-### [interrupt]
+### \[interrupt\]
  `[The 'interrupt' field specifies if the [ACTION](interrupt]`) script is interruptable or non-interruptable by the user. If the interrupt="true" than the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](atomic_action) for the details. The 'interrupt' field is available since SVN revision 347 or Klish-1.4.0.
 
 
