@@ -307,40 +307,40 @@ The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinati
 Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [tag) now.
 
 
-Code Id  Key Action Comment
+Code Id   Key Action        Comment
 
-0  NUL  ^@         Null character
-1  SOH  ^A  Home   Start of heading, = console interrupt
-2  STX  ^B         Start of text, maintenance mode on HP console
-3  ETX  ^C  Break  End of text
-4  EOT  ^D  Delete  End of transmission, not the same as ETB
-5  ENQ  ^E  End     Enquiry, goes with ACK; old HP flow control
-6  ACK  ^F          Acknowledge, clears ENQ logon hand
-7  BEL  ^G          Bell, rings the bell...</td></tr>
-8  BS   ^H  Backspace Backspace, works on HP terminals/computers</td></tr>
-9  HT   ^I  Tab</td><td>Horizontal tab, move to next tab stop</td></tr>
-10 LF   ^J  Enter</td><td>Line Feed</td></tr>
-11 VT   ^K  Kill line</td><td>Vertical tab</td></tr>
-12 FF   ^L  Clear screen</td><td>Form Feed, page eject</td></tr>
-13 CR   ^M</td><td>Enter</td><td>Carriage Return</td></tr>
-14 SO   ^N</td><td></td><td>Shift Out, alternate character set</td></tr>
-15 SI   ^O</td><td></td><td>Shift In, resume defaultn character set</td></tr>
-16 DLE  ^P</td><td></td><td>Data link escape</td></tr>
-17 DC1  ^Q</td><td></td><td>XON, with XOFF to pause listings; "okay to send".</td></tr>
-18 DC2  ^R</td><td></td><td>Device control 2, block-mode flow control</td></tr>
-19 DC3  ^S</td><td></td><td>XOFF, with XON is TERM=18 flow control</td></tr>
-20 DC4  ^T</td><td></td><td>Device control 4</td></tr>
-21 NAK  ^U</td><td>Erase line</td><td>Negative acknowledge</td></tr>
-22 SYN  ^V</td><td></td><td>Synchronous idle</td></tr>
-23 ETB  ^W</td><td>Erase word</td><td>End transmission block, not the same as EOT</td></tr>
-24 CAN  ^X</td><td></td><td>Cancel line, MPE echoes !!!</td></tr>
-25 EM   ^Y</td><td>Yank</td><td>End of medium, Control-Y interrupt</td></tr>
-26 SUB  ^Z</td><td></td><td>Substitute</td></tr>
-27 ESC  ^[</td><td>Escape</td><td>Escape, next character is not echoed</td></tr>
-28 FS   ^\</td><td></td><td>File separator</td></tr>
-29 GS   ^](HOTKEY])</td><td></td><td>Group separator</td></tr>
-30 RS   ^^</td><td></td><td>Record separator, block-mode terminator</td></tr>
-31 US   `^_`</td><td></td><td>Unit separator</td></tr>
+0    NUL  ^@                Null character
+1    SOH  ^A  Home          Start of heading, console interrupt
+2    STX  ^B                Start of text, maintenance mode on HP console
+3    ETX  ^C  Break         End of text
+4    EOT  ^D  Delete        End of transmission, not the same as ETB
+5    ENQ  ^E  End           Enquiry, goes with ACK; old HP flow control
+6    ACK  ^F                Acknowledge, clears ENQ logon hand
+7    BEL  ^G                Bell, rings the bell
+8    BS   ^H  Backspace     Backspace, works on HP terminals/computers
+9    HT   ^I  Tab           Horizontal tab, move to next tab stop
+10   LF   ^J  Enter         Line Feed
+11   VT   ^K  Kill line     Vertical tab
+12   FF   ^L  Clear screen  Form Feed, page eject
+13   CR   ^M  Enter         Carriage Return
+14   SO   ^N                Shift Out, alternate character set
+15   SI   ^O                Shift In, resume defaultn character set
+16   DLE  ^P                Data link escape
+17   DC1  ^Q                XON, with XOFF to pause listings; "okay to send"
+18   DC2  ^R                Device control 2, block-mode flow control
+19   DC3  ^S                XOFF, with XON is TERM=18 flow control
+20   DC4  ^T                Device control 4
+21   NAK  ^U  Erase line    Negative acknowledge
+22   SYN  ^V                Synchronous idle
+23   ETB  ^W  Erase word    End transmission block, not the same as EOT
+24   CAN  ^X                Cancel line, MPE echoes
+25   EM   ^Y  Yank          End of medium, Control-Y interrupt
+26   SUB  ^Z                Substitute
+27   ESC  ^[  Escape        Escape, next character is not echoed
+28   FS   ^\                File separator
+29   GS   ^]                Group separator
+30   RS   ^^                Record separator, block-mode terminator
+31   US   `^_`              Unit separator
 
 ## The automatic internal variables.
 
