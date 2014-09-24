@@ -110,7 +110,7 @@ http://sourceforge.net/projects/clish/
 
 # Features
 
-## The atomic actions
+## The atomic actions {#atomic_action}
 The [script can be interruptable or non-interruptable (atomic). It's often usefull together with the [locking_mechanism locking mechanism](ACTION]). 
 
 To make the action atomic the [script must be non-interruptable for the user. The following signals can be blocked while [ACTION](ACTION]) script execution:
@@ -176,7 +176,7 @@ The default tool to store configuration is [konfd](CONFIG]) daemon accessible ov
 
 The [tag is used to make Klish to store the current command or execute other actions (remove old entries, dump entries to file) on config. See [CONFIG](CONFIG]) page for details about tag syntax.
 
-## The command aliases
+## The command aliases {#command_alias}
 
 The [command](COMMAND) can have the aliases. The resulting alias is equal to the original command except the name of command, help text and the value of internal variable `${__cmd}`.
 
@@ -888,53 +888,89 @@ This field controls the access rights for the VIEW. If the access is denied then
 
 The COMMAND tag defines the command. This document describes Klish native options only. See the [documentation for  the other COMMAND options. See the [locking_mechanism locking mechanism](clish]) for the information about using new features of COMMAND tag.
 
+The VIEW tag can contain the following tags:
+
+* [DETAIL] - once
+* [PARAM] - multilpy
+* [CONFIG] - once
+* [ACTION] - once
+
+### name
+
+### help
+
+### \[ref\]
+The "ref" field is used to create a [command alias](#command_alias). If the "ref" field is used within COMMAND definition that command is not standalone but it's an [alias](#command_alias). The "ref" contain the name of target original command to make alias of. In the case if the target command belongs to the another view than the view of alias then the target command's view must be specified after the target command name. The delimeter beetween the command name and view name is "@" symbol. See the [command alias](#command_alias) page for the details and examples.
+
+### \[view\]
+
+### \[viewid\]
+
+### \[access\]
+This field controls the access rights for the COMMAND. If the access is denied then the user can't use command. Generally the content of this field is arbitrary. It means that the real function that controls permissions can be set by [HOOK] tag. By default (builtin function) the "access" field contain the list of UNIX groups to grant access to. The groups are separated by ":" symbol. If access field is not defined the access is granted.
+
+### \[args\]
+
+### \[args_help\]
+
+### \[escape_chars\]
+
 ### \[lock\]
 A boolean flag. It can enable (true) or disable (false) the [locking mechanism](#locking_mechanism) for the current command.
 
 Default is true.
 
-### \[ref\]
- `[The 'ref' field is used to create a [command_alias command alias](ref]`). If the 'ref' field is used within COMMAND definition that command is not standalone but it's an [alias](command_alias). The 'ref' contain the name of target original command to make alias of. In the case if the target command belongs to the another view than the view of alias then the target command's view must be specified after the target command name. The delimeter beetween the command name and view name is "@" symbol. See the [command alias](command_alias) page for the details and examples.
-
 ### \[interrupt\]
- `[The 'interrupt' field specifies if the [ACTION](interrupt]`) script is interruptable or non-interruptable by the user. If the interrupt="true" than the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](atomic_action) for the details. The 'interrupt' field is available since SVN revision 347 or Klish-1.4.0.
+The "interrupt" field specifies if the [ACTION] script is interruptable or non-interruptable by the user. If the interrupt="true" then the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](#atomic_action) for the details. The "interrupt" field is available since klish-1.4.0.
 
 
 
 ## STARTUP
 
-The STARTUP tag defines the starting view, viewid and the other startup settings. This document describes Klish native options only. See the [documentation for the other STARTUP options.
+The STARTUP tag defines the starting view, viewid and the other startup settings.
 
-### [default_shebang]
+The VIEW tag can contain the following tags:
 
-Defines the scripting language (the binary file) to use for the [script execution by default.
+* [DETAIL] - once
+* [ACTION] - once
 
-Default is the "/bin/sh". The [ACTION](ACTION]) tag with 'shebang' field can locally redefine the shebang for its execution.
+### view
+This field defines the current [VIEW] when the Klish starts. The value can be redefined by [clish](#utility_clish) command line option or by a special environment variable [CLISH_VIEW].
 
-### [timeout]
+### \[viewid\]
+
+The same as "viewid" field of the [COMMAND] tag. The value can be redefined by [clish](#utility_clish) command line option or by a special environment variable [CLISH_VIEWID].
+
+### \[default_shebang\]
+
+Defines the scripting language (the binary file) to use for the script execution by default. Default is the "/bin/sh". The [ACTION] tag with "shebang" field can locally redefine the shebang for its execution.
+
+### \[timeout\]
 Without any user activity for the specified timeout the Klish can autologout (close current input stream and exit). It can be used to automatically close privileged sessions when the administrator have forgot to close session manually.
 
-### [lock]
+### \[lock\]
 
-The same as "lock" field of [tag.
+The same as "lock" field of the [COMMAND] tag.
 
-### [interrupt]
+### \[interrupt\]
 
 The same as "interrupt" field of [COMMAND] tag.
 
+### \[default_plugin\]
 
 
 
 ## ACTION
 
+The ACTION tag defines the script to execute for a command.  The textual contents of the tag will be expanded (environment variables, Klish's [VAR], parameters) and the resulting text is interpreted by the client's script interpreter. In addition the optional "builtin" attribute can specify the name of an internal command which will be invoked instead of the client's script handler.
 
-The ACTION tag defines the script to execute. This document describes Klish native options only. See the clish documentation for the other ACTION options.
+### \[builtin\]
+Specify the name of an internally registered function. The content of the ACTION tag is taken as the arguments to this builtin function. So if "builtin" field is specified then the ACTION content will not be executed as a script.
 
-
-### [shebang]
+### \[shebang\]
 Defines the scripting language (the binary file) to use for the ACTION script execution.
 
-Default is the shebang defined within [STARTUP](shebang]`) tag using 'default_shebang' field. If the 'default_sheband' is undefined the "/bin/sh" is used.
+Default is the shebang defined within [STARTUP] tag using "default_shebang" field. If the "default_sheband" is undefined the "/bin/sh" is used.
 
 
 ## OVERVIEW
