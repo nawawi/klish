@@ -467,7 +467,7 @@ The example of nested clish execution:
 </COMMAND>
 ```
 
-## Nested parameters and parameter branching.
+## Nested parameters and parameter branching {#nested_params}
 
 The parameters can be nested i.e. [can contain another sub-PARAMs. 
 
@@ -872,18 +872,18 @@ The VIEW tag can contain the following tags:
 * [COMMAND] - multiply
 * [HOTKEY] - multiply
 
-### name
+### name {#VIEW_name}
 The unique name of the VIEW. The VIEW can be referred by this name. For example the "view" field of [COMMAND] tag can refer to this name. The "name" field can contain letters, digits, hyphens, underscores. The name must not begin with the underscore.
 
-### prompt
+### prompt {#VIEW_prompt}
 Command line prompt. This string will be a prompt when the view is a active one. The "prompt" field can contain the Klish's variables and will be expanded.
 
-### \[depth\]
+### \[depth\] {#VIEW_depth}
 A depth of nested view. It is used together with the [CONFIG] tag. If the command must be written to the config the view's depth specifies the command indention within [CISCO-like config](#cisco_config). All the commands within current VIEW have the same depth.
 
 The default is "0".
 
-### \[restore\]
+### \[restore\] {#VIEW_restore}
 The commands contained by the view can be executed from the nested views or parallel views (see the [NAMESPACE]). Some commands need their own context to be executed properly. While the command execution the depth (and a context) or the view of command can be restored. The value of the "restore" field can be:
 
 * none - Don't change the current view.
@@ -892,7 +892,7 @@ The commands contained by the view can be executed from the nested views or para
 
 Default is "none". See the [nested views](#nested_views) for the additional information and example.
 
-### \[access\]
+### \[access\] {#VIEW_access}
 This field controls the access rights for the VIEW. If the access is denied then the user can't use [COMMAND]s from this VIEW. Generally the content of this field is arbitrary. It means that the real function that controls permissions can be set by [HOOK] tag. By default (builtin function) the "access" field contain the list of UNIX groups to grant access to. The groups are separated by ":" symbol. If access field is not defined the access is granted.
 
 
@@ -907,32 +907,32 @@ The VIEW tag can contain the following tags:
 * [CONFIG] - once
 * [ACTION] - once
 
-### name
+### name {#COMMAND_name}
 
-### help
+### help {#COMMAND_help}
 
-### \[ref\]
+### \[ref\] {#COMMAND_ref}
 The "ref" field is used to create a [command alias](#command_alias). If the "ref" field is used within COMMAND definition that command is not standalone but it's an [alias](#command_alias). The "ref" contain the name of target original command to make alias of. In the case if the target command belongs to the another view than the view of alias then the target command's view must be specified after the target command name. The delimeter beetween the command name and view name is "@" symbol. See the [command alias](#command_alias) page for the details and examples.
 
-### \[view\]
+### \[view\] {#COMMAND_view}
 
-### \[viewid\]
+### \[viewid\] {#COMMAND_viewid}
 
-### \[access\]
+### \[access\] {#COMMAND_access}
 This field controls the access rights for the COMMAND. If the access is denied then the user can't use command. Generally the content of this field is arbitrary. It means that the real function that controls permissions can be set by [HOOK] tag. By default (builtin function) the "access" field contain the list of UNIX groups to grant access to. The groups are separated by ":" symbol. If access field is not defined the access is granted.
 
-### \[args\]
+### \[args\] {#COMMAND_args}
 
-### \[args_help\]
+### \[args_help\] {#COMMAND_args_help}
 
-### \[escape_chars\]
+### \[escape_chars\] {#COMMAND_escape_chars}
 
-### \[lock\]
+### \[lock\] {#COMMAND_lock}
 A boolean flag. It can enable (true) or disable (false) the [locking mechanism](#locking_mechanism) for the current command.
 
 Default is true.
 
-### \[interrupt\]
+### \[interrupt\] {#COMMAND_interrupt}
 The "interrupt" field specifies if the [ACTION] script is interruptable or non-interruptable by the user. If the interrupt="true" then the script is interruptable else the script is non-interruptable. For non-interruptable scripts the SIGINT and SIGQUIT is temporarily blocked. See the [atomic actions](#atomic_action) for the details. The "interrupt" field is available since klish-1.4.0.
 
 
@@ -946,29 +946,29 @@ The VIEW tag can contain the following tags:
 * [DETAIL] - once
 * [ACTION] - once
 
-### view
+### view {#STARTUP_view}
 This field defines the current [VIEW] when the Klish starts. The value can be redefined by [clish](#utility_clish) command line option or by a special environment variable [CLISH_VIEW].
 
-### \[viewid\]
+### \[viewid\] {#STARTUP_viewid}
 
 The same as "viewid" field of the [COMMAND] tag. The value can be redefined by [clish](#utility_clish) command line option or by a special environment variable [CLISH_VIEWID].
 
-### \[default_shebang\]
+### \[default_shebang\] {#STARTUP_default_shebang}
 
 Defines the scripting language (the binary file) to use for the script execution by default. Default is the "/bin/sh". The [ACTION] tag with "shebang" field can locally redefine the shebang for its execution.
 
-### \[timeout\]
+### \[timeout\] {#STARTUP_timeout}
 Without any user activity for the specified timeout the Klish can autologout (close current input stream and exit). It can be used to automatically close privileged sessions when the administrator have forgot to close session manually.
 
-### \[lock\]
+### \[lock\] {#STARTUP_lock}
 
 The same as "lock" field of the [COMMAND] tag.
 
-### \[interrupt\]
+### \[interrupt\] {#STARTUP_interrupt}
 
 The same as "interrupt" field of [COMMAND] tag.
 
-### \[default_plugin\]
+### \[default_plugin\] {#STARTUP_default_plugin}
 
 
 
@@ -976,10 +976,10 @@ The same as "interrupt" field of [COMMAND] tag.
 
 This tag may be used within the scope of a [COMMAND] element. The ACTION tag defines the script to execute for a command.  The textual contents of the tag will be expanded (environment variables, Klish's [VAR], parameters) and the resulting text is interpreted by the client's script interpreter. In addition the optional "builtin" attribute can specify the name of an internal command which will be invoked instead of the client's script handler.
 
-### \[builtin\]
+### \[builtin\] {#ACTION_plugin}
 Specify the name of an internally registered function. The content of the ACTION tag is taken as the arguments to this builtin function. So if "builtin" field is specified then the ACTION content will not be executed as a script.
 
-### \[shebang\]
+### \[shebang\] {#ACTION_shebang}
 Defines the scripting language (the binary file) to use for the ACTION script execution.
 
 Default is the shebang defined within [STARTUP] tag using "default_shebang" field. If the "default_sheband" is undefined the "/bin/sh" is used.
@@ -1000,23 +1000,23 @@ This may also be used within the scope of a [STARTUP] element, in which case the
 
 This tag may be used within the global scope. The PTYPE tag is used to define the syntax of a parameter ([PARAM]).
 
-### name
+### name {#PTYPE_name}
 A textual name for this type. This name can be used to reference this type within a [PARAM] tag "ptype" attribute.
 
-### help
+### help {#PTYPE_help}
 A textual string which describes the syntax of this type.
 
-### pattern
+### pattern {#PTYPE_pattern}
 Typically a regular expression which defines the syntax of the type. The "method" attribute can change the meaning of this field.
 
-### \[method\]
+### \[method\] {#PTYPE_method}
 The means by which the "pattern" attribute is interpreted.
 
 * "regexp" [default] - A POSIX regular expression.
 * "integer"- A numeric definition "min..max".
 * "select" - A list of possible values. The syntax of the string is of the form: "valueOne(ONE) valueTwo(TWO) valueThree(THREE)" where the text before the parenthesis defines the syntax that the user must use, and the value within the parenthesis is the result expanded as a parameter value. The parenthesis may be omitted. Then the syntax and the value are equal.
 
-### \[preprocess\]
+### \[preprocess\] {#PTYPE_preprocess}
 An optional directive to process the value entered before validating it. This can greatly simplify the regular expressions needed to match case insensitive values.
 
 * "none" [default] - do nothing.
@@ -1031,13 +1031,13 @@ The VIEW tag can contain the following tags:
 
 * [PARAM] multiply
 
-### name
+### name {#PARAM_name}
 
-### help
+### help {#PARAM_help}
 
-### ptype
+### ptype {#PARAM_ptype}
 
-### \[mode\]
+### \[mode\] {#PARAM_mode}
 Define parameter behaviour. It can be:
 
 * common - the standard mode for ordinary parameter. Nothing special.
@@ -1046,14 +1046,14 @@ Define parameter behaviour. It can be:
 
 Default is "common".
 
-### \[prefix\]
+### \[prefix\] {#PARAM_prefix}
 
-### \[optional\]
+### \[optional\] {#PARAM_optional}
 A boolean flag. Specify whether parameter is optional. The allowed values is true or false. See the [Optional arguments](#optional_arguments) documentation for example. 
 
 Default is false.
 
-### \[order\]
+### \[order\] {#PARAM_order}
 
 A boolean flag. Can be used with optional (optional="true") parameters only. If current parameter is specified in command line then previously declared (in XML file) other optional parameters can't be entered later. So this option set the order of available optional parameters. See the [Optional arguments](#optional_arguments) documentation for example.
 
@@ -1061,24 +1061,24 @@ The allowed values is true or false. Default is false.
 
 The feature is available since version 1.5.2.
 
-### \[default\]
+### \[default\] {#PARAM_default}
 
 
-### \[value\]
+### \[value\] {#PARAM_value}
 The [subcommand](#subcommands) specific option. This field is used to separate the name of internal variable and the displayable name (that user will enter). The "name" field is a name of the internal variable. The "value" is a displayable subcommand name. It allows to duplicate displayable subcommand names.
 
 The "value" field forces the mode of PARAM to "subcommand".
 
 The feature is available since klish-1.2.0.
 
-### \[hidden\]
+### \[hidden\] {#PARAM_hidden}
 The "hidden" field specify the visibility of the parameter while [`${__line}`](#internal_variables) and [`${__params}`](#internal_variables) automatic variables expanding. The expanding of variable with the PARAM name is performed by the usual way. The allowed values is "true" or "false".
 
 Default is "false".
 
 For example this feature can be used while the [ordered sequences](#sequence) implementation. The hidden parameter can specify the line number in [ordered sequence](#sequence). So it must be passed to the [konfd] daemon via "sequence" field of [CONFIG] tag but the `${__line}` (that will be set to the user config) doesn't need to contain line number.
 
-### \[test\]
+### \[test\] {#PARAM_test}
 The parameter can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard "/bin/test" utility. So the parameter visibility can depend on the previous parameters values and [internal variables](#internal_variables). See the [conditional parameters](#conditional_param) for details.
 
 By default the parameter is enabled.
@@ -1089,28 +1089,28 @@ By default the parameter is enabled.
 
 This tag may be used within the scope of a [VIEW] element. The NAMESPACE tag allows to import the command set from the specified view into another view. See the [logically nested views](#nested_views) for details on using this tag.
 
-### ref
+### ref {#NAMESPACE_ref}
 
 Reference to the [VIEW] to import commands from.
 
-### \[prefix\]
+### \[prefix\] {#NAMESPACE_prefix}
 The text prefix for imported commands.
 
-### \[prefix_help\]
+### \[prefix_help\] {#NAMESPACE_prefix_help}
 The help string for the NAMESPACE prefix. It will be printed when user has already entered prefix but hasn't entered the command name yet.
 
-### \[help\]
+### \[help\] {#NAMESPACE_help}
 A boolean flag whether to use imported commands while help (press "?" key). Can be true or false. Default is false.
 
-### \[completion\]
+### \[completion\] {#NAMESPACE_completion}
 
 A boolean flag whether to use imported commands while command completion (press "Tab" key). Can be true or false. Default is true.
 
-### \[context_help\]
+### \[context_help\] {#NAMESPACE_context_help}
 
 A boolean flag whether to use imported commands while context help. Can be true or false. Default is false.
 
-### \[inherit\]
+### \[inherit\] {#NAMESPACE_inherit}
 
 A boolean flag whether to inherit nested namespace commands recursively. Can be true or false. Default is true.
 
@@ -1119,7 +1119,7 @@ A boolean flag whether to inherit nested namespace commands recursively. Can be 
 
 This tag may be used within the scope of a [COMMAND] element. The CONFIG tag was implemented to support interaction beetween Klish engine and some external (or internal) mechanism to store a commands sequence i.e. [CISCO-like configuration](#cisco_config).
 
-### \[operation\]
+### \[operation\] {#CONFIG_operation}
 Defines the action on current configuration (running-config):
 
 * set - write currently entered command line to the running-config. If the command is already in the running-config it will be no changes. The "pattern" field define the uniqueness of command. If the running-config already contain entries starting with the "pattern" than these entries will be removed.
@@ -1128,7 +1128,7 @@ Defines the action on current configuration (running-config):
 
 The default is "set".
  
-### \[priority\]
+### \[priority\] {#CONFIG_priority}
 
 The "priority" field define the sort order within running-config. Note the order of commands is important. For example to setup routing table the interfaces must be already configured.
 
@@ -1136,25 +1136,25 @@ The "priority" is a two-byte hex number (for example "0x2345"). The high byte de
 
 The default is "0x7f00". It's a medium value of the high-byte.
 
-### \[pattern\]
+### \[pattern\] {#CONFIG_pattern}
 The field specifies the pattern to remove entries from running-config while "unset" operation and the identifier of unique command while "set" operation.
 
 The default is the name of the current command (`${__cmd}`).
 
-### \[file\]
+### \[file\] {#CONFIG_file}
 
 This field defines the filename to dump running-config to.
 
-### \[splitter\]
+### \[splitter\] {#CONFIG_splitter}
 A boolean flag. The allowed values is true or false. If the "splitter" is "true" than the current command will be separated with the "!" symbol within its configuration group. See the "priority" description for details about configuration groups.
 
 Default is true.
 
-### \[sequence\]
+### \[sequence\] {#CONFIG_sequence}
 
-### \[unique\]
+### \[unique\] {#CONFIG_unique}
 
-### \[depth\]
+### \[depth\] {#CONFIG_depth}
 The CISCO-like config supports nested commands. It uses indention as a syntax for the nesting. To specify nesting depth of command the "depth" option of its [VIEW] tag is used. All the commands of view have the same depth.
 
 
@@ -1167,13 +1167,13 @@ The VIEW tag can contain the following tags:
 
 * [ACTION] - once
 
-### name
+### name {#VAR_name}
 
-### \[help\]
+### \[help\] {#VAR_help}
 
-### \[value\]
+### \[value\] {#VAR_value}
 
-### \[dynamic\]
+### \[dynamic\] {#VAR_dynamic}
 
 
 
@@ -1193,7 +1193,7 @@ This tag may be used within the global scope and within the scope of a [VIEW] el
 
 The HOTKEY tag was implemented since klish-1.5.7 and klish-1.6.2.
 
-### key
+### key {#HOTKEY_key}
 The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`" symbol) only. Some combination are internally reserved (like a Ctrl`^`C and some other keys). To define a key use "`^key_symbol`". For example:
 
 ```
@@ -1203,7 +1203,7 @@ The symbolic key description. The Klish supports control keys with "Ctrl" ("`^`"
 
 The first line is for `Ctrl^Z` and the second is for `Ctrl^S` combinations accordingly.
 
-### cmd
+### cmd {#HOTKEY_cmd}
 The Klish [COMMAND] with arguments to execute on specified hotkey combination. This command must be defined in XML config. The command string can contain dynamically expanded [VAR]s.
 
 ```
@@ -1218,18 +1218,18 @@ The Klish [COMMAND] with arguments to execute on specified hotkey combination. T
 
 ## PLUGIN
 
-### name
+### name {#PLUGIN_name}
 
-### \[alias\]
+### \[alias\] {#PLUGIN_alias}
 
-### \[file\]
+### \[file\] {#PLUGIN_file}
 
 
 
 
 ## HOOK
 
-### name
+### name {#HOOK_name}
 
 * init
 * fini
@@ -1237,7 +1237,7 @@ The Klish [COMMAND] with arguments to execute on specified hotkey combination. T
 * config
 * log
 
-### \[builtin\]
+### \[builtin\] {#HOOK_builtin}
 
 
 
