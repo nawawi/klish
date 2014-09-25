@@ -352,7 +352,7 @@ Some keys has predefined hardcoded behaviour. If key has a predefined behaviour 
 
 ## The automatic internal variables {#internal_variables}
 
-For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from [tags. To specify these variables use ${`<name>`} syntax. The variables will be expanded before execution of ACTION, before using some tag's fields that is dynamic and allow the using of variables. The example of such field is [CONFIG](PARAM])'s 'pattern'.
+The Klish engine generates the automatic variables that can be used the same way as a variables origin from [PARAM] or [VAR] tags. To specify these variables use ${`<name>`} syntax. The variables will be expanded before execution of [ACTION] script or before using some tag's fields that is dynamic and allow to use variables. The example of such field is [CONFIG]'s "pattern" attribute.
 
 ### `${__cmd}`
 
@@ -360,17 +360,17 @@ The `${__cmd}` contain the name of the current command.
 
 ### `${__orig_cmd}`
 
-The `${__orig_cmd}` contain the name of the original command if the current command is [alias](command_alias). If the current command is not [alias](command_alias) the `${__orig_cmd}` is equal to the `${__cmd}`.
+The `${__orig_cmd}` contain the name of the original command if the current command is [alias](#command_alias). If the current command is not [alias](#command_alias) the `${__orig_cmd}` is equal to the `${__cmd}`.
 
 ### `${__full_cmd}`
 
-The `${__full_cmd}` is the entered name of command. When the using of command is simple the `${__full_cmd}` will be equal to `${__cmd}` variable. But when the command was imported from another [using the [NAMESPACE](VIEW]) tag with specified 'prefix' field, the `${__full_cmd}` will contain the full name of command "`<prefix>` `<command>`".
+The `${__full_cmd}` is the entered name of command. When the using of command is simple the `${__full_cmd}` will be equal to `${__cmd}` variable. But when the command was imported from another [VIEW] using the [NAMESPACE] tag with specified "prefix" attribute, the `${__full_cmd}` will contain the full name of command "`<prefix>` `<command>`".
 
-For example the "show" command is defined in the ["enable-view". The current [VIEW](VIEW]) is "configure-view". The ["enable-view" is imported into "configure-view" using [NAMESPACE](VIEW]) tag with field prefix="do". If user enters "do show" in command line than the `${__cmd}`="show" but `${__full_cmd}`="do show".
+For example the "show" command is defined in the "enable-view" [VIEW]. The current [VIEW] is "configure-view". The "enable-view" [VIEW] is imported into "configure-view" using [NAMESPACE] tag with attribute `prefix="do"`. If user enters "do show" in command line then the `${__cmd}`="show" but `${__full_cmd}`="do show".
 
 ### `${__params}`
 
-The `${__params}` contain all the entered command parameters. It's equal to line entered by user without command name. If one of the parameters contain spaces than this parameter will be quoted within `${__params}` line.
+The `${__params}` contain all the entered command parameters. It's equal to line entered by user without command name. If one of the parameters contains spaces then this parameter will be quoted within `${__params}` line.
 
 ### `${__line}`
 
@@ -382,27 +382,29 @@ The `${__full_line}` is equal to "`${__full_cmd}` `${__params}`".
 
 ### `${__prefix}`
 
-If the current command is imported from another [using [NAMESPACE](VIEW]) tag with specified prefix than the `${__prefix}` will contain the actually entered prefix (the prefix definition can be a regexp).
+If the current command is imported from another [VIEW] using [NAMESPACE] tag with specified prefix then the `${__prefix}` will contain the actually entered prefix (the prefix definition can be a regexp).
 
 ### `${__prefix<num>}`
 
-If the current command has several prefixes in a case of nested imports than the `${__prefix<num>}` will contain the actually entered prefix with number `<num>` in a line. The `${__prefix0}` is equal to `${__prefix}`.
+If the current command has several prefixes in a case of nested imports then the `${__prefix<num>}` will contain the actually entered prefix with number `<num>` in a line. The `${__prefix0}` is equal to `${__prefix}`.
 
 ### `${__cur_depth}`
 
-The `${__cur_depth}` contain the current depth of [nested views](nested_views). Note it's not a depth of current command's [but a depth of current [VIEW](VIEW]). These values is not equal when the command is imported from the another [## `${__cur_pwd}`
+The `${__cur_depth}` contains the current depth of [nested view](#nested_views). Note it's not a depth of current command native [VIEW] but a depth of current active [VIEW]. These values is not equal when the command is imported from the another [VIEW] using [NAMESPACE] tag.
 
-The `${__cur_pwd}` contain the "path" to the current [VIEW](VIEW].). The views can be [nested](nested_views) and the commands that lead to changing view to the current [is the current "path". These commands is quoted and delimeted by the space. Usually the "path" is used while communication to the [konfd](VIEW]) daemon. It allows to find out the position and depth of current command in the user config.
+### `${__cur_pwd}`
+
+The `${__cur_pwd}` contains the "path" to the current [VIEW]. The views can be [nested](#nested_views) and the commands that lead to changing view to the current [VIEW] is the current "path". These commands is quoted and delimeted by the space. Usually the "path" is used while communication to the [konfd] daemon. It allows to find out the position and depth of the current command in the running-config.
 
 ### `${__interactive}`
 
-The `${__interactive}` can be used to find out if the [clish](utility_clish) session is interactive (`${__interactive}` is equal to "1") or non-interactive (`${__interactive}` is equal to "0"). By default the session is interactive. But the [clish utility](utility_clish) can be executed with the "--background" option to make session non-interactive.
+The `${__interactive}` can be used to find out if the [clish](#utility_clish) session is interactive (`${__interactive}` is equal to "1") or non-interactive (`${__interactive}` is equal to "0"). By default the session is interactive. But the [clish utility](#utility_clish) can be executed with the "--background" option to make session non-interactive.
 
 ### `${__isatty}`
 
-The `${__isatty}` variable indicates if command was entered manually (using interactive tty) or it come from file or piped stdin. The value will be equal to "1" if command was entered manually and user have interactive tty. The value will be equal to "0" if command came from file.
+The `${__isatty}` variable indicates if command was entered manually (using interactive tty) or it comes from the file or piped stdin. The value will be equal to "1" if command was entered manually and user have interactive tty. The value will be equal to "0" if command cames from the file.
 
-The variable is available since SVN revision #546 or Klish-1.5.2 release.
+The variable is available since klish-1.5.2.
 
 ### `${__width}`
 
@@ -436,13 +438,13 @@ The example shows the using of automatic internal variable `${__line}` in CONFIG
             
 ## The locking mechanism {#locking_mechanism}
 
-The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts. It's often usefull together with the [atomic actions](atomic_action).
+The locking mechanism allows to execute several instances of [clish](#utility_clish) utility (or another programs based on libclish library) simultaneously without conflicts. It's often usefull together with the [atomic actions](#atomic_action).
 
-Before the command execution the Klish engine try to get lock. The implementation of lock is a flock() call on the /tmp/clish.lock file. If process can't to get lock it repeats the attempts to get lock for the several times with the short sleep() beetween attempts. The fail means that someone got the lock earlier. If the process got lock it execute the command's ACTION and than unlock the file.
+Before the command execution the Klish engine try to get lock. The implementation of lock is a fcntl file lock call on the "/tmp/clish.lock" file. If process can't to get lock it repeats the attempts to get lock for the several times with the short sleep() beetween attempts. The fail means that someone got the lock earlier. If the process got lock it executes the command's ACTION and then unlock the file.
 
-Some commands don't need the locking mechanism. The example of such command is 'ping'. It is independent command. The several 'ping's can be executed simultaneously. But the commands that can change the user config or some system settings need the locking mechanism. So the locking mechanism can be enabled/disabled on the per command basis. The [COMMAND] tag has the 'lock' field that can be 'true' or 'false'. It's 'true' but default. But if it's 'false' the Klish engine will not try to get lock before this command execution.
+Some commands don't need the locking mechanism. The example of such command is "ping". It is independent command. The several "ping"s can be executed simultaneously. But the commands that can change the user config or some system settings need the locking mechanism. So the locking mechanism can be enabled/disabled on the per command basis. The [COMMAND] tag has the "lock" attribute that can be "true" or "false". It's "true" but default. But if it's "false" the Klish engine will not try to get lock before this command execution.
 
-The example of lockless 'ping' command:
+The example of lockless "ping" command:
 
 ```
 <COMMAND name="ping"
@@ -452,7 +454,7 @@ The example of lockless 'ping' command:
 </COMMAND>
 ```
 
-Sometimes it's needed to disable locking mechanism for the whole clish session. It's usefull if the clish utility is used from another clish instance from the command's ACTION. The command already got the lock so the nested clish can't get the lock. The nested clish can be executed with "-l" ( or "--lockless") option to disable locking mechanism.
+Sometimes it's needed to disable locking mechanism for the whole [clish](#utility_clish) session. It's usefull if the [clish](#utility_clish) utility is used from another clish instance from the command's [ACTION]. The command has already got the lock so the nested clish can't get the lock. The nested clish can be executed with "-l" ( or "--lockless") option to disable locking mechanism.
 
 The example of nested clish execution:
 
