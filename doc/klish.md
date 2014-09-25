@@ -290,20 +290,30 @@ The example demonstrate the parameter "size" that will be enabled if "proto" is 
                     
 ## The programmable hotkeys {#hotkeys}
 
-The key combinations (hotkeys) can be programmed to execute specified actions. Use [tag to define hotkey and its action.
-
-All [VIEW](HOTKEY])s (including global implicit [can contain [HOTKEY](VIEW])) tag to define hotkey for this [If the nested [VIEW](VIEW].)s are used the Klish engine will search for hotkey definition in the current [then in the upper [VIEW](VIEW],) and so on. So you can define [within global [VIEW](HOTKEY]) and all other [will share this definition.
+The key combinations (hotkeys) can be programmed to execute specified actions. Use [HOTKEY] tag to define hotkey and its action. All [VIEW]s (including global implicit view) can contain [HOTKEY] tag to define hotkey for this [VIEW]. If the current [VIEW] is a nested one then the Klish engine will search for hotkey definition within the current [VIEW] first then in the upper [VIEW] and so on. So you can define [HOTKEY] within global [VIEW] and all other [VIEW]s will share this definition.
 
 See the example:
-38c058073974034f0beaae53eec90be5
+```
+<HOTKEY key="^Z" cmd="exit"/>
 
-This example defines two hotkeys. The "`Ctrl^Z`" for exit. It is defined in the global [VIEW](VIEW]s) and will act in the all [(in a case it will not be redefined in the nested [VIEW](VIEW]s)s).
+<VIEW name="enable_view" ...>
+	...
+	<HOTKEY key="^@" cmd="show"/>
+	...
+</VIEW>
 
-The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinations give this key code. This hotkey will execute "show" command in the "enable-view" [and all its subviews but the "do show" command in "configure-view" [VIEW](VIEW]) and all its subviews.
+<VIEW name="configure-view" ...>
+	...
+	<HOTKEY key="^@" cmd="do show"/>
+	...
+</VIEW>
+```
+
+This example defines two hotkeys. The "`Ctrl^Z`" for exit. It is defined within the global [VIEW] and will act in the all [VIEW]s (in a case it will not be redefined in the nested [VIEW]s). The second hotkey is "`Ctrl^@`". Both "`Ctrl^@`" and "`Ctrl^spacebar`" combinations give this key code. This hotkey will execute "show" command in the "enable-view" and all its subviews but it will execute "do show" command in "configure-view" [VIEW] and all its subviews.
 
 ### Possible keys
 
-Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (used in [HOTKEY] tag) now.
+Some keys has predefined hardcoded behaviour. If key has a predefined behaviour it can't be redefined (can't be used in [HOTKEY] tag) now.
 
 | Code | Id  | Key | Action       | Comment |
 |------|-----|-----|--------------|---------|
