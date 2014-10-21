@@ -9,7 +9,7 @@ KLISH_SOURCE = klish-$(KLISH_VERSION).tar.bz2
 KLISH_SITE = http://libcode.org/attachments/download/45
 
 KLISH_DEPENDENCIES =
-KLISH_CONF_OPT = --disable-gpl --without-tcl --with-libroxml
+KLISH_CONF_OPT = --disable-gpl --without-tcl
 
 ifeq ($(BR2_PACKAGE_LIBROXML),y)
 KLISH_DEPENDENCIES += libroxml
