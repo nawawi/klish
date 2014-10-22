@@ -408,7 +408,7 @@ if test "$xml_backend" = "libxml2" -o "$xml_backend" = "auto"; then
                      [xmlNewDoc],
                      [libxml2_lib_found=yes],
                      [libxml2_lib_found=no],
-                     [-lz])
+                     [])
         if test "x$libxml2_lib_found" != "xyes"; then
             if test "$xml_backend" = "auto"; then
                 AC_MSG_WARN([cannot find libxml2 library])
