@@ -140,30 +140,45 @@ clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *this,
 }
 
 /*----------------------------------------------------------------------- */
+/* Link one unresolved symbol.
+ * sym - unresolved symbol
+ * Returns 0 if the symbol was succesfully resolved
+ */
+static int link_unresolved_sym(clish_shell_t *this, clish_sym_t *sym)
+{
+	clish_sym_t *plugin_sym;
+	char *sym_name = NULL;
+	int sym_type;
+
+	if (clish_sym__get_func(sym)) /* Don't relink non-null fn */
+		return 0;
+	sym_name = clish_sym__get_name(sym);
+	sym_type = clish_sym__get_type(sym);
+	plugin_sym = plugins_find_sym(this, sym_name, sym_type);
+	if (!plugin_sym) {
+		fprintf(stderr, "Error: Can't resolve symbol %s.\n",
+			sym_name);
+		return -1;
+	}
+	/* Copy symbol attributes */
+	clish_sym_clone(sym, plugin_sym);
+
+	return 0;
+}
+
+/*----------------------------------------------------------------------- */
 /* Link unresolved symbols */
 int clish_shell_link_plugins(clish_shell_t *this)
 {
-	clish_sym_t *sym, *plugin_sym;
+	clish_sym_t *sym;
 	lub_list_node_t *iter;
-	char *sym_name = NULL;
-	int sym_type;
 
 	/* Iterate elements */
 	for(iter = lub_list__get_head(this->syms);
 		iter; iter = lub_list_node__get_next(iter)) {
 		sym = (clish_sym_t *)lub_list_node__get_data(iter);
-		if (clish_sym__get_func(sym)) /* Don't relink non-null fn */
-			continue;
-		sym_name = clish_sym__get_name(sym);
-		sym_type = clish_sym__get_type(sym);
-		plugin_sym = plugins_find_sym(this, sym_name, sym_type);
-		if (!plugin_sym) {
-			fprintf(stderr, "Error: Can't resolve symbol %s.\n",
-				sym_name);
+		if (link_unresolved_sym(this, sym) < 0)
 			return -1;
-		}
-		/* Copy symbol attributes */
-		clish_sym_clone(sym, plugin_sym);
 	}
 
 	return 0;

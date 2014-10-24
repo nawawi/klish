@@ -203,6 +203,9 @@ void *clish_shell__del_udata(clish_shell_t *instance, const char *name);
 int clish_shell__set_udata(clish_shell_t *instance,
 	const char *name, void *data);
 
+/* Access functions */
+int clish_shell_check_access(clish_shell_t *instance);
+
 _END_C_DECL
 
 #endif				/* _clish_shell_h */

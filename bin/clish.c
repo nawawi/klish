@@ -305,6 +305,8 @@ int main(int argc, char **argv)
 		if ((sym = clish_shell_get_hook(shell, CLISH_SYM_TYPE_LOG)))
 			clish_sym__set_permanent(sym, BOOL_FALSE);
 	}
+	/* Check access rights of VIEWs, COMMANDs etc. */
+	clish_shell_check_access(shell);
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {
