@@ -36,7 +36,7 @@ typedef struct clish_plugin_s clish_plugin_t;
 
 #define CLISH_PLUGIN_FINI(name) int name(void *clish_shell, clish_plugin_t *plugin)
 #define CLISH_PLUGIN_SYM(name) int name(void *clish_context, const char *script, char **out)
-#define CLISH_HOOK_ACCESS(name) int name(void *clish_context, const char *access)
+#define CLISH_HOOK_ACCESS(name) int name(void *clish_shell, const char *access)
 #define CLISH_HOOK_CONFIG(name) int name(void *clish_context)
 #define CLISH_HOOK_LOG(name) int name(void *clish_context, const char *line, int retcode)
 

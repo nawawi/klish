@@ -330,6 +330,12 @@ lub_bintree_t * clish_view__get_command_tree(clish_view_t *this)
 }
 
 /*--------------------------------------------------------- */
+lub_list_t * clish_view__get_nspace_tree(clish_view_t *this)
+{
+	return this->nspaces;
+}
+
+/*--------------------------------------------------------- */
 const char *clish_view__get_name(const clish_view_t * this)
 {
 	return this->name;
@@ -383,12 +389,6 @@ int clish_view_insert_hotkey(const clish_view_t *this, const char *key, const ch
 const char *clish_view_find_hotkey(const clish_view_t *this, int code)
 {
 	return clish_hotkeyv_cmd_by_code(this->hotkeys, code);
-}
-
-/*--------------------------------------------------------- */
-lub_bintree_t *clish_view__cmd_tree(clish_view_t *this)
-{
-	return &this->tree;
 }
 
 /*--------------------------------------------------------- */

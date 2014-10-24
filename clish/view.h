@@ -24,6 +24,7 @@ typedef enum {
 	CLISH_RESTORE_VIEW
 } clish_view_restore_t;
 
+#include "lub/list.h"
 #include "clish/command.h"
 #include "clish/nspace.h"
 #include "clish/var.h"
@@ -43,6 +44,7 @@ size_t clish_view_bt_offset(void);
  * methods
  *----------------- */
 lub_bintree_t * clish_view__get_command_tree(clish_view_t *instance);
+lub_list_t * clish_view__get_nspace_tree(clish_view_t *instance);
 void clish_view_delete(clish_view_t * instance);
 clish_command_t *clish_view_new_command(clish_view_t * instance,
 	const char *name, const char *text);
@@ -72,7 +74,6 @@ void clish_view__set_restore(clish_view_t * instance,
 clish_view_restore_t clish_view__get_restore(const clish_view_t * instance);
 int clish_view_insert_hotkey(const clish_view_t *instance, const char *key, const char *cmd);
 const char *clish_view_find_hotkey(const clish_view_t *instance, int code);
-lub_bintree_t *clish_view__cmd_tree(clish_view_t *instance);
 void clish_view__set_access(clish_view_t *instance, const char *access);
 char *clish_view__get_access(const clish_view_t *instance);
 

@@ -245,14 +245,6 @@ void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
 }
 
 /*----------------------------------------------------------- */
-CLISH_HOOK_ACCESS(clish_shell_exec_access)
-{
-	clish_hook_access_fn_t *func = NULL;
-	func = clish_shell_check_hook(clish_context, CLISH_SYM_TYPE_ACCESS);
-	return func ? func(clish_context, access) : 0;
-}
-
-/*----------------------------------------------------------- */
 CLISH_HOOK_CONFIG(clish_shell_exec_config)
 {
 	clish_hook_config_fn_t *func = NULL;

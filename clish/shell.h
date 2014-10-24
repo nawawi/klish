@@ -29,6 +29,9 @@
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
 #define CLISH_LOCK_WAIT 20
 
+#define CLISH_XML_ERROR_STR "Error parsing XML: "
+#define CLISH_XML_ERROR_ATTR(attr) CLISH_XML_ERROR_STR"The \""attr"\" attribute is required.\n"
+
 typedef struct clish_shell_s clish_shell_t;
 typedef struct clish_context_s clish_context_t;
 
@@ -193,7 +196,6 @@ clish_sym_t *clish_shell_get_hook(const clish_shell_t *instance, int type);
 
 /* Hook wrappers */
 void *clish_shell_check_hook(const clish_context_t *clish_context, int type);
-CLISH_HOOK_ACCESS(clish_shell_exec_access);
 CLISH_HOOK_CONFIG(clish_shell_exec_config);
 CLISH_HOOK_LOG(clish_shell_exec_log);
 
@@ -204,7 +206,7 @@ int clish_shell__set_udata(clish_shell_t *instance,
 	const char *name, void *data);
 
 /* Access functions */
-int clish_shell_check_access(clish_shell_t *instance);
+int clish_shell_prepare(clish_shell_t *instance);
 
 _END_C_DECL
 

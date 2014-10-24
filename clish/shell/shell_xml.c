@@ -27,9 +27,6 @@ const char* clish_plugin_default_hook[] = {
 	"clish_hook_log@clish"
 	};
 
-#define CLISH_XML_ERROR_STR "Error parsing XML: "
-#define CLISH_XML_ERROR_ATTR(attr) CLISH_XML_ERROR_STR"The \""attr"\" attribute is required.\n"
-
 typedef int (PROCESS_FN) (clish_shell_t *instance,
 	clish_xmlnode_t *element, void *parent);
 
@@ -93,10 +90,6 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	char *saveptr = NULL;
 	int res = 0;
 	int i = 0;
-	clish_command_t *cmd;
-	clish_view_t *view;
-	lub_bintree_t *view_tree, *cmd_tree;
-	lub_bintree_iterator_t cmd_iter, view_iter;
 
 	/* use the default path */
 	if (!path)
@@ -175,24 +168,6 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
 		if (clish_sym__get_name(this->hooks[i]))
 			lub_list_add(this->syms, this->hooks[i]);
-	}
-
-	/* Resolve COMMAND aliases */
-	view_tree = &this->view_tree;
-	view = lub_bintree_findfirst(view_tree);
-	for (lub_bintree_iterator_init(&view_iter, view_tree, view);
-		view; view = lub_bintree_iterator_next(&view_iter)) {
-		/* Iterate the tree of commands */
-		cmd_tree = clish_view__get_command_tree(view);
-		cmd = lub_bintree_findfirst(cmd_tree);
-		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
-			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
-			if (!clish_command_alias_to_link(cmd)) {
-				fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias %s\n",
-					clish_command__get_name(cmd));
-				res = -1;
-			}
-		}
 	}
 
 #ifdef DEBUG
