@@ -23,7 +23,6 @@ libclish_la_SOURCES += \
 	clish/shell/shell_expat.c \
 	clish/shell/shell_udata.c \
 	clish/shell/shell_misc.c \
-	clish/shell/shell_access.c \
 	clish/shell/context.c
 
 

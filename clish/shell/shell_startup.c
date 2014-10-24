@@ -70,4 +70,13 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 	return this->default_shebang;
 }
 
+/*-------------------------------------------------------- */
+int clish_shell_check_access(clish_shell_t *this)
+{
+
+
+	return 0;
+}
+
+
 /*----------------------------------------------------------- */
