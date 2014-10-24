@@ -64,9 +64,6 @@ void clish_view_clean_proxy(clish_view_t * instance);
 const char *clish_view__get_name(const clish_view_t * instance);
 void clish_view__set_prompt(clish_view_t * instance, const char *prompt);
 char *clish_view__get_prompt(const clish_view_t *instance);
-unsigned int clish_view__get_nspace_count(const clish_view_t * instance);
-clish_nspace_t *clish_view__get_nspace(const clish_view_t * instance,
-				       unsigned index);
 void clish_view__set_depth(clish_view_t * instance, unsigned depth);
 unsigned clish_view__get_depth(const clish_view_t * instance);
 void clish_view__set_restore(clish_view_t * instance,

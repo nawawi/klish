@@ -7,6 +7,7 @@
 #include "lub/argv.h"
 #include "lub/string.h"
 #include "lub/ctype.h"
+#include "lub/list.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -41,8 +42,6 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	/* set up defaults */
 	this->name = lub_string_dup(name);
 	this->prompt = NULL;
-	this->nspacec = 0;
-	this->nspacev = NULL;
 	this->depth = 0;
 	this->restore = CLISH_RESTORE_NONE;
 	this->access = NULL;
@@ -55,6 +54,9 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 		clish_command_bt_offset(),
 		clish_command_bt_compare, clish_command_bt_getkey);
 
+	/* Initialise the list of namespaces */
+	this->nspaces = lub_list_new(NULL);
+
 	/* set up the defaults */
 	clish_view__set_prompt(this, prompt);
 
@@ -66,7 +68,7 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 static void clish_view_fini(clish_view_t * this)
 {
 	clish_command_t *cmd;
-	unsigned i;
+	lub_list_node_t *iter;
 
 	/* delete each command held by this view */
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
@@ -76,15 +78,14 @@ static void clish_view_fini(clish_view_t * this)
 		clish_command_delete(cmd);
 	}
 
-	/* finalize each of the namespace instances */
-	for (i = 0; i < this->nspacec; i++) {
-		clish_nspace_delete(this->nspacev[i]);
+	/* Free namespaces list */
+	while ((iter = lub_list__get_head(this->nspaces))) {
+		/* Remove the nspace from the list */
+		lub_list_del(this->nspaces, iter);
+		/* Free the instance */
+		clish_nspace_delete((clish_nspace_t *)lub_list_node__get_data(iter));
 	}
-
-	/* free the namespace vector */
-	free(this->nspacev);
-	this->nspacec = 0;
-	this->nspacev = NULL;
+	lub_list_free(this->nspaces);
 
 	/* Free hotkey structures */
 	clish_hotkeyv_delete(this->hotkeys);
@@ -213,10 +214,7 @@ clish_command_t *clish_view_resolve_command(clish_view_t *this,
 clish_command_t *clish_view_find_command(clish_view_t * this,
 	const char *name, bool_t inherit)
 {
-	clish_command_t *cmd, *result = NULL;
-	clish_nspace_t *nspace;
-	unsigned cnt = clish_view__get_nspace_count(this);
-	int i;
+	clish_command_t *result = NULL;
 
 	/* Search the current view */
 	result = lub_bintree_find(&this->tree, name);
@@ -224,10 +222,16 @@ clish_command_t *clish_view_find_command(clish_view_t * this,
 	result = clish_command_alias_to_link(result);
 
 	if (inherit) {
-		for (i = cnt - 1; i >= 0; i--) {
-			nspace = clish_view__get_nspace(this, i);
+		lub_list_node_t *iter;
+		clish_command_t *cmd;
+		clish_nspace_t *nspace;
+
+		/* Iterate elements */
+		for(iter = lub_list__get_head(this->nspaces);
+			iter; iter = lub_list_node__get_next(iter)) {
+			nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
 			cmd = clish_nspace_find_command(nspace, name);
-			/* choose the longest match */
+			/* Choose the longest match */
 			result = clish_command_choose_longest(result, cmd);
 		}
 	}
@@ -278,8 +282,7 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 {
 	const clish_command_t *result, *cmd;
 	clish_nspace_t *nspace;
-	unsigned cnt = clish_view__get_nspace_count(this);
-	int i;
+	lub_list_node_t *iter;
 
 	/* ask local view for next command */
 	result = find_next_completion(this, iter_cmd, line);
@@ -288,8 +291,11 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 		return result;
 
 	/* ask the imported namespaces for next command */
-	for (i = cnt - 1; i >= 0; i--) {
-		nspace = clish_view__get_nspace(this, i);
+
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->nspaces);
+		iter; iter = lub_list_node__get_next(iter)) {
+		nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
 		if (!clish_nspace__get_visibility(nspace, field))
 			continue;
 		cmd = clish_nspace_find_next_completion(nspace,
@@ -304,25 +310,18 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 /*--------------------------------------------------------- */
 void clish_view_insert_nspace(clish_view_t * this, clish_nspace_t * nspace)
 {
-	size_t new_size = ((this->nspacec + 1) * sizeof(clish_nspace_t *));
-	clish_nspace_t **tmp;
-
-	/* resize the namespace vector */
-	tmp = realloc(this->nspacev, new_size);
-	assert(tmp);
-	this->nspacev = tmp;
-	/* insert reference to the namespace */
-	this->nspacev[this->nspacec++] = nspace;
+	lub_list_add(this->nspaces, nspace);
 }
 
 /*--------------------------------------------------------- */
 void clish_view_clean_proxy(clish_view_t * this)
 {
-	unsigned int i;
+	lub_list_node_t *iter;
 
-	/* Iterate namespace instances */
-	for (i = 0; i < this->nspacec; i++) {
-		clish_nspace_clean_proxy(this->nspacev[i]);
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->nspaces);
+		iter; iter = lub_list_node__get_next(iter)) {
+		clish_nspace_clean_proxy((clish_nspace_t *)lub_list_node__get_data(iter));
 	}
 }
 
@@ -345,24 +344,6 @@ void clish_view__set_prompt(clish_view_t * this, const char *prompt)
 char *clish_view__get_prompt(const clish_view_t *this)
 {
 	return this->prompt;
-}
-
-/*--------------------------------------------------------- */
-clish_nspace_t *clish_view__get_nspace(const clish_view_t * this,
-				       unsigned index)
-{
-	clish_nspace_t *result = NULL;
-
-	if (index < this->nspacec) {
-		result = this->nspacev[index];
-	}
-	return result;
-}
-
-/*--------------------------------------------------------- */
-unsigned int clish_view__get_nspace_count(const clish_view_t * this)
-{
-	return this->nspacec;
 }
 
 /*--------------------------------------------------------- */

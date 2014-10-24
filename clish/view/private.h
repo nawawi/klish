@@ -3,6 +3,7 @@
  */
 #include "clish/view.h"
 #include "lub/bintree.h"
+#include "lub/list.h"
 #include "clish/hotkey.h"
 
 /*---------------------------------------------------------
@@ -14,8 +15,7 @@ struct clish_view_s {
 	char *name;
 	char *prompt;
 	char *access;
-	unsigned int nspacec;
-	clish_nspace_t **nspacev;
+	lub_list_t *nspaces;
 	clish_hotkeyv_t *hotkeys;
 	unsigned int depth;
 	clish_view_restore_t restore;
