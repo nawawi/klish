@@ -25,4 +25,5 @@ struct clish_param_s {
 	bool_t hidden;
 	char *test; /* The condition to enable param */
 	char *completion; /* Possible completions */
+	char *access;
 };

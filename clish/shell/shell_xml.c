@@ -702,6 +702,7 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 		char *hidden = clish_xmlnode_fetch_attr(element, "hidden");
 		char *test = clish_xmlnode_fetch_attr(element, "test");
 		char *completion = clish_xmlnode_fetch_attr(element, "completion");
+		char *access = clish_xmlnode_fetch_attr(element, "access");
 		clish_param_t *param;
 		clish_ptype_t *tmp = NULL;
 
@@ -820,6 +821,9 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 		if (completion)
 			clish_param__set_completion(param, completion);
 
+		if (access)
+			clish_param__set_access(param, access);
+
 		/* add the parameter to the command */
 		if (cmd)
 			clish_command_insert_param(cmd, param);
@@ -842,6 +846,7 @@ error:
 		clish_xml_release(hidden);
 		clish_xml_release(test);
 		clish_xml_release(completion);
+		clish_xml_release(access);
 	}
 
 	return res;

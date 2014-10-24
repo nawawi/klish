@@ -32,6 +32,7 @@ static void clish_param_init(clish_param_t *this, const char *name,
 	this->hidden = BOOL_FALSE;
 	this->test = NULL;
 	this->completion = NULL;
+	this->access = NULL;
 
 	this->paramv = clish_paramv_new();
 }
@@ -46,6 +47,7 @@ static void clish_param_fini(clish_param_t * this)
 	lub_string_free(this->value);
 	lub_string_free(this->test);
 	lub_string_free(this->completion);
+	lub_string_free(this->access);
 
 	clish_paramv_delete(this->paramv);
 }
@@ -387,4 +389,18 @@ void clish_param__set_completion(clish_param_t *this, const char *completion)
 char *clish_param__get_completion(const clish_param_t *this)
 {
 	return this->completion;
+}
+
+/*--------------------------------------------------------- */
+void clish_param__set_access(clish_param_t *this, const char *access)
+{
+	if (this->access)
+		lub_string_free(this->access);
+	this->access = lub_string_dup(access);
+}
+
+/*--------------------------------------------------------- */
+char *clish_param__get_access(const clish_param_t *this)
+{
+	return this->access;
 }
