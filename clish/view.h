@@ -42,6 +42,7 @@ size_t clish_view_bt_offset(void);
 /*-----------------
  * methods
  *----------------- */
+lub_bintree_t * clish_view__get_command_tree(clish_view_t *instance);
 void clish_view_delete(clish_view_t * instance);
 clish_command_t *clish_view_new_command(clish_view_t * instance,
 	const char *name, const char *text);

@@ -218,8 +218,6 @@ clish_command_t *clish_view_find_command(clish_view_t * this,
 
 	/* Search the current view */
 	result = lub_bintree_find(&this->tree, name);
-	/* Make command link from command alias */
-	result = clish_command_alias_to_link(result);
 
 	if (inherit) {
 		lub_list_node_t *iter;
@@ -259,8 +257,6 @@ static const clish_command_t *find_next_completion(clish_view_t * this,
 	if (iter_cmd)
 		name = iter_cmd;
 	while ((cmd = lub_bintree_findnext(&this->tree, name))) {
-		/* Make command link from command alias */
-		cmd = clish_command_alias_to_link(cmd);
 		name = clish_command__get_name(cmd);
 		if (words == lub_string_wordcount(name)) {
 			/* only bother with commands of which this line is a prefix */
@@ -328,6 +324,12 @@ void clish_view_clean_proxy(clish_view_t * this)
 /*---------------------------------------------------------
  * PUBLIC ATTRIBUTES
  *--------------------------------------------------------- */
+lub_bintree_t * clish_view__get_command_tree(clish_view_t *this)
+{
+	return &this->tree;
+}
+
+/*--------------------------------------------------------- */
 const char *clish_view__get_name(const clish_view_t * this)
 {
 	return this->name;
