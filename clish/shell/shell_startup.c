@@ -173,10 +173,20 @@ int clish_shell_prepare(clish_shell_t *this)
 		cmd = lub_bintree_findfirst(cmd_tree);
 		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
+			/* Resolve command aliases */
 			if (!clish_command_alias_to_link(cmd)) {
 				fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias %s\n",
 					clish_command__get_name(cmd));
 				return -1;
+			}
+			/* Check access rights for the COMMAND */
+			if (access_fn && clish_command__get_access(cmd) &&
+				access_fn(this, clish_command__get_access(cmd))) {
+				fprintf(stderr, "Warning: Access denied. Remove COMMAND %s from VIEW %s\n",
+					clish_command__get_name(cmd), clish_view__get_name(view));
+				lub_bintree_remove(cmd_tree, cmd);
+				clish_command_delete(cmd);
+				continue;
 			}
 		}
 	}
