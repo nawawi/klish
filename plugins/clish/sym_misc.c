@@ -37,7 +37,7 @@ CLISH_PLUGIN_SYM(clish_close)
  errors depends on the value of the stop_on_error flag.
 */
 static int clish_source_internal(clish_context_t *context,
-	const char *fn, bool_t stop_on_error)
+	const char *fn, int stop_on_error)
 {
 	int result = -1;
 	const char *filename = fn;
@@ -75,7 +75,7 @@ CLISH_PLUGIN_SYM(clish_source)
 
 	out = out; /* Happy compiler */
 
-	return (clish_source_internal(context, script, BOOL_TRUE));
+	return (clish_source_internal(context, script, 1));
 }
 
 /*----------------------------------------------------------- */
@@ -90,7 +90,7 @@ CLISH_PLUGIN_SYM(clish_source_nostop)
 
 	out = out; /* Happy compiler */
 
-	return (clish_source_internal(context, script, BOOL_FALSE));
+	return (clish_source_internal(context, script, 0));
 }
 
 /*----------------------------------------------------------- */

@@ -31,7 +31,7 @@
  */
 CLISH_HOOK_ACCESS(clish_hook_access)
 {
-	bool_t allowed = -1; /* assume the user is not allowed */
+	int allowed = -1; /* assume the user is not allowed */
 #ifdef HAVE_GRP_H
 	int num_groups;
 	long ngroups_max;
