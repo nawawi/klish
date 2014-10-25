@@ -80,7 +80,7 @@ static void clish_shell_init(clish_shell_t * this,
 	/* Create internal ptypes and params */
 	/* Args */
 	tmp_ptype = clish_shell_find_create_ptype(this,
-		"internal_ARGS",
+		"__ptype_ARGS",
 		"Arguments", "[^\\\\]+",
 		CLISH_PTYPE_REGEXP,
 		CLISH_PTYPE_NONE);

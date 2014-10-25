@@ -263,7 +263,7 @@ static int process_clish_module(clish_shell_t *shell, clish_xmlnode_t *element,
 	/* Create the global view */
 	if (!shell->global)
 		shell->global = clish_shell_find_create_view(shell,
-			"__global", "");
+			"__view_global", "");
 
 	parent = parent; /* Happy compiler */
 
@@ -477,16 +477,13 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (args_name) {
 		/* define a "rest of line" argument */
 		clish_param_t *param;
-		clish_ptype_t *tmp = NULL;
 
 		/* Check syntax */
 		if (!args_help) {
 			fprintf(stderr, CLISH_XML_ERROR_ATTR("args_help"));
 			goto error;
 		}
-		tmp = clish_shell_find_ptype(shell, "internal_ARGS");
-		assert(tmp);
-		param = clish_param_new(args_name, args_help, tmp);
+		param = clish_param_new(args_name, args_help, "__ptype_ARGS");
 		clish_command__set_args(cmd, param);
 	}
 
@@ -645,7 +642,6 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 		char *completion = clish_xmlnode_fetch_attr(element, "completion");
 		char *access = clish_xmlnode_fetch_attr(element, "access");
 		clish_param_t *param;
-		clish_ptype_t *tmp = NULL;
 
 		/* Check syntax */
 		if (cmd && (cmd == shell->startup)) {
@@ -665,22 +661,17 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 			goto error;
 		}
 
-		if (*ptype) {
-			tmp = clish_shell_find_create_ptype(shell, ptype,
-				NULL, NULL,
-				CLISH_PTYPE_REGEXP,
-				CLISH_PTYPE_NONE);
-		}
-		param = clish_param_new(name, help, tmp);
+		param = clish_param_new(name, help, ptype);
 
 		/* If prefix is set clish will emulate old optional
 		 * command syntax over newer optional command mechanism.
 		 * It will create nested PARAM.
 		 */
 		if (prefix) {
-			const char *ptype_name = "__SUBCOMMAND";
+			const char *ptype_name = "__ptype_SUBCOMMAND";
 			clish_param_t *opt_param = NULL;
 			char *str = NULL;
+			clish_ptype_t *tmp;
 
 			/* Create a ptype for prefix-named subcommand that
 			 * will contain the nested optional parameter. The
@@ -696,7 +687,7 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 			assert(tmp);
 			lub_string_cat(&str, "_prefix_");
 			lub_string_cat(&str, name);
-			opt_param = clish_param_new(str, help, tmp);
+			opt_param = clish_param_new(str, help, ptype_name);
 			lub_string_free(str);
 			clish_param__set_mode(opt_param,
 				CLISH_PARAM_SUBCOMMAND);

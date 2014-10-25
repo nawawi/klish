@@ -88,7 +88,20 @@ static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 
 	while((param = clish_paramv__get_param(paramv, i))) {
 		clish_paramv_t *nested_paramv;
+		clish_ptype_t *ptype = NULL;
 
+		/* Resolve PARAM's PTYPE */
+		ptype = clish_shell_find_ptype(this, clish_param__get_ptype_name(param));
+		if (!ptype) {
+			fprintf(stderr, "Error: Unresolved PTYPE \"%s\" in PARAM \"%s\"\n",
+				clish_param__get_ptype_name(param),
+				clish_param__get_name(param));
+				return -1;
+		}
+		clish_param__set_ptype(param, ptype);
+		clish_param__set_ptype_name(param, NULL); /* Free some memory */
+
+		/* Check access for PARAM */
 		if (access_fn && clish_param__get_access(param) &&
 			access_fn(this, clish_param__get_access(param))) {
 #ifdef DEBUG
@@ -102,6 +115,7 @@ static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 			clish_param_delete(param);
 			continue; /* Don't increment index */
 		}
+		/* Recursive iterate nested PARAMs */
 		nested_paramv = clish_param__get_paramv(param);
 		if (iterate_paramv(this, nested_paramv, access_fn) < 0)
 			return -1;
@@ -213,8 +227,10 @@ int clish_shell_prepare(clish_shell_t *this)
 		cmd = lub_bintree_findfirst(cmd_tree);
 		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
+			int cmd_is_alias = clish_command__get_alias(cmd)?1:0;
+
 			/* Resolve command aliases */
-			if (clish_command__get_alias(cmd)) {
+			if (cmd_is_alias) {
 				clish_view_t *aview;
 				clish_command_t *cmdref;
 				const char *alias_view = clish_command__get_alias_view(cmd);
@@ -251,6 +267,8 @@ int clish_shell_prepare(clish_shell_t *this)
 				clish_command_delete(cmd);
 				continue;
 			}
+			if (cmd_is_alias) /* Don't duplicate paramv processing for aliases */
+				continue;
 			paramv = clish_command__get_paramv(cmd);
 			if (iterate_paramv(this, paramv, access_fn) < 0)
 				return -1;
