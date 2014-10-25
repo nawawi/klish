@@ -69,6 +69,7 @@ static void clish_view_fini(clish_view_t * this)
 {
 	clish_command_t *cmd;
 	lub_list_node_t *iter;
+	clish_nspace_t *nspace;
 
 	/* delete each command held by this view */
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
@@ -82,8 +83,10 @@ static void clish_view_fini(clish_view_t * this)
 	while ((iter = lub_list__get_head(this->nspaces))) {
 		/* Remove the nspace from the list */
 		lub_list_del(this->nspaces, iter);
+		nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
+		lub_list_node_free(iter);
 		/* Free the instance */
-		clish_nspace_delete((clish_nspace_t *)lub_list_node__get_data(iter));
+		clish_nspace_delete(nspace);
 	}
 	lub_list_free(this->nspaces);
 

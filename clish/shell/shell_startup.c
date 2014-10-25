@@ -83,7 +83,6 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 /* Don't forget:
  *    Global view
  *    hooks
- *    remove unresolved syms list
  */
 
 int clish_shell_prepare(clish_shell_t *this)
