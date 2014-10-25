@@ -91,8 +91,10 @@ static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 
 		if (access_fn && clish_param__get_access(param) &&
 			access_fn(this, clish_param__get_access(param))) {
+#ifdef DEBUG
 			fprintf(stderr, "Warning: Access denied. Remove PARAM \"%s\"\n",
 				clish_param__get_name(param));
+#endif
 			if (clish_paramv_remove(paramv, i) < 0) {
 				fprintf(stderr, "Error: Some system problem\n");
 				return -1;
@@ -160,8 +162,10 @@ int clish_shell_prepare(clish_shell_t *this)
 		/* Check access rights for the VIEW */
 		if (access_fn && clish_view__get_access(view) &&
 			access_fn(this, clish_view__get_access(view))) {
+#ifdef DEBUG
 			fprintf(stderr, "Warning: Access denied. Remove VIEW \"%s\"\n",
 				clish_view__get_name(view));
+#endif
 			lub_bintree_remove(view_tree, view);
 			clish_view_delete(view);
 			continue;
@@ -179,8 +183,10 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Resolve NAMESPACEs and remove unresolved ones */
 			ref_view = clish_shell_find_view(this, clish_nspace__get_view_name(nspace));
 			if (!ref_view) {
+#ifdef DEBUG
 				fprintf(stderr, "Warning: Remove unresolved NAMESPACE \"%s\" from \"%s\" VIEW\n",
 					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
+#endif
 				lub_list_del(nspace_tree, old_nspace_iter);
 				lub_list_node_free(old_nspace_iter);
 				clish_nspace_delete(nspace);
@@ -191,8 +197,10 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Check access rights for the NAMESPACE */
 			if (access_fn && clish_nspace__get_access(nspace) &&
 				access_fn(this, clish_nspace__get_access(nspace))) {
+#ifdef DEBUG
 				fprintf(stderr, "Warning: Access denied. Remove NAMESPACE \"%s\" from \"%s\" VIEW\n",
 					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
+#endif
 				lub_list_del(nspace_tree, old_nspace_iter);
 				lub_list_node_free(old_nspace_iter);
 				clish_nspace_delete(nspace);
@@ -235,8 +243,10 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Check access rights for the COMMAND */
 			if (access_fn && clish_command__get_access(cmd) &&
 				access_fn(this, clish_command__get_access(cmd))) {
+#ifdef DEBUG
 				fprintf(stderr, "Warning: Access denied. Remove COMMAND \"%s\" from VIEW \"%s\"\n",
 					clish_command__get_name(cmd), clish_view__get_name(view));
+#endif
 				lub_bintree_remove(cmd_tree, cmd);
 				clish_command_delete(cmd);
 				continue;
