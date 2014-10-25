@@ -98,7 +98,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		view; view = lub_bintree_iterator_next(&view_iter)) {
 		/* Check access rights for the VIEW */
 		if (access_fn && clish_view__get_access(view) &&
-			(access_fn(this, clish_view__get_access(view)) < 0)) {
+			access_fn(this, clish_view__get_access(view))) {
 			lub_bintree_remove(view_tree, view);
 			clish_view_delete(view);
 			continue;
@@ -126,7 +126,9 @@ int clish_shell_prepare(clish_shell_t *this)
 			clish_nspace__set_view(nspace, ref_view);
 			/* Check access rights for the NAMESPACE */
 			if (access_fn && clish_nspace__get_access(nspace) &&
-				(access_fn(this, clish_nspace__get_access(nspace)) < 0)) {
+				access_fn(this, clish_nspace__get_access(nspace))) {
+				fprintf(stderr, "Warning: Access denied. Remove NAMESPACE %s from %s VIEW\n",
+					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
 				lub_list_del(nspace_tree, old_nspace_iter);
 				lub_list_node_free(old_nspace_iter);
 				clish_nspace_delete(nspace);
