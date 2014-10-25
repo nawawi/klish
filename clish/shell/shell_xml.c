@@ -920,7 +920,7 @@ static int process_detail(clish_shell_t *shell, clish_xmlnode_t *element,
 static int process_namespace(clish_shell_t *shell, clish_xmlnode_t *element,
 	void *parent)
 {
-	clish_view_t *v = (clish_view_t *) parent;
+	clish_view_t *v = (clish_view_t *)parent;
 	clish_nspace_t *nspace = NULL;
 	int res = -1;
 
@@ -939,14 +939,13 @@ static int process_namespace(clish_shell_t *shell, clish_xmlnode_t *element,
 		goto error;
 	}
 
-	clish_view_t *ref_view = clish_shell_find_create_view(shell,
-		view, NULL);
+	clish_view_t *ref_view = clish_shell_find_view(shell, view);
 
 	/* Don't include itself without prefix */
 	if ((ref_view == v) && !prefix)
 		goto process_namespace_end;
 
-	nspace = clish_nspace_new(ref_view);
+	nspace = clish_nspace_new(view);
 	clish_view_insert_nspace(v, nspace);
 
 	if (prefix) {

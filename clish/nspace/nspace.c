@@ -17,11 +17,13 @@
 /*---------------------------------------------------------
  * PRIVATE METHODS
  *--------------------------------------------------------- */
-static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
+static void clish_nspace_init(clish_nspace_t *this,  const char *view_name)
 {
-	this->view = view;
+	this->view_name = NULL;
+	clish_nspace__set_view_name(this, view_name);
 
-	/* set up defaults */
+	/* Set up defaults */
+	this->view = NULL;
 	this->prefix = NULL;
 	this->help = BOOL_FALSE;
 	this->completion = BOOL_TRUE;
@@ -37,7 +39,7 @@ static void clish_nspace_init(clish_nspace_t * this, clish_view_t * view)
 }
 
 /*--------------------------------------------------------- */
-static void clish_nspace_fini(clish_nspace_t * this)
+static void clish_nspace_fini(clish_nspace_t *this)
 {
 	clish_command_t *cmd;
 
@@ -59,6 +61,7 @@ static void clish_nspace_fini(clish_nspace_t * this)
 		this->prefix_cmd = NULL;
 	}
 	lub_string_free(this->access);
+	lub_string_free(this->view_name);
 }
 
 /*--------------------------------------------------------- */
@@ -131,19 +134,19 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 /*---------------------------------------------------------
  * PUBLIC META FUNCTIONS
  *--------------------------------------------------------- */
-clish_nspace_t *clish_nspace_new(clish_view_t * view)
+clish_nspace_t *clish_nspace_new(const char *view_name)
 {
 	clish_nspace_t *this = malloc(sizeof(clish_nspace_t));
 
 	if (this)
-		clish_nspace_init(this, view);
+		clish_nspace_init(this, view_name);
 	return this;
 }
 
 /*---------------------------------------------------------
  * PUBLIC METHODS
  *--------------------------------------------------------- */
-void clish_nspace_delete(clish_nspace_t * this)
+void clish_nspace_delete(clish_nspace_t *this)
 {
 	clish_nspace_fini(this);
 	free(this);
@@ -280,9 +283,29 @@ void clish_nspace_clean_proxy(clish_nspace_t * this)
 /*---------------------------------------------------------
  * PUBLIC ATTRIBUTES
  *--------------------------------------------------------- */
-clish_view_t *clish_nspace__get_view(const clish_nspace_t * this)
+clish_view_t *clish_nspace__get_view(const clish_nspace_t *this)
 {
 	return this->view;
+}
+
+/*--------------------------------------------------------- */
+void clish_nspace__set_view(clish_nspace_t *this, clish_view_t *view)
+{
+	this->view = view;
+}
+
+/*--------------------------------------------------------- */
+void clish_nspace__set_view_name(clish_nspace_t *this, const char *view_name)
+{
+	if (this->view_name)
+		lub_string_free(this->view_name);
+	this->view_name = lub_string_dup(view_name);
+}
+
+/*--------------------------------------------------------- */
+const char * clish_nspace__get_view_name(const clish_nspace_t *this)
+{
+	return this->view_name;
 }
 
 /*--------------------------------------------------------- */
