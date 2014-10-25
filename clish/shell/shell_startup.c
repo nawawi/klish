@@ -6,6 +6,15 @@
 
 #include "lub/string.h"
 
+/* Default hooks */
+const char* clish_plugin_default_hook[] = {
+	NULL,
+	"clish_script@clish",
+	"clish_hook_access@clish",
+	"clish_hook_config@clish",
+	"clish_hook_log@clish"
+};
+
 /*----------------------------------------------------------- */
 int clish_shell_startup(clish_shell_t *this)
 {
@@ -73,9 +82,8 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 /*-------------------------------------------------------- */
 /* Don't forget:
  *    Global view
- *    startup command
  *    hooks
- *    remove unresolved syms
+ *    remove unresolved syms list
  */
 
 int clish_shell_prepare(clish_shell_t *this)
@@ -88,6 +96,34 @@ int clish_shell_prepare(clish_shell_t *this)
 	lub_bintree_iterator_t cmd_iter, view_iter;
 	lub_list_node_t *nspace_iter;
 	clish_hook_access_fn_t *access_fn = NULL;
+	int i;
+
+	/* Add default plugin to the list of plugins */
+	if (this->default_plugin) {
+		clish_plugin_t *plugin;
+		plugin = clish_plugin_new("clish");
+		lub_list_add(this->plugins, plugin);
+		/* Default hooks */
+		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+			if (this->hooks_use[i])
+				continue;
+			if (!clish_plugin_default_hook[i])
+				continue;
+			clish_sym__set_name(this->hooks[i],
+				clish_plugin_default_hook[i]);
+		}
+	}
+	/* Add default syms to unresolved table */
+	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
+		if (clish_sym__get_name(this->hooks[i]))
+			lub_list_add(this->syms, this->hooks[i]);
+	}
+
+	/* Load plugins and link symbols */
+	if (clish_shell_load_plugins(this) < 0)
+		return -1;
+	if (clish_shell_link_plugins(this) < 0)
+		return -1;
 
 	access_fn = clish_sym__get_func(clish_shell_get_hook(this, CLISH_SYM_TYPE_ACCESS));
 
@@ -99,6 +135,8 @@ int clish_shell_prepare(clish_shell_t *this)
 		/* Check access rights for the VIEW */
 		if (access_fn && clish_view__get_access(view) &&
 			access_fn(this, clish_view__get_access(view))) {
+			fprintf(stderr, "Warning: Access denied. Remove VIEW %s\n",
+				clish_view__get_name(view));
 			lub_bintree_remove(view_tree, view);
 			clish_view_delete(view);
 			continue;

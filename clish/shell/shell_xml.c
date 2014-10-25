@@ -18,15 +18,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-/* Default hooks */
-const char* clish_plugin_default_hook[] = {
-	NULL,
-	"clish_script@clish",
-	"clish_hook_access@clish",
-	"clish_hook_config@clish",
-	"clish_hook_log@clish"
-	};
-
 typedef int (PROCESS_FN) (clish_shell_t *instance,
 	clish_xmlnode_t *element, void *parent);
 
@@ -89,7 +80,6 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	char *dirname;
 	char *saveptr = NULL;
 	int res = 0;
-	int i = 0;
 
 	/* use the default path */
 	if (!path)
@@ -147,28 +137,6 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 	}
 	/* tidy up */
 	lub_string_free(buffer);
-
-	/* Load default plugin */
-	if (this->default_plugin) {
-		clish_plugin_t *plugin;
-		plugin = clish_plugin_new("clish");
-		lub_list_add(this->plugins, plugin);
-		/* Default hooks */
-		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
-			if (this->hooks_use[i])
-				continue;
-			if (!clish_plugin_default_hook[i])
-				continue;
-			clish_sym__set_name(this->hooks[i],
-				clish_plugin_default_hook[i]);
-		}
-	}
-
-	/* Add default syms to unresolved table */
-	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
-		if (clish_sym__get_name(this->hooks[i]))
-			lub_list_add(this->syms, this->hooks[i]);
-	}
 
 #ifdef DEBUG
 	clish_shell_dump(this);

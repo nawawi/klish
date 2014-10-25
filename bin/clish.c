@@ -293,12 +293,7 @@ int main(int argc, char **argv)
 		histfile_expanded = lub_system_tilde_expand(histfile);
 	if (histfile_expanded)
 		clish_shell__restore_history(shell, histfile_expanded);
-	/* Load plugins */
-	if (clish_shell_load_plugins(shell) < 0)
-		goto end;
-	if (clish_shell_link_plugins(shell) < 0)
-		goto end;
-	/* Link aliases and check access rights */
+	/* Load plugins, link aliases and check access rights */
 	if (clish_shell_prepare(shell) < 0)
 		goto end;
 	/* Dryrun config and log hooks */

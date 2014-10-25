@@ -1,5 +1,5 @@
 /*
- * shell_startup.c
+ * shell_wdog.c
  */
 #include "private.h"
 #include <assert.h>
