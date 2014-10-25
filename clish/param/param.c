@@ -292,8 +292,42 @@ void clish_paramv_insert(clish_paramv_t * this, clish_param_t * param)
 }
 
 /*--------------------------------------------------------- */
+int clish_paramv_remove(clish_paramv_t *this, unsigned int index)
+{
+	size_t new_size;
+	clish_param_t **tmp;
+	clish_param_t **dst, **src;
+	size_t n;
+
+	if (this->paramc < 1)
+		return -1;
+	if (index >= this->paramc)
+		return -1;
+
+	new_size = ((this->paramc - 1) * sizeof(clish_param_t *));
+	dst = this->paramv + index;
+	src = dst + 1;
+	n = this->paramc - index - 1;
+	if (n)
+		memmove(dst, src, n * sizeof(clish_param_t *));
+	/* Resize the parameter vector */
+	if (new_size) {
+		tmp = realloc(this->paramv, new_size);
+		if (!tmp)
+			return -1;
+		this->paramv = tmp;
+	} else {
+		free(this->paramv);
+		this->paramv = NULL;
+	}
+	this->paramc--;
+
+	return 0;
+}
+
+/*--------------------------------------------------------- */
 clish_param_t *clish_paramv__get_param(const clish_paramv_t * this,
-	unsigned index)
+	unsigned int index)
 {
 	clish_param_t *result = NULL;
 

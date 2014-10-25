@@ -80,6 +80,36 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 }
 
 /*-------------------------------------------------------- */
+static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
+	clish_hook_access_fn_t *access_fn)
+{
+	int i = 0;
+	clish_param_t *param;
+
+	while((param = clish_paramv__get_param(paramv, i))) {
+		clish_paramv_t *nested_paramv;
+
+		if (access_fn && clish_param__get_access(param) &&
+			access_fn(this, clish_param__get_access(param))) {
+			fprintf(stderr, "Warning: Access denied. Remove PARAM \"%s\"\n",
+				clish_param__get_name(param));
+			if (clish_paramv_remove(paramv, i) < 0) {
+				fprintf(stderr, "Error: Some system problem\n");
+				return -1;
+			}
+			clish_param_delete(param);
+			continue; /* Don't increment index */
+		}
+		nested_paramv = clish_param__get_paramv(param);
+		if (iterate_paramv(this, nested_paramv, access_fn) < 0)
+			return -1;
+		i++;
+	}
+
+	return 0;
+}
+
+/*-------------------------------------------------------- */
 int clish_shell_prepare(clish_shell_t *this)
 {
 	clish_command_t *cmd;
@@ -91,6 +121,7 @@ int clish_shell_prepare(clish_shell_t *this)
 	lub_list_node_t *nspace_iter;
 	clish_hook_access_fn_t *access_fn = NULL;
 	int i;
+	clish_paramv_t *paramv;
 
 	/* Add default plugin to the list of plugins */
 	if (this->default_plugin) {
@@ -129,7 +160,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		/* Check access rights for the VIEW */
 		if (access_fn && clish_view__get_access(view) &&
 			access_fn(this, clish_view__get_access(view))) {
-			fprintf(stderr, "Warning: Access denied. Remove VIEW %s\n",
+			fprintf(stderr, "Warning: Access denied. Remove VIEW \"%s\"\n",
 				clish_view__get_name(view));
 			lub_bintree_remove(view_tree, view);
 			clish_view_delete(view);
@@ -148,7 +179,7 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Resolve NAMESPACEs and remove unresolved ones */
 			ref_view = clish_shell_find_view(this, clish_nspace__get_view_name(nspace));
 			if (!ref_view) {
-				fprintf(stderr, "Warning: Remove unresolved NAMESPACE %s from %s VIEW\n",
+				fprintf(stderr, "Warning: Remove unresolved NAMESPACE \"%s\" from \"%s\" VIEW\n",
 					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
 				lub_list_del(nspace_tree, old_nspace_iter);
 				lub_list_node_free(old_nspace_iter);
@@ -160,7 +191,7 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Check access rights for the NAMESPACE */
 			if (access_fn && clish_nspace__get_access(nspace) &&
 				access_fn(this, clish_nspace__get_access(nspace))) {
-				fprintf(stderr, "Warning: Access denied. Remove NAMESPACE %s from %s VIEW\n",
+				fprintf(stderr, "Warning: Access denied. Remove NAMESPACE \"%s\" from \"%s\" VIEW\n",
 					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
 				lub_list_del(nspace_tree, old_nspace_iter);
 				lub_list_node_free(old_nspace_iter);
@@ -184,19 +215,19 @@ int clish_shell_prepare(clish_shell_t *this)
 				else
 					aview = clish_shell_find_view(this, alias_view);
 				if (!aview) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Broken VIEW for alias %s\n",
+					fprintf(stderr, CLISH_XML_ERROR_STR"Broken VIEW for alias \"%s\"\n",
 						clish_command__get_name(cmd));
 					return -1;
 				}
 				cmdref = clish_view_find_command(aview,
 					clish_command__get_alias(cmd), BOOL_FALSE);
 				if (!cmdref) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias %s\n",
+					fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias \"%s\"\n",
 						clish_command__get_name(cmd));
 					return -1;
 				}
 				if (!clish_command_alias_to_link(cmd, cmdref)) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Something wrong with alias %s\n",
+					fprintf(stderr, CLISH_XML_ERROR_STR"Something wrong with alias \"%s\"\n",
 						clish_command__get_name(cmd));
 					return -1;
 				}
@@ -204,12 +235,15 @@ int clish_shell_prepare(clish_shell_t *this)
 			/* Check access rights for the COMMAND */
 			if (access_fn && clish_command__get_access(cmd) &&
 				access_fn(this, clish_command__get_access(cmd))) {
-				fprintf(stderr, "Warning: Access denied. Remove COMMAND %s from VIEW %s\n",
+				fprintf(stderr, "Warning: Access denied. Remove COMMAND \"%s\" from VIEW \"%s\"\n",
 					clish_command__get_name(cmd), clish_view__get_name(view));
 				lub_bintree_remove(cmd_tree, cmd);
 				clish_command_delete(cmd);
 				continue;
 			}
+			paramv = clish_command__get_paramv(cmd);
+			if (iterate_paramv(this, paramv, access_fn) < 0)
+				return -1;
 		}
 	}
 

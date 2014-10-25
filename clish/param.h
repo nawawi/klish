@@ -95,6 +95,7 @@ char *clish_param__get_access(const clish_param_t *instance);
 clish_paramv_t *clish_paramv_new(void);
 void clish_paramv_delete(clish_paramv_t * instance);
 void clish_paramv_insert(clish_paramv_t * instance, clish_param_t * param);
+int clish_paramv_remove(clish_paramv_t *instance, unsigned int index); /* Remove param from vector */
 clish_param_t *clish_paramv__get_param(const clish_paramv_t * instance,
 				unsigned index);
 unsigned int clish_paramv__get_count(const clish_paramv_t * instance);

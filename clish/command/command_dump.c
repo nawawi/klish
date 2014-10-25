@@ -20,9 +20,7 @@ void clish_command_dump(const clish_command_t * this)
 		this->link ?
 		clish_command__get_name(this->link) : LUB_DUMP_NULL);
 	lub_dump_printf("alias      : %s\n", LUB_DUMP_STR(this->alias));
-	lub_dump_printf("alias_view : %s\n",
-		this->alias_view ?
-		clish_view__get_name(this->alias_view) : LUB_DUMP_NULL);
+	lub_dump_printf("alias_view : %s\n", LUB_DUMP_STR(this->alias_view));
 	lub_dump_printf("paramc     : %d\n",
 		clish_paramv__get_count(this->paramv));
 	lub_dump_printf("detail     : %s\n", LUB_DUMP_STR(this->detail));
