@@ -263,7 +263,7 @@ static int process_clish_module(clish_shell_t *shell, clish_xmlnode_t *element,
 	/* Create the global view */
 	if (!shell->global)
 		shell->global = clish_shell_find_create_view(shell,
-			"global", "");
+			"__global", "");
 
 	parent = parent; /* Happy compiler */
 
