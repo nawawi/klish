@@ -24,7 +24,7 @@ typedef struct clish_command_s clish_command_t;
 clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
-clish_command_t * clish_command_alias_to_link(clish_command_t * instance);
+clish_command_t * clish_command_alias_to_link(clish_command_t *instance, clish_command_t *ref);
 
 int clish_command_bt_compare(const void *clientnode, const void *clientkey);
 void clish_command_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
@@ -81,8 +81,8 @@ void clish_command__set_lock(clish_command_t * instance, bool_t lock);
 void clish_command__set_alias(clish_command_t * instance, const char * alias);
 const char * clish_command__get_alias(const clish_command_t * instance);
 void clish_command__set_alias_view(clish_command_t * instance,
-	clish_view_t * alias_view);
-clish_view_t * clish_command__get_alias_view(const clish_command_t * instance);
+	const char *alias_view);
+const char * clish_command__get_alias_view(const clish_command_t * instance);
 void clish_command__set_dynamic(clish_command_t * instance, bool_t dynamic);
 bool_t clish_command__get_dynamic(const clish_command_t * instance);
 bool_t clish_command__get_interrupt(const clish_command_t * instance);

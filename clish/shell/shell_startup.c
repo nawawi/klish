@@ -156,6 +156,7 @@ int clish_shell_prepare(clish_shell_t *this)
 				continue;
 			}
 			clish_nspace__set_view(nspace, ref_view);
+			clish_nspace__set_view_name(nspace, NULL); /* Free some memory */
 			/* Check access rights for the NAMESPACE */
 			if (access_fn && clish_nspace__get_access(nspace) &&
 				access_fn(this, clish_nspace__get_access(nspace))) {
@@ -174,10 +175,31 @@ int clish_shell_prepare(clish_shell_t *this)
 		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
 			/* Resolve command aliases */
-			if (!clish_command_alias_to_link(cmd)) {
-				fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias %s\n",
-					clish_command__get_name(cmd));
-				return -1;
+			if (clish_command__get_alias(cmd)) {
+				clish_view_t *aview;
+				clish_command_t *cmdref;
+				const char *alias_view = clish_command__get_alias_view(cmd);
+				if (!alias_view)
+					aview = clish_command__get_pview(cmd);
+				else
+					aview = clish_shell_find_view(this, alias_view);
+				if (!aview) {
+					fprintf(stderr, CLISH_XML_ERROR_STR"Broken VIEW for alias %s\n",
+						clish_command__get_name(cmd));
+					return -1;
+				}
+				cmdref = clish_view_find_command(aview,
+					clish_command__get_alias(cmd), BOOL_FALSE);
+				if (!cmdref) {
+					fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias %s\n",
+						clish_command__get_name(cmd));
+					return -1;
+				}
+				if (!clish_command_alias_to_link(cmd, cmdref)) {
+					fprintf(stderr, CLISH_XML_ERROR_STR"Something wrong with alias %s\n",
+						clish_command__get_name(cmd));
+					return -1;
+				}
 			}
 			/* Check access rights for the COMMAND */
 			if (access_fn && clish_command__get_access(cmd) &&

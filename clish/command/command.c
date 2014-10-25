@@ -62,6 +62,7 @@ static void clish_command_fini(clish_command_t * this)
 	clish_action_delete(this->action);
 	clish_config_delete(this->config);
 	lub_string_free(this->alias);
+	lub_string_free(this->alias_view);
 	lub_string_free(this->viewname);
 	lub_string_free(this->viewid);
 	lub_string_free(this->detail);
@@ -134,16 +135,13 @@ clish_command_t *clish_command_new_link(const char *name,
 }
 
 /*--------------------------------------------------------- */
-clish_command_t * clish_command_alias_to_link(clish_command_t * this)
+clish_command_t * clish_command_alias_to_link(clish_command_t *this, clish_command_t *ref)
 {
-	clish_command_t * ref;
 	clish_command_t tmp;
 
-	if (!this || !this->alias)
-		return this;
-	assert(this->alias_view);
-	ref = clish_view_find_command(this->alias_view, this->alias, BOOL_FALSE);
-	if (!ref)
+	if (!this || !ref)
+		return NULL;
+	if (ref->alias) /* The reference is a link too */
 		return NULL;
 	memcpy(&tmp, this, sizeof(tmp));
 	*this = *ref;
@@ -414,7 +412,8 @@ void clish_command__set_lock(clish_command_t * this, bool_t lock)
 /*--------------------------------------------------------- */
 void clish_command__set_alias(clish_command_t * this, const char * alias)
 {
-	assert(!this->alias);
+	if (this->alias)
+		lub_string_free(this->alias);
 	this->alias = lub_string_dup(alias);
 }
 
@@ -425,14 +424,16 @@ const char * clish_command__get_alias(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-void clish_command__set_alias_view(clish_command_t * this,
-	clish_view_t * alias_view)
+void clish_command__set_alias_view(clish_command_t *this,
+	const char *alias_view)
 {
-	this->alias_view = alias_view;
+	if (this->alias_view)
+		lub_string_free(this->alias_view);
+	this->alias_view = lub_string_dup(alias_view);
 }
 
 /*--------------------------------------------------------- */
-clish_view_t * clish_command__get_alias_view(const clish_command_t * this)
+const char * clish_command__get_alias_view(const clish_command_t * this)
 {
 	return this->alias_view;
 }

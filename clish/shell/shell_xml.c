@@ -415,8 +415,6 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	clish_view_t *v = (clish_view_t *) parent;
 	clish_command_t *cmd = NULL;
 	clish_command_t *old;
-	char *alias_name = NULL;
-	clish_view_t *alias_view = NULL;
 	int res = -1;
 
 	char *access = clish_xmlnode_fetch_attr(element, "access");
@@ -448,6 +446,10 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 		goto error;
 	}
 
+	/* create a command */
+	cmd = clish_view_new_command(v, name, help);
+	clish_command__set_pview(cmd, v);
+
 	/* Reference 'ref' field */
 	if (ref) {
 		char *saveptr = NULL;
@@ -462,19 +464,11 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 			lub_string_free(str);
 			goto error;
 		}
-		alias_name = lub_string_dup(cmdn);
+		clish_command__set_alias(cmd, cmdn); /* alias name */
 		view_name = strtok_r(NULL, delim, &saveptr);
-		if (!view_name)
-			alias_view = v;
-		else
-			alias_view = clish_shell_find_create_view(shell,
-				view_name, NULL);
+		clish_command__set_alias_view(cmd, view_name);
 		lub_string_free(str);
 	}
-
-	/* create a command */
-	cmd = clish_view_new_command(v, name, help);
-	clish_command__set_pview(cmd, v);
 
 	/* define some specialist escape characters */
 	if (escape_chars)
@@ -520,24 +514,6 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	if (access)
 		clish_command__set_access(cmd, access);
-
-	/* Set alias */
-	if (alias_name) {
-		/* Check syntax */
-		if (!alias_view) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"Can't find reference VIEW.\n");
-			lub_string_free(alias_name);
-			goto error;
-		}
-		if ((alias_view == v) && (!strcmp(alias_name, name))) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"The COMMAND with reference to itself.\n");
-			lub_string_free(alias_name);
-			goto error;
-		}
-		clish_command__set_alias(cmd, alias_name);
-		clish_command__set_alias_view(cmd, alias_view);
-		lub_string_free(alias_name);
-	}
 
 //process_command_end:
 	res = process_children(shell, element, cmd);
