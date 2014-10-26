@@ -80,6 +80,9 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 }
 
 /*-------------------------------------------------------- */
+/* Static recursive function to iterate parameters. Logically it's the
+ * part of clish_shell_prepare() function.
+ */
 static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 	clish_hook_access_fn_t *access_fn)
 {
@@ -126,6 +129,12 @@ static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 }
 
 /*-------------------------------------------------------- */
+/* This function prepares schema for execution. It loads
+ * plugins, link unresolved symbols, then iterates all the
+ * objects and link them to each other, check access
+ * permissions. Don't execute clish_shell_startup() without this
+ * function.
+ */
 int clish_shell_prepare(clish_shell_t *this)
 {
 	clish_command_t *cmd;
@@ -136,8 +145,8 @@ int clish_shell_prepare(clish_shell_t *this)
 	lub_bintree_iterator_t cmd_iter, view_iter;
 	lub_list_node_t *nspace_iter;
 	clish_hook_access_fn_t *access_fn = NULL;
-	int i;
 	clish_paramv_t *paramv;
+	int i;
 
 	/* Add default plugin to the list of plugins */
 	if (this->default_plugin) {
@@ -277,6 +286,5 @@ int clish_shell_prepare(clish_shell_t *this)
 
 	return 0;
 }
-
 
 /*----------------------------------------------------------- */
