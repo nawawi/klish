@@ -613,173 +613,173 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 	clish_command_t *cmd = NULL;
 	clish_param_t *p_param = NULL;
 	clish_xmlnode_t *pelement;
+	clish_param_t *param;
 	char *pname;
 	int res = -1;
 
+	char *name = clish_xmlnode_fetch_attr(element, "name");
+	char *help = clish_xmlnode_fetch_attr(element, "help");
+	char *ptype = clish_xmlnode_fetch_attr(element, "ptype");
+	char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
+	char *defval = clish_xmlnode_fetch_attr(element, "default");
+	char *mode = clish_xmlnode_fetch_attr(element, "mode");
+	char *optional = clish_xmlnode_fetch_attr(element, "optional");
+	char *order = clish_xmlnode_fetch_attr(element, "order");
+	char *value = clish_xmlnode_fetch_attr(element, "value");
+	char *hidden = clish_xmlnode_fetch_attr(element, "hidden");
+	char *test = clish_xmlnode_fetch_attr(element, "test");
+	char *completion = clish_xmlnode_fetch_attr(element, "completion");
+	char *access = clish_xmlnode_fetch_attr(element, "access");
+
+	/* The PARAM can be child of COMMAND or another PARAM */
 	pelement = clish_xmlnode_parent(element);
 	pname = clish_xmlnode_get_all_name(pelement);
-
 	if (pname && lub_string_nocasecmp(pname, "PARAM") == 0)
 		p_param = (clish_param_t *)parent;
 	else
 		cmd = (clish_command_t *)parent;
-
 	if (pname)
 		free(pname);
+	if (!cmd && !p_param)
+		goto error;
 
-	if (cmd || p_param) {
-		char *name = clish_xmlnode_fetch_attr(element, "name");
-		char *help = clish_xmlnode_fetch_attr(element, "help");
-		char *ptype = clish_xmlnode_fetch_attr(element, "ptype");
-		char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
-		char *defval = clish_xmlnode_fetch_attr(element, "default");
-		char *mode = clish_xmlnode_fetch_attr(element, "mode");
-		char *optional = clish_xmlnode_fetch_attr(element, "optional");
-		char *order = clish_xmlnode_fetch_attr(element, "order");
-		char *value = clish_xmlnode_fetch_attr(element, "value");
-		char *hidden = clish_xmlnode_fetch_attr(element, "hidden");
-		char *test = clish_xmlnode_fetch_attr(element, "test");
-		char *completion = clish_xmlnode_fetch_attr(element, "completion");
-		char *access = clish_xmlnode_fetch_attr(element, "access");
-		clish_param_t *param;
+	/* Check syntax */
+	if (cmd && (cmd == shell->startup)) {
+		fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP can't contain PARAMs.\n");
+		goto error;
+	}
+	if (!name) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		goto error;
+	}
+	if (!help) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
+		goto error;
+	}
+	if (!ptype) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("ptype"));
+		goto error;
+	}
 
-		/* Check syntax */
-		if (cmd && (cmd == shell->startup)) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP can't contain PARAMs.\n");
-			goto error;
-		}
-		if (!name) {
-			fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
-			goto error;
-		}
-		if (!help) {
-			fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
-			goto error;
-		}
-		if (!ptype) {
-			fprintf(stderr, CLISH_XML_ERROR_ATTR("ptype"));
-			goto error;
-		}
+	param = clish_param_new(name, help, ptype);
 
-		param = clish_param_new(name, help, ptype);
+	/* If prefix is set clish will emulate old optional
+	 * command syntax over newer optional command mechanism.
+	 * It will create nested PARAM.
+	 */
+	if (prefix) {
+		const char *ptype_name = "__ptype_SUBCOMMAND";
+		clish_param_t *opt_param = NULL;
+		char *str = NULL;
+		clish_ptype_t *tmp;
 
-		/* If prefix is set clish will emulate old optional
-		 * command syntax over newer optional command mechanism.
-		 * It will create nested PARAM.
+		/* Create a ptype for prefix-named subcommand that
+		 * will contain the nested optional parameter. The
+		 * name of ptype is hardcoded. It's not good but
+		 * it's only the service ptype.
 		 */
-		if (prefix) {
-			const char *ptype_name = "__ptype_SUBCOMMAND";
-			clish_param_t *opt_param = NULL;
-			char *str = NULL;
-			clish_ptype_t *tmp;
+		tmp = (clish_ptype_t *)lub_bintree_find(
+			&shell->ptype_tree, ptype_name);
+		if (!tmp)
+			tmp = clish_shell_find_create_ptype(shell,
+				ptype_name, "Option", "[^\\\\]+",
+				CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
+		assert(tmp);
+		lub_string_cat(&str, "_prefix_");
+		lub_string_cat(&str, name);
+		opt_param = clish_param_new(str, help, ptype_name);
+		lub_string_free(str);
+		clish_param__set_mode(opt_param,
+			CLISH_PARAM_SUBCOMMAND);
+		clish_param__set_value(opt_param, prefix);
+		clish_param__set_optional(opt_param, BOOL_TRUE);
 
-			/* Create a ptype for prefix-named subcommand that
-			 * will contain the nested optional parameter. The
-			 * name of ptype is hardcoded. It's not good but
-			 * it's only the service ptype.
-			 */
-			tmp = (clish_ptype_t *)lub_bintree_find(
-				&shell->ptype_tree, ptype_name);
-			if (!tmp)
-				tmp = clish_shell_find_create_ptype(shell,
-					ptype_name, "Option", "[^\\\\]+",
-					CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
-			assert(tmp);
-			lub_string_cat(&str, "_prefix_");
-			lub_string_cat(&str, name);
-			opt_param = clish_param_new(str, help, ptype_name);
-			lub_string_free(str);
-			clish_param__set_mode(opt_param,
-				CLISH_PARAM_SUBCOMMAND);
-			clish_param__set_value(opt_param, prefix);
-			clish_param__set_optional(opt_param, BOOL_TRUE);
+		if (test)
+			clish_param__set_test(opt_param, test);
 
-			if (test)
-				clish_param__set_test(opt_param, test);
+		/* Add the parameter to the command */
+		if (cmd)
+			clish_command_insert_param(cmd, opt_param);
+		/* Add the parameter to the param */
+		if (p_param)
+			clish_param_insert_param(p_param, opt_param);
+		/* Unset cmd and set parent param to opt_param */
+		cmd = NULL;
+		p_param = opt_param;
+	}
 
-			/* add the parameter to the command */
-			if (cmd)
-				clish_command_insert_param(cmd, opt_param);
-			/* add the parameter to the param */
-			if (p_param)
-				clish_param_insert_param(p_param, opt_param);
-			/* Unset cmd and set parent param to opt_param */
-			cmd = NULL;
-			p_param = opt_param;
-		}
+	if (defval)
+		clish_param__set_default(param, defval);
 
-		if (defval)
-			clish_param__set_default(param, defval);
+	if (hidden && lub_string_nocasecmp(hidden, "true") == 0)
+		clish_param__set_hidden(param, BOOL_TRUE);
+	else
+		clish_param__set_hidden(param, BOOL_FALSE);
 
-		if (hidden && lub_string_nocasecmp(hidden, "true") == 0)
+	if (mode) {
+		if (lub_string_nocasecmp(mode, "switch") == 0) {
+			clish_param__set_mode(param,
+				CLISH_PARAM_SWITCH);
+			/* Force hidden attribute */
 			clish_param__set_hidden(param, BOOL_TRUE);
-		else
-			clish_param__set_hidden(param, BOOL_FALSE);
-
-		if (mode) {
-			if (lub_string_nocasecmp(mode, "switch") == 0) {
-				clish_param__set_mode(param,
-					CLISH_PARAM_SWITCH);
-				/* Force hidden attribute */
-				clish_param__set_hidden(param, BOOL_TRUE);
-			} else if (lub_string_nocasecmp(mode, "subcommand") == 0)
-				clish_param__set_mode(param,
-					CLISH_PARAM_SUBCOMMAND);
-			else
-				clish_param__set_mode(param,
-					CLISH_PARAM_COMMON);
-		}
-
-		if (optional && lub_string_nocasecmp(optional, "true") == 0)
-			clish_param__set_optional(param, BOOL_TRUE);
-		else
-			clish_param__set_optional(param, BOOL_FALSE);
-
-		if (order && lub_string_nocasecmp(order, "true") == 0)
-			clish_param__set_order(param, BOOL_TRUE);
-		else
-			clish_param__set_order(param, BOOL_FALSE);
-
-		if (value) {
-			clish_param__set_value(param, value);
-			/* Force mode to subcommand */
+		} else if (lub_string_nocasecmp(mode, "subcommand") == 0)
 			clish_param__set_mode(param,
 				CLISH_PARAM_SUBCOMMAND);
-		}
-
-		if (test && !prefix)
-			clish_param__set_test(param, test);
-
-		if (completion)
-			clish_param__set_completion(param, completion);
-
-		if (access)
-			clish_param__set_access(param, access);
-
-		/* add the parameter to the command */
-		if (cmd)
-			clish_command_insert_param(cmd, param);
-
-		/* add the parameter to the param */
-		if (p_param)
-			clish_param_insert_param(p_param, param);
-
-		res = process_children(shell, element, param);
-error:
-		clish_xml_release(name);
-		clish_xml_release(help);
-		clish_xml_release(ptype);
-		clish_xml_release(prefix);
-		clish_xml_release(defval);
-		clish_xml_release(mode);
-		clish_xml_release(optional);
-		clish_xml_release(order);
-		clish_xml_release(value);
-		clish_xml_release(hidden);
-		clish_xml_release(test);
-		clish_xml_release(completion);
-		clish_xml_release(access);
+		else
+			clish_param__set_mode(param,
+				CLISH_PARAM_COMMON);
 	}
+
+	if (optional && lub_string_nocasecmp(optional, "true") == 0)
+		clish_param__set_optional(param, BOOL_TRUE);
+	else
+		clish_param__set_optional(param, BOOL_FALSE);
+
+	if (order && lub_string_nocasecmp(order, "true") == 0)
+		clish_param__set_order(param, BOOL_TRUE);
+	else
+		clish_param__set_order(param, BOOL_FALSE);
+
+	if (value) {
+		clish_param__set_value(param, value);
+		/* Force mode to subcommand */
+		clish_param__set_mode(param,
+			CLISH_PARAM_SUBCOMMAND);
+	}
+
+	if (test && !prefix)
+		clish_param__set_test(param, test);
+
+	if (completion)
+		clish_param__set_completion(param, completion);
+
+	if (access)
+		clish_param__set_access(param, access);
+
+	/* Add the parameter to the command */
+	if (cmd)
+		clish_command_insert_param(cmd, param);
+
+	/* Add the parameter to the param */
+	if (p_param)
+		clish_param_insert_param(p_param, param);
+
+	res = process_children(shell, element, param);
+
+error:
+	clish_xml_release(name);
+	clish_xml_release(help);
+	clish_xml_release(ptype);
+	clish_xml_release(prefix);
+	clish_xml_release(defval);
+	clish_xml_release(mode);
+	clish_xml_release(optional);
+	clish_xml_release(order);
+	clish_xml_release(value);
+	clish_xml_release(hidden);
+	clish_xml_release(test);
+	clish_xml_release(completion);
+	clish_xml_release(access);
 
 	return res;
 }
