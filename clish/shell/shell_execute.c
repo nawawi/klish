@@ -35,10 +35,9 @@ static int clish_shell_lock(const char *lock_path)
 #ifdef FD_CLOEXEC
 	fcntl(lock_fd, F_SETFD, fcntl(lock_fd, F_GETFD) | FD_CLOEXEC);
 #endif
+	memset(&lock, 0, sizeof(lock));
 	lock.l_type = F_WRLCK;
 	lock.l_whence = SEEK_SET;
-	lock.l_start = 0;
-	lock.l_len = 0;
 	for (i = 0; i < CLISH_LOCK_WAIT; i++) {
 		res = fcntl(lock_fd, F_SETLK, &lock);
 		if (res != -1)
@@ -52,6 +51,8 @@ static int clish_shell_lock(const char *lock_path)
 			sleep(1);
 			continue;
 		}
+		if (EINVAL == errno)
+			fprintf(stderr, "Error: Locking isn't supported by OS, consider \"--lockless\".\n");
 		break;
 	}
 	if (res == -1) {
@@ -69,10 +70,9 @@ static void clish_shell_unlock(int lock_fd)
 
 	if (lock_fd == -1)
 		return;
+	memset(&lock, 0, sizeof(lock));
 	lock.l_type = F_UNLCK;
 	lock.l_whence = SEEK_SET;
-	lock.l_start = 0;
-	lock.l_len = 0;
 	fcntl(lock_fd, F_SETLK, &lock);
 	close(lock_fd);
 }
