@@ -54,7 +54,10 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 		clish_command_bt_offset(),
 		clish_command_bt_compare, clish_command_bt_getkey);
 
-	/* Initialise the list of namespaces */
+	/* Initialise the list of namespaces.
+	 * It's important to add new items to the
+	 * tail of list.
+	 */
 	this->nspaces = lub_list_new(NULL);
 
 	/* set up the defaults */
@@ -227,9 +230,14 @@ clish_command_t *clish_view_find_command(clish_view_t * this,
 		clish_command_t *cmd;
 		clish_nspace_t *nspace;
 
-		/* Iterate elements */
-		for(iter = lub_list__get_head(this->nspaces);
-			iter; iter = lub_list_node__get_next(iter)) {
+		/* Iterate elements. It's important to iterate
+		 * items starting from tail bacause the next
+		 * NAMESPACE has higher priority than previous one
+		 * in a case then the both NAMESPACEs have the
+		 * commands with the same name.
+		 */
+		for(iter = lub_list__get_tail(this->nspaces);
+			iter; iter = lub_list_node__get_prev(iter)) {
 			nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
 			cmd = clish_nspace_find_command(nspace, name);
 			/* Choose the longest match */
@@ -292,8 +300,8 @@ const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 	/* ask the imported namespaces for next command */
 
 	/* Iterate elements */
-	for(iter = lub_list__get_head(this->nspaces);
-		iter; iter = lub_list_node__get_next(iter)) {
+	for(iter = lub_list__get_tail(this->nspaces);
+		iter; iter = lub_list_node__get_prev(iter)) {
 		nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
 		if (!clish_nspace__get_visibility(nspace, field))
 			continue;
