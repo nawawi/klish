@@ -13,6 +13,27 @@
 #include "clish/view.h"
 
 /*----------------------------------------------------------------------- */
+clish_plugin_t * clish_shell_find_plugin(clish_shell_t *this, const char *name)
+{
+	lub_list_node_t *iter;
+	clish_plugin_t *plugin;
+
+	assert(this);
+
+	if (!name || !name[0])
+		return NULL;
+	/* Iterate elements */
+	for(iter = lub_list__get_head(this->plugins);
+		iter; iter = lub_list_node__get_next(iter)) {
+		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
+		if (!strcmp(name, clish_plugin__get_name(plugin)))
+			return plugin;
+	}
+
+	return NULL;
+}
+
+/*----------------------------------------------------------------------- */
 /* For all plugins:
  *  * dlopen(plugin)
  *  * dlsym(initialize function)

@@ -144,6 +144,7 @@ clish_plugin_t *clish_plugin_new(const char *name)
 	this->conf = NULL;
 	this->alias = NULL;
 	this->file = NULL;
+	this->builtin_flag = BOOL_FALSE; /* The plugin is shared object by default */
 	this->dlhan = NULL;
 	/* Initialise the list of symbols */
 	this->syms = lub_list_new(clish_sym_compare);
@@ -390,6 +391,18 @@ void clish_plugin__set_file(clish_plugin_t *this, const char *file)
 char *clish_plugin__get_file(const clish_plugin_t *this)
 {
 	return this->file;
+}
+
+/*--------------------------------------------------------- */
+void clish_plugin__set_builtin_flag(clish_plugin_t *this, bool_t builtin_flag)
+{
+	this->builtin_flag = builtin_flag;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_plugin__get_builtin_flag(const clish_plugin_t *this)
+{
+	return this->builtin_flag;
 }
 
 /*--------------------------------------------------------- */

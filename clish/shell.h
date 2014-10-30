@@ -182,6 +182,7 @@ void clish_shell__set_dryrun(clish_shell_t *instance, bool_t dryrun);
 bool_t clish_shell__get_dryrun(const clish_shell_t *instance);
 
 /* Plugin functions */
+clish_plugin_t * clish_shell_find_plugin(clish_shell_t *instance, const char *name);
 int clish_shell_load_plugins(clish_shell_t *instance);
 int clish_shell_link_plugins(clish_shell_t *instance);
 

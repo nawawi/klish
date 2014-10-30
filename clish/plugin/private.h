@@ -21,6 +21,7 @@ struct clish_plugin_s {
 	char *name; /* Plugin name. */
 	char *alias; /* User defined plugin name. Can be used in builtin ref. */
 	char *file; /* Shared object file name. */
+	bool_t builtin_flag; /* If plugin is built into binary */
 	char *conf; /* The content of <PLUGIN>...</PLUGIN> */
 	lub_list_t *syms; /* List of plugin symbols */
 	void *dlhan; /* Handler of dlopen() */
