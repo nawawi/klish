@@ -94,6 +94,10 @@ clish_sym_t *clish_plugin_add_phook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
 void clish_plugin_add_fini(clish_plugin_t *instance,
 	clish_plugin_fini_t *fini);
+clish_plugin_fini_t * clish_plugin_get_fini(clish_plugin_t *instance);
+void clish_plugin_add_init(clish_plugin_t *instance,
+	clish_plugin_init_t *init);
+clish_plugin_init_t * clish_plugin_get_init(clish_plugin_t *instance);
 void clish_plugin_dump(const clish_plugin_t *instance);
 char *clish_plugin__get_name(const clish_plugin_t *instance);
 void clish_plugin__set_alias(clish_plugin_t *instance, const char *alias);

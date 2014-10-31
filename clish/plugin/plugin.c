@@ -247,6 +247,25 @@ void clish_plugin_add_fini(clish_plugin_t *this,
 }
 
 /*--------------------------------------------------------- */
+clish_plugin_fini_t * clish_plugin_get_fini(clish_plugin_t *this)
+{
+	return this->fini;
+}
+
+/*--------------------------------------------------------- */
+void clish_plugin_add_init(clish_plugin_t *this,
+	clish_plugin_init_t *init)
+{
+	this->init = init;
+}
+
+/*--------------------------------------------------------- */
+clish_plugin_init_t * clish_plugin_get_init(clish_plugin_t *this)
+{
+	return this->init;
+}
+
+/*--------------------------------------------------------- */
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int type)
 {
 	lub_list_node_t *iter;
