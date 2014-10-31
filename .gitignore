@@ -41,6 +41,13 @@
 /bin/konfd
 /bin/sigexec
 
+# Docs
+/doc/*.html
+/doc/*.pdf
+/doc/*.tex
+/doc/*.fpr
+/doc/*.log
+
 /cov-int
 /klish-*.tar*
 /*.tgz
