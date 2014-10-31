@@ -34,6 +34,25 @@ clish_plugin_t * clish_shell_find_plugin(clish_shell_t *this, const char *name)
 }
 
 /*----------------------------------------------------------------------- */
+clish_plugin_t * clish_shell_find_create_plugin(clish_shell_t *this,
+	const char *name)
+{
+	clish_plugin_t *plugin;
+	assert(this);
+
+	if (!name || !name[0])
+		return NULL;
+
+	plugin = clish_shell_find_plugin(this, name);
+	if (plugin)
+		return plugin;
+	plugin = clish_plugin_new(name);
+	lub_list_add(this->plugins, plugin);
+
+	return plugin;
+}
+
+/*----------------------------------------------------------------------- */
 /* For all plugins:
  *  * dlopen(plugin)
  *  * dlsym(initialize function)

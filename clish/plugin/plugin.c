@@ -332,24 +332,6 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
-static int clish_plugin_load_builtin(clish_plugin_t *this)
-{
-	int i = 0;
-
-	/* Search plugin in the list of builtin plugins */
-	while (clish_plugin_builtin_list[i].name) {
-		if (strcmp(clish_plugin_builtin_list[i].name, this->name))
-			continue;
-		this->init = clish_plugin_builtin_list[i].init;
-		break;
-	}
-	if (this->init)
-		return 0;
-
-	return -1;
-}
-
-/*--------------------------------------------------------- */
 int clish_plugin_load(clish_plugin_t *this, void *userdata)
 {
 	int res;
@@ -358,14 +340,16 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 		return -1;
 	assert(this->name);
 
-	/* Firstly try to find builtin plugin and if there is
-	   no such builtin plugin then try to find plugin 
-	   shared object */
-	if (clish_plugin_load_builtin(this) < 0) {
+	/* Builtin plugins already have init function. */
+	if (!this->builtin_flag) {
 		if (clish_plugin_load_shared(this) < 0)
 			return -1;
 	}
-
+	if (!this->init) {
+		fprintf(stderr, "Error: PLUGIN %s has no init function\n",
+			this->name);
+		return -1;
+	}
 	/* Execute init function */
 	if ((res = this->init(userdata, this)))
 		fprintf(stderr, "Error: Plugin %s init retcode: %d\n",

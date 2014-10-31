@@ -146,13 +146,23 @@ int clish_shell_prepare(clish_shell_t *this)
 	lub_list_node_t *nspace_iter;
 	clish_hook_access_fn_t *access_fn = NULL;
 	clish_paramv_t *paramv;
-	int i;
+	int i = 0;
+
+	/* Add statically linked plugins */
+	while (clish_plugin_builtin_list[i].name) {
+		clish_plugin_t *plugin;
+		plugin = clish_shell_find_create_plugin(this,
+			clish_plugin_builtin_list[i].name);
+		clish_plugin_add_init(plugin,
+			clish_plugin_builtin_list[i].init);
+		clish_plugin__set_builtin_flag(plugin, BOOL_TRUE);
+		i++;
+	}
 
 	/* Add default plugin to the list of plugins */
 	if (this->default_plugin) {
 		clish_plugin_t *plugin;
-		plugin = clish_plugin_new("clish");
-		lub_list_add(this->plugins, plugin);
+		plugin = clish_shell_find_create_plugin(this, "clish");
 		/* Default hooks */
 		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
 			if (this->hooks_use[i])
