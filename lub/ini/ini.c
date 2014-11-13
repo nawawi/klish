@@ -163,7 +163,6 @@ int lub_ini_parse_file(lub_ini_t *this, const char *fn)
 	while (fgets(buf + p, size - p, f)) {
 		char *tmp;
 		if (feof(f) || strchr(buf + p, '\n') || strchr(buf + p, '\r')) {
-printf("%s", buf);
 			lub_ini_parse_str(this, buf);
 			p = 0;
 			continue;
