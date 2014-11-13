@@ -144,14 +144,53 @@ int lub_ini_parse_str(lub_ini_t *this, const char *ini)
 }
 
 /*--------------------------------------------------------- */
+int lub_ini_parse_file(lub_ini_t *this, const char *fn)
+{
+	int ret = -1;
+	FILE *f;
+	char *buf;
+	unsigned int p = 0;
+	const int chunk_size = 128;
+	int size = chunk_size;
 
+	if (!fn || !*fn)
+		return -1;
+	f = fopen(fn, "r");
+	if (!f)
+		return -1;
+
+	buf = malloc(size);
+	while (fgets(buf + p, size - p, f)) {
+		char *tmp;
+		if (feof(f) || strchr(buf + p, '\n') || strchr(buf + p, '\r')) {
+printf("%s", buf);
+			lub_ini_parse_str(this, buf);
+			p = 0;
+			continue;
+		}
+		p = size - 1;
+		size += chunk_size;
+		tmp = realloc(buf, size);
+		if (!tmp)
+			goto error;
+		buf = tmp;
+	}
+
+	ret = 0;
+error:
+	free(buf);
+	fclose(f);
+
+	return ret;
+}
+
+/*--------------------------------------------------------- */
 lub_ini_node_t *lub_ini__get_head(lub_ini_t *this)
 {
 	return lub_list__get_head(this->list);
 }
 
 /*--------------------------------------------------------- */
-
 lub_ini_node_t *lub_ini__get_tail(lub_ini_t *this)
 {
 	return lub_list__get_tail(this->list);
