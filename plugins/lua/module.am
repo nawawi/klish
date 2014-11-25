@@ -27,3 +27,7 @@ clish_plugin_lua_la_SOURCES	+= \
 	plugins/lua/lua_action.c \
 	plugins/lua/lua_print_error.c \
 	plugins/lua/private.h
+
+EXTRA_DIST += \
+	plugins/lua/symbols.map \
+	plugins/lua/version.map
