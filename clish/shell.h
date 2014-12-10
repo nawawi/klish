@@ -103,7 +103,6 @@ int clish_shell_execute(clish_context_t *context, char **out);
 int clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
 int clish_shell_readline(clish_shell_t *instance, char ** out);
 void clish_shell_dump(clish_shell_t * instance);
-void clish_shell_close(clish_shell_t * instance);
 /**
  * Push the specified file handle on to the stack of file handles
  * for this shell. The specified file will become the source of 
