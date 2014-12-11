@@ -135,12 +135,8 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path)
 		if (res)
 			break;
 	}
-	/* tidy up */
 	lub_string_free(buffer);
 
-#ifdef DEBUG
-	clish_shell_dump(this);
-#endif
 	return res;
 }
 

@@ -303,6 +303,9 @@ int main(int argc, char **argv)
 		if ((sym = clish_shell_get_hook(shell, CLISH_SYM_TYPE_LOG)))
 			clish_sym__set_permanent(sym, BOOL_FALSE);
 	}
+#ifdef DEBUG
+	clish_shell_dump(shell);
+#endif
 
 	/* Set source of command stream: files or interactive tty */
 	if(optind < argc) {

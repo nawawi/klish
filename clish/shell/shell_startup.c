@@ -161,8 +161,7 @@ int clish_shell_prepare(clish_shell_t *this)
 
 	/* Add default plugin to the list of plugins */
 	if (this->default_plugin) {
-		clish_plugin_t *plugin;
-		plugin = clish_shell_find_create_plugin(this, "clish");
+		clish_shell_find_create_plugin(this, "clish");
 		/* Default hooks */
 		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
 			if (this->hooks_use[i])

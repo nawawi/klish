@@ -12,7 +12,7 @@ void clish_view_dump(clish_view_t * this)
 {
 	clish_command_t *c;
 	lub_list_node_t *iter;
-	unsigned i;
+	lub_bintree_iterator_t iterc;
 	clish_nspace_t *nspace;
 
 	lub_dump_printf("view(%p)\n", this);
@@ -31,8 +31,8 @@ void clish_view_dump(clish_view_t * this)
 
 	/* Iterate the tree of commands */
 	c = lub_bintree_findfirst(&this->tree);
-	for (lub_bintree_iterator_init(&iter, &this->tree, c);
-		c; c = lub_bintree_iterator_next(&iter)) {
+	for (lub_bintree_iterator_init(&iterc, &this->tree, c);
+		c; c = lub_bintree_iterator_next(&iterc)) {
 		clish_command_dump(c);
 	}
 
