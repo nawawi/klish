@@ -11,7 +11,7 @@
 void clish_view_dump(clish_view_t * this)
 {
 	clish_command_t *c;
-	lub_bintree_iterator_t iter;
+	lub_list_node_t *iter;
 	unsigned i;
 	clish_nspace_t *nspace;
 
