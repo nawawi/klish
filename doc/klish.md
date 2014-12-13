@@ -1567,6 +1567,24 @@ You can specify preferred XML backend by project configure script argument:
 - --with-libexpat for using expat
 - --with-libroxml for using libroxml
 
+The following table is a comparision of supported XML engines. The values are not pecise but the table is usefull to estimate the main parameters of engines.
+
+| Engine   | Stripped size, Kbytes | Execution time, s |
+|----------|-----------------------|-------------------|
+| libxml2  | 1462                  | 0.180             |
+| expat    |  170                  | 0.230             |
+| libroxml |   52                  | 0.620             |
+
+The first column is an engine name. The second column is a size of stripped library (shared object). The third one is a time of execution clish compiled with correspondent engine. The clish was executed like this:
+
+```
+$ time clish -x /etc/clish -c "exit" --dry-run
+```
+
+Note this command lead to immediate exit after loading XML configuration files. The tests show the most loading time clish spend to load XMLs because the load time with tiny XMLs is something like 0.002s - 0.005s. I have used a huge XML set for the tests. The size of XMLs is 2145 Kbytes.
+
+So you can see the larger engines have better execution times. And the slower engines are smaller.
+
 ### libxml2
 
 The libxml2 project homepage is [The tested versions are:
