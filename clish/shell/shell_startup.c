@@ -227,8 +227,13 @@ int clish_shell_prepare(clish_shell_t *this)
 			clish_nspace__set_view(nspace, ref_view);
 			clish_nspace__set_view_name(nspace, NULL); /* Free some memory */
 			/* Check access rights for the NAMESPACE */
-			if (access_fn && clish_nspace__get_access(nspace) &&
-				access_fn(this, clish_nspace__get_access(nspace))) {
+			if (access_fn && (
+				/* Check NAMESPASE owned access */
+				(clish_nspace__get_access(nspace) && access_fn(this, clish_nspace__get_access(nspace)))
+				||
+				/* Check referenced VIEW's access */
+				(clish_view__get_access(ref_view) && access_fn(this, clish_view__get_access(ref_view)))
+				)) {
 #ifdef DEBUG
 				fprintf(stderr, "Warning: Access denied. Remove NAMESPACE \"%s\" from \"%s\" VIEW\n",
 					clish_nspace__get_view_name(nspace), clish_view__get_name(view));
@@ -256,17 +261,24 @@ int clish_shell_prepare(clish_shell_t *this)
 					aview = clish_command__get_pview(cmd);
 				else
 					aview = clish_shell_find_view(this, alias_view);
-				if (!aview) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Broken VIEW for alias \"%s\"\n",
+				if (!aview /* Removed or broken VIEW */
+					||
+					/* Removed or broken referenced COMMAND */
+					!(cmdref = clish_view_find_command(aview, clish_command__get_alias(cmd), BOOL_FALSE))
+					) {
+#ifdef DEBUG
+					fprintf(stderr, "Warning: Remove unresolved link \"%s\" from \"%s\" VIEW\n",
+						clish_command__get_name(nspace), clish_view__get_name(view));
+#endif
+					lub_bintree_remove(cmd_tree, cmd);
+					clish_command_delete(cmd);
+					continue;
+					/*fprintf(stderr, CLISH_XML_ERROR_STR"Broken VIEW for alias \"%s\"\n",
 						clish_command__get_name(cmd));
-					return -1;
-				}
-				cmdref = clish_view_find_command(aview,
-					clish_command__get_alias(cmd), BOOL_FALSE);
-				if (!cmdref) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias \"%s\"\n",
+					return -1; */
+					/*fprintf(stderr, CLISH_XML_ERROR_STR"Broken alias \"%s\"\n",
 						clish_command__get_name(cmd));
-					return -1;
+					return -1; */
 				}
 				if (!clish_command_alias_to_link(cmd, cmdref)) {
 					fprintf(stderr, CLISH_XML_ERROR_STR"Something wrong with alias \"%s\"\n",
