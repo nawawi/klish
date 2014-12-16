@@ -268,7 +268,7 @@ int clish_shell_prepare(clish_shell_t *this)
 					) {
 #ifdef DEBUG
 					fprintf(stderr, "Warning: Remove unresolved link \"%s\" from \"%s\" VIEW\n",
-						clish_command__get_name(nspace), clish_view__get_name(view));
+						clish_command__get_name(cmd), clish_view__get_name(view));
 #endif
 					lub_bintree_remove(cmd_tree, cmd);
 					clish_command_delete(cmd);
