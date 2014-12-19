@@ -252,6 +252,18 @@ int clish_shell_prepare(clish_shell_t *this)
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
 			int cmd_is_alias = clish_command__get_alias(cmd)?1:0;
 
+			/* Check access rights for the COMMAND */
+			if (access_fn && clish_command__get_access(cmd) &&
+				access_fn(this, clish_command__get_access(cmd))) {
+#ifdef DEBUG
+				fprintf(stderr, "Warning: Access denied. Remove COMMAND \"%s\" from VIEW \"%s\"\n",
+					clish_command__get_name(cmd), clish_view__get_name(view));
+#endif
+				lub_bintree_remove(cmd_tree, cmd);
+				clish_command_delete(cmd);
+				continue;
+			}
+
 			/* Resolve command aliases */
 			if (cmd_is_alias) {
 				clish_view_t *aview;
@@ -285,17 +297,19 @@ int clish_shell_prepare(clish_shell_t *this)
 						clish_command__get_name(cmd));
 					return -1;
 				}
-			}
-			/* Check access rights for the COMMAND */
-			if (access_fn && clish_command__get_access(cmd) &&
-				access_fn(this, clish_command__get_access(cmd))) {
+				/* Check access rights for newly constructed COMMAND.
+				   Now the link has access filed from referenced command.
+				 */
+				if (access_fn && clish_command__get_access(cmd) &&
+					access_fn(this, clish_command__get_access(cmd))) {
 #ifdef DEBUG
-				fprintf(stderr, "Warning: Access denied. Remove COMMAND \"%s\" from VIEW \"%s\"\n",
-					clish_command__get_name(cmd), clish_view__get_name(view));
+					fprintf(stderr, "Warning: Access denied. Remove COMMAND \"%s\" from VIEW \"%s\"\n",
+						clish_command__get_name(cmd), clish_view__get_name(view));
 #endif
-				lub_bintree_remove(cmd_tree, cmd);
-				clish_command_delete(cmd);
-				continue;
+					lub_bintree_remove(cmd_tree, cmd);
+					clish_command_delete(cmd);
+					continue;
+				}
 			}
 			if (cmd_is_alias) /* Don't duplicate paramv processing for aliases */
 				continue;
