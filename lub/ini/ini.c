@@ -130,8 +130,12 @@ int lub_ini_parse_str(lub_ini_t *this, const char *ini)
 		value = strtok_r(NULL, "=", &savestr);
 		begin = lub_string_nextword(name, &len, &offset, &quoted);
 		rname = lub_string_dupn(begin, len);
-		begin = lub_string_nextword(value, &len, &offset, &quoted);
-		rvalue = lub_string_dupn(begin, len);
+		if (!value) /* Empty value */
+			rvalue = NULL;
+		else {
+			begin = lub_string_nextword(value, &len, &offset, &quoted);
+			rvalue = lub_string_dupn(begin, len);
+		}
 		pair = lub_pair_new(rname, rvalue);
 		lub_ini_add(this, pair);
 		lub_string_free(rname);
