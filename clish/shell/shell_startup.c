@@ -79,6 +79,32 @@ const char * clish_shell__get_default_shebang(const clish_shell_t *this)
 	return this->default_shebang;
 }
 
+
+
+/*-------------------------------------------------------- */
+/* Resolve PTYPE for given PARAM.
+ */
+static clish_ptype_t * resolve_ptype(clish_shell_t *this, clish_param_t *param)
+{
+	clish_ptype_t *ptype = NULL;
+
+	if (!this || !param)
+		return NULL;
+
+	/* Resolve PARAM's PTYPE */
+	ptype = clish_shell_find_ptype(this, clish_param__get_ptype_name(param));
+	if (!ptype) {
+		fprintf(stderr, "Error: Unresolved PTYPE \"%s\" in PARAM \"%s\"\n",
+			clish_param__get_ptype_name(param),
+			clish_param__get_name(param));
+		return NULL;
+	}
+	clish_param__set_ptype(param, ptype);
+	clish_param__set_ptype_name(param, NULL); /* Free some memory */
+
+	return ptype;
+}
+
 /*-------------------------------------------------------- */
 /* Static recursive function to iterate parameters. Logically it's the
  * part of clish_shell_prepare() function.
@@ -91,18 +117,10 @@ static int iterate_paramv(clish_shell_t *this, clish_paramv_t *paramv,
 
 	while((param = clish_paramv__get_param(paramv, i))) {
 		clish_paramv_t *nested_paramv;
-		clish_ptype_t *ptype = NULL;
 
 		/* Resolve PARAM's PTYPE */
-		ptype = clish_shell_find_ptype(this, clish_param__get_ptype_name(param));
-		if (!ptype) {
-			fprintf(stderr, "Error: Unresolved PTYPE \"%s\" in PARAM \"%s\"\n",
-				clish_param__get_ptype_name(param),
-				clish_param__get_name(param));
-				return -1;
-		}
-		clish_param__set_ptype(param, ptype);
-		clish_param__set_ptype_name(param, NULL); /* Free some memory */
+		if (!resolve_ptype(this, param))
+			return -1;
 
 		/* Check access for PARAM */
 		if (access_fn && clish_param__get_access(param) &&
@@ -251,6 +269,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {
 			int cmd_is_alias = clish_command__get_alias(cmd)?1:0;
+			clish_param_t *args = NULL;
 
 			/* Check access rights for the COMMAND */
 			if (access_fn && clish_command__get_access(cmd) &&
@@ -313,9 +332,15 @@ int clish_shell_prepare(clish_shell_t *this)
 			}
 			if (cmd_is_alias) /* Don't duplicate paramv processing for aliases */
 				continue;
+			/* Iterate PARAMeters */
 			paramv = clish_command__get_paramv(cmd);
 			if (iterate_paramv(this, paramv, access_fn) < 0)
 				return -1;
+			/* Resolve PTYPE for args */
+			if ((args = clish_command__get_args(cmd))) {
+				if (!resolve_ptype(this, args))
+					return -1;
+			}
 		}
 	}
 

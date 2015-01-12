@@ -51,7 +51,7 @@ const char *clish_command__get_text(const clish_command_t * instance);
 const char *clish_command__get_detail(const clish_command_t * instance);
 const char *clish_command__get_escape_chars(const clish_command_t * instance);
 const char *clish_command__get_regex_chars(const clish_command_t * instance);
-const clish_param_t *clish_command__get_args(const clish_command_t * instance);
+clish_param_t *clish_command__get_args(const clish_command_t * instance);
 clish_action_t *clish_command__get_action(const clish_command_t *instance);
 char *clish_command__get_viewname(const clish_command_t * instance);
 char *clish_command__get_viewid(const clish_command_t *instance);

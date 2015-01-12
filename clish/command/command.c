@@ -344,7 +344,7 @@ void clish_command__set_args(clish_command_t * this, clish_param_t * args)
 }
 
 /*--------------------------------------------------------- */
-const clish_param_t *clish_command__get_args(const clish_command_t * this)
+clish_param_t *clish_command__get_args(const clish_command_t * this)
 {
 	return this->args;
 }
