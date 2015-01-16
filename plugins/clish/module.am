@@ -3,7 +3,8 @@ clish_plugin_clish_la_SOURCES =
 clish_plugin_clish_la_DEPENDENCIES = \
 	libclish.la \
 	libkonf.la \
-	liblub.la
+	liblub.la \
+	libtinyrl.la
 clish_plugin_clish_la_LIBADD = \
 	$(clish_plugin_clish_la_DEPENDENCIES)
 
