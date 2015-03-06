@@ -746,6 +746,7 @@ void tinyrl_multi_crlf(const tinyrl_t * this)
 	tinyrl_internal_position(this, this->prompt_len + line_len,
 		- (line_len - count), this->last_width);
 	tinyrl_crlf(this);
+	tinyrl_vt100_oflush(this->term);
 }
 
 /*----------------------------------------------------------------------- */
@@ -795,7 +796,7 @@ void tinyrl_redisplay(tinyrl_t * this)
 	}
 
 	/* Update the display */
-	(void)tinyrl_vt100_oflush(this->term);
+	tinyrl_vt100_oflush(this->term);
 
 	/* Save the last line buffer */
 	lub_string_free(this->last_buffer);
