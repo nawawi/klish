@@ -75,7 +75,7 @@ CLISH_PLUGIN_SYM(clish_script)
 		wpipe = fopen(fifo_name, "w");
 		if (!wpipe)
 			_exit(-1);
-		fwrite(script, strlen(script) + 1, 1, wpipe);
+		fwrite(script, strlen(script), 1, wpipe);
 		fclose(wpipe);
 		_exit(0);
 	}
