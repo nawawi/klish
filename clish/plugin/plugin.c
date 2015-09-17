@@ -40,6 +40,7 @@ clish_sym_t *clish_sym_new(const char *name, void *func, int type)
 	this->name = lub_string_dup(name);
 	this->func = func;
 	this->type = type;
+	this->api = CLISH_SYM_API_SIMPLE;
 	this->permanent = BOOL_FALSE;
 
 	return this;
@@ -110,9 +111,21 @@ void clish_sym__set_type(clish_sym_t *this, int type)
 }
 
 /*--------------------------------------------------------- */
-int clish_sym__get_type(clish_sym_t *this)
+int clish_sym__get_type(const clish_sym_t *this)
 {
 	return this->type;
+}
+
+/*--------------------------------------------------------- */
+void clish_sym__set_api(clish_sym_t *this, clish_sym_api_e api)
+{
+	this->api = api;
+}
+
+/*--------------------------------------------------------- */
+clish_sym_api_e clish_sym__get_api(const clish_sym_t *this)
+{
+	return this->api;
 }
 
 /*--------------------------------------------------------- */
@@ -221,6 +234,33 @@ clish_sym_t *clish_plugin_add_psym(clish_plugin_t *this,
 {
 	return clish_plugin_add_generic(this, func,
 		name, CLISH_SYM_TYPE_ACTION, BOOL_TRUE);
+}
+
+/*--------------------------------------------------------- */
+clish_sym_t *clish_plugin_add_osym(clish_plugin_t *this,
+	clish_hook_action_fn_t *func, const char *name)
+{
+	clish_sym_t *s;
+
+	if (!(s = clish_plugin_add_sym(this, func, name)))
+		return s;
+	clish_sym__set_api(s, CLISH_SYM_API_STDOUT);
+
+	return s;
+}
+
+/*--------------------------------------------------------- */
+/* Add permanent symbol (can't be turned off by dry-run) */
+clish_sym_t *clish_plugin_add_posym(clish_plugin_t *this,
+	clish_hook_action_fn_t *func, const char *name)
+{
+	clish_sym_t *s;
+
+	if (!(s = clish_plugin_add_psym(this, func, name)))
+		return s;
+	clish_sym__set_api(s, CLISH_SYM_API_STDOUT);
+
+	return s;
 }
 
 /*--------------------------------------------------------- */
