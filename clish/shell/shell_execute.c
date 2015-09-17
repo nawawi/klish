@@ -208,7 +208,7 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	int result = -1;
 	clish_sym_t *sym;
 	char *script;
-	clish_hook_action_fn_t *func = NULL;
+	void *func = NULL; /* We don't know the func API at this time */
 	const clish_action_t *action = clish_context__get_action(context);
 	clish_shell_t *shell = clish_context__get_shell(context);
 
@@ -221,7 +221,14 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 		return -1;
 	}
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
-	result = func(context, script, out);
+
+	/* Find out the function API */
+	if (clish_sym__get_api(sym) == CLISH_SYM_API_STDOUT) {
+		result = ((clish_hook_oaction_fn_t *)func)(context, script);
+	} else { /* CLISH_SYM_API_SIMPLE */
+		result = ((clish_hook_action_fn_t *)func)(context, script, out);
+	}
+
 	lub_string_free(script);
 
 	return result;
