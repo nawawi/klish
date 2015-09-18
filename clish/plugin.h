@@ -99,9 +99,9 @@ clish_sym_t *clish_plugin_add_sym(clish_plugin_t *instance,
 clish_sym_t *clish_plugin_add_psym(clish_plugin_t *instance,
 	clish_hook_action_fn_t *func, const char *name);
 clish_sym_t *clish_plugin_add_osym(clish_plugin_t *instance,
-	clish_hook_action_fn_t *func, const char *name);
+	clish_hook_oaction_fn_t *func, const char *name);
 clish_sym_t *clish_plugin_add_posym(clish_plugin_t *instance,
-	clish_hook_action_fn_t *func, const char *name);
+	clish_hook_oaction_fn_t *func, const char *name);
 clish_sym_t *clish_plugin_add_hook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
 clish_sym_t *clish_plugin_add_phook(clish_plugin_t *instance,

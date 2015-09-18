@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
 
@@ -203,6 +204,80 @@ error:
 }
 
 /*----------------------------------------------------------- */
+/* Execute oaction. It suppose the forked process to get
+ * script's stdout. Then forked process write the output back
+ * to klish.
+ */
+static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
+	void *context, const char *script, char **out)
+{
+	int result = -1;
+	int real_stdout; /* Saved stdout handler */
+	int pipe1[2], pipe2[2];
+	pid_t cpid = -1;
+	konf_buf_t *buf;
+
+	if (pipe(pipe1))
+		return -1;
+	if (pipe(pipe2))
+		goto stdout_error;
+
+	/* Create process to read script's stdout */
+	cpid = fork();
+	if (cpid == -1) {
+		fprintf(stderr, "Error: Can't fork the stdout-grabber process.\n"
+			"Error: The ACTION will be not executed.\n");
+		goto stdout_error;
+	}
+
+	/* Child: read action's stdout */
+	if (cpid == 0) {
+		char *str;
+		int len;
+
+		close(pipe1[1]);
+		close(pipe2[0]);
+		/* Read the result of script execution */
+		buf = konf_buf_new(pipe1[0]);
+		while (konf_buf_read(buf) > 0);
+		close(pipe1[0]);
+		len = konf_buf__get_len(buf);
+		str = konf_buf__get_buf(buf);
+		write(pipe2[1], str, len);
+		close(pipe2[1]);
+		konf_buf_delete(buf);
+		_exit(0);
+	}
+
+	real_stdout = dup(STDOUT_FILENO);
+	dup2(pipe1[1], STDOUT_FILENO);
+	close(pipe1[0]);
+	close(pipe1[1]);
+	close(pipe2[1]);
+
+	result = func(context, script);
+
+	/* Restore real stdout */
+	dup2(real_stdout, STDOUT_FILENO);
+	close(real_stdout);
+	/* Read the result of script execution */
+	buf = konf_buf_new(pipe2[0]);
+	while (konf_buf_read(buf) > 0);
+	*out = konf_buf__dup_line(buf);
+	konf_buf_delete(buf);
+	close(pipe2[0]);
+	/* Wait for the stdout-grabber process */
+	waitpid(cpid, NULL, 0);
+
+	return result;
+
+stdout_error:
+	close(pipe1[0]);
+	close(pipe1[1]);
+	return -1;
+}
+
+/*----------------------------------------------------------- */
 int clish_shell_exec_action(clish_context_t *context, char **out)
 {
 	int result = -1;
@@ -223,10 +298,18 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
 
 	/* Find out the function API */
-	if (clish_sym__get_api(sym) == CLISH_SYM_API_STDOUT) {
-		result = ((clish_hook_oaction_fn_t *)func)(context, script);
-	} else { /* CLISH_SYM_API_SIMPLE */
+	/* CLISH_SYM_API_SIMPLE */
+	if (clish_sym__get_api(sym) == CLISH_SYM_API_SIMPLE) {
 		result = ((clish_hook_action_fn_t *)func)(context, script, out);
+
+	/* CLISH_SYM_API_STDOUT and output is not needed */
+	} else if ((clish_sym__get_api(sym) == CLISH_SYM_API_STDOUT) && (!out)) {
+		result = ((clish_hook_oaction_fn_t *)func)(context, script);
+
+	/* CLISH_SYM_API_STDOUT and outpus is needed */
+	} else if (clish_sym__get_api(sym) == CLISH_SYM_API_STDOUT) {
+		result = clish_shell_exec_oaction((clish_hook_oaction_fn_t *)func,
+			context, script, out);
 	}
 
 	lub_string_free(script);

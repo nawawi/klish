@@ -238,11 +238,12 @@ clish_sym_t *clish_plugin_add_psym(clish_plugin_t *this,
 
 /*--------------------------------------------------------- */
 clish_sym_t *clish_plugin_add_osym(clish_plugin_t *this,
-	clish_hook_action_fn_t *func, const char *name)
+	clish_hook_oaction_fn_t *func, const char *name)
 {
 	clish_sym_t *s;
 
-	if (!(s = clish_plugin_add_sym(this, func, name)))
+	if (!(s = clish_plugin_add_generic(this, func,
+		name, CLISH_SYM_TYPE_ACTION, BOOL_FALSE)))
 		return s;
 	clish_sym__set_api(s, CLISH_SYM_API_STDOUT);
 
@@ -252,11 +253,12 @@ clish_sym_t *clish_plugin_add_osym(clish_plugin_t *this,
 /*--------------------------------------------------------- */
 /* Add permanent symbol (can't be turned off by dry-run) */
 clish_sym_t *clish_plugin_add_posym(clish_plugin_t *this,
-	clish_hook_action_fn_t *func, const char *name)
+	clish_hook_oaction_fn_t *func, const char *name)
 {
 	clish_sym_t *s;
 
-	if (!(s = clish_plugin_add_psym(this, func, name)))
+	if (!(s = clish_plugin_add_generic(this, func,
+		name, CLISH_SYM_TYPE_ACTION, BOOL_TRUE)))
 		return s;
 	clish_sym__set_api(s, CLISH_SYM_API_STDOUT);
 
