@@ -29,6 +29,9 @@
 #define CLISH_LOCK_PATH "/tmp/clish.lock"
 #define CLISH_LOCK_WAIT 20
 
+#define CLISH_STDOUT_CHUNK 1024
+#define CLISH_STDOUT_MAXBUF (CLISH_STDOUT_CHUNK * 1024)
+
 #define CLISH_XML_ERROR_STR "Error parsing XML: "
 #define CLISH_XML_ERROR_ATTR(attr) CLISH_XML_ERROR_STR"The \""attr"\" attribute is required.\n"
 

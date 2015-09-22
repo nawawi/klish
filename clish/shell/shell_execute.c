@@ -236,7 +236,8 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 		lub_list_t *l;
 		lub_list_node_t *node;
 		struct iovec *iov;
-		const int rsize = 1024; /* Read chunk size */
+		const int rsize = CLISH_STDOUT_CHUNK; /* Read chunk size */
+		size_t cur_size = 0;
 
 		close(pipe1[1]);
 		close(pipe2[0]);
@@ -258,6 +259,10 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 			}
 			iov->iov_len = ret;
 			lub_list_add(l, iov);
+			/* Check the max size of buffer */
+			cur_size += ret;
+			if (cur_size >= CLISH_STDOUT_MAXBUF)
+				break;
 		}
 		close(pipe1[0]);
 
