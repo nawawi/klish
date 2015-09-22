@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <sys/uio.h>
 #include <signal.h>
 #include <fcntl.h>
 
@@ -232,20 +233,46 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 
 	/* Child: read action's stdout */
 	if (cpid == 0) {
-		char *str;
-		int len;
+		lub_list_t *l;
+		lub_list_node_t *node;
+		struct iovec *iov;
+		const int rsize = 1024; /* Read chunk size */
 
 		close(pipe1[1]);
 		close(pipe2[0]);
+		l = lub_list_new(NULL);
+
 		/* Read the result of script execution */
-		buf = konf_buf_new(pipe1[0]);
-		while (konf_buf_read(buf) > 0);
+		while (1) {
+			ssize_t ret;
+			iov = malloc(sizeof(*iov));
+			iov->iov_len = rsize;
+			iov->iov_base = malloc(iov->iov_len);
+			do {
+				ret = readv(pipe1[0], iov, 1);
+			} while ((ret < 0) && (errno == EINTR));
+			if (ret <= 0) { /* Error or EOF */
+				free(iov->iov_base);
+				free(iov);
+				break;
+			}
+			iov->iov_len = ret;
+			lub_list_add(l, iov);
+		}
 		close(pipe1[0]);
-		len = konf_buf__get_len(buf);
-		str = konf_buf__get_buf(buf);
-		write(pipe2[1], str, len);
+
+		/* Write the result of script back to klish */
+		while ((node = lub_list__get_head(l))) {
+			iov = lub_list_node__get_data(node);
+			lub_list_del(l, node);
+			lub_list_node_free(node);
+			write(pipe2[1], iov->iov_base, iov->iov_len);
+			free(iov->iov_base);
+			free(iov);
+		}
 		close(pipe2[1]);
-		konf_buf_delete(buf);
+
+		lub_list_free(l);
 		_exit(0);
 	}
 
