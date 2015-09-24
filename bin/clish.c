@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 	/* Load the XML files */
-	if (clish_shell_load_scheme(shell, xml_path))
+	if (clish_shell_load_scheme(shell, xml_path, NULL))
 		goto end;
 	/* Set communication to the konfd */
 	clish_shell__set_socket(shell, socket_path);

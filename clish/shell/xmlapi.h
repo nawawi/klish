@@ -7,6 +7,10 @@
 #ifndef clish_xmlapi_included_h
 #define clish_xmlapi_included_h
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h> /* need for FILE */
@@ -192,6 +196,35 @@ void clish_xml_release(void *p);
  * print an XML node to the out file
  */
 void clish_xmlnode_print(clish_xmlnode_t *node, FILE *out);
+
+#ifdef HAVE_LIB_XSLT
+
+/*
+ * XSLT stylesheet (opaque type)
+ * The real type is defined by the selected external API
+ */
+typedef struct clish_xslt_s clish_xslt_t;
+
+/*
+ * Load an XSLT stylesheet
+ */
+clish_xslt_t *clish_xslt_read(const char *filename);
+
+
+/* Apply XSLT stylesheet */
+clish_xmldoc_t *clish_xslt_apply(clish_xmldoc_t *xmldoc, clish_xslt_t *stylesheet);
+
+/*
+ * Release a previously opened XSLT stylesheet
+ */
+void clish_xslt_release(clish_xslt_t *stylesheet);
+
+/*
+ * Check if a stylesheet is valid (i.e. it loaded successfully)
+ */
+int clish_xslt_is_valid(clish_xslt_t *stylesheet);
+
+#endif /* HAVE_LIB_LIBXSLT */
 
 #endif /* clish_xmlapi_included_h */
 

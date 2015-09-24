@@ -99,7 +99,6 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
 	clish_ptype_preprocess_e preprocess);
 clish_ptype_t *clish_shell_find_ptype(clish_shell_t *instance,
 	const char *name);
-int clish_shell_xml_read(clish_shell_t * instance, const char *filename);
 void clish_shell_help(clish_shell_t * instance, const char *line);
 int clish_shell_exec_action(clish_context_t *context, char **out);
 int clish_shell_execute(clish_context_t *context, char **out);
@@ -147,7 +146,7 @@ FILE *clish_shell__get_ostream(const clish_shell_t * instance);
 void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
 char * clish_shell__get_lockfile(clish_shell_t * instance);
 int clish_shell__set_socket(clish_shell_t * instance, const char * path);
-int clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path);
+int clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path, const char *xslt_path);
 int clish_shell_loop(clish_shell_t * instance);
 clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
