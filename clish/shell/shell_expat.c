@@ -307,6 +307,17 @@ static void clish_expat_free_node(clish_xmlnode_t *cur)
 /*
  * Public interface
  */
+
+int clish_xmldoc_start(void)
+{
+	return 0;
+}
+
+int clish_xmldoc_stop(void)
+{
+	return 0;
+}
+
 clish_xmldoc_t *clish_xmldoc_read(const char *filename)
 {
 	clish_xmldoc_t *doc;

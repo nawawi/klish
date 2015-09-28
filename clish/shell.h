@@ -213,6 +213,13 @@ int clish_shell__set_udata(clish_shell_t *instance,
 /* Access functions */
 int clish_shell_prepare(clish_shell_t *instance);
 
+/*
+ * Non shell specific functions.
+ * Start and Stop XML parser engine.
+ */
+int clish_xmldoc_start(void);
+int clish_xmldoc_stop(void);
+
 _END_C_DECL
 
 #endif				/* _clish_shell_h */

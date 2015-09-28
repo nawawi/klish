@@ -28,6 +28,13 @@ typedef struct clish_xmldoc_s clish_xmldoc_t;
 typedef struct clish_xmlnode_s clish_xmlnode_t;
 
 /*
+ * Start and Stop XML parser engine.
+ * Some parsers need a global cleanup at the end of the programm.
+ */
+int clish_xmldoc_start(void);
+int clish_xmldoc_stop(void);
+
+/*
  * read an XML document
  */
 clish_xmldoc_t *clish_xmldoc_read(const char *filename);
@@ -197,7 +204,7 @@ void clish_xml_release(void *p);
  */
 void clish_xmlnode_print(clish_xmlnode_t *node, FILE *out);
 
-#ifdef HAVE_LIB_XSLT
+#ifdef HAVE_LIB_LIBXSLT
 
 /*
  * XSLT stylesheet (opaque type)

@@ -139,9 +139,9 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 				doc = clish_xmldoc_read(filename);
 				if (clish_xmldoc_is_valid(doc)) {
 					clish_xmlnode_t *root;
-#ifdef HAVEL_LIB_LIBXSLT
+#ifdef HAVE_LIB_LIBXSLT
 					if (xslt_path) {
-						xmlDoc *tmp;
+						clish_xmldoc_t *tmp;
 						tmp = clish_xslt_apply(doc, xslt);
 						if (!clish_xmldoc_is_valid(tmp)) {
 							fprintf(stderr, CLISH_XML_ERROR_STR"Can't load XSLT file %s\n", xslt_path);

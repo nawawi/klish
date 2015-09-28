@@ -65,6 +65,29 @@ static inline clish_xmlnode_t *node_to_xmlnode(xmlNode *node)
 /*
  * public interface
  */
+
+int clish_xmldoc_start(void)
+{
+#ifdef HAVE_LIB_LIBXSLT
+	/* The XSLT example contain these settings but I doubt 
+	 * it's really necessary.
+	 */
+/*	xmlSubstituteEntitiesDefault(1);
+	xmlLoadExtDtdDefaultValue = 1;
+*/
+#endif
+	return 0;
+}
+
+int clish_xmldoc_stop(void)
+{
+#ifdef HAVE_LIB_LIBXSLT
+	xsltCleanupGlobals();
+#endif
+	xmlCleanupParser();
+	return 0;
+}
+
 clish_xmldoc_t *clish_xmldoc_read(const char *filename)
 {
 	xmlDoc *doc;
@@ -72,13 +95,10 @@ clish_xmldoc_t *clish_xmldoc_read(const char *filename)
 	return doc_to_xmldoc(doc);
 }
 
-
 void clish_xmldoc_release(clish_xmldoc_t *doc)
 {
-	if (doc) {
+	if (doc)
 		xmlFreeDoc(xmldoc_to_doc(doc));
-		xmlCleanupParser();
-	}
 }
 
 int clish_xmldoc_is_valid(clish_xmldoc_t *doc)
@@ -294,7 +314,7 @@ void clish_xml_release(void *p)
 
 static inline xsltStylesheet *xslt_to_xsltStylesheet(clish_xslt_t *xslt)
 {
-	return (xsltStylesheet*)doc;
+	return (xsltStylesheet*)xslt;
 }
 
 static inline clish_xslt_t *xsltStylesheet_to_xslt(xsltStylesheet *xslt)
@@ -324,8 +344,6 @@ clish_xslt_t *clish_xslt_read(const char *filename)
 {
 	xsltStylesheet* cur = NULL;
 
-	xmlSubstituteEntitiesDefault(1);
-	xmlLoadExtDtdDefaultValue = 1;
 	cur = xsltParseStylesheetFile((const xmlChar *)filename);
 
 	return xsltStylesheet_to_xslt(cur);
@@ -338,7 +356,6 @@ void clish_xslt_release(clish_xslt_t *stylesheet)
 	if (!cur)
 		return;
 	xsltFreeStylesheet(cur);
-	xsltCleanupGlobals();
 }
 
 #endif /* HAVE_LIB_LIBXSLT */
