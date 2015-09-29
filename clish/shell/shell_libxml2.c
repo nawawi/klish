@@ -349,6 +349,16 @@ clish_xslt_t *clish_xslt_read(const char *filename)
 	return xsltStylesheet_to_xslt(cur);
 }
 
+clish_xslt_t *clish_xslt_read_embedded(clish_xmldoc_t *xmldoc)
+{
+	xsltStylesheet* cur = NULL;
+	xmlDoc *doc = xmldoc_to_doc(xmldoc);
+
+	cur = xsltLoadStylesheetPI(doc);
+
+	return xsltStylesheet_to_xslt(cur);
+}
+
 void clish_xslt_release(clish_xslt_t *stylesheet)
 {
 	xsltStylesheet* cur = xslt_to_xsltStylesheet(stylesheet);

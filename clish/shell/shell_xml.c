@@ -140,8 +140,14 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 				if (clish_xmldoc_is_valid(doc)) {
 					clish_xmlnode_t *root;
 #ifdef HAVE_LIB_LIBXSLT
-					if (xslt_path) {
-						clish_xmldoc_t *tmp;
+					clish_xmldoc_t *tmp;
+					/* Use embedded stylesheet if stylesheet
+					 * filename is not specified.
+					 */
+					if (!xslt_path)
+						xslt = clish_xslt_read_embedded(doc);
+
+					if (clish_xslt_is_valid(xslt)) {
 						tmp = clish_xslt_apply(doc, xslt);
 						if (!clish_xmldoc_is_valid(tmp)) {
 							fprintf(stderr, CLISH_XML_ERROR_STR"Can't load XSLT file %s\n", xslt_path);
@@ -151,6 +157,9 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 							doc = tmp;
 						}
 					}
+
+					if (!xslt_path && clish_xslt_is_valid(xslt))
+						clish_xslt_release(xslt);
 #endif
 					if (!res) {
 						root = clish_xmldoc_get_root(doc);

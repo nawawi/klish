@@ -217,6 +217,11 @@ typedef struct clish_xslt_s clish_xslt_t;
  */
 clish_xslt_t *clish_xslt_read(const char *filename);
 
+/*
+ * Load an embedded XSLT stylesheet from already
+ * loaded XML document.
+ */
+clish_xslt_t *clish_xslt_read_embedded(clish_xmldoc_t *xmldoc);
 
 /* Apply XSLT stylesheet */
 clish_xmldoc_t *clish_xslt_apply(clish_xmldoc_t *xmldoc, clish_xslt_t *stylesheet);
