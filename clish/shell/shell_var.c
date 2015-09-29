@@ -378,7 +378,7 @@ static char *expand_nextsegment(const char **string, const char *escape_chars,
  * subtituting each occurance of a "${FRED}" type variable sub-string
  * with the appropriate value.
  */
-char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context_t *context)
+char *clish_shell_expand(const char *str, clish_shell_var_e vtype, clish_context_t *context)
 {
 	char *seg, *result = NULL;
 	const char *escape_chars = NULL;

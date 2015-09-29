@@ -70,7 +70,7 @@ typedef enum {
 	SHELL_VAR_NONE, /* Nothing to escape */
 	SHELL_VAR_ACTION, /* Variable expanding for ACTION script */
 	SHELL_VAR_REGEX /* Variable expanding for regex usage */
-} clish_shell_var_t;
+} clish_shell_var_e;
 
 typedef enum {
 	SHELL_EXPAND_PARAM = 1,
@@ -131,7 +131,7 @@ void clish_shell_insert_var(clish_shell_t *instance, clish_var_t *var);
 clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
 char *clish_shell_expand_var(const char *name, clish_context_t *context);
 char *clish_shell_expand_var_ex(const char *name, clish_context_t *context, clish_shell_expand_e flags);
-char *clish_shell_expand(const char *str, clish_shell_var_t vtype, clish_context_t *context);
+char *clish_shell_expand(const char *str, clish_shell_var_e vtype, clish_context_t *context);
 
 /*-----------------
  * attributes
