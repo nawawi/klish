@@ -317,14 +317,14 @@ clish_pargv_status_t clish_shell_parse_pargv(clish_pargv_t *pargv,
 }
 
 /*----------------------------------------------------------- */
-clish_shell_state_t clish_shell__get_state(const clish_shell_t *this)
+clish_shell_state_e clish_shell__get_state(const clish_shell_t *this)
 {
 	return this->state;
 }
 
 /*----------------------------------------------------------- */
 void clish_shell__set_state(clish_shell_t *this,
-	clish_shell_state_t state)
+	clish_shell_state_e state)
 {
 	assert(this);
 	this->state = state;

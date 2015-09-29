@@ -64,7 +64,7 @@ typedef enum {
 	SHELL_STATE_HELPING = 7,
 	SHELL_STATE_EOF = 8, /* EOF of input stream */
 	SHELL_STATE_CLOSING = 9
-} clish_shell_state_t;
+} clish_shell_state_e;
 
 typedef enum {
 	SHELL_VAR_NONE, /* Nothing to escape */
@@ -158,9 +158,9 @@ char * clish_shell__get_lockfile(clish_shell_t * instance);
 int clish_shell__set_socket(clish_shell_t * instance, const char * path);
 int clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path, const char *xslt_path);
 int clish_shell_loop(clish_shell_t * instance);
-clish_shell_state_t clish_shell__get_state(const clish_shell_t * instance);
+clish_shell_state_e clish_shell__get_state(const clish_shell_t * instance);
 void clish_shell__set_state(clish_shell_t * instance,
-	clish_shell_state_t state);
+	clish_shell_state_e state);
 void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewname);
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
 void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);

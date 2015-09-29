@@ -68,7 +68,7 @@ struct clish_shell_s {
 	unsigned int wdog_timeout; /* Watchdog timeout */
 	bool_t wdog_active; /* If watchdog is active now */
 
-	clish_shell_state_t state; /* The current state */
+	clish_shell_state_e state; /* The current state */
 	char *overview; /* Overview text for this shell */
 	tinyrl_t *tinyrl; /* Tiny readline instance */
 	clish_shell_file_t *current_file; /* file currently in use for input */
