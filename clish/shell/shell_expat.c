@@ -53,7 +53,7 @@ struct clish_xmlnode_s {
 	clish_xmlnode_t *next; /**< next sibling */
 	clish_xmlnode_t *attributes; /**< attributes are nodes too */
 	char *content; /**< !NULL for text and attributes nodes */
-	clish_xmlnodetype_t type; /**< node type */
+	clish_xmlnodetype_e type; /**< node type */
 	int depth; /**< node depth */
 	clish_xmldoc_t *doc;
 };

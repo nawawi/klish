@@ -59,7 +59,7 @@ typedef enum {
 	CLISH_XMLERR_LINE 	= 0x10,
 	CLISH_XMLERR_COL 	= 0x20,
 	CLISH_XMLERR_DESC 	= 0x40
-} clish_xmlerrcaps_t;
+} clish_xmlerrcaps_e;
 
 /*
  * does this specific implementation define any error?
@@ -76,7 +76,7 @@ typedef enum {
 	CLISH_XMLNODE_PI,
 	CLISH_XMLNODE_DECL,
 	CLISH_XMLNODE_UNKNOWN,
-} clish_xmlnodetype_t;
+} clish_xmlnodetype_e;
 
 /*
  * get error description, when available
