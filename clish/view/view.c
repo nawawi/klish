@@ -285,7 +285,7 @@ static const clish_command_t *find_next_completion(clish_view_t * this,
 /*--------------------------------------------------------- */
 const clish_command_t *clish_view_find_next_completion(clish_view_t * this,
 	const char *iter_cmd, const char *line,
-	clish_nspace_visibility_t field, bool_t inherit)
+	clish_nspace_visibility_e field, bool_t inherit)
 {
 	const clish_command_t *result, *cmd;
 	clish_nspace_t *nspace;

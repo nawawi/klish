@@ -22,7 +22,7 @@
  */
 typedef struct {
 	const char *last_cmd;
-	clish_nspace_visibility_t field;
+	clish_nspace_visibility_e field;
 } clish_shell_iterator_t;
 
 /* this is used to maintain a stack of file handles */
@@ -101,7 +101,7 @@ struct clish_shell_s {
  */
 void
 clish_shell_iterator_init(clish_shell_iterator_t * iter,
-	clish_nspace_visibility_t field);
+	clish_nspace_visibility_e field);
 
 /**
  * get the next command which is an extension of the specified line 

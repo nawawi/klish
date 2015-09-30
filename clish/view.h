@@ -52,7 +52,7 @@ clish_command_t *clish_view_find_command(clish_view_t * instance,
 	const char *name, bool_t inherit);
 const clish_command_t *clish_view_find_next_completion(clish_view_t * instance,
 	const char *iter_cmd, const char *line,
-	clish_nspace_visibility_t field, bool_t inherit);
+	clish_nspace_visibility_e field, bool_t inherit);
 clish_command_t *clish_view_resolve_command(clish_view_t * instance,
 	const char *line, bool_t inherit);
 clish_command_t *clish_view_resolve_prefix(clish_view_t * instance,
