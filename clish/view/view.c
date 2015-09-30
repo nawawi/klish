@@ -379,13 +379,13 @@ unsigned clish_view__get_depth(const clish_view_t * this)
 
 /*--------------------------------------------------------- */
 void clish_view__set_restore(clish_view_t * this,
-	clish_view_restore_t restore)
+	clish_view_restore_e restore)
 {
 	this->restore = restore;
 }
 
 /*--------------------------------------------------------- */
-clish_view_restore_t clish_view__get_restore(const clish_view_t * this)
+clish_view_restore_e clish_view__get_restore(const clish_view_t * this)
 {
 	return this->restore;
 }

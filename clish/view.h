@@ -22,7 +22,7 @@ typedef enum {
 	CLISH_RESTORE_NONE,
 	CLISH_RESTORE_DEPTH,
 	CLISH_RESTORE_VIEW
-} clish_view_restore_t;
+} clish_view_restore_e;
 
 #include "lub/list.h"
 #include "clish/command.h"
@@ -70,8 +70,8 @@ char *clish_view__get_prompt(const clish_view_t *instance);
 void clish_view__set_depth(clish_view_t * instance, unsigned depth);
 unsigned clish_view__get_depth(const clish_view_t * instance);
 void clish_view__set_restore(clish_view_t * instance,
-	clish_view_restore_t restore);
-clish_view_restore_t clish_view__get_restore(const clish_view_t * instance);
+	clish_view_restore_e restore);
+clish_view_restore_e clish_view__get_restore(const clish_view_t * instance);
 int clish_view_insert_hotkey(const clish_view_t *instance, const char *key, const char *cmd);
 const char *clish_view_find_hotkey(const clish_view_t *instance, int code);
 void clish_view__set_access(clish_view_t *instance, const char *access);
