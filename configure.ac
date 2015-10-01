@@ -491,13 +491,13 @@ fi
 ################################
 
 if test x$use_libxslt != xno; then
-	XSLT_CFLAGS="`pkg-config libxslt --cflags`"
-	XSLT_LDFLAGS="`pkg-config libxslt --libs-only-L`"
-	XSLT_LIBS="`pkg-config libxslt --libs-only-l`"
-	AC_CHECK_LIB([xslt], [xsltApplyStylesheet], [libxslt_lib_found=yes])
-	XSLT_CFLAGS="`pkg-config libxslt --cflags`"
-	XSLT_LDFLAGS="`pkg-config libxslt --libs-only-L`"
-	XSLT_LIBS="`pkg-config libxslt --libs-only-l`"
+	AC_CHECK_LIB([xslt], [xsltApplyStylesheet], [libxslt_lib_found=yes], [libxslt_lib_found=no])
+	if test "x$libxslt_lib_found" != "xyes"; then
+		AC_MSG_ERROR([Can't find an XSLT library])
+	fi
+	XSLT_CFLAGS="`pkg-config libxslt --cflags 2>/dev/null`"
+	XSLT_LDFLAGS="`pkg-config libxslt --libs-only-L 2>/dev/null`"
+	XSLT_LIBS="`pkg-config libxslt --libs-only-l 2>/dev/null`"
 	if test "x${XSLT_LIBS}" = "x"; then
 		XSLT_LIBS="-lxslt"
 	fi
