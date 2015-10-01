@@ -148,7 +148,7 @@ static void clish_expat_add_attrlist(clish_xmlnode_t *node, const char **attr)
  * @return a new node or NULL on error
  */
 static clish_xmlnode_t *clish_expat_make_node(clish_xmlnode_t *parent,
-					      clish_xmlnodetype_t type,
+					      clish_xmlnodetype_e type,
 					      const char *n,
 					      const char *v,
 					      const char **attr)
