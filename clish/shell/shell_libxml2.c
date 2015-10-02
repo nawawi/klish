@@ -234,7 +234,8 @@ int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content,
 	/* first, get the content length */
 	c = n->children;
 	while (c) {
-		if (c->type == XML_TEXT_NODE && !xmlIsBlankNode(c)) {
+		if ((c->type == XML_TEXT_NODE || c->type == XML_CDATA_SECTION_NODE)
+			&& !xmlIsBlankNode(c)) {
 			rlen += strlen((char*)c->content);
 		}
 		c = c->next;
@@ -244,7 +245,8 @@ int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content,
 	if (rlen <= *contentlen) {
 		c = n->children;
 		while (c) {
-			if (c->type == XML_TEXT_NODE && !xmlIsBlankNode(c)) {
+			if ((c->type == XML_TEXT_NODE || c->type == XML_CDATA_SECTION_NODE)
+				 && !xmlIsBlankNode(c)) {
 				strcat(content, (char*)c->content);
 			}
 			c = c->next;
