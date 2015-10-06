@@ -19,6 +19,13 @@
 #include <signal.h>
 #include <fcntl.h>
 
+/* Empty signal handler to ignore signal but don't use SIG_IGN. */
+static void sigignore(int signo)
+{
+	signo = signo; /* Happy compiler */
+	return;
+}
+
 /*-------------------------------------------------------- */
 static int clish_shell_lock(const char *lock_path)
 {
@@ -87,8 +94,6 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	int result = 0;
 	char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
-	sigset_t old_sigs;
-	struct sigaction old_sigint, old_sigquit, old_sighup;
 	clish_view_t *cur_view = clish_shell__get_view(this);
 	unsigned int saved_wdog_timeout = this->wdog_timeout;
 
@@ -116,42 +121,10 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		}
 	}
 
-	/* Ignore and block SIGINT, SIGQUIT, SIGHUP */
-	if (!clish_command__get_interrupt(cmd)) {
-		struct sigaction sa;
-		sigset_t sigs;
-		sa.sa_flags = 0;
-		sigemptyset(&sa.sa_mask);
-		sa.sa_handler = SIG_IGN;
-		sigaction(SIGINT, &sa, &old_sigint);
-		sigaction(SIGQUIT, &sa, &old_sigquit);
-		sigaction(SIGHUP, &sa, &old_sighup);
-		sigemptyset(&sigs);
-		sigaddset(&sigs, SIGINT);
-		sigaddset(&sigs, SIGQUIT);
-		sigaddset(&sigs, SIGHUP);
-		sigprocmask(SIG_BLOCK, &sigs, &old_sigs);
-	}
-
 	/* Execute ACTION */
 	clish_context__set_action(context, clish_command__get_action(cmd));
-	result = clish_shell_exec_action(context, out);
-
-	/* Restore SIGINT, SIGQUIT, SIGHUP */
-	if (!clish_command__get_interrupt(cmd)) {
-		sigprocmask(SIG_SETMASK, &old_sigs, NULL);
-		/* Is the signals delivery guaranteed here (before
-		   sigaction restore) for previously blocked and
-		   pending signals? The simple test is working well.
-		   I don't want to use sigtimedwait() function bacause
-		   it needs a realtime extensions. The sigpending() with
-		   the sleep() is not nice too. Report bug if clish will
-		   get the SIGINT after non-interruptable action.
-		*/
-		sigaction(SIGINT, &old_sigint, NULL);
-		sigaction(SIGQUIT, &old_sigquit, NULL);
-		sigaction(SIGHUP, &old_sighup, NULL);
-	}
+	result = clish_shell_exec_action(context, out,
+		clish_command__get_interrupt(cmd));
 
 	/* Call config callback */
 	if (!result)
@@ -310,7 +283,7 @@ stdout_error:
 }
 
 /*----------------------------------------------------------- */
-int clish_shell_exec_action(clish_context_t *context, char **out)
+int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr)
 {
 	int result = -1;
 	clish_sym_t *sym;
@@ -318,6 +291,10 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 	void *func = NULL; /* We don't know the func API at this time */
 	const clish_action_t *action = clish_context__get_action(context);
 	clish_shell_t *shell = clish_context__get_shell(context);
+	/* Signal vars */
+	struct sigaction old_sigint, old_sigquit, old_sighup;
+	struct sigaction sa;
+	sigset_t old_sigs;
 
 	if (!(sym = clish_action__get_builtin(action)))
 		return 0;
@@ -328,6 +305,27 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 		return -1;
 	}
 	script = clish_shell_expand(clish_action__get_script(action), SHELL_VAR_ACTION, context);
+
+	/* Ignore and block SIGINT, SIGQUIT, SIGHUP.
+	 * The SIG_IGN is not a case because it will be inherited
+	 * while a fork(). It's necessary to ignore signals because
+	 * the klish itself and ACTION script share the same terminal.
+	 */
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = sigignore; /* Empty signal handler */
+	sigaction(SIGINT, &sa, &old_sigint);
+	sigaction(SIGQUIT, &sa, &old_sigquit);
+	sigaction(SIGHUP, &sa, &old_sighup);
+	/* Block signals for children processes. The block state is inherited. */
+	if (!intr) {
+		sigset_t sigs;
+		sigemptyset(&sigs);
+		sigaddset(&sigs, SIGINT);
+		sigaddset(&sigs, SIGQUIT);
+		sigaddset(&sigs, SIGHUP);
+		sigprocmask(SIG_BLOCK, &sigs, &old_sigs);
+	}
 
 	/* Find out the function API */
 	/* CLISH_SYM_API_SIMPLE */
@@ -343,6 +341,22 @@ int clish_shell_exec_action(clish_context_t *context, char **out)
 		result = clish_shell_exec_oaction((clish_hook_oaction_fn_t *)func,
 			context, script, out);
 	}
+
+	/* Restore SIGINT, SIGQUIT, SIGHUP */
+	if (!intr) {
+		sigprocmask(SIG_SETMASK, &old_sigs, NULL);
+		/* Is the signals delivery guaranteed here (before
+		   sigaction restore) for previously blocked and
+		   pending signals? The simple test is working well.
+		   I don't want to use sigtimedwait() function because
+		   it needs a realtime extensions. The sigpending() with
+		   the sleep() is not nice too. Report bug if clish will
+		   get the SIGINT after non-interruptable action.
+		*/
+	}
+	sigaction(SIGINT, &old_sigint, NULL);
+	sigaction(SIGQUIT, &old_sigquit, NULL);
+	sigaction(SIGHUP, &old_sighup, NULL);
 
 	lub_string_free(script);
 

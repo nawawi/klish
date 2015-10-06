@@ -31,10 +31,6 @@ CLISH_PLUGIN_OSYM(clish_script)
 	const char *fifo_name;
 	FILE *wpipe;
 	char *command = NULL;
-	struct sigaction sig_old_int;
-	struct sigaction sig_old_quit;
-	struct sigaction sig_new;
-	sigset_t sig_set;
 
 	assert(this);
 	if (!script) /* Nothing to do */
@@ -84,23 +80,7 @@ CLISH_PLUGIN_OSYM(clish_script)
 	lub_string_cat(&command, " ");
 	lub_string_cat(&command, fifo_name);
 
-	/* Ignore SIGINT and SIGQUIT */
-	/* Probably this code is necessary to don't get SIGINT
-	 * from executed script. Because the executed script
-	 * and klish have the same terminal.
-	 */
-	sigemptyset(&sig_set);
-	sig_new.sa_flags = 0;
-	sig_new.sa_mask = sig_set;
-	sig_new.sa_handler = SIG_IGN;
-	sigaction(SIGINT, &sig_new, &sig_old_int);
-	sigaction(SIGQUIT, &sig_new, &sig_old_quit);
-
 	res = system(command);
-
-	/* Restore SIGINT and SIGQUIT */
-	sigaction(SIGINT, &sig_old_int, NULL);
-	sigaction(SIGQUIT, &sig_old_quit, NULL);
 
 	/* Wait for the writing process */
 	kill(cpid, SIGTERM);
