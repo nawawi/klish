@@ -1167,6 +1167,7 @@ static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
 	char *file = clish_xmlnode_fetch_attr(element, "file");
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	char *alias = clish_xmlnode_fetch_attr(element, "alias");
+	char *rtld_global = clish_xmlnode_fetch_attr(element, "rtld_global");
 	int res = -1;
 	char *text;
 
@@ -1191,6 +1192,9 @@ static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (file && *file)
 		clish_plugin__set_file(plugin, file);
 
+	if (rtld_global && lub_string_nocasecmp(rtld_global, "true") == 0)
+		clish_plugin__set_rtld_global(plugin, BOOL_TRUE);
+
 	/* Get PLUGIN body content */
 	text = clish_xmlnode_get_all_content(element);
 	if (text && *text)
@@ -1203,6 +1207,7 @@ error:
 	clish_xml_release(file);
 	clish_xml_release(name);
 	clish_xml_release(alias);
+	clish_xml_release(rtld_global);
 
 	parent = parent; /* Happy compiler */
 

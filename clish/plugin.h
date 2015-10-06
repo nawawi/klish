@@ -123,6 +123,8 @@ void clish_plugin__set_builtin_flag(clish_plugin_t *instance, bool_t builtin_fla
 bool_t clish_plugin__get_builtin_flag(const clish_plugin_t *instance);
 void clish_plugin__set_conf(clish_plugin_t *instance, const char *conf);
 char *clish_plugin__get_conf(const clish_plugin_t *instance);
+void clish_plugin__set_rtld_global(clish_plugin_t *instance, bool_t rtld_global);
+bool_t clish_plugin__get_rtld_global(const clish_plugin_t *instance);
 
 #endif				/* _clish_plugin_h */
 /** @} clish_plugin */

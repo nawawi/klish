@@ -164,6 +164,8 @@ clish_plugin_t *clish_plugin_new(const char *name)
 	/* Constructor and destructor */
 	this->init = NULL;
 	this->fini = NULL;
+	/* Flags */
+	this->rtld_global = BOOL_FALSE; /* The dlopen() use RTLD_LOCAL by default */
 
 	return this;
 }
@@ -334,6 +336,7 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 #ifdef HAVE_DLFCN_H
 	char *file = NULL; /* Plugin so file name */
 	char *init_name = NULL; /* Init function name */
+	int flag = RTLD_NOW;
 
 	if (this->file) {
 		file = lub_string_dup(this->file);
@@ -344,7 +347,11 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 	}
 
 	/* Open dynamic library */
-	this->dlhan = dlopen(file, RTLD_NOW | RTLD_LOCAL);
+	if (clish_plugin__get_rtld_global(this))
+		flag |= RTLD_GLOBAL;
+	else
+		flag |= RTLD_LOCAL;
+	this->dlhan = dlopen(file, flag);
 	lub_string_free(file);
 	if (!this->dlhan) {
 		fprintf(stderr, "Error: Can't open plugin \"%s\": %s\n",
@@ -461,6 +468,18 @@ void clish_plugin__set_conf(clish_plugin_t *this, const char *conf)
 char *clish_plugin__get_conf(const clish_plugin_t *this)
 {
 	return this->conf;
+}
+
+/*--------------------------------------------------------- */
+void clish_plugin__set_rtld_global(clish_plugin_t *this, bool_t rtld_global)
+{
+	this->rtld_global = rtld_global;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_plugin__get_rtld_global(const clish_plugin_t *this)
+{
+	return this->rtld_global;
 }
 
 /*--------------------------------------------------------- */
