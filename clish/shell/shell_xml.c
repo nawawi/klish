@@ -98,6 +98,8 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 			return -1;
 		}
 	}
+#else
+	xslt_path = xslt_path; /* Happy compiler */
 #endif
 
 	/* Use the default path */
