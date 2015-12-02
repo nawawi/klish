@@ -36,9 +36,11 @@ basis.
 #ifndef _lub_ctype_h
 #define _lub_ctype_h
 
-#include "lub/types.h"
+#include <ctype.h>
 
+#include "lub/types.h"
 #include "lub/c_decl.h"
+
 _BEGIN_C_DECL
 /**
  * This operation identifies whether a character is a decimal digit
