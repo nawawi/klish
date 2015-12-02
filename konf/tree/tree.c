@@ -103,7 +103,7 @@ void konf_tree_delete(konf_tree_t * this)
 /*--------------------------------------------------------- */
 void konf_tree_fprintf(konf_tree_t *this, FILE *stream,
 	const char *pattern, int top_depth, int depth,
-	bool_t seq, unsigned char prev_pri_hi)
+	bool_t seq, bool_t splitter, unsigned char prev_pri_hi)
 {
 	konf_tree_t *conf;
 	lub_list_node_t *iter;
@@ -114,13 +114,13 @@ void konf_tree_fprintf(konf_tree_t *this, FILE *stream,
 		(this->depth > top_depth) &&
 		((depth < 0 ) || (this->depth <= (top_depth + depth)))) {
 		char *space = NULL;
-		unsigned space_num = this->depth - top_depth - 1;
+		unsigned int space_num = this->depth - top_depth - 1;
 		if (space_num > 0) {
 			space = malloc(space_num + 1);
 			memset(space, ' ', space_num);
 			space[space_num] = '\0';
 		}
-		if ((0 == this->depth) &&
+		if (splitter && (0 == this->depth) &&
 			(this->splitter ||
 			(konf_tree__get_priority_hi(this) != prev_pri_hi)))
 			fprintf(stream, "!\n");
@@ -142,7 +142,9 @@ void konf_tree_fprintf(konf_tree_t *this, FILE *stream,
 		conf = (konf_tree_t *)lub_list_node__get_data(iter);
 		if (pattern && (0 != regexec(&regexp, conf->line, 0, NULL, 0)))
 			continue;
-		konf_tree_fprintf(conf, stream, NULL, top_depth, depth, seq, pri);
+		/* Don't check pattern for child elements */
+		konf_tree_fprintf(conf, stream, NULL, top_depth, depth,
+			seq, splitter, pri);
 		pri = konf_tree__get_priority_hi(conf);
 	}
 	if (pattern)
