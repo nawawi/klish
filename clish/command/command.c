@@ -146,9 +146,10 @@ clish_command_t * clish_command_alias_to_link(clish_command_t *this, clish_comma
 	memcpy(&tmp, this, sizeof(tmp));
 	*this = *ref;
 	memcpy(&this->bt_node, &tmp.bt_node, sizeof(tmp.bt_node));
-	this->name = lub_string_dup(tmp.name);
-	this->text = lub_string_dup(tmp.text);
+	this->name = lub_string_dup(tmp.name); /* Save an original name */
+	this->text = lub_string_dup(tmp.text); /* Save an original help */
 	this->link = ref;
+	this->pview = tmp.pview; /* Save an original parent view */
 	clish_command_fini(&tmp);
 
 	return this;
