@@ -39,6 +39,7 @@ typedef struct {
 	char *line;
 	clish_view_t *view;
 	lub_bintree_t viewid;
+	clish_pargv_t *pargv;
 } clish_shell_pwd_t;
 
 /* Context structure */

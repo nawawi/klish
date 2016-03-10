@@ -146,6 +146,8 @@ void clish_shell__set_pwd(clish_shell_t *instance, const char * line,
 	clish_view_t * view, char * viewid, clish_context_t *context);
 char *clish_shell__get_pwd_line(const clish_shell_t * instance,
 	 unsigned int index);
+clish_pargv_t *clish_shell__get_pwd_pargv(const clish_shell_t *instance,
+	unsigned int index);
 char *clish_shell__get_pwd_full(const clish_shell_t * instance,
 	unsigned int depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,

@@ -80,9 +80,26 @@ clish_pargv_t *clish_pargv_new(void)
 }
 
 /*--------------------------------------------------------- */
+clish_pargv_t *clish_pargv_clone(const clish_pargv_t *src)
+{
+	clish_pargv_t *dst;
+	unsigned int i;
+
+	if (!src)
+		return NULL;
+
+	dst = clish_pargv_new();
+	for (i = 0; i < src->pargc; i++) {
+		clish_pargv_insert(dst, src->pargv[i]->param, src->pargv[i]->value);
+	}
+
+	return dst;
+}
+
+/*--------------------------------------------------------- */
 static void clish_pargv_fini(clish_pargv_t * this)
 {
-	unsigned i;
+	unsigned int i;
 
 	/* cleanup time */
 	for (i = 0; i < this->pargc; i++) {

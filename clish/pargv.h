@@ -43,6 +43,7 @@ const clish_parg_t *clish_pargv_find_arg(clish_pargv_t * instance,
 	const char *name);
 int clish_pargv_insert(clish_pargv_t * instance,
 	const clish_param_t * param, const char *value);
+clish_pargv_t *clish_pargv_clone(const clish_pargv_t *src);
 void clish_pargv_dump(const clish_pargv_t * instance);
 /*-----------------
  * attributes

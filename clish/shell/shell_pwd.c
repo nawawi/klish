@@ -13,6 +13,7 @@ void clish_shell__init_pwd(clish_shell_pwd_t *pwd)
 {
 	pwd->line = NULL;
 	pwd->view = NULL;
+	pwd->pargv = NULL;
 	/* initialise the tree of vars */
 	lub_bintree_init(&pwd->viewid,
 		clish_var_bt_offset(),
@@ -26,6 +27,7 @@ void clish_shell__fini_pwd(clish_shell_pwd_t *pwd)
 
 	lub_string_free(pwd->line);
 	pwd->view = NULL;
+	clish_pargv_delete(pwd->pargv);
 	/* delete each VAR held  */
 	while ((var = lub_bintree_findfirst(&pwd->viewid))) {
 		lub_bintree_remove(&pwd->viewid, var);
@@ -67,6 +69,7 @@ void clish_shell__set_pwd(clish_shell_t *this,
 	/* Fill the new pwd entry */
 	newpwd->line = line ? lub_string_dup(line) : NULL;
 	newpwd->view = view;
+	newpwd->pargv = clish_pargv_clone(clish_context__get_pargv(context));
 	clish_shell__expand_viewid(viewid, &newpwd->viewid, context);
 	clish_shell__fini_pwd(this->pwdv[index]);
 	free(this->pwdv[index]);
@@ -81,6 +84,15 @@ char *clish_shell__get_pwd_line(const clish_shell_t *this, unsigned int index)
 		return NULL;
 
 	return this->pwdv[index]->line;
+}
+
+/*--------------------------------------------------------- */
+clish_pargv_t *clish_shell__get_pwd_pargv(const clish_shell_t *this, unsigned int index)
+{
+	if (index >= this->pwdc)
+		return NULL;
+
+	return this->pwdv[index]->pargv;
 }
 
 /*--------------------------------------------------------- */
