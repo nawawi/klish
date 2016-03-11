@@ -148,6 +148,10 @@ char *clish_shell__get_pwd_line(const clish_shell_t * instance,
 	 unsigned int index);
 clish_pargv_t *clish_shell__get_pwd_pargv(const clish_shell_t *instance,
 	unsigned int index);
+char *clish_shell__get_pwd_cmd(const clish_shell_t *instance,
+	unsigned int index);
+char *clish_shell__get_pwd_prefix(const clish_shell_t *instance,
+	unsigned int index);
 char *clish_shell__get_pwd_full(const clish_shell_t * instance,
 	unsigned int depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,

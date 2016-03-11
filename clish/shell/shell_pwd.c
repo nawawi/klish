@@ -2,6 +2,7 @@
  * shell_pwd.c
  */
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <syslog.h>
 
@@ -14,6 +15,8 @@ void clish_shell__init_pwd(clish_shell_pwd_t *pwd)
 	pwd->line = NULL;
 	pwd->view = NULL;
 	pwd->pargv = NULL;
+	pwd->cmd = NULL;
+	pwd->prefix = NULL;
 	/* initialise the tree of vars */
 	lub_bintree_init(&pwd->viewid,
 		clish_var_bt_offset(),
@@ -26,6 +29,9 @@ void clish_shell__fini_pwd(clish_shell_pwd_t *pwd)
 	clish_var_t *var;
 
 	lub_string_free(pwd->line);
+	lub_string_free(pwd->cmd);
+	if (pwd->prefix)
+		lub_string_free(pwd->prefix);
 	pwd->view = NULL;
 	clish_pargv_delete(pwd->pargv);
 	/* delete each VAR held  */
@@ -44,6 +50,7 @@ void clish_shell__set_pwd(clish_shell_t *this,
 	unsigned int i;
 	unsigned int index = clish_view__get_depth(view);
 	clish_shell_pwd_t *newpwd;
+	const clish_command_t *full_cmd = clish_context__get_cmd(context);
 
 	/* Create new element */
 	newpwd = malloc(sizeof(*newpwd));
@@ -70,6 +77,17 @@ void clish_shell__set_pwd(clish_shell_t *this,
 	newpwd->line = line ? lub_string_dup(line) : NULL;
 	newpwd->view = view;
 	newpwd->pargv = clish_pargv_clone(clish_context__get_pargv(context));
+	if (full_cmd) {
+		const clish_command_t *cmd = clish_command__get_cmd(full_cmd);
+		newpwd->cmd = lub_string_dup(clish_command__get_name(cmd));
+		if (cmd != full_cmd) {
+			const char *full_cmd_name = clish_command__get_name(full_cmd);
+			const char *cmd_name = clish_command__get_name(cmd);
+			int len = strlen(full_cmd_name) - strlen(cmd_name);
+			if (len > 1)
+				newpwd->prefix = lub_string_dupn(full_cmd_name, len - 1);
+		}
+	}
 	clish_shell__expand_viewid(viewid, &newpwd->viewid, context);
 	clish_shell__fini_pwd(this->pwdv[index]);
 	free(this->pwdv[index]);
@@ -93,6 +111,24 @@ clish_pargv_t *clish_shell__get_pwd_pargv(const clish_shell_t *this, unsigned in
 		return NULL;
 
 	return this->pwdv[index]->pargv;
+}
+
+/*--------------------------------------------------------- */
+char *clish_shell__get_pwd_cmd(const clish_shell_t *this, unsigned int index)
+{
+	if (index >= this->pwdc)
+		return NULL;
+
+	return this->pwdv[index]->cmd;
+}
+
+/*--------------------------------------------------------- */
+char *clish_shell__get_pwd_prefix(const clish_shell_t *this, unsigned int index)
+{
+	if (index >= this->pwdc)
+		return NULL;
+
+	return this->pwdv[index]->prefix;
 }
 
 /*--------------------------------------------------------- */

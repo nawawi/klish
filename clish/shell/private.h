@@ -39,7 +39,9 @@ typedef struct {
 	char *line;
 	clish_view_t *view;
 	lub_bintree_t viewid;
-	clish_pargv_t *pargv;
+	clish_pargv_t *pargv; /* Saved pargv structure */
+	char *cmd; /* Command name without prefix */
+	char *prefix; /* Prefix string if exists */
 } clish_shell_pwd_t;
 
 /* Context structure */
