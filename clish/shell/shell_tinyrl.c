@@ -228,9 +228,6 @@ static bool_t clish_shell_tinyrl_key_enter(tinyrl_t *this, int key)
 	if (shell->current_file)
 		shell->current_file->line++;
 
-	/* Renew prompt */
-	clish_shell_renew_prompt(shell);
-
 	/* nothing to pass simply move down the screen */
 	if (!*line) {
 		tinyrl_multi_crlf(this);
