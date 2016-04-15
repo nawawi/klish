@@ -1,0 +1,4 @@
+liblub_la_SOURCES += \
+	lub/conv/conv.c \
+	lub/conv/private.h
+
