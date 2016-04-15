@@ -18,6 +18,7 @@
 #include "konf/buf.h"
 #include "konf/query.h"
 #include "lub/string.h"
+#include "lub/conv.h"
 #include "clish/shell.h"
 
 static int send_request(konf_client_t * client, char *command);
@@ -26,22 +27,7 @@ static int send_request(konf_client_t * client, char *command);
 static unsigned short str2ushort(const char *str)
 {
 	unsigned short num = 0;
-
-	if (str && (*str != '\0')) {
-		long val = 0;
-		char *endptr;
-
-		val = strtol(str, &endptr, 0);
-		if (endptr == str)
-			num = 0;
-		else if (val > 0xffff)
-			num = 0xffff;
-		else if (val < 0)
-			num = 0;
-		else
-			num = (unsigned)val;
-	}
-
+	lub_conv_atous(str, &num, 0);
 	return num;
 }
 

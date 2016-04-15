@@ -36,6 +36,7 @@
 #include "lub/list.h"
 #include "lub/system.h"
 #include "lub/log.h"
+#include "lub/conv.h"
 #include "clish/shell.h"
 
 #define QUOTE(t) #t
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 
 	FILE *outfd = stdout;
 	bool_t istimeout = BOOL_FALSE;
-	int timeout = 0;
+	unsigned int timeout = 0;
 	bool_t cmd = BOOL_FALSE; /* -c option */
 	lub_list_t *cmds; /* Commands defined by -c */
 	lub_list_node_t *iter;
@@ -189,14 +190,15 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			istimeout = BOOL_TRUE;
-			timeout = atoi(optarg);
+			timeout = 0;
+			lub_conv_atoui(optarg, &timeout, 0);
 			break;
 		case 'c': {
-				char *str;
-				cmd = BOOL_TRUE;
-				quiet = BOOL_TRUE;
-				str = strdup(optarg);
-				lub_list_add(cmds, str);
+			char *str;
+			cmd = BOOL_TRUE;
+			quiet = BOOL_TRUE;
+			str = strdup(optarg);
+			lub_list_add(cmds, str);
 			}
 			break;
 		case 'f':
@@ -206,14 +208,8 @@ int main(int argc, char **argv)
 				histfile = optarg;
 			break;
 		case 'z': {
-				int itmp = 0;
-				itmp = atoi(optarg);
-				if (itmp <= 0) {
-					fprintf(stderr, "Error: Illegal histsize option value.\n");
-					help(-1, argv[0]);
-					goto end;
-				}
-				histsize = itmp;
+			histsize = 0;
+			lub_conv_atoui(optarg, &histsize, 0);
 			}
 			break;
 		case 'p':

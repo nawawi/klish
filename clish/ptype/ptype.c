@@ -5,6 +5,7 @@
 #include "lub/string.h"
 #include "lub/ctype.h"
 #include "lub/argv.h"
+#include "lub/conv.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -298,9 +299,10 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 		}
 		if (BOOL_TRUE == ok) {
 			/* convert and check the range */
-			int value = atoi(result);
-			if ((value < this->u.integer.min)
-				|| (value > this->u.integer.max)) {
+			int value = 0;
+			if ((lub_conv_atoi(result, &value, 0) < 0) ||
+				(value < this->u.integer.min) ||
+				(value > this->u.integer.max)) {
 				lub_string_free(result);
 				result = NULL;
 			}
@@ -324,9 +326,10 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 		}
 		if (BOOL_TRUE == ok) {
 			/* convert and check the range */
-			unsigned int value = (unsigned int)atoi(result);
-			if ((value < (unsigned)this->u.integer.min)
-				|| (value > (unsigned)this->u.integer.max)) {
+			unsigned int value = 0;
+			if ((lub_conv_atoui(result, &value, 0) < 0) ||
+				(value < (unsigned)this->u.integer.min) ||
+				(value > (unsigned)this->u.integer.max)) {
 				lub_string_free(result);
 				result = NULL;
 			}

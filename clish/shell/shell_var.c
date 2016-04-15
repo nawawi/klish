@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "lub/string.h"
+#include "lub/conv.h"
 #include "private.h"
 
 /*----------------------------------------------------------- */
@@ -117,12 +118,12 @@ static char *find_context_var(const char *name, clish_context_t *this)
 		result = strdup(tmp);
 
 	} else if (lub_string_nocasestr(name, "_prefix") == name) {
-		int idx = 0;
-		int pnum = 0;
+		unsigned int idx = 0;
+		unsigned int pnum = 0;
 		pnum = lub_string_wordcount(clish_command__get_name(this->cmd)) -
 			lub_string_wordcount(clish_command__get_name(
 			clish_command__get_cmd(this->cmd)));
-		idx = atoi(name + strlen("_prefix"));
+		lub_conv_atoui(name + strlen("_prefix"), &idx, 0);
 		if (idx < pnum) {
 			lub_argv_t *argv = lub_argv_new(
 				clish_command__get_name(this->cmd), 0);

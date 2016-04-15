@@ -21,6 +21,7 @@
 #include "lub/types.h"
 #include "lub/argv.h"
 #include "lub/string.h"
+#include "lub/conv.h"
 #include "private.h"
 
 /*-------------------------------------------------------- */
@@ -142,29 +143,19 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 			break;
 		case 'p':
 			{
-			long val = 0;
-			char *endptr;
-
-			val = strtol(optarg, &endptr, 0);
-			if (endptr == optarg)
+			unsigned short val = 0;
+			if (lub_conv_atous(optarg, &val, 0) < 0)
 				break;
-			if ((val > 0xffff) || (val < 0))
-				break;
-			this->priority = (unsigned short)val;
+			this->priority = val;
 			break;
 			}
 		case 'q':
 			{
-			long val = 0;
-			char *endptr;
-
+			unsigned short val = 0;
 			this->seq = BOOL_TRUE;
-			val = strtol(optarg, &endptr, 0);
-			if (endptr == optarg)
+			if (lub_conv_atous(optarg, &val, 0) < 0)
 				break;
-			if ((val > 0xffff) || (val < 0))
-				break;
-			this->seq_num = (unsigned short)val;
+			this->seq_num = val;
 			break;
 			}
 		case 'r':
@@ -184,15 +175,10 @@ int konf_query_parse(konf_query_t *this, int argc, char **argv)
 			break;
 		case 'h':
 			{
-			long val = 0;
-			char *endptr;
-
-			val = strtol(optarg, &endptr, 0);
-			if (endptr == optarg)
+			unsigned short val = 0;
+			if (lub_conv_atous(optarg, &val, 0) < 0)
 				break;
-			if ((val > 0xffff) || (val < 0))
-				break;
-			this->depth = (unsigned short)val;
+			this->depth = val;
 			break;
 			}
 		default:

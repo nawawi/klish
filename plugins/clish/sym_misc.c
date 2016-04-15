@@ -4,6 +4,7 @@
 #include "private.h"
 #include "lub/string.h"
 #include "lub/argv.h"
+#include "lub/conv.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -117,11 +118,11 @@ CLISH_PLUGIN_SYM(clish_history)
 	tinyrl_history_t *history = tinyrl__get_history(tinyrl);
 	tinyrl_history_iterator_t iter;
 	const tinyrl_history_entry_t *entry;
-	unsigned limit = 0;
+	unsigned int limit = 0;
 	const char *arg = script;
 
 	if (arg && ('\0' != *arg)) {
-		limit = (unsigned)atoi(arg);
+		lub_conv_atoui(arg, &limit, 0);
 		if (0 == limit) {
 			/* unlimit the history list */
 			(void)tinyrl_history_unstifle(history);
@@ -190,6 +191,7 @@ CLISH_PLUGIN_SYM(clish_wdog)
 {
 	const char *arg = script;
 	clish_shell_t *this = clish_context__get_shell(clish_context);
+	unsigned int wdto = 0;
 
 	/* Turn off watchdog if no args */
 	if (!arg || ('\0' == *arg)) {
@@ -197,7 +199,8 @@ CLISH_PLUGIN_SYM(clish_wdog)
 		return 0;
 	}
 
-	clish_shell__set_wdog_timeout(this, (unsigned int)atoi(arg));
+	lub_conv_atoui(arg, &wdto, 0);
+	clish_shell__set_wdog_timeout(this, wdto);
 
 	out = out; /* Happy compiler */
 

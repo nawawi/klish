@@ -11,6 +11,7 @@
 #include "lub/string.h"
 #include "lub/ctype.h"
 #include "lub/system.h"
+#include "lub/conv.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -334,7 +335,8 @@ static int process_view(clish_shell_t *shell, clish_xmlnode_t *element,
 	view = clish_shell_find_create_view(shell, name, prompt);
 
 	if (depth && (lub_ctype_isdigit(*depth))) {
-		unsigned res = atoi(depth);
+		unsigned int res = 0;
+		lub_conv_atoui(depth, &res, 0);
 		clish_view__set_depth(view, res);
 	}
 
@@ -613,8 +615,11 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (default_shebang)
 		clish_shell__set_default_shebang(shell, default_shebang);
 
-	if (timeout)
-		clish_shell__set_timeout(shell, atoi(timeout));
+	if (timeout) {
+		unsigned int to = 0;
+		lub_conv_atoui(timeout, &to, 0);
+		clish_shell__set_timeout(shell, to);
+	}
 
 	/* lock field */
 	if (lock && lub_string_nocasecmp(lock, "false") == 0)
@@ -1008,19 +1013,8 @@ static int process_config(clish_shell_t *shell, clish_xmlnode_t *element,
 	}
 
 	if (priority) {
-		long val = 0;
-		char *endptr;
-		unsigned short pri;
-
-		val = strtol(priority, &endptr, 0);
-		if (endptr == priority)
-			pri = 0;
-		else if (val > 0xffff)
-			pri = 0xffff;
-		else if (val < 0)
-			pri = 0;
-		else
-			pri = (unsigned short)val;
+		unsigned short pri = 0;
+		lub_conv_atous(priority, &pri, 0);
 		clish_config__set_priority(config, pri);
 	}
 

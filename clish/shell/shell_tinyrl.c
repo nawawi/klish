@@ -587,7 +587,7 @@ void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
 }
 
 /*-------------------------------------------------------- */
-void clish_shell__set_timeout(clish_shell_t *this, int timeout)
+void clish_shell__set_timeout(clish_shell_t *this, unsigned int timeout)
 {
 	assert(this);
 	this->idle_timeout = timeout;
