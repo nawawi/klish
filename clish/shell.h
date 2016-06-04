@@ -132,6 +132,8 @@ clish_var_t *clish_shell_find_var(clish_shell_t *instance, const char *name);
 char *clish_shell_expand_var(const char *name, clish_context_t *context);
 char *clish_shell_expand_var_ex(const char *name, clish_context_t *context, clish_shell_expand_e flags);
 char *clish_shell_expand(const char *str, clish_shell_var_e vtype, clish_context_t *context);
+char * clish_shell_mkfifo(clish_shell_t * instance, char *name, size_t n);
+int clish_shell_rmfifo(clish_shell_t * instance, const char *name);
 
 /*-----------------
  * attributes
@@ -171,7 +173,6 @@ void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewna
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
 void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);
 const char * clish_shell__get_default_shebang(const clish_shell_t * instance);
-const char * clish_shell__get_fifo(clish_shell_t * instance);
 void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
 bool_t clish_shell__get_interactive(const clish_shell_t * instance);
 bool_t clish_shell__get_utf8(const clish_shell_t * instance);

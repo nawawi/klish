@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <limits.h>
 
 /*--------------------------------------------------------- */
 CLISH_PLUGIN_OSYM(clish_script)
@@ -28,7 +29,7 @@ CLISH_PLUGIN_OSYM(clish_script)
 	const char *shebang = NULL;
 	pid_t cpid = -1;
 	int res;
-	const char *fifo_name;
+	char fifo_name[PATH_MAX];
 	FILE *wpipe;
 	char *command = NULL;
 
@@ -48,9 +49,8 @@ CLISH_PLUGIN_OSYM(clish_script)
 	fprintf(stderr, "SCRIPT: %s\n", script);
 #endif /* DEBUG */
 
-	/* Get FIFO */
-	fifo_name = clish_shell__get_fifo(this);
-	if (!fifo_name) {
+	/* Create FIFO */
+	if (! clish_shell_mkfifo(this, fifo_name, sizeof(fifo_name))) {
 		fprintf(stderr, "Error: Can't create temporary FIFO.\n"
 			"Error: The ACTION will be not executed.\n");
 		return -1;
@@ -61,6 +61,7 @@ CLISH_PLUGIN_OSYM(clish_script)
 	if (cpid == -1) {
 		fprintf(stderr, "Error: Can't fork the write process.\n"
 			"Error: The ACTION will be not executed.\n");
+		clish_shell_rmfifo(this, fifo_name);
 		return -1;
 	}
 
@@ -86,7 +87,9 @@ CLISH_PLUGIN_OSYM(clish_script)
 	kill(cpid, SIGTERM);
 	waitpid(cpid, NULL, 0);
 
+	/* Clean up */
 	lub_string_free(command);
+	clish_shell_rmfifo(this, fifo_name);
 
 #ifdef DEBUG
 	fprintf(stderr, "RETCODE: %d\n", WEXITSTATUS(res));

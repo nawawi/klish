@@ -397,30 +397,28 @@ CLISH_HOOK_LOG(clish_shell_exec_log)
 }
 
 /*----------------------------------------------------------- */
-const char *clish_shell__get_fifo(clish_shell_t * this)
+char *clish_shell_mkfifo(clish_shell_t * this, char *name, size_t n)
 {
-	char *name;
 	int res;
 
-	if (this->fifo_name) {
-		if (0 == access(this->fifo_name, R_OK | W_OK))
-			return this->fifo_name;
-		unlink(this->fifo_name);
-		lub_string_free(this->fifo_name);
-		this->fifo_name = NULL;
-	}
-
+	if (n < 1) /* Buffer too small */
+		return NULL;
 	do {
-		char template[] = "/tmp/klish.fifo.XXXXXX";
-		name = mktemp(template);
+		strncpy(name, this->fifo_temp, n);
+		name[n - 1] = '\0';
+		mktemp(name);
 		if (name[0] == '\0')
 			return NULL;
 		res = mkfifo(name, 0600);
-		if (res == 0)
-			this->fifo_name = lub_string_dup(name);
 	} while ((res < 0) && (EEXIST == errno));
 
-	return this->fifo_name;
+	return name;
+}
+
+/*----------------------------------------------------------- */
+int clish_shell_rmfifo(clish_shell_t * this, const char *name)
+{
+	return unlink(name);
 }
 
 /*-------------------------------------------------------- */

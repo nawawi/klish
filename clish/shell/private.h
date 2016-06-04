@@ -81,7 +81,7 @@ struct clish_shell_s {
 	konf_client_t *client;
 	char *lockfile;
 	char *default_shebang;
-	char *fifo_name; /* The name of temporary fifo file. */
+	char *fifo_temp; /* The template of temporary FIFO file name */
 	struct passwd *user; /* Current user information */
 
 	/* Boolean flags */

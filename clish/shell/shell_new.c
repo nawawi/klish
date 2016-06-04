@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <limits.h>
 
 #include "lub/string.h"
 #include "lub/db.h"
@@ -20,6 +21,7 @@ static void clish_shell_init(clish_shell_t * this,
 {
 	clish_ptype_t *tmp_ptype = NULL;
 	int i;
+	char template[PATH_MAX];
 
 	/* initialise the tree of views */
 	lub_bintree_init(&this->view_tree,
@@ -69,13 +71,18 @@ static void clish_shell_init(clish_shell_t * this,
 	this->client = NULL;
 	this->lockfile = lub_string_dup(CLISH_LOCK_PATH);
 	this->default_shebang = lub_string_dup("/bin/sh");
-	this->fifo_name = NULL;
 	this->interactive = BOOL_TRUE; /* The interactive shell by default. */
 	this->log = BOOL_FALSE; /* Disable logging by default */
 	this->log_facility = LOG_LOCAL0; /* LOCAL0 for compatibility */
 	this->dryrun = BOOL_FALSE; /* Disable dry-run by default */
 	this->user = lub_db_getpwuid(getuid()); /* Get user information */
 	this->default_plugin = BOOL_TRUE; /* Load default plugin by default */
+
+	/* Create template (string) for FIFO name generation */
+	snprintf(template, sizeof(template),
+		"%s/klish.fifo.%u.XXXXXX", "/tmp", getpid());
+	template[sizeof(template) - 1] = '\0';
+	this->fifo_temp = lub_string_dup(template);
 
 	/* Create internal ptypes and params */
 	/* Args */
@@ -182,10 +189,8 @@ static void clish_shell_fini(clish_shell_t *this)
 	lub_string_free(this->lockfile);
 	lub_string_free(this->default_shebang);
 	free(this->user);
-	if (this->fifo_name) {
-		unlink(this->fifo_name);
-		lub_string_free(this->fifo_name);
-	}
+	if (this->fifo_temp)
+		lub_string_free(this->fifo_temp);
 }
 
 /*-------------------------------------------------------- */
