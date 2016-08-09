@@ -45,6 +45,13 @@ void clish_context_free(clish_context_t *this)
 }
 
 /*--------------------------------------------------------- */
+int clish_context_dup(clish_context_t *dst, const clish_context_t *src)
+{
+	*dst = *src;
+	return 0;
+}
+
+/*--------------------------------------------------------- */
 clish_shell_t *clish_context__get_shell(const void *this)
 {
 	const clish_context_t *context = (const clish_context_t *)this;

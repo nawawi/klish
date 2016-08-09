@@ -173,8 +173,10 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 	/* Try to execute ACTION */
 	if (!res) {
 		char *out = NULL;
-		clish_context__set_action(context, clish_var__get_action(var));
-		if (clish_shell_exec_action(context, &out, BOOL_FALSE)) {
+		clish_context_t ctx;
+		clish_context_dup(&ctx, context);
+		clish_context__set_action(&ctx, clish_var__get_action(var));
+		if (clish_shell_exec_action(&ctx, &out, BOOL_FALSE)) {
 			lub_string_free(out);
 			return NULL;
 		}
