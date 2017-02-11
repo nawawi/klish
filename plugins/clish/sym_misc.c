@@ -157,12 +157,11 @@ CLISH_PLUGIN_SYM(clish_nested_up)
 	if (!this)
 		return -1;
 	/* If depth=0 then exit */
-	if ((depth = clish_shell__get_depth(this)) == 0) {
+	if (((depth = clish_shell__get_depth(this)) == 0) ||
+		!clish_shell__set_depth(this, --depth)) {
 		clish_shell__set_state(this, SHELL_STATE_CLOSING);
 		return 0;
 	}
-	depth--;
-	clish_shell__set_depth(this, depth);
 
 	script = script; /* Happy compiler */
 	out = out; /* Happy compiler */

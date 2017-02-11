@@ -141,7 +141,7 @@ int clish_shell_rmfifo(clish_shell_t * instance, const char *name);
  *----------------- */
 clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
 unsigned int clish_shell__get_depth(const clish_shell_t * instance);
-void clish_shell__set_depth(clish_shell_t *instance, unsigned int depth);
+clish_view_t *clish_shell__set_depth(clish_shell_t *instance, unsigned int depth);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
 const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
