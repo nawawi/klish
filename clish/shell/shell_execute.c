@@ -211,6 +211,7 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 		struct iovec *iov;
 		const int rsize = CLISH_STDOUT_CHUNK; /* Read chunk size */
 		size_t cur_size = 0;
+		ssize_t r = 0;
 
 		close(pipe1[1]);
 		close(pipe2[0]);
@@ -244,14 +245,14 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 			iov = lub_list_node__get_data(node);
 			lub_list_del(l, node);
 			lub_list_node_free(node);
-			write(pipe2[1], iov->iov_base, iov->iov_len);
+			r = write(pipe2[1], iov->iov_base, iov->iov_len);
 			free(iov->iov_base);
 			free(iov);
 		}
 		close(pipe2[1]);
 
 		lub_list_free(l);
-		_exit(0);
+		_exit(r < 0 ? 1 : 0);
 	}
 
 	real_stdout = dup(STDOUT_FILENO);
