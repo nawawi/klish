@@ -107,7 +107,7 @@ int lub_ini_parse_str(lub_ini_t *this, const char *ini)
 	for (line = strtok_r(buffer, "\n", &saveptr);
 		line; line = strtok_r(NULL, "\n", &saveptr)) {
 
-		char *str, *name, *value, *savestr, *ns = line;
+		char *str, *name, *value, *savestr = NULL, *ns = line;
 		const char *begin;
 		size_t len, offset, quoted;
 		char *rname, *rvalue;
