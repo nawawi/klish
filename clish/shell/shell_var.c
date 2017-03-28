@@ -100,7 +100,8 @@ static char *find_context_var(const char *name, clish_context_t *this)
 			result = clish_shell__get_params(this);
 
 	} else if (!lub_string_nocasecmp(name, "_interactive")) {
-		if (clish_shell__get_interactive(this->shell))
+		if (clish_shell__get_interactive(this->shell) &&
+			tinyrl__get_isatty(this->shell->tinyrl))
 			result = strdup("1");
 		else
 			result = strdup("0");
