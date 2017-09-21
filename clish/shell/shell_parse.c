@@ -293,11 +293,14 @@ clish_pargv_status_e clish_shell_parse_pargv(clish_pargv_t *pargv,
 		 */
 		while (NULL != arg) {
 			bool_t quoted = lub_argv__get_quoted(argv, *idx);
+			char *enc = NULL;
 			if (BOOL_TRUE == quoted) {
 				lub_string_cat(&args, "\"");
 			}
 			/* place the current argument in the string */
-			lub_string_cat(&args, arg);
+			enc = lub_string_encode(arg, "\"");
+			lub_string_cat(&args, enc);
+			lub_string_free(enc);
 			if (BOOL_TRUE == quoted) {
 				lub_string_cat(&args, "\"");
 			}
