@@ -298,7 +298,8 @@ clish_pargv_status_e clish_shell_parse_pargv(clish_pargv_t *pargv,
 				lub_string_cat(&args, "\"");
 			}
 			/* place the current argument in the string */
-			enc = lub_string_encode(arg, "\"");
+			/* Escape quote and backslash */
+			enc = lub_string_encode(arg, lub_string_esc_quoted);
 			lub_string_cat(&args, enc);
 			lub_string_free(enc);
 			if (BOOL_TRUE == quoted) {
