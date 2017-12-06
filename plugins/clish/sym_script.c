@@ -85,7 +85,7 @@ CLISH_PLUGIN_OSYM(clish_script)
 
 	/* Wait for the writing process */
 	kill(cpid, SIGTERM);
-	waitpid(cpid, NULL, 0);
+	while (waitpid(cpid, NULL, 0) != cpid);
 
 	/* Clean up */
 	lub_string_free(command);

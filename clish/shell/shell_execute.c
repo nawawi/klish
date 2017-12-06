@@ -273,7 +273,7 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 	konf_buf_delete(buf);
 	close(pipe2[0]);
 	/* Wait for the stdout-grabber process */
-	waitpid(cpid, NULL, 0);
+	while (waitpid(cpid, NULL, 0) != cpid);
 
 	return result;
 
