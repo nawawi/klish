@@ -77,6 +77,7 @@ static void clish_shell_init(clish_shell_t * this,
 	this->dryrun = BOOL_FALSE; /* Disable dry-run by default */
 	this->user = lub_db_getpwuid(getuid()); /* Get user information */
 	this->default_plugin = BOOL_TRUE; /* Load default plugin by default */
+	this->canon_out = BOOL_FALSE; /* A canonical output is needed in special cases only */
 
 	/* Create template (string) for FIFO name generation */
 	snprintf(template, sizeof(template),

@@ -85,6 +85,8 @@ void clish_command__set_alias_view(clish_command_t * instance,
 const char * clish_command__get_alias_view(const clish_command_t * instance);
 void clish_command__set_dynamic(clish_command_t * instance, bool_t dynamic);
 bool_t clish_command__get_dynamic(const clish_command_t * instance);
+void clish_command__set_internal(clish_command_t * instance, bool_t internal);
+bool_t clish_command__get_internal(const clish_command_t * instance);
 bool_t clish_command__get_interrupt(const clish_command_t * instance);
 void clish_command__set_interrupt(clish_command_t * instance, bool_t interrupt);
 void clish_command__set_access(clish_command_t *instance, const char *access);

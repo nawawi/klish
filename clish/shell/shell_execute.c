@@ -138,6 +138,21 @@ int clish_shell_execute(clish_context_t *context, char **out)
 		lub_string_free(full_line);
 	}
 
+	if (clish_shell__get_canon_out(this) &&
+		!clish_command__get_internal(cmd)) {
+		char *space = NULL;
+		char *full_line = clish_shell__get_full_line(context);
+		if (this->depth > 0) {
+			space = malloc(this->depth + 1);
+			memset(space, ' ', this->depth);
+			space[this->depth] = '\0';
+		}
+		printf("%s%s\n", space ? space : "", full_line);
+		lub_string_free(full_line);
+		if (space)
+			free(space);
+	}
+
 	/* Unlock the lockfile */
 	if (lock_fd != -1)
 		clish_shell_unlock(lock_fd);
@@ -446,6 +461,18 @@ void clish_shell__set_dryrun(clish_shell_t *this, bool_t dryrun)
 bool_t clish_shell__get_dryrun(const clish_shell_t *this)
 {
 	return this->dryrun;
+}
+
+/*-------------------------------------------------------- */
+void clish_shell__set_canon_out(clish_shell_t *this, bool_t canon_out)
+{
+	this->canon_out = canon_out;
+}
+
+/*-------------------------------------------------------- */
+bool_t clish_shell__get_canon_out(const clish_shell_t *this)
+{
+	return this->canon_out;
 }
 
 /*----------------------------------------------------------- */

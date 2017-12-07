@@ -43,6 +43,7 @@ clish_command_init(clish_command_t *this, const char *name, const char *text)
 	this->lock = BOOL_TRUE;
 	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
+	this->internal = BOOL_FALSE;
 	this->access = NULL;
 }
 
@@ -449,6 +450,18 @@ void clish_command__set_dynamic(clish_command_t * this, bool_t dynamic)
 bool_t clish_command__get_dynamic(const clish_command_t * this)
 {
 	return this->dynamic;
+}
+
+/*--------------------------------------------------------- */
+void clish_command__set_internal(clish_command_t * this, bool_t internal)
+{
+	this->internal = internal;
+}
+
+/*--------------------------------------------------------- */
+bool_t clish_command__get_internal(const clish_command_t * this)
+{
+	return this->internal;
 }
 
 /*--------------------------------------------------------- */

@@ -90,6 +90,7 @@ struct clish_shell_s {
 	int log_facility; /* Syslog facility */
 	bool_t dryrun; /* Is this a dry-running */
 	bool_t default_plugin; /* Use or not default plugin */
+	bool_t canon_out; /* Output every command in canonical form (with pre-spaces) */
 
 	/* Plugins and symbols */
 	lub_list_t *plugins; /* List of plugins */

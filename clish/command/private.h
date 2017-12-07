@@ -28,4 +28,5 @@ struct clish_command_s {
 	bool_t lock;
 	bool_t interrupt;
 	bool_t dynamic; /* Is command dynamically created */
+	bool_t internal; /* Is command internal? Like the "startup" */
 };

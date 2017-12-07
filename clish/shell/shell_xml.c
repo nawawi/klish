@@ -604,6 +604,7 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "startup", NULL);
 	clish_command__set_lock(cmd, BOOL_FALSE);
+	clish_command__set_internal(cmd, BOOL_TRUE);
 
 	/* reference the next view */
 	clish_command__set_viewname(cmd, view);

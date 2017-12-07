@@ -199,6 +199,8 @@ void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);
 struct passwd *clish_shell__get_user(clish_shell_t *instance);
 void clish_shell__set_dryrun(clish_shell_t *instance, bool_t dryrun);
 bool_t clish_shell__get_dryrun(const clish_shell_t *instance);
+void clish_shell__set_canon_out(clish_shell_t *instance, bool_t canon_out);
+bool_t clish_shell__get_canon_out(const clish_shell_t *instance);
 
 /* Plugin functions */
 clish_plugin_t * clish_shell_find_plugin(clish_shell_t *instance,

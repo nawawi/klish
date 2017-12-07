@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	int log_facility = LOG_LOCAL0;
 	bool_t dryrun = BOOL_FALSE;
 	bool_t dryrun_config = BOOL_FALSE;
+	bool_t canon_out = BOOL_FALSE;
 	const char *xml_path = getenv("CLISH_PATH");
 	const char *view = getenv("CLISH_VIEW");
 	const char *viewid = getenv("CLISH_VIEWID");
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 	struct sigaction sigpipe_act;
 	sigset_t sigpipe_set;
 
-	static const char *shortopts = "hvs:ledx:w:i:bqu8oO:kt:c:f:z:p:";
+	static const char *shortopts = "hvs:ledx:w:i:bqu8oO:kKt:c:f:z:p:";
 #ifdef HAVE_GETOPT_LONG
 	static const struct option longopts[] = {
 		{"help",	0, NULL, 'h'},
@@ -104,6 +105,7 @@ int main(int argc, char **argv)
 		{"log",		0, NULL, 'o'},
 		{"facility",	1, NULL, 'O'},
 		{"check",	0, NULL, 'k'},
+		{"canon-out",	0, NULL, 'K'},
 		{"timeout",	1, NULL, 't'},
 		{"command",	1, NULL, 'c'},
 		{"histfile",	1, NULL, 'f'},
@@ -187,6 +189,12 @@ int main(int argc, char **argv)
 			lockless = BOOL_TRUE;
 			dryrun = BOOL_TRUE;
 			dryrun_config = BOOL_TRUE;
+			break;
+		case 'K':
+			lockless = BOOL_TRUE;
+			dryrun = BOOL_TRUE;
+			dryrun_config = BOOL_TRUE;
+			canon_out = BOOL_TRUE;
 			break;
 		case 't':
 			istimeout = BOOL_TRUE;
@@ -291,6 +299,9 @@ int main(int argc, char **argv)
 	/* Set dry-run */
 	if (dryrun)
 		clish_shell__set_dryrun(shell, dryrun);
+	/* Set canonical output */
+	if (canon_out)
+		clish_shell__set_canon_out(shell, canon_out);
 	/* Set idle timeout */
 	if (istimeout)
 		clish_shell__set_timeout(shell, timeout);
@@ -420,6 +431,7 @@ static void help(int status, const char *argv0)
 		printf("\t-o, --log\tEnable command logging to syslog's.\n");
 		printf("\t-O, --facility\tSyslog facility. Default is LOCAL0.\n");
 		printf("\t-k, --check\tCheck input files for syntax errors only.\n");
+		printf("\t-K, --canon-out\tCheck input files for syntax and print commands\n\t\tin canonical form - prepended with spaces indicates depth.\n");
 		printf("\t-t <timeout>, --timeout=<timeout>\tIdle timeout in seconds.\n");
 		printf("\t-c <command>, --command=<command>\tExecute specified command(s).\n\t\tMultiple options are possible.\n");
 		printf("\t-f <path>, --histfile=<path>\tFile to save command history.\n");
