@@ -1,6 +1,7 @@
 /*
  * command.h
  */
+
 #ifndef _clish_command_h
 #define _clish_command_h
 
@@ -9,6 +10,7 @@ typedef struct clish_command_s clish_command_t;
 #include "lub/bintree.h"
 #include "lub/argv.h"
 #include "clish/types.h"
+#include "clish/macros.h"
 #include "clish/pargv.h"
 #include "clish/view.h"
 #include "clish/param.h"

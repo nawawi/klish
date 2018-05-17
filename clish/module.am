@@ -17,6 +17,7 @@ libclish_la_LIBADD = \
 
 nobase_include_HEADERS += \
 	clish/types.h \
+	clish/macros.h \
 	clish/command.h \
 	clish/param.h \
 	clish/pargv.h \
