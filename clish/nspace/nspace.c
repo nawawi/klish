@@ -14,9 +14,7 @@
 #include <regex.h>
 #include <ctype.h>
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 static void clish_nspace_init(clish_nspace_t *this,  const char *view_name)
 {
 	this->view_name = NULL;
@@ -131,9 +129,7 @@ static clish_command_t *clish_nspace_find_create_command(clish_nspace_t * this,
 	return cmd;
 }
 
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 clish_nspace_t *clish_nspace_new(const char *view_name)
 {
 	clish_nspace_t *this = malloc(sizeof(clish_nspace_t));
@@ -143,9 +139,7 @@ clish_nspace_t *clish_nspace_new(const char *view_name)
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 void clish_nspace_delete(clish_nspace_t *this)
 {
 	clish_nspace_fini(this);
@@ -280,105 +274,41 @@ void clish_nspace_clean_proxy(clish_nspace_t * this)
 	}
 }
 
-/*---------------------------------------------------------
- * PUBLIC ATTRIBUTES
- *--------------------------------------------------------- */
-clish_view_t *clish_nspace__get_view(const clish_nspace_t *this)
-{
-	return this->view;
-}
+CLISH_SET(nspace, bool_t, help);
+CLISH_GET(nspace, bool_t, help);
+CLISH_SET(nspace, bool_t, completion);
+CLISH_GET(nspace, bool_t, completion);
+CLISH_SET(nspace, bool_t, context_help);
+CLISH_GET(nspace, bool_t, context_help);
+CLISH_SET(nspace, bool_t, inherit);
+CLISH_GET(nspace, bool_t, inherit);
+CLISH_SET(nspace, clish_view_t *, view);
+CLISH_GET(nspace, clish_view_t *, view);
+CLISH_SET_STR(nspace, view_name);
+CLISH_GET_STR(nspace, view_name);
+CLISH_SET_STR(nspace, access);
+CLISH_GET_STR(nspace, access);
+CLISH_GET_STR(nspace, prefix);
 
 /*--------------------------------------------------------- */
-void clish_nspace__set_view(clish_nspace_t *this, clish_view_t *view)
-{
-	this->view = view;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_view_name(clish_nspace_t *this, const char *view_name)
-{
-	if (this->view_name)
-		lub_string_free(this->view_name);
-	this->view_name = lub_string_dup(view_name);
-}
-
-/*--------------------------------------------------------- */
-const char * clish_nspace__get_view_name(const clish_nspace_t *this)
-{
-	return this->view_name;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_prefix(clish_nspace_t * this, const char *prefix)
+_CLISH_SET_STR_ONCE(nspace, prefix)
 {
 	int res = 0;
 
-	assert(!this->prefix);
-	res = regcomp(&this->prefix_regex, prefix, REG_EXTENDED | REG_ICASE);
+	assert(inst);
+	assert(!inst->prefix);
+	res = regcomp(&inst->prefix_regex, val, REG_EXTENDED | REG_ICASE);
 	assert(!res);
-	this->prefix = lub_string_dup(prefix);
+	inst->prefix = lub_string_dup(val);
 }
 
 /*--------------------------------------------------------- */
-const char *clish_nspace__get_prefix(const clish_nspace_t * this)
+_CLISH_GET(nspace, const regex_t *, prefix_regex)
 {
-	return this->prefix;
-}
-
-/*--------------------------------------------------------- */
-const regex_t *clish_nspace__get_prefix_regex(const clish_nspace_t * this)
-{
-	if (!this->prefix)
+	assert(inst);
+	if (!inst->prefix)
 		return NULL;
-	return &this->prefix_regex;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_help(clish_nspace_t * this, bool_t help)
-{
-	this->help = help;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_nspace__get_help(const clish_nspace_t * this)
-{
-	return this->help;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_completion(clish_nspace_t * this, bool_t completion)
-{
-	this->completion = completion;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_nspace__get_completion(const clish_nspace_t * this)
-{
-	return this->completion;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_context_help(clish_nspace_t * this, bool_t context_help)
-{
-	this->context_help = context_help;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_nspace__get_context_help(const clish_nspace_t * this)
-{
-	return this->context_help;
-}
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_inherit(clish_nspace_t * this, bool_t inherit)
-{
-	this->inherit = inherit;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_nspace__get_inherit(const clish_nspace_t * this)
-{
-	return this->inherit;
+	return &inst->prefix_regex;
 }
 
 /*--------------------------------------------------------- */
@@ -403,19 +333,3 @@ bool_t clish_nspace__get_visibility(const clish_nspace_t * instance,
 
 	return result;
 }
-
-/*--------------------------------------------------------- */
-void clish_nspace__set_access(clish_nspace_t *this, const char *access)
-{
-	if (this->access)
-		lub_string_free(this->access);
-	this->access = lub_string_dup(access);
-}
-
-/*--------------------------------------------------------- */
-char *clish_nspace__get_access(const clish_nspace_t *this)
-{
-	return this->access;
-}
-
-/*--------------------------------------------------------- */

@@ -14,4 +14,3 @@ clish_hotkeyv_t *clish_hotkeyv_new(void);
 void clish_hotkeyv_delete(clish_hotkeyv_t *instance);
 
 #endif				/* _clish_hotkey_h */
-/** @} clish_hotkey */
