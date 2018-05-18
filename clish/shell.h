@@ -20,6 +20,7 @@
 #include "lub/types.h"
 #include "lub/argv.h"
 #include "tinyrl/tinyrl.h"
+#include "clish/macros.h"
 #include "clish/view.h"
 #include "clish/ptype.h"
 #include "clish/var.h"
@@ -39,11 +40,13 @@ typedef struct clish_shell_s clish_shell_t;
 typedef struct clish_context_s clish_context_t;
 
 /* Context functions */
+
 _BEGIN_C_DECL
 clish_context_t *clish_context_new(clish_shell_t *shell);
 int clish_context_init(clish_context_t *instance, clish_shell_t *shell);
 void clish_context_free(clish_context_t *instance);
 int clish_context_dup(clish_context_t *dst, const clish_context_t *src);
+
 clish_shell_t *clish_context__get_shell(const void *instance);
 void clish_context__set_cmd(void *instance, const clish_command_t *cmd);
 const clish_command_t *clish_context__get_cmd(const void *instance);
@@ -54,6 +57,7 @@ const clish_action_t *clish_context__get_action(const void *instance);
 _END_C_DECL
 
 /* Shell */
+
 typedef enum {
 	SHELL_STATE_OK = 0,
 	SHELL_STATE_UNKNOWN = 1,
@@ -190,9 +194,8 @@ void clish_shell__set_facility(clish_shell_t *instance, int facility);
 int clish_shell__get_facility(clish_shell_t *instance);
 
 int clish_shell_wdog(clish_shell_t *instance);
-void clish_shell__set_wdog_timeout(clish_shell_t *instance,
-	unsigned int timeout);
-unsigned int clish_shell__get_wdog_timeout(const clish_shell_t *instance);
+_CLISH_SET(shell, unsigned int, wdog_timeout);
+_CLISH_GET(shell, unsigned int, wdog_timeout);
 int clish_shell__save_history(const clish_shell_t *instance, const char *fname);
 int clish_shell__restore_history(clish_shell_t *instance, const char *fname);
 void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);

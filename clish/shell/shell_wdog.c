@@ -62,16 +62,5 @@ int clish_shell_wdog(clish_shell_t *this)
 	return clish_shell_execute(&context, NULL);
 }
 
-/*----------------------------------------------------------- */
-void clish_shell__set_wdog_timeout(clish_shell_t *this, unsigned int timeout)
-{
-	assert(this);
-	this->wdog_timeout = timeout;
-}
-
-/*----------------------------------------------------------- */
-unsigned int clish_shell__get_wdog_timeout(const clish_shell_t *this)
-{
-	assert(this);
-	return this->wdog_timeout;
-}
+CLISH_SET(shell, unsigned int, wdog_timeout);
+CLISH_GET(shell, unsigned int, wdog_timeout);
