@@ -222,7 +222,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		}
 
 		/* Iterate the NAMESPACEs */
-		nspace_tree = clish_view__get_nspace_tree(view);
+		nspace_tree = clish_view__get_nspaces(view);
 		nspace_iter = lub_list__get_head(nspace_tree);
 		while(nspace_iter) {
 			clish_view_t *ref_view;
@@ -264,7 +264,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		}
 
 		/* Iterate the COMMANDs */
-		cmd_tree = clish_view__get_command_tree(view);
+		cmd_tree = clish_view__get_tree(view);
 		cmd = lub_bintree_findfirst(cmd_tree);
 		for (lub_bintree_iterator_init(&cmd_iter, cmd_tree, cmd);
 			cmd; cmd = lub_bintree_iterator_next(&cmd_iter)) {

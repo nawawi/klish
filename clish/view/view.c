@@ -14,9 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/*---------------------------------------------------------
- * PRIVATE META FUNCTIONS
- *--------------------------------------------------------- */
+/*-------------------------------------------------------- */
 int clish_view_bt_compare(const void *clientnode, const void *clientkey)
 {
 	const clish_view_t *this = clientnode;
@@ -34,9 +32,7 @@ void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
 	strcpy((char *)key, this->name);
 }
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
+/*-------------------------------------------------------- */
 static void clish_view_init(clish_view_t * this, const char *name, const char *prompt)
 {
 	/* set up defaults */
@@ -102,9 +98,7 @@ static void clish_view_fini(clish_view_t * this)
 	lub_string_free(this->access);
 }
 
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
+/*-------------------------------------------------------- */
 size_t clish_view_bt_offset(void)
 {
 	return offsetof(clish_view_t, bt_node);
@@ -120,9 +114,7 @@ clish_view_t *clish_view_new(const char *name, const char *prompt)
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
+/*-------------------------------------------------------- */
 void clish_view_delete(clish_view_t * this)
 {
 	clish_view_fini(this);
@@ -332,64 +324,6 @@ void clish_view_clean_proxy(clish_view_t * this)
 	}
 }
 
-/*---------------------------------------------------------
- * PUBLIC ATTRIBUTES
- *--------------------------------------------------------- */
-lub_bintree_t * clish_view__get_command_tree(clish_view_t *this)
-{
-	return &this->tree;
-}
-
-/*--------------------------------------------------------- */
-lub_list_t * clish_view__get_nspace_tree(clish_view_t *this)
-{
-	return this->nspaces;
-}
-
-/*--------------------------------------------------------- */
-const char *clish_view__get_name(const clish_view_t * this)
-{
-	return this->name;
-}
-
-/*--------------------------------------------------------- */
-void clish_view__set_prompt(clish_view_t * this, const char *prompt)
-{
-	assert(!this->prompt);
-	this->prompt = lub_string_dup(prompt);
-}
-
-/*--------------------------------------------------------- */
-char *clish_view__get_prompt(const clish_view_t *this)
-{
-	return this->prompt;
-}
-
-/*--------------------------------------------------------- */
-void clish_view__set_depth(clish_view_t * this, unsigned depth)
-{
-	this->depth = depth;
-}
-
-/*--------------------------------------------------------- */
-unsigned clish_view__get_depth(const clish_view_t * this)
-{
-	return this->depth;
-}
-
-/*--------------------------------------------------------- */
-void clish_view__set_restore(clish_view_t * this,
-	clish_view_restore_e restore)
-{
-	this->restore = restore;
-}
-
-/*--------------------------------------------------------- */
-clish_view_restore_e clish_view__get_restore(const clish_view_t * this)
-{
-	return this->restore;
-}
-
 /*--------------------------------------------------------- */
 int clish_view_insert_hotkey(const clish_view_t *this, const char *key, const char *cmd)
 {
@@ -402,18 +336,20 @@ const char *clish_view_find_hotkey(const clish_view_t *this, int code)
 	return clish_hotkeyv_cmd_by_code(this->hotkeys, code);
 }
 
-/*--------------------------------------------------------- */
-void clish_view__set_access(clish_view_t *this, const char *access)
-{
-	if (this->access)
-		lub_string_free(this->access);
-	this->access = lub_string_dup(access);
-}
+CLISH_GET(view, lub_list_t *, nspaces);
+CLISH_GET_STR(view, name);
+CLISH_SET_STR_ONCE(view, prompt);
+CLISH_GET_STR(view, prompt);
+CLISH_SET_STR(view, access);
+CLISH_GET_STR(view, access);
+CLISH_SET(view, unsigned int, depth);
+CLISH_GET(view, unsigned int, depth);
+CLISH_SET(view, clish_view_restore_e, restore);
+CLISH_GET(view, clish_view_restore_e, restore);
 
-/*--------------------------------------------------------- */
-char *clish_view__get_access(const clish_view_t *this)
+/*-------------------------------------------------------- */
+lub_bintree_t * clish_view__get_tree(clish_view_t *inst)
 {
-	return this->access;
+	assert(inst);
+	return &inst->tree;
 }
-
-/*--------------------------------------------------------- */

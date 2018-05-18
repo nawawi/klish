@@ -29,22 +29,10 @@ typedef enum {
 #include "clish/nspace.h"
 #include "clish/var.h"
 
-/*=====================================
- * VIEW INTERFACE
- *===================================== */
-/*-----------------
- * meta functions
- *----------------- */
 clish_view_t *clish_view_new(const char *name, const char *prompt);
 int clish_view_bt_compare(const void *clientnode, const void *clientkey);
 void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
 size_t clish_view_bt_offset(void);
-
-/*-----------------
- * methods
- *----------------- */
-lub_bintree_t * clish_view__get_command_tree(clish_view_t *instance);
-lub_list_t * clish_view__get_nspace_tree(clish_view_t *instance);
 void clish_view_delete(clish_view_t * instance);
 clish_command_t *clish_view_new_command(clish_view_t * instance,
 	const char *name, const char *text);
@@ -60,22 +48,21 @@ clish_command_t *clish_view_resolve_prefix(clish_view_t * instance,
 void clish_view_dump(clish_view_t * instance);
 void clish_view_insert_nspace(clish_view_t * instance, clish_nspace_t * nspace);
 void clish_view_clean_proxy(clish_view_t * instance);
-
-/*-----------------
- * attributes
- *----------------- */
-const char *clish_view__get_name(const clish_view_t * instance);
-void clish_view__set_prompt(clish_view_t * instance, const char *prompt);
-char *clish_view__get_prompt(const clish_view_t *instance);
-void clish_view__set_depth(clish_view_t * instance, unsigned depth);
-unsigned clish_view__get_depth(const clish_view_t * instance);
-void clish_view__set_restore(clish_view_t * instance,
-	clish_view_restore_e restore);
-clish_view_restore_e clish_view__get_restore(const clish_view_t * instance);
 int clish_view_insert_hotkey(const clish_view_t *instance, const char *key, const char *cmd);
 const char *clish_view_find_hotkey(const clish_view_t *instance, int code);
-void clish_view__set_access(clish_view_t *instance, const char *access);
-char *clish_view__get_access(const clish_view_t *instance);
+
+_CLISH_GET(view, lub_list_t *, nspaces);
+_CLISH_GET_STR(view, name);
+_CLISH_SET_STR_ONCE(view, prompt);
+_CLISH_GET_STR(view, prompt);
+_CLISH_SET_STR(view, access);
+_CLISH_GET_STR(view, access);
+_CLISH_SET(view, unsigned int, depth);
+_CLISH_GET(view, unsigned int, depth);
+_CLISH_SET(view, clish_view_restore_e, restore);
+_CLISH_GET(view, clish_view_restore_e, restore);
+
+lub_bintree_t * clish_view__get_tree(clish_view_t *instance);
 
 #endif				/* _clish_view_h */
 /** @} clish_view */
