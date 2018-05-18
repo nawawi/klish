@@ -107,7 +107,7 @@ void clish_shell_param_generator(clish_shell_t *this, lub_argv_t *matches,
 
 		while ((param = clish_pargv__get_param(completion,
 			completion_index++))) {
-			char *result;
+			const char *result;
 			/* The param is args so it has no completion */
 			if (param == clish_command__get_args(cmd))
 				continue;

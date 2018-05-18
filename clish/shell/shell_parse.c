@@ -49,7 +49,7 @@ clish_pargv_status_e clish_shell_parse(
 static bool_t line_test(const clish_param_t *param, void *context)
 {
 	char *str = NULL;
-	char *teststr = NULL;
+	const char *teststr = NULL;
 	bool_t res;
 
 	if (!param)

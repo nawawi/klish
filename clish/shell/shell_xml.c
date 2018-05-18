@@ -756,7 +756,7 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 	}
 
 	if (defval)
-		clish_param__set_default(param, defval);
+		clish_param__set_defval(param, defval);
 
 	if (hidden && lub_string_nocasecmp(hidden, "true") == 0)
 		clish_param__set_hidden(param, BOOL_TRUE);
