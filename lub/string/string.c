@@ -15,7 +15,10 @@ const char *lub_string_esc_quoted = "\\\"";
 /*--------------------------------------------------------- */
 void lub_string_free(char *ptr)
 {
+	if (!ptr)
+		return;
 	free(ptr);
+	ptr = NULL;
 }
 
 /*--------------------------------------------------------- */

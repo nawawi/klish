@@ -8,6 +8,7 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 
+#include "clish/macros.h"
 #include "lub/types.h"
 
 /* Symbol */
@@ -72,11 +73,11 @@ int clish_sym_compare(const void *first, const void *second);
 clish_sym_t *clish_sym_new(const char *name, void *func, int type);
 void clish_sym_free(clish_sym_t *instance);
 void clish_sym__set_func(clish_sym_t *instance, void *func);
-void *clish_sym__get_func(clish_sym_t *instance);
+_CLISH_GET(sym, const void *, func);
 void clish_sym__set_name(clish_sym_t *instance, const char *name);
 char *clish_sym__get_name(clish_sym_t *instance);
 void clish_sym__set_permanent(clish_sym_t *instance, bool_t permanent);
-bool_t clish_sym__get_permanent(clish_sym_t *instance);
+_CLISH_GET(sym, bool_t, permanent);
 void clish_sym__set_plugin(clish_sym_t *instance, clish_plugin_t *plugin);
 clish_plugin_t *clish_sym__get_plugin(clish_sym_t *instance);
 void clish_sym__set_type(clish_sym_t *instance, int type);

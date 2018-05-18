@@ -220,7 +220,7 @@ clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *instance,
 clish_sym_t *clish_shell_get_hook(const clish_shell_t *instance, int type);
 
 /* Hook wrappers */
-void *clish_shell_check_hook(const clish_context_t *clish_context, int type);
+const void *clish_shell_check_hook(const clish_context_t *clish_context, int type);
 CLISH_HOOK_CONFIG(clish_shell_exec_config);
 CLISH_HOOK_LOG(clish_shell_exec_log);
 

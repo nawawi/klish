@@ -61,11 +61,7 @@ void clish_sym__set_func(clish_sym_t *this, void *func)
 	this->func = func;
 }
 
-/*--------------------------------------------------------- */
-void *clish_sym__get_func(clish_sym_t *this)
-{
-	return this->func;
-}
+CLISH_GET(sym, const void *, func);
 
 /*--------------------------------------------------------- */
 void clish_sym__set_permanent(clish_sym_t *this, bool_t permanent)
@@ -73,11 +69,7 @@ void clish_sym__set_permanent(clish_sym_t *this, bool_t permanent)
 	this->permanent = permanent;
 }
 
-/*--------------------------------------------------------- */
-bool_t clish_sym__get_permanent(clish_sym_t *this)
-{
-	return this->permanent;
-}
+CLISH_GET(sym, bool_t, permanent);
 
 /*--------------------------------------------------------- */
 void clish_sym__set_name(clish_sym_t *this, const char *name)

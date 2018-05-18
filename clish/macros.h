@@ -7,14 +7,33 @@
 
 /* Function to get value from structure by name */
 #define _CLISH_GET(obj, type, name) \
-	type clish_##obj##__get_##name(const clish_##obj##_t *obj)
+	type clish_##obj##__get_##name(const clish_##obj##_t *inst)
 #define CLISH_GET(obj, type, name) \
 	_CLISH_GET(obj, type, name) { \
-		assert(obj); \
-		return obj->name; \
+		assert(inst); \
+		return inst->name; \
 	}
+#define _CLISH_GET_STR(obj, name) \
+	_CLISH_GET(obj, const char *, name)
+#define CLISH_GET_STR(obj, name) \
+	CLISH_GET(obj, const char *, name)
 
-#define CLISH_SET(obj_type, field_type, field_name, value)
+/* Function to set value to structure by name */
+#define _CLISH_SET(obj, type, name) \
+	void clish_##obj##__set_##name(clish_##obj##_t *inst, type val)
+#define CLISH_SET(obj, type, name) \
+	_CLISH_SET(obj, type, name) { \
+		assert(inst); \
+		inst->name = val; \
+	}
+#define _CLISH_SET_STR(obj, name) \
+	_CLISH_SET(obj, const char *, name)
+#define CLISH_SET_STR(obj, name) \
+	_CLISH_SET_STR(obj, name) { \
+		assert(inst); \
+		lub_string_free(inst->name); \
+		inst->name = lub_string_dup(val); \
+	}
 
 
 

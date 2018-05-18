@@ -15,12 +15,11 @@ clish_action_t *clish_action_new(void);
 void clish_action_delete(clish_action_t *instance);
 void clish_action_dump(const clish_action_t *instance);
 
-void clish_action__set_script(clish_action_t *instance, const char *script);
-_CLISH_GET(action, const char *, script);
-_CLISH_GET(action, clish_sym_t *, builtin);
-void clish_action__set_builtin(clish_action_t *instance, clish_sym_t *builtin);
-//clish_sym_t *clish_action__get_builtin(const clish_action_t *instance);
-void clish_action__set_shebang(clish_action_t *instance, const char *shebang);
-const char *clish_action__get_shebang(const clish_action_t *instance);
+_CLISH_SET_STR(action, script);
+_CLISH_GET_STR(action, script);
+_CLISH_SET(action, const clish_sym_t *, builtin);
+_CLISH_GET(action, const clish_sym_t *, builtin);
+_CLISH_SET_STR(action, shebang);
+_CLISH_GET_STR(action, shebang);
 
 #endif // _clish_action_h

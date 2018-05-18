@@ -302,9 +302,9 @@ stdout_error:
 int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr)
 {
 	int result = -1;
-	clish_sym_t *sym;
+	const clish_sym_t *sym;
 	char *script;
-	void *func = NULL; /* We don't know the func API at this time */
+	const void *func = NULL; /* We don't know the func API at this time */
 	const clish_action_t *action = clish_context__get_action(context);
 	clish_shell_t *shell = clish_context__get_shell(context);
 	/* Signal vars */
@@ -380,11 +380,11 @@ int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr)
 }
 
 /*----------------------------------------------------------- */
-void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
+const void *clish_shell_check_hook(const clish_context_t *clish_context, int type)
 {
 	clish_sym_t *sym;
 	clish_shell_t *shell = clish_context__get_shell(clish_context);
-	void *func;
+	const void *func;
 
 	if (!(sym = shell->hooks[type]))
 		return NULL;
