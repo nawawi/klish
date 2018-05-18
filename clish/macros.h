@@ -26,12 +26,28 @@
 		assert(inst); \
 		inst->name = val; \
 	}
+#define _CLISH_SET_ONCE(obj, type, name) \
+	_CLISH_SET(obj, type, name)
+#define CLISH_SET_ONCE(obj, type, name) \
+	_CLISH_SET_ONCE(obj, type, name) { \
+		assert(inst); \
+		assert(NULL == inst->name); \
+		inst->name = val; \
+	}
 #define _CLISH_SET_STR(obj, name) \
 	_CLISH_SET(obj, const char *, name)
 #define CLISH_SET_STR(obj, name) \
 	_CLISH_SET_STR(obj, name) { \
 		assert(inst); \
 		lub_string_free(inst->name); \
+		inst->name = lub_string_dup(val); \
+	}
+#define _CLISH_SET_STR_ONCE(obj, name) \
+	_CLISH_SET_STR(obj, name)
+#define CLISH_SET_STR_ONCE(obj, name) \
+	_CLISH_SET_STR_ONCE(obj, name) { \
+		assert(inst); \
+		assert(NULL == inst->name); \
 		inst->name = lub_string_dup(val); \
 	}
 

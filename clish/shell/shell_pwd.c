@@ -43,7 +43,7 @@ void clish_shell__fini_pwd(clish_shell_pwd_t *pwd)
 
 /*--------------------------------------------------------- */
 void clish_shell__set_pwd(clish_shell_t *this,
-	const char *line, clish_view_t *view, char *viewid, clish_context_t *context)
+	const char *line, clish_view_t *view, const char *viewid, clish_context_t *context)
 {
 	clish_shell_pwd_t **tmp;
 	size_t new_size = 0;

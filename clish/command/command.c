@@ -3,6 +3,7 @@
   *
   * This file provides the implementation of a command definition  
   */
+
 #include "private.h"
 #include "clish/types.h"
 #include "lub/bintree.h"
@@ -13,9 +14,6 @@
 #include <string.h>
 #include <stdio.h>
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
 static void
 clish_command_init(clish_command_t *this, const char *name, const char *text)
 {
@@ -74,9 +72,7 @@ static void clish_command_fini(clish_command_t * this)
 		clish_param_delete(this->args);
 }
 
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 size_t clish_command_bt_offset(void)
 {
 	return offsetof(clish_command_t, bt_node);
@@ -156,9 +152,7 @@ clish_command_t * clish_command_alias_to_link(clish_command_t *this, clish_comma
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 void clish_command_delete(clish_command_t * this)
 {
 	clish_command_fini(this);
@@ -213,53 +207,39 @@ int clish_command_diff(const clish_command_t * cmd1,
 		clish_command__get_name(cmd2));
 }
 
-/*---------------------------------------------------------
- * PUBLIC ATTRIBUTES
- *--------------------------------------------------------- */
-const char *clish_command__get_name(const clish_command_t * this)
-{
-	if (!this)
-		return NULL;
-	return this->name;
-}
-
-/*--------------------------------------------------------- */
-const char *clish_command__get_text(const clish_command_t * this)
-{
-	return this->text;
-}
-
-/*--------------------------------------------------------- */
-const char *clish_command__get_detail(const clish_command_t * this)
-{
-	return this->detail;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_detail(clish_command_t * this, const char *detail)
-{
-	assert(NULL == this->detail);
-	this->detail = lub_string_dup(detail);
-}
-
-/*--------------------------------------------------------- */
-clish_action_t *clish_command__get_action(const clish_command_t *this)
-{
-	return this->action;
-}
-
-/*--------------------------------------------------------- */
-clish_config_t *clish_command__get_config(const clish_command_t *this)
-{
-	return this->config;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_viewname(clish_command_t * this, const char *viewname)
-{
-	assert(NULL == this->viewname);
-	clish_command__force_viewname(this, viewname);
-}
+CLISH_GET_STR(command, name);
+CLISH_GET_STR(command, text);
+CLISH_SET_STR_ONCE(command, detail);
+CLISH_GET_STR(command, detail);
+CLISH_GET(command, clish_action_t *, action);
+CLISH_GET(command, clish_config_t *, config);
+CLISH_SET_STR_ONCE(command, regex_chars);
+CLISH_GET_STR(command, regex_chars);
+CLISH_SET_STR_ONCE(command, escape_chars);
+CLISH_GET_STR(command, escape_chars);
+CLISH_SET_STR_ONCE(command, viewname);
+CLISH_GET_STR(command, viewname);
+CLISH_SET_STR_ONCE(command, viewid);
+CLISH_GET_STR(command, viewid);
+CLISH_SET_ONCE(command, clish_param_t *, args);
+CLISH_GET(command, clish_param_t *, args);
+CLISH_GET(command, clish_paramv_t *, paramv);
+CLISH_SET(command, clish_view_t *, pview);
+CLISH_GET(command, clish_view_t *, pview);
+CLISH_SET_STR(command, access);
+CLISH_GET_STR(command, access);
+CLISH_SET_STR(command, alias);
+CLISH_GET_STR(command, alias);
+CLISH_SET_STR(command, alias_view);
+CLISH_GET_STR(command, alias_view);
+CLISH_SET(command, bool_t, interrupt);
+CLISH_GET(command, bool_t, interrupt);
+CLISH_SET(command, bool_t, internal);
+CLISH_GET(command, bool_t, internal);
+CLISH_SET(command, bool_t, dynamic);
+CLISH_GET(command, bool_t, dynamic);
+CLISH_SET(command, bool_t, lock);
+CLISH_GET(command, bool_t, lock);
 
 /*--------------------------------------------------------- */
 void clish_command__force_viewname(clish_command_t * this, const char *viewname)
@@ -270,30 +250,11 @@ void clish_command__force_viewname(clish_command_t * this, const char *viewname)
 }
 
 /*--------------------------------------------------------- */
-char *clish_command__get_viewname(const clish_command_t * this)
-{
-	return this->viewname;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_viewid(clish_command_t * this, const char *viewid)
-{
-	assert(NULL == this->viewid);
-	clish_command__force_viewid(this, viewid);
-}
-
-/*--------------------------------------------------------- */
 void clish_command__force_viewid(clish_command_t * this, const char *viewid)
 {
 	if (this->viewid)
 		lub_string_free(this->viewid);
 	this->viewid = lub_string_dup(viewid);
-}
-
-/*--------------------------------------------------------- */
-char *clish_command__get_viewid(const clish_command_t * this)
-{
-	return this->viewid;
 }
 
 /*--------------------------------------------------------- */
@@ -310,69 +271,9 @@ const char *clish_command__get_suffix(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-void
-clish_command__set_escape_chars(clish_command_t * this,
-	const char *escape_chars)
-{
-	assert(!this->escape_chars);
-	this->escape_chars = lub_string_dup(escape_chars);
-}
-
-/*--------------------------------------------------------- */
-const char *clish_command__get_escape_chars(const clish_command_t * this)
-{
-	return this->escape_chars;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_regex_chars(clish_command_t *this,
-	const char *escape_chars)
-{
-	assert(!this->regex_chars);
-	this->regex_chars = lub_string_dup(escape_chars);
-}
-
-/*--------------------------------------------------------- */
-const char *clish_command__get_regex_chars(const clish_command_t *this)
-{
-	return this->regex_chars;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_args(clish_command_t * this, clish_param_t * args)
-{
-	assert(NULL == this->args);
-	this->args = args;
-}
-
-/*--------------------------------------------------------- */
-clish_param_t *clish_command__get_args(const clish_command_t * this)
-{
-	return this->args;
-}
-
-/*--------------------------------------------------------- */
 unsigned int clish_command__get_param_count(const clish_command_t * this)
 {
 	return clish_paramv__get_count(this->paramv);
-}
-
-/*--------------------------------------------------------- */
-clish_paramv_t *clish_command__get_paramv(const clish_command_t * this)
-{
-	return this->paramv;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_pview(clish_command_t * this, clish_view_t * view)
-{
-	this->pview = view;
-}
-
-/*--------------------------------------------------------- */
-clish_view_t *clish_command__get_pview(const clish_command_t * this)
-{
-	return this->pview;
 }
 
 /*--------------------------------------------------------- */
@@ -400,71 +301,6 @@ const clish_command_t * clish_command__get_orig(const clish_command_t * this)
 }
 
 /*--------------------------------------------------------- */
-bool_t clish_command__get_lock(const clish_command_t * this)
-{
-	return this->lock;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_lock(clish_command_t * this, bool_t lock)
-{
-	this->lock = lock;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_alias(clish_command_t * this, const char * alias)
-{
-	if (this->alias)
-		lub_string_free(this->alias);
-	this->alias = lub_string_dup(alias);
-}
-
-/*--------------------------------------------------------- */
-const char * clish_command__get_alias(const clish_command_t * this)
-{
-	return this->alias;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_alias_view(clish_command_t *this,
-	const char *alias_view)
-{
-	if (this->alias_view)
-		lub_string_free(this->alias_view);
-	this->alias_view = lub_string_dup(alias_view);
-}
-
-/*--------------------------------------------------------- */
-const char * clish_command__get_alias_view(const clish_command_t * this)
-{
-	return this->alias_view;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_dynamic(clish_command_t * this, bool_t dynamic)
-{
-	this->dynamic = dynamic;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_command__get_dynamic(const clish_command_t * this)
-{
-	return this->dynamic;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_internal(clish_command_t * this, bool_t internal)
-{
-	this->internal = internal;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_command__get_internal(const clish_command_t * this)
-{
-	return this->internal;
-}
-
-/*--------------------------------------------------------- */
 const clish_command_t * clish_command__get_cmd(const clish_command_t * this)
 {
 	if (!this->dynamic)
@@ -472,30 +308,4 @@ const clish_command_t * clish_command__get_cmd(const clish_command_t * this)
 	if (this->link)
 		return clish_command__get_cmd(this->link);
 	return NULL;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_command__get_interrupt(const clish_command_t * this)
-{
-	return this->interrupt;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_interrupt(clish_command_t * this, bool_t interrupt)
-{
-	this->interrupt = interrupt;
-}
-
-/*--------------------------------------------------------- */
-void clish_command__set_access(clish_command_t *this, const char *access)
-{
-	if (this->access)
-		lub_string_free(this->access);
-	this->access = lub_string_dup(access);
-}
-
-/*--------------------------------------------------------- */
-char *clish_command__get_access(const clish_command_t *this)
-{
-	return this->access;
 }

@@ -17,12 +17,6 @@ typedef struct clish_command_s clish_command_t;
 #include "clish/action.h"
 #include "clish/config.h"
 
-/*=====================================
- * COMMAND INTERFACE
- *===================================== */
-/*-----------------
- * meta functions
- *----------------- */
 clish_command_t *clish_command_new(const char *name, const char *help);
 clish_command_t *clish_command_new_link(const char *name,
 	const char *help, const clish_command_t * ref);
@@ -35,63 +29,56 @@ clish_command_t *clish_command_choose_longest(clish_command_t * cmd1,
 	clish_command_t * cmd2);
 int
 clish_command_diff(const clish_command_t * cmd1, const clish_command_t * cmd2);
-/*-----------------
- * methods
- *----------------- */
+
 void clish_command_delete(clish_command_t *instance);
 void clish_command_insert_param(clish_command_t *instance,
 	clish_param_t *param);
 int clish_command_help(const clish_command_t *instance);
 void clish_command_dump(const clish_command_t *instance);
 
-/*-----------------
- * attributes
- *----------------- */
-const char *clish_command__get_name(const clish_command_t * instance);
+_CLISH_GET_STR(command, name);
+_CLISH_GET_STR(command, text);
+_CLISH_SET_STR_ONCE(command, detail);
+_CLISH_GET_STR(command, detail);
+_CLISH_GET(command, clish_action_t *, action);
+_CLISH_GET(command, clish_config_t *, config);
+_CLISH_SET_STR_ONCE(command, regex_chars);
+_CLISH_GET_STR(command, regex_chars);
+_CLISH_SET_STR_ONCE(command, escape_chars);
+_CLISH_GET_STR(command, escape_chars);
+_CLISH_SET_STR_ONCE(command, viewname);
+_CLISH_GET_STR(command, viewname);
+_CLISH_SET_STR_ONCE(command, viewid);
+_CLISH_GET_STR(command, viewid);
+_CLISH_SET_ONCE(command, clish_param_t *, args);
+_CLISH_GET(command, clish_param_t *, args);
+_CLISH_GET(command, clish_paramv_t *, paramv);
+_CLISH_SET(command, clish_view_t *, pview);
+_CLISH_GET(command, clish_view_t *, pview);
+_CLISH_SET_STR(command, access);
+_CLISH_GET_STR(command, access);
+_CLISH_SET_STR(command, alias);
+_CLISH_GET_STR(command, alias);
+_CLISH_SET_STR(command, alias_view);
+_CLISH_GET_STR(command, alias_view);
+_CLISH_SET(command, bool_t, interrupt);
+_CLISH_GET(command, bool_t, interrupt);
+_CLISH_SET(command, bool_t, internal);
+_CLISH_GET(command, bool_t, internal);
+_CLISH_SET(command, bool_t, dynamic);
+_CLISH_GET(command, bool_t, dynamic);
+_CLISH_SET(command, bool_t, lock);
+_CLISH_GET(command, bool_t, lock);
+
 const char *clish_command__get_suffix(const clish_command_t * instance);
-const char *clish_command__get_text(const clish_command_t * instance);
-const char *clish_command__get_detail(const clish_command_t * instance);
-const char *clish_command__get_escape_chars(const clish_command_t * instance);
-const char *clish_command__get_regex_chars(const clish_command_t * instance);
-clish_param_t *clish_command__get_args(const clish_command_t * instance);
-clish_action_t *clish_command__get_action(const clish_command_t *instance);
-char *clish_command__get_viewname(const clish_command_t * instance);
-char *clish_command__get_viewid(const clish_command_t *instance);
 unsigned int clish_command__get_param_count(const clish_command_t * instance);
 const clish_param_t *clish_command__get_param(const clish_command_t * instance,
 	unsigned index);
-clish_paramv_t *clish_command__get_paramv(const clish_command_t * instance);
-void clish_command__set_escape_chars(clish_command_t * instance,
-	const char *escape_chars);
-void clish_command__set_regex_chars(clish_command_t * instance,
-	const char *escape_chars);
-void clish_command__set_args(clish_command_t * instance, clish_param_t * args);
-void clish_command__set_detail(clish_command_t * instance, const char *detail);
-void clish_command__set_viewname(clish_command_t * instance, const char *viewname);
 void clish_command__force_viewname(clish_command_t * instance, const char *viewname);
-void clish_command__set_viewid(clish_command_t * instance, const char *viewid);
 void clish_command__force_viewid(clish_command_t * instance, const char *viewid);
-void clish_command__set_pview(clish_command_t * instance, clish_view_t * view);
-clish_view_t *clish_command__get_pview(const clish_command_t * instance);
 int clish_command__get_depth(const clish_command_t * instance);
-clish_config_t *clish_command__get_config(const clish_command_t *instance);
 clish_view_restore_e clish_command__get_restore(const clish_command_t * instance);
 const clish_command_t * clish_command__get_orig(const clish_command_t * instance);
 const clish_command_t * clish_command__get_cmd(const clish_command_t * instance);
-bool_t clish_command__get_lock(const clish_command_t * instance);
-void clish_command__set_lock(clish_command_t * instance, bool_t lock);
-void clish_command__set_alias(clish_command_t * instance, const char * alias);
-const char * clish_command__get_alias(const clish_command_t * instance);
-void clish_command__set_alias_view(clish_command_t * instance,
-	const char *alias_view);
-const char * clish_command__get_alias_view(const clish_command_t * instance);
-void clish_command__set_dynamic(clish_command_t * instance, bool_t dynamic);
-bool_t clish_command__get_dynamic(const clish_command_t * instance);
-void clish_command__set_internal(clish_command_t * instance, bool_t internal);
-bool_t clish_command__get_internal(const clish_command_t * instance);
-bool_t clish_command__get_interrupt(const clish_command_t * instance);
-void clish_command__set_interrupt(clish_command_t * instance, bool_t interrupt);
-void clish_command__set_access(clish_command_t *instance, const char *access);
-char *clish_command__get_access(const clish_command_t *instance);
 
 #endif				/* _clish_command_h */
