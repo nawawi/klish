@@ -151,7 +151,7 @@ static char *find_context_var(const char *name, clish_context_t *this)
 static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *context)
 {
 	clish_var_t *var = lub_bintree_find(tree, name);
-	char *value;
+	const char *value;
 	bool_t dynamic;
 	char *res = NULL;
 
@@ -161,7 +161,7 @@ static char *find_var(const char *name, lub_bintree_t *tree, clish_context_t *co
 	/* Try to get saved value for static var */
 	dynamic = clish_var__get_dynamic(var);
 	if (!dynamic) {
-		char *saved = clish_var__get_saved(var);
+		const char *saved = clish_var__get_saved(var);
 		if (saved)
 			return lub_string_dup(saved);
 	}

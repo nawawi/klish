@@ -11,9 +11,7 @@
 #include "lub/string.h"
 #include "private.h"
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 static void clish_var_init(clish_var_t *this, const char *name)
 {
 	this->name = lub_string_dup(name);
@@ -35,9 +33,7 @@ static void clish_var_fini(clish_var_t *this)
 	lub_string_free(this->saved);
 }
 
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 int clish_var_bt_compare(const void *clientnode, const void *clientkey)
 {
 	const clish_var_t *this = clientnode;
@@ -70,67 +66,18 @@ clish_var_t *clish_var_new(const char *name)
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 void clish_var_delete(clish_var_t *this)
 {
 	clish_var_fini(this);
 	free(this);
 }
 
-/*---------------------------------------------------------
- * PUBLIC ATTRIBUTES
- *--------------------------------------------------------- */
-const char *clish_var__get_name(const clish_var_t *this)
-{
-	if (!this)
-		return NULL;
-	return this->name;
-}
-
-/*--------------------------------------------------------- */
-void clish_var__set_dynamic(clish_var_t *this, bool_t dynamic)
-{
-	this->dynamic = dynamic;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_var__get_dynamic(const clish_var_t *this)
-{
-	return this->dynamic;
-}
-
-/*--------------------------------------------------------- */
-void clish_var__set_value(clish_var_t *this, const char *value)
-{
-	if (this->value)
-		lub_string_free(this->value);
-	this->value = lub_string_dup(value);
-}
-
-/*--------------------------------------------------------- */
-char *clish_var__get_value(const clish_var_t *this)
-{
-	return this->value;
-}
-
-/*--------------------------------------------------------- */
-clish_action_t *clish_var__get_action(const clish_var_t *this)
-{
-	return this->action;
-}
-
-/*--------------------------------------------------------- */
-void clish_var__set_saved(clish_var_t *this, const char *value)
-{
-	if (this->saved)
-		lub_string_free(this->saved);
-	this->saved = lub_string_dup(value);
-}
-
-/*--------------------------------------------------------- */
-char *clish_var__get_saved(const clish_var_t *this)
-{
-	return this->saved;
-}
+CLISH_GET_STR(var, name);
+CLISH_SET(var, bool_t, dynamic);
+CLISH_GET(var, bool_t, dynamic);
+CLISH_SET_STR(var, value);
+CLISH_GET_STR(var, value);
+CLISH_SET_STR(var, saved);
+CLISH_GET_STR(var, saved);
+CLISH_GET(var, clish_action_t *, action);
