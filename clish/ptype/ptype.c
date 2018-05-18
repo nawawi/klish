@@ -13,9 +13,7 @@
 #include <limits.h>
 #include <stdio.h>
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 static char *clish_ptype_select__get_name(const clish_ptype_t * this,
 	unsigned index)
 {
@@ -102,9 +100,7 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 	}
 }
 
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 int clish_ptype_bt_compare(const void *clientnode, const void *clientkey)
 {
 	const clish_ptype_t *this = clientnode;
@@ -195,10 +191,6 @@ clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char *name)
 	}
 	return result;
 }
-
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
 
 /*--------------------------------------------------------- */
 void clish_ptype_word_generator(clish_ptype_t * this,
@@ -458,22 +450,15 @@ void clish_ptype_delete(clish_ptype_t * this)
 	free(this);
 }
 
-/*--------------------------------------------------------- */
-const char *clish_ptype__get_name(const clish_ptype_t * this)
-{
-	return (const char *)this->name;
-}
+CLISH_GET_STR(ptype, name);
+CLISH_SET_STR_ONCE(ptype, text);
+CLISH_GET_STR(ptype, text);
+CLISH_SET_ONCE(ptype, clish_ptype_preprocess_e, preprocess);
+CLISH_GET_STR(ptype, range);
 
 /*--------------------------------------------------------- */
-const char *clish_ptype__get_text(const clish_ptype_t * this)
-{
-	return (const char *)this->text;
-}
-
-/*--------------------------------------------------------- */
-void
-clish_ptype__set_pattern(clish_ptype_t * this,
-			 const char *pattern, clish_ptype_method_e method)
+void clish_ptype__set_pattern(clish_ptype_t * this,
+	const char *pattern, clish_ptype_method_e method)
 {
 	assert(NULL == this->pattern);
 	this->method = method;
@@ -527,28 +512,3 @@ clish_ptype__set_pattern(clish_ptype_t * this,
 	/* now set up the range details */
 	clish_ptype__set_range(this);
 }
-
-/*--------------------------------------------------------- */
-void clish_ptype__set_text(clish_ptype_t * this, const char *text)
-{
-	assert(!this->text);
-	this->text = lub_string_dup(text);
-
-}
-
-/*--------------------------------------------------------- */
-void
-clish_ptype__set_preprocess(clish_ptype_t * this,
-	clish_ptype_preprocess_e preprocess)
-{
-	assert(!this->preprocess);
-	this->preprocess = preprocess;
-}
-
-/*--------------------------------------------------------- */
-const char *clish_ptype__get_range(const clish_ptype_t * this)
-{
-	return (const char *)this->range;
-}
-
-/*--------------------------------------------------------- */
