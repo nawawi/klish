@@ -19,7 +19,7 @@ CLISH_PLUGIN_INIT(lua)
 	if(clish_plugin_init_lua(clish_shell))
 		return (-1);
 
-	clish_plugin_add_fini(plugin, clish_plugin_lua_fini);
+	clish_plugin__set_fini(plugin, clish_plugin_lua_fini);
 	clish_plugin_add_sym(plugin, clish_plugin_lua_action, "lua");
 
 	return 0;

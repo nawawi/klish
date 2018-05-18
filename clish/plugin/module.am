@@ -1,4 +1,5 @@
 libclish_la_SOURCES += \
 	clish/plugin/plugin.c \
+	clish/plugin/sym.c \
 	clish/plugin/plugin_dump.c \
 	clish/plugin/private.h

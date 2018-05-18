@@ -153,30 +153,6 @@ const clish_param_t *clish_pargv__get_param(clish_pargv_t * this,
 }
 
 /*--------------------------------------------------------- */
-const char *clish_parg__get_value(const clish_parg_t * this)
-{
-	if (!this)
-		return NULL;
-	return this->value;
-}
-
-/*--------------------------------------------------------- */
-const char *clish_parg__get_name(const clish_parg_t * this)
-{
-	if (!this)
-		return NULL;
-	return clish_param__get_name(this->param);
-}
-
-/*--------------------------------------------------------- */
-const clish_ptype_t *clish_parg__get_ptype(const clish_parg_t * this)
-{
-	if (!this)
-		return NULL;
-	return clish_param__get_ptype(this->param);
-}
-
-/*--------------------------------------------------------- */
 const clish_parg_t *clish_pargv_find_arg(clish_pargv_t * this, const char *name)
 {
 	if (!this)

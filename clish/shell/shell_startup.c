@@ -171,7 +171,7 @@ int clish_shell_prepare(clish_shell_t *this)
 		clish_plugin_t *plugin;
 		plugin = clish_shell_find_create_plugin(this,
 			clish_plugin_builtin_list[i].name);
-		clish_plugin_add_init(plugin,
+		clish_plugin__set_init(plugin,
 			clish_plugin_builtin_list[i].init);
 		clish_plugin__set_builtin_flag(plugin, BOOL_TRUE);
 		i++;

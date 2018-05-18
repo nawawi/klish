@@ -26,7 +26,7 @@ CLISH_PLUGIN_INIT(anplug)
 
 	printf("anplug: INIT shell = %p\n", clish_shell);
 	/* Set a fini function */
-	clish_plugin_add_fini(plugin, clish_plugin_anplug_fini);
+	clish_plugin__set_fini(plugin, clish_plugin_anplug_fini);
 	/* Add symbols */
 	clish_plugin_add_sym(plugin, anplug_fn, "an_fn");
 	/* Show plugin config from <PLUGIN>...</PLUGIN> */

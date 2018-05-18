@@ -187,7 +187,7 @@ clish_sym_t *clish_shell_add_unresolved_sym(clish_shell_t *this,
 static int link_unresolved_sym(clish_shell_t *this, clish_sym_t *sym)
 {
 	clish_sym_t *plugin_sym;
-	char *sym_name = NULL;
+	const char *sym_name = NULL;
 	int sym_type;
 
 	if (clish_sym__get_func(sym)) /* Don't relink non-null fn */

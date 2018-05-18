@@ -18,126 +18,6 @@
 #include <dlfcn.h>
 #endif
 
-/**********************************************************
- * SYM functions                                          *
- **********************************************************/
-
-/*--------------------------------------------------------- */
-int clish_sym_compare(const void *first, const void *second)
-{
-	const clish_sym_t *f = (const clish_sym_t *)first;
-	const clish_sym_t *s = (const clish_sym_t *)second;
-
-	return strcmp(f->name, s->name);
-}
-
-/*--------------------------------------------------------- */
-clish_sym_t *clish_sym_new(const char *name, void *func, int type)
-{
-	clish_sym_t *this;
-
-	this = malloc(sizeof(*this));
-	this->name = lub_string_dup(name);
-	this->func = func;
-	this->type = type;
-	this->api = CLISH_SYM_API_SIMPLE;
-	this->permanent = BOOL_FALSE;
-
-	return this;
-}
-
-/*--------------------------------------------------------- */
-void clish_sym_free(clish_sym_t *this)
-{
-	if (!this)
-		return;
-	lub_string_free(this->name);
-	free(this);
-}
-
-/*--------------------------------------------------------- */
-void clish_sym__set_func(clish_sym_t *this, void *func)
-{
-	this->func = func;
-}
-
-CLISH_GET(sym, const void *, func);
-
-/*--------------------------------------------------------- */
-void clish_sym__set_permanent(clish_sym_t *this, bool_t permanent)
-{
-	this->permanent = permanent;
-}
-
-CLISH_GET(sym, bool_t, permanent);
-
-/*--------------------------------------------------------- */
-void clish_sym__set_name(clish_sym_t *this, const char *name)
-{
-	lub_string_free(this->name);
-	this->name = lub_string_dup(name);
-}
-
-/*--------------------------------------------------------- */
-char *clish_sym__get_name(clish_sym_t *this)
-{
-	return this->name;
-}
-
-/*--------------------------------------------------------- */
-void clish_sym__set_plugin(clish_sym_t *this, clish_plugin_t *plugin)
-{
-	this->plugin = plugin;
-}
-
-/*--------------------------------------------------------- */
-clish_plugin_t *clish_sym__get_plugin(clish_sym_t *this)
-{
-	return this->plugin;
-}
-
-/*--------------------------------------------------------- */
-void clish_sym__set_type(clish_sym_t *this, int type)
-{
-	this->type = type;
-}
-
-/*--------------------------------------------------------- */
-int clish_sym__get_type(const clish_sym_t *this)
-{
-	return this->type;
-}
-
-/*--------------------------------------------------------- */
-void clish_sym__set_api(clish_sym_t *this, clish_sym_api_e api)
-{
-	this->api = api;
-}
-
-/*--------------------------------------------------------- */
-clish_sym_api_e clish_sym__get_api(const clish_sym_t *this)
-{
-	return this->api;
-}
-
-/*--------------------------------------------------------- */
-int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src)
-{
-	char *name;
-
-	if (!dst || !src)
-		return -1;
-	name = dst->name;
-	*dst = *src;
-	dst->name = name;
-
-	return 0;
-}
-
-/**********************************************************
- * PLUGIN functions                                       *
- **********************************************************/
-
 /*--------------------------------------------------------- */
 clish_plugin_t *clish_plugin_new(const char *name)
 {
@@ -275,31 +155,6 @@ clish_sym_t *clish_plugin_add_phook(clish_plugin_t *this,
 		name, type, BOOL_TRUE);
 }
 
-/*--------------------------------------------------------- */
-void clish_plugin_add_fini(clish_plugin_t *this,
-	clish_plugin_fini_t *fini)
-{
-	this->fini = fini;
-}
-
-/*--------------------------------------------------------- */
-clish_plugin_fini_t * clish_plugin_get_fini(clish_plugin_t *this)
-{
-	return this->fini;
-}
-
-/*--------------------------------------------------------- */
-void clish_plugin_add_init(clish_plugin_t *this,
-	clish_plugin_init_t *init)
-{
-	this->init = init;
-}
-
-/*--------------------------------------------------------- */
-clish_plugin_init_t * clish_plugin_get_init(clish_plugin_t *this)
-{
-	return this->init;
-}
 
 /*--------------------------------------------------------- */
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int type)
@@ -399,79 +254,25 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 	return res;
 }
 
-/*--------------------------------------------------------- */
-char *clish_plugin__get_name(const clish_plugin_t *this)
-{
-	return this->name;
-}
+CLISH_SET(plugin, clish_plugin_fini_t *, fini);
+CLISH_GET(plugin, clish_plugin_fini_t *, fini);
+CLISH_SET(plugin, clish_plugin_init_t *, init);
+CLISH_GET(plugin, clish_plugin_init_t *, init);
+CLISH_GET_STR(plugin, name);
+CLISH_SET_STR(plugin, alias);
+CLISH_GET_STR(plugin, alias);
+CLISH_SET_STR(plugin, file);
+CLISH_GET_STR(plugin, file);
+CLISH_SET_STR(plugin, conf);
+CLISH_GET_STR(plugin, conf);
+CLISH_SET(plugin, bool_t, builtin_flag);
+CLISH_GET(plugin, bool_t, builtin_flag);
+CLISH_SET(plugin, bool_t, rtld_global);
+CLISH_GET(plugin, bool_t, rtld_global);
 
 /*--------------------------------------------------------- */
-void clish_plugin__set_alias(clish_plugin_t *this, const char *alias)
+_CLISH_GET_STR(plugin, pubname)
 {
-	lub_string_free(this->alias);
-	this->alias = lub_string_dup(alias);
+	assert(inst);
+	return (inst->alias ? inst->alias : inst->name);
 }
-
-/*--------------------------------------------------------- */
-char *clish_plugin__get_alias(const clish_plugin_t *this)
-{
-	return this->alias;
-}
-
-/*--------------------------------------------------------- */
-char *clish_plugin__get_pubname(const clish_plugin_t *this)
-{
-	return (this->alias ? this->alias : this->name);
-}
-
-/*--------------------------------------------------------- */
-void clish_plugin__set_file(clish_plugin_t *this, const char *file)
-{
-	lub_string_free(this->file);
-	this->file = lub_string_dup(file);
-}
-
-/*--------------------------------------------------------- */
-char *clish_plugin__get_file(const clish_plugin_t *this)
-{
-	return this->file;
-}
-
-/*--------------------------------------------------------- */
-void clish_plugin__set_builtin_flag(clish_plugin_t *this, bool_t builtin_flag)
-{
-	this->builtin_flag = builtin_flag;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_plugin__get_builtin_flag(const clish_plugin_t *this)
-{
-	return this->builtin_flag;
-}
-
-/*--------------------------------------------------------- */
-void clish_plugin__set_conf(clish_plugin_t *this, const char *conf)
-{
-	lub_string_free(this->conf);
-	this->conf = lub_string_dup(conf);
-}
-
-/*--------------------------------------------------------- */
-char *clish_plugin__get_conf(const clish_plugin_t *this)
-{
-	return this->conf;
-}
-
-/*--------------------------------------------------------- */
-void clish_plugin__set_rtld_global(clish_plugin_t *this, bool_t rtld_global)
-{
-	this->rtld_global = rtld_global;
-}
-
-/*--------------------------------------------------------- */
-bool_t clish_plugin__get_rtld_global(const clish_plugin_t *this)
-{
-	return this->rtld_global;
-}
-
-/*--------------------------------------------------------- */

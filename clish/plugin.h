@@ -72,19 +72,20 @@ extern clish_plugin_builtin_list_t clish_plugin_builtin_list[];
 int clish_sym_compare(const void *first, const void *second);
 clish_sym_t *clish_sym_new(const char *name, void *func, int type);
 void clish_sym_free(clish_sym_t *instance);
-void clish_sym__set_func(clish_sym_t *instance, void *func);
-_CLISH_GET(sym, const void *, func);
-void clish_sym__set_name(clish_sym_t *instance, const char *name);
-char *clish_sym__get_name(clish_sym_t *instance);
-void clish_sym__set_permanent(clish_sym_t *instance, bool_t permanent);
-_CLISH_GET(sym, bool_t, permanent);
-void clish_sym__set_plugin(clish_sym_t *instance, clish_plugin_t *plugin);
-clish_plugin_t *clish_sym__get_plugin(clish_sym_t *instance);
-void clish_sym__set_type(clish_sym_t *instance, int type);
-int clish_sym__get_type(const clish_sym_t *instance);
-void clish_sym__set_api(clish_sym_t *instance, clish_sym_api_e api);
-clish_sym_api_e clish_sym__get_api(const clish_sym_t *instance);
 int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src);
+
+_CLISH_SET(sym, const void *, func);
+_CLISH_GET(sym, const void *, func);
+_CLISH_SET(sym, bool_t, permanent);
+_CLISH_GET(sym, bool_t, permanent);
+_CLISH_SET_STR(sym, name);
+_CLISH_GET_STR(sym, name);
+_CLISH_SET(sym, clish_plugin_t *, plugin);
+_CLISH_GET(sym, clish_plugin_t *, plugin);
+_CLISH_SET(sym, int, type);
+_CLISH_GET(sym, int, type);
+_CLISH_SET(sym, clish_sym_api_e, api);
+_CLISH_GET(sym, clish_sym_api_e, api);
 
 /* Plugin */
 
@@ -107,25 +108,24 @@ clish_sym_t *clish_plugin_add_hook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
 clish_sym_t *clish_plugin_add_phook(clish_plugin_t *instance,
 	void *func, const char *name, int type);
-void clish_plugin_add_fini(clish_plugin_t *instance,
-	clish_plugin_fini_t *fini);
-clish_plugin_fini_t * clish_plugin_get_fini(clish_plugin_t *instance);
-void clish_plugin_add_init(clish_plugin_t *instance,
-	clish_plugin_init_t *init);
-clish_plugin_init_t * clish_plugin_get_init(clish_plugin_t *instance);
 void clish_plugin_dump(const clish_plugin_t *instance);
-char *clish_plugin__get_name(const clish_plugin_t *instance);
-void clish_plugin__set_alias(clish_plugin_t *instance, const char *alias);
-char *clish_plugin__get_alias(const clish_plugin_t *instance);
-char *clish_plugin__get_pubname(const clish_plugin_t *instance);
-void clish_plugin__set_file(clish_plugin_t *instance, const char *file);
-char *clish_plugin__get_file(const clish_plugin_t *instance);
-void clish_plugin__set_builtin_flag(clish_plugin_t *instance, bool_t builtin_flag);
-bool_t clish_plugin__get_builtin_flag(const clish_plugin_t *instance);
-void clish_plugin__set_conf(clish_plugin_t *instance, const char *conf);
-char *clish_plugin__get_conf(const clish_plugin_t *instance);
-void clish_plugin__set_rtld_global(clish_plugin_t *instance, bool_t rtld_global);
-bool_t clish_plugin__get_rtld_global(const clish_plugin_t *instance);
+
+_CLISH_SET(plugin, clish_plugin_fini_t *, fini);
+_CLISH_GET(plugin, clish_plugin_fini_t *, fini);
+_CLISH_SET(plugin, clish_plugin_init_t *, init);
+_CLISH_GET(plugin, clish_plugin_init_t *, init);
+_CLISH_GET_STR(plugin, name);
+_CLISH_SET_STR(plugin, alias);
+_CLISH_GET_STR(plugin, alias);
+_CLISH_SET_STR(plugin, file);
+_CLISH_GET_STR(plugin, file);
+_CLISH_SET_STR(plugin, conf);
+_CLISH_GET_STR(plugin, conf);
+_CLISH_SET(plugin, bool_t, builtin_flag);
+_CLISH_GET(plugin, bool_t, builtin_flag);
+_CLISH_SET(plugin, bool_t, rtld_global);
+_CLISH_GET(plugin, bool_t, rtld_global);
+_CLISH_GET_STR(plugin, pubname);
 
 #endif				/* _clish_plugin_h */
 /** @} clish_plugin */

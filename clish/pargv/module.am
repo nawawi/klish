@@ -1,4 +1,5 @@
 libclish_la_SOURCES += \
 	clish/pargv/pargv.c \
+	clish/pargv/parg.c \
 	clish/pargv/pargv_dump.c \
 	clish/pargv/private.h

@@ -1,14 +1,7 @@
 /*
  * pargv.h
+ * This class represents a vector of command line arguments.
  */
- /**
-\ingroup clish
-\defgroup clish_pargv pargv
-@{
-
-\brief This class represents a vector of command line arguments.
-
-*/
 
 #ifndef _clish_pargv_h
 #define _clish_pargv_h
@@ -28,16 +21,10 @@ typedef struct clish_parg_s clish_parg_t;
 #include "clish/command.h"
 #include "clish/param.h"
 
-/*=====================================
- * PARGV INTERFACE
- *===================================== */
-/*-----------------
- * meta functions
- *----------------- */
+/* Class pargv */
+
 clish_pargv_t *clish_pargv_new(void);
-/*-----------------
- * methods
- *----------------- */
+
 void clish_pargv_delete(clish_pargv_t * instance);
 const clish_parg_t *clish_pargv_find_arg(clish_pargv_t * instance,
 	const char *name);
@@ -45,31 +32,18 @@ int clish_pargv_insert(clish_pargv_t * instance,
 	const clish_param_t * param, const char *value);
 clish_pargv_t *clish_pargv_clone(const clish_pargv_t *src);
 void clish_pargv_dump(const clish_pargv_t * instance);
-/*-----------------
- * attributes
- *----------------- */
+
 unsigned clish_pargv__get_count(clish_pargv_t * instance);
 clish_parg_t *clish_pargv__get_parg(clish_pargv_t * instance, unsigned index);
 const clish_param_t *clish_pargv__get_param(clish_pargv_t * instance,
 	unsigned index);
 
-/*=====================================
- * PARG INTERFACE
- *===================================== */
-/*-----------------
- * meta functions
- *----------------- */
-/*-----------------
- * methods
- *----------------- */
+/* Class parg */
+
 void clish_parg_dump(const clish_parg_t * instance);
 
-/*-----------------
- * attributes 
- *----------------- */
-const char *clish_parg__get_name(const clish_parg_t * instance);
-const char *clish_parg__get_value(const clish_parg_t * instance);
-const clish_ptype_t *clish_parg__get_ptype(const clish_parg_t * instance);
+_CLISH_GET_STR(parg, value);
+_CLISH_GET_STR(parg, name);
+_CLISH_GET(parg, clish_ptype_t *, ptype);
 
 #endif				/* _clish_pargv_h */
-/** @} clish_pargv */
