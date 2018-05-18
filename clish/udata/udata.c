@@ -52,30 +52,6 @@ void *clish_udata_free(clish_udata_t *this)
 	return data;
 }
 
-/*--------------------------------------------------------- */
-void *clish_udata__get_data(const clish_udata_t *this)
-{
-	if (!this)
-		return NULL;
-	return this->data;
-}
-
-/*--------------------------------------------------------- */
-int clish_udata__set_data(clish_udata_t *this, void *data)
-{
-	if (!this)
-		return -1;
-	this->data = data;
-	return 0;
-}
-
-/*--------------------------------------------------------- */
-char *clish_udata__get_name(const clish_udata_t *this)
-{
-	if (!this)
-		return NULL;
-	return this->name;
-}
-
-
-/*--------------------------------------------------------- */
+CLISH_SET(udata, void *, data);
+CLISH_GET(udata, void *, data);
+CLISH_GET_STR(udata, name);
