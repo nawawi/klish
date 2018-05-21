@@ -165,33 +165,6 @@ clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * this, unsigned int
 }
 
 /*--------------------------------------------------------- */
-konf_client_t *clish_shell__get_client(const clish_shell_t * this)
-{
-	return this->client;
-}
-
-/*--------------------------------------------------------- */
-void clish_shell__set_lockfile(clish_shell_t * this, const char * path)
-{
-	if (!this)
-		return;
-
-	lub_string_free(this->lockfile);
-	this->lockfile = NULL;
-	if (path)
-		this->lockfile = lub_string_dup(path);
-}
-
-/*--------------------------------------------------------- */
-char * clish_shell__get_lockfile(clish_shell_t * this)
-{
-	if (!this)
-		return NULL;
-
-	return this->lockfile;
-}
-
-/*--------------------------------------------------------- */
 int clish_shell__set_socket(clish_shell_t * this, const char * path)
 {
 	if (!this || !path)
@@ -203,19 +176,8 @@ int clish_shell__set_socket(clish_shell_t * this, const char * path)
 	return 0;
 }
 
-/*--------------------------------------------------------- */
-void clish_shell__set_facility(clish_shell_t *this, int facility)
-{
-	if (!this)
-		return;
-	this->log_facility = facility;
-}
-
-/*--------------------------------------------------------- */
-int clish_shell__get_facility(clish_shell_t *this)
-{
-	if (!this)
-		return LOG_LOCAL0;
-
-	return this->log_facility;
-}
+CLISH_SET_STR(shell, lockfile);
+CLISH_GET_STR(shell, lockfile);
+CLISH_SET(shell, int, log_facility);
+CLISH_GET(shell, int, log_facility);
+CLISH_GET(shell, konf_client_t *, client);

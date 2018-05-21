@@ -143,11 +143,33 @@ int clish_shell_rmfifo(clish_shell_t * instance, const char *name);
 /*-----------------
  * attributes
  *----------------- */
+_CLISH_GET_STR(shell, overview);
+_CLISH_SET_STR(shell, lockfile);
+_CLISH_GET_STR(shell, lockfile);
+_CLISH_SET_STR(shell, default_shebang);
+_CLISH_GET_STR(shell, default_shebang);
+_CLISH_SET(shell, unsigned int, idle_timeout);
+_CLISH_SET(shell, unsigned int, wdog_timeout);
+_CLISH_GET(shell, unsigned int, wdog_timeout);
+_CLISH_GET(shell, unsigned int, depth);
+_CLISH_SET(shell, int, log_facility);
+_CLISH_GET(shell, int, log_facility);
+_CLISH_GET(shell, konf_client_t *, client);
+_CLISH_GET(shell, struct passwd *, user);
+_CLISH_SET(shell, clish_shell_state_e, state);
+_CLISH_GET(shell, clish_shell_state_e, state);
+_CLISH_SET(shell, bool_t, interactive);
+_CLISH_GET(shell, bool_t, interactive);
+_CLISH_SET(shell, bool_t, log);
+_CLISH_GET(shell, bool_t, log);
+_CLISH_SET(shell, bool_t, dryrun);
+_CLISH_GET(shell, bool_t, dryrun);
+_CLISH_SET(shell, bool_t, canon_out);
+_CLISH_GET(shell, bool_t, canon_out);
+
 clish_view_t *clish_shell__get_view(const clish_shell_t * instance);
-unsigned int clish_shell__get_depth(const clish_shell_t * instance);
 clish_view_t *clish_shell__set_depth(clish_shell_t *instance, unsigned int depth);
 const char *clish_shell__get_viewid(const clish_shell_t * instance);
-const char *clish_shell__get_overview(const clish_shell_t * instance);
 tinyrl_t *clish_shell__get_tinyrl(const clish_shell_t * instance);
 void clish_shell__set_pwd(clish_shell_t *instance, const char * line,
 	clish_view_t * view, const char * viewid, clish_context_t *context);
@@ -163,47 +185,22 @@ char *clish_shell__get_pwd_full(const clish_shell_t * instance,
 	unsigned int depth);
 clish_view_t *clish_shell__get_pwd_view(const clish_shell_t * instance,
 	unsigned int index);
-konf_client_t *clish_shell__get_client(const clish_shell_t * instance);
 FILE *clish_shell__get_istream(const clish_shell_t * instance);
 FILE *clish_shell__get_ostream(const clish_shell_t * instance);
-void clish_shell__set_lockfile(clish_shell_t * instance, const char * path);
-char * clish_shell__get_lockfile(clish_shell_t * instance);
 int clish_shell__set_socket(clish_shell_t * instance, const char * path);
 int clish_shell_load_scheme(clish_shell_t * instance, const char * xml_path, const char *xslt_path);
 int clish_shell_loop(clish_shell_t * instance);
-clish_shell_state_e clish_shell__get_state(const clish_shell_t * instance);
-void clish_shell__set_state(clish_shell_t * instance,
-	clish_shell_state_e state);
 void clish_shell__set_startup_view(clish_shell_t * instance, const char * viewname);
 void clish_shell__set_startup_viewid(clish_shell_t * instance, const char * viewid);
-void clish_shell__set_default_shebang(clish_shell_t * instance, const char * shebang);
-const char * clish_shell__get_default_shebang(const clish_shell_t * instance);
-void clish_shell__set_interactive(clish_shell_t * instance, bool_t interactive);
-bool_t clish_shell__get_interactive(const clish_shell_t * instance);
 bool_t clish_shell__get_utf8(const clish_shell_t * instance);
 void clish_shell__set_utf8(clish_shell_t * instance, bool_t utf8);
-void clish_shell__set_timeout(clish_shell_t *instance, unsigned int timeout);
 char *clish_shell__get_line(clish_context_t *context);
 char *clish_shell__get_full_line(clish_context_t *context);
 char *clish_shell__get_params(clish_context_t *context);
-
-/* Log functions */
-void clish_shell__set_log(clish_shell_t *instance, bool_t log);
-bool_t clish_shell__get_log(const clish_shell_t *instance);
-void clish_shell__set_facility(clish_shell_t *instance, int facility);
-int clish_shell__get_facility(clish_shell_t *instance);
-
 int clish_shell_wdog(clish_shell_t *instance);
-_CLISH_SET(shell, unsigned int, wdog_timeout);
-_CLISH_GET(shell, unsigned int, wdog_timeout);
 int clish_shell__save_history(const clish_shell_t *instance, const char *fname);
 int clish_shell__restore_history(clish_shell_t *instance, const char *fname);
 void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);
-struct passwd *clish_shell__get_user(clish_shell_t *instance);
-void clish_shell__set_dryrun(clish_shell_t *instance, bool_t dryrun);
-bool_t clish_shell__get_dryrun(const clish_shell_t *instance);
-void clish_shell__set_canon_out(clish_shell_t *instance, bool_t canon_out);
-bool_t clish_shell__get_canon_out(const clish_shell_t *instance);
 
 /* Plugin functions */
 clish_plugin_t * clish_shell_find_plugin(clish_shell_t *instance,

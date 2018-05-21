@@ -64,22 +64,6 @@ void clish_shell__set_startup_viewid(clish_shell_t *this, const char *viewid)
 	clish_command__force_viewid(this->startup, viewid);
 }
 
-/*----------------------------------------------------------- */
-void clish_shell__set_default_shebang(clish_shell_t *this, const char *shebang)
-{
-	assert(this);
-	lub_string_free(this->default_shebang);
-	this->default_shebang = lub_string_dup(shebang);
-}
-
-/*----------------------------------------------------------- */
-const char * clish_shell__get_default_shebang(const clish_shell_t *this)
-{
-	assert(this);
-	return this->default_shebang;
-}
-
-
 
 /*-------------------------------------------------------- */
 /* Resolve PTYPE for given PARAM.
@@ -347,4 +331,7 @@ int clish_shell_prepare(clish_shell_t *this)
 	return 0;
 }
 
-/*----------------------------------------------------------- */
+CLISH_SET_STR(shell, default_shebang);
+CLISH_GET_STR(shell, default_shebang);
+
+

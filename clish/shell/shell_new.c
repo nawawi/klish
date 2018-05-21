@@ -215,10 +215,4 @@ void clish_shell_delete(clish_shell_t *this)
 	free(this);
 }
 
-/*--------------------------------------------------------- */
-struct passwd *clish_shell__get_user(clish_shell_t * this)
-{
-	return this->user;
-}
-
-/*-------------------------------------------------------- */
+CLISH_GET(shell, struct passwd *, user);

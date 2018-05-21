@@ -24,7 +24,7 @@ CLISH_HOOK_LOG(clish_hook_log)
 	/* Initialization */
 	if (!line) {
 		openlog(SYSLOG_IDENT, LOG_PID,
-			clish_shell__get_facility(this));
+			clish_shell__get_log_facility(this));
 		return 0;
 	}
 

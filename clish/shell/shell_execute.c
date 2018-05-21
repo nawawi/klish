@@ -92,7 +92,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	clish_shell_t *this = clish_context__get_shell(context);
 	const clish_command_t *cmd = clish_context__get_cmd(context);
 	int result = 0;
-	char *lock_path = clish_shell__get_lockfile(this);
+	const char *lock_path = clish_shell__get_lockfile(this);
 	int lock_fd = -1;
 	clish_view_t *cur_view = clish_shell__get_view(this);
 	unsigned int saved_wdog_timeout = this->wdog_timeout;
@@ -437,42 +437,9 @@ int clish_shell_rmfifo(clish_shell_t * this, const char *name)
 	return unlink(name);
 }
 
-/*-------------------------------------------------------- */
-void clish_shell__set_log(clish_shell_t *this, bool_t log)
-{
-	assert(this);
-	this->log = log;
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell__get_log(const clish_shell_t *this)
-{
-	assert(this);
-	return this->log;
-}
-
-/*-------------------------------------------------------- */
-void clish_shell__set_dryrun(clish_shell_t *this, bool_t dryrun)
-{
-	this->dryrun = dryrun;
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell__get_dryrun(const clish_shell_t *this)
-{
-	return this->dryrun;
-}
-
-/*-------------------------------------------------------- */
-void clish_shell__set_canon_out(clish_shell_t *this, bool_t canon_out)
-{
-	this->canon_out = canon_out;
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell__get_canon_out(const clish_shell_t *this)
-{
-	return this->canon_out;
-}
-
-/*----------------------------------------------------------- */
+CLISH_SET(shell, bool_t, log);
+CLISH_GET(shell, bool_t, log);
+CLISH_SET(shell, bool_t, dryrun);
+CLISH_GET(shell, bool_t, dryrun);
+CLISH_SET(shell, bool_t, canon_out);
+CLISH_GET(shell, bool_t, canon_out);

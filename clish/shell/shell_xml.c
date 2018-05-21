@@ -619,7 +619,7 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (timeout) {
 		unsigned int to = 0;
 		lub_conv_atoui(timeout, &to, 0);
-		clish_shell__set_timeout(shell, to);
+		clish_shell__set_idle_timeout(shell, to);
 	}
 
 	/* lock field */

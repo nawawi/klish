@@ -558,19 +558,6 @@ FILE * clish_shell__get_ostream(const clish_shell_t * this)
 	return tinyrl__get_ostream(this->tinyrl);
 }
 
-/*-------------------------------------------------------- */
-void clish_shell__set_interactive(clish_shell_t * this, bool_t interactive)
-{
-	assert(this);
-	this->interactive = interactive;
-}
-
-/*-------------------------------------------------------- */
-bool_t clish_shell__get_interactive(const clish_shell_t * this)
-{
-	assert(this);
-	return this->interactive;
-}
 
 /*-------------------------------------------------------- */
 bool_t clish_shell__get_utf8(const clish_shell_t * this)
@@ -584,13 +571,6 @@ void clish_shell__set_utf8(clish_shell_t * this, bool_t utf8)
 {
 	assert(this);
 	tinyrl__set_utf8(this->tinyrl, utf8);
-}
-
-/*-------------------------------------------------------- */
-void clish_shell__set_timeout(clish_shell_t *this, unsigned int timeout)
-{
-	assert(this);
-	this->idle_timeout = timeout;
 }
 
 /*--------------------------------------------------------- */
@@ -617,4 +597,6 @@ void clish_shell__stifle_history(clish_shell_t *this, unsigned int stifle)
 	tinyrl__stifle_history(this->tinyrl, stifle);
 }
 
-/*-------------------------------------------------------- */
+CLISH_SET(shell, unsigned int, idle_timeout);
+CLISH_SET(shell, bool_t, interactive);
+CLISH_GET(shell, bool_t, interactive);

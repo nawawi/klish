@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 	/* Set logging */
 	if (log) {
 		clish_shell__set_log(shell, log);
-		clish_shell__set_facility(shell, log_facility);
+		clish_shell__set_log_facility(shell, log_facility);
 	}
 	/* Set dry-run */
 	if (dryrun)
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 		clish_shell__set_canon_out(shell, canon_out);
 	/* Set idle timeout */
 	if (istimeout)
-		clish_shell__set_timeout(shell, timeout);
+		clish_shell__set_idle_timeout(shell, timeout);
 	/* Set history settings */
 	clish_shell__stifle_history(shell, histsize);
 	if (histfile)

@@ -7,11 +7,4 @@
 
 #include "private.h"
 
-/*--------------------------------------------------------- */
-const char *clish_shell__get_overview(const clish_shell_t *this)
-{
-	assert(this);
-	return this->overview;
-}
-
-/*--------------------------------------------------------- */
+CLISH_GET_STR(shell, overview);
