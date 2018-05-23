@@ -21,5 +21,11 @@ _CLISH_SET(action, const clish_sym_t *, builtin);
 _CLISH_GET(action, const clish_sym_t *, builtin);
 _CLISH_SET_STR(action, shebang);
 _CLISH_GET_STR(action, shebang);
+_CLISH_SET(action, bool_t, lock);
+_CLISH_GET(action, bool_t, lock);
+_CLISH_SET(action, bool_t, interrupt);
+_CLISH_GET(action, bool_t, interrupt);
+_CLISH_SET(action, bool_t, interactive);
+_CLISH_GET(action, bool_t, interactive);
 
 #endif // _clish_action_h

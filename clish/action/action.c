@@ -50,6 +50,12 @@ CLISH_SET_STR(action, script);
 CLISH_GET_STR(action, script);
 CLISH_SET(action, const clish_sym_t *, builtin);
 CLISH_GET(action, const clish_sym_t *, builtin);
+CLISH_SET(action, bool_t, lock);
+CLISH_GET(action, bool_t, lock);
+CLISH_SET(action, bool_t, interrupt);
+CLISH_GET(action, bool_t, interrupt);
+CLISH_SET(action, bool_t, interactive);
+CLISH_GET(action, bool_t, interactive);
 
 _CLISH_SET_STR(action, shebang)
 {

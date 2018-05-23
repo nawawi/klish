@@ -263,8 +263,15 @@
 *	parameter. If the "args" attribute is given then this MUST be
 *	given also.
 *
-* [lock] - the boolean field that specify to lock lockfile while
-*	command execution or not. Default is true.
+* [lock] - !legacy! the boolean field that specify to lock lockfile while
+*	command execution or not. Default is true. Will be used in a case
+*	when klish was built with LEGACY macro. The attribute is moved
+	to ACTION tag.
+*
+* [interrupt] - !legacy! the boolean field that specify that action can be
+*	be interrupted by Ctrl^C. Will be used in a case
+*	when klish was built with LEGACY macro. The attribute is moved
+*	to ACTION tag.
 *
 ********************************************************
 -->
@@ -283,8 +290,8 @@
 		<xs:attribute name="args" type="xs:string" use="optional"/>
 		<xs:attribute name="args_help" type="xs:string" use="optional"/>
 		<xs:attribute name="escape_chars" type="xs:string" use="optional"/>
-		<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
-		<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
+<!-- legacy -->	<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
+<!-- legacy -->	<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
 	</xs:complexType>
 
 <!--
@@ -388,6 +395,22 @@
 *
 * [shebang] - specify the programm to execute the action
 *	script.
+*
+* [lock="true/false"] - the boolean field that specify to lock lockfile while
+*	action execution or not. Default is true. In a case the
+*	LEGACY macro is specified while klish building the
+*	value of this field is inherited from COMMAND tag (if
+*	lock is not specified in ACTION).
+*
+* [interrupt="true/false"] - the boolean field that specify that action can be
+*	be interrupted by Ctrl^C. Default is false. In a case the
+*	LEGACY macro is specified while klish building the
+*	value of this field is inherited from COMMAND tag (if
+*	attr is not specified in ACTION).
+*
+* [interactive="true/false"] - specify is action interactive. The
+*	interactive ACTIONs can't be used with piped ("|") output.
+*
 ********************************************************
 -->
 	<xs:complexType name="action_t">
@@ -395,6 +418,9 @@
 			<xs:extension base="xs:string">
 				<xs:attribute name="builtin" type="xs:string" use="optional"/>
 				<xs:attribute name="shebang" type="xs:string" use="optional"/>
+				<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
+				<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
+				<xs:attribute name="interactive" type="bool_t" use="optional" default="false"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>

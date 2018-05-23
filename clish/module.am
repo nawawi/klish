@@ -6,7 +6,7 @@ libclish_la_SOURCES = \
 	clish/private.h
 
 libclish_la_LDFLAGS = $(VERSION_INFO) @XML_LDFLAGS@
-libclish_la_CFLAGS = @XML_CFLAGS@ $(DEBUG_CFLAGS)
+libclish_la_CFLAGS = @XML_CFLAGS@ $(DEBUG_CFLAGS) $(LEGACY_CFLAGS)
 libclish_la_DEPENDENCIES = \
 	liblub.la \
 	libtinyrl.la \

@@ -232,14 +232,16 @@ CLISH_SET_STR(command, alias);
 CLISH_GET_STR(command, alias);
 CLISH_SET_STR(command, alias_view);
 CLISH_GET_STR(command, alias_view);
-CLISH_SET(command, bool_t, interrupt);
-CLISH_GET(command, bool_t, interrupt);
 CLISH_SET(command, bool_t, internal);
 CLISH_GET(command, bool_t, internal);
 CLISH_SET(command, bool_t, dynamic);
 CLISH_GET(command, bool_t, dynamic);
+#ifdef LEGACY
 CLISH_SET(command, bool_t, lock);
 CLISH_GET(command, bool_t, lock);
+CLISH_SET(command, bool_t, interrupt);
+CLISH_GET(command, bool_t, interrupt);
+#endif
 
 /*--------------------------------------------------------- */
 void clish_command__force_viewname(clish_command_t * this, const char *viewname)

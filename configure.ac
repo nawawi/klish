@@ -78,6 +78,16 @@ AC_ARG_ENABLE(debug,
 AM_CONDITIONAL(DEBUG,test x$enable_debug = xyes)
 
 ################################
+# Deal with legacy klish-2 features
+################################
+AC_ARG_ENABLE(legacy,
+              [AS_HELP_STRING([--enable-legacy],
+                              [Turn on legacy klish-2 features [default=no]])],
+              [],
+              [enable_debug=no])
+AM_CONDITIONAL(LEGACY,test x$enable_legacy = xyes)
+
+################################
 # Check for Lua support
 ################################
 AC_ARG_WITH(lua,
