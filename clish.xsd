@@ -9,6 +9,7 @@
 	<xs:element name="CLISH_MODULE" type="clish_module_t"/>
 	<xs:element name="VIEW" type="view_t"/>
 	<xs:element name="COMMAND" type="command_t"/>
+	<xs:element name="FILTER" type="command_t"/>
 	<xs:element name="STARTUP" type="startup_t"/>
 	<xs:element name="ACTION" type="action_t"/>
 	<xs:element name="OVERVIEW" type="overview_t"/>
@@ -131,6 +132,9 @@
 	</xs:simpleType>
 
 	<xs:complexType name="ptype_t">
+		<xs:sequence>
+			<xs:element ref="ACTION" minOccurs="0"/>
+		</xs:sequence>
 		<xs:attributeGroup ref="menu_item_g"/>
 		<xs:attribute name="pattern" type="xs:string"/>
 		<xs:attribute name="method" type="ptype_method_e" use="optional" default="regexp"/>
@@ -512,7 +516,7 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
-	<xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
+		<xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
 	</xs:complexType>
 
 <!--
