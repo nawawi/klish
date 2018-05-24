@@ -19,6 +19,8 @@ static void clish_action_init(clish_action_t *this)
 	this->script = NULL;
 	this->builtin = NULL;
 	this->shebang = NULL;
+	this->lock = BOOL_TRUE;
+	this->interrupt = BOOL_FALSE;
 }
 
 /*--------------------------------------------------------- */

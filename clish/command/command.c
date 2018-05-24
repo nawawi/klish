@@ -38,8 +38,6 @@ clish_command_init(clish_command_t *this, const char *name, const char *text)
 	this->regex_chars = NULL;
 	this->args = NULL;
 	this->pview = NULL;
-	this->lock = BOOL_TRUE;
-	this->interrupt = BOOL_FALSE;
 	this->dynamic = BOOL_FALSE;
 	this->internal = BOOL_FALSE;
 	this->access = NULL;
@@ -236,12 +234,6 @@ CLISH_SET(command, bool_t, internal);
 CLISH_GET(command, bool_t, internal);
 CLISH_SET(command, bool_t, dynamic);
 CLISH_GET(command, bool_t, dynamic);
-#ifdef LEGACY
-CLISH_SET(command, bool_t, lock);
-CLISH_GET(command, bool_t, lock);
-CLISH_SET(command, bool_t, interrupt);
-CLISH_GET(command, bool_t, interrupt);
-#endif
 
 /*--------------------------------------------------------- */
 void clish_command__force_viewname(clish_command_t * this, const char *viewname)

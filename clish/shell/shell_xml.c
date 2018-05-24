@@ -468,9 +468,12 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	char *escape_chars = clish_xmlnode_fetch_attr(element, "escape_chars");
 	char *args_name = clish_xmlnode_fetch_attr(element, "args");
 	char *args_help = clish_xmlnode_fetch_attr(element, "args_help");
+	char *ref = clish_xmlnode_fetch_attr(element, "ref");
+#ifdef LEGACY
 	char *lock = clish_xmlnode_fetch_attr(element, "lock");
 	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
-	char *ref = clish_xmlnode_fetch_attr(element, "ref");
+	clish_action_t *action;
+#endif
 
 	/* Check syntax */
 	if (!name) {
@@ -540,17 +543,25 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
 
-	/* lock field */
-	if (lock && lub_string_nocasecmp(lock, "false") == 0)
-		clish_command__set_lock(cmd, BOOL_FALSE);
-	else
-		clish_command__set_lock(cmd, BOOL_TRUE);
+#ifdef LEGACY
+	action = clish_command__get_action(cmd);
 
-	/* interrupt field */
-	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
-		clish_command__set_interrupt(cmd, BOOL_TRUE);
-	else
-		clish_command__set_interrupt(cmd, BOOL_FALSE);
+	/* lock */
+	if (lock) { // Don't change anything if lock is not specified
+		if (lub_string_nocasecmp(lock, "false") == 0)
+			clish_action__set_lock(action, BOOL_FALSE);
+		else
+			clish_action__set_lock(action, BOOL_TRUE);
+	}
+
+	/* interrupt */
+	if (interrupt) { // Don't change anything if lock is not specified
+		if (lub_string_nocasecmp(interrupt, "true") == 0)
+			clish_action__set_interrupt(action, BOOL_TRUE);
+		else
+			clish_action__set_interrupt(action, BOOL_FALSE);
+	}
+#endif
 
 	if (access)
 		clish_command__set_access(cmd, access);
@@ -566,9 +577,11 @@ error:
 	clish_xml_release(escape_chars);
 	clish_xml_release(args_name);
 	clish_xml_release(args_help);
+	clish_xml_release(ref);
+#ifdef LEGACY
 	clish_xml_release(lock);
 	clish_xml_release(interrupt);
-	clish_xml_release(ref);
+#endif
 
 	return res;
 }
@@ -586,10 +599,14 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 	char *default_shebang =
 		clish_xmlnode_fetch_attr(element, "default_shebang");
 	char *timeout = clish_xmlnode_fetch_attr(element, "timeout");
-	char *lock = clish_xmlnode_fetch_attr(element, "lock");
-	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
 	char *default_plugin = clish_xmlnode_fetch_attr(element,
 		"default_plugin");
+#ifdef LEGACY
+	char *lock = clish_xmlnode_fetch_attr(element, "lock");
+	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
+	clish_action_t *action;
+#endif
+
 
 	/* Check syntax */
 	if (!view) {
@@ -603,7 +620,6 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	/* create a command with NULL help */
 	cmd = clish_view_new_command(v, "startup", NULL);
-	clish_command__set_lock(cmd, BOOL_FALSE);
 	clish_command__set_internal(cmd, BOOL_TRUE);
 
 	/* reference the next view */
@@ -622,17 +638,25 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 		clish_shell__set_idle_timeout(shell, to);
 	}
 
-	/* lock field */
-	if (lock && lub_string_nocasecmp(lock, "false") == 0)
-		clish_command__set_lock(cmd, BOOL_FALSE);
-	else
-		clish_command__set_lock(cmd, BOOL_TRUE);
+#ifdef LEGACY
+	action = clish_command__get_action(cmd);
 
-	/* interrupt field */
-	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
-		clish_command__set_interrupt(cmd, BOOL_TRUE);
-	else
-		clish_command__set_interrupt(cmd, BOOL_FALSE);
+	/* lock */
+	if (lock) { // Don't change anything if lock is not specified
+		if (lub_string_nocasecmp(lock, "false") == 0)
+			clish_action__set_lock(action, BOOL_FALSE);
+		else
+			clish_action__set_lock(action, BOOL_TRUE);
+	}
+
+	/* interrupt */
+	if (interrupt) { // Don't change anything if lock is not specified
+		if (lub_string_nocasecmp(interrupt, "true") == 0)
+			clish_action__set_interrupt(action, BOOL_TRUE);
+		else
+			clish_action__set_interrupt(action, BOOL_FALSE);
+	}
+#endif
 
 	/* If we need the default plugin */
 	if (default_plugin && (0 == strcmp(default_plugin, "false")))
@@ -647,8 +671,10 @@ error:
 	clish_xml_release(viewid);
 	clish_xml_release(default_shebang);
 	clish_xml_release(timeout);
+#ifdef LEGACY
 	clish_xml_release(lock);
 	clish_xml_release(interrupt);
+#endif
 
 	return res;
 }
@@ -836,8 +862,13 @@ static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
 	void *parent)
 {
 	clish_action_t *action = NULL;
+
 	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
 	char *shebang = clish_xmlnode_fetch_attr(element, "shebang");
+	char *lock = clish_xmlnode_fetch_attr(element, "lock");
+	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
+	char *interactive = clish_xmlnode_fetch_attr(element, "interactive");
+
 	clish_xmlnode_t *pelement = clish_xmlnode_parent(element);
 	char *pname = clish_xmlnode_get_all_name(pelement);
 	char *text;
@@ -870,8 +901,19 @@ static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (shebang)
 		clish_action__set_shebang(action, shebang);
 
+	/* lock */
+	if (lock && lub_string_nocasecmp(lock, "false") == 0)
+		clish_action__set_lock(action, BOOL_FALSE);
+
+	/* interrupt */
+	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
+		clish_action__set_interrupt(action, BOOL_TRUE);
+
 	clish_xml_release(builtin);
 	clish_xml_release(shebang);
+	clish_xml_release(lock);
+	clish_xml_release(interrupt);
+	clish_xml_release(interactive);
 
 	return 0;
 }
@@ -1120,7 +1162,10 @@ static int process_wdog(clish_shell_t *shell,
 
 	/* Create a command with NULL help */
 	cmd = clish_view_new_command(v, "watchdog", NULL);
-	clish_command__set_lock(cmd, BOOL_FALSE);
+#ifdef LEGACY
+	// Legacy watchdog has lockless ACTION
+	clish_action__set_lock(clish_command__get_action(cmd), BOOL_FALSE);
+#endif
 
 	/* Remember this command */
 	shell->wdog = cmd;

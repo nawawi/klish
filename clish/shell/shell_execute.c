@@ -113,7 +113,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 	}
 
 	/* Lock the lockfile */
-	if (lock_path && clish_command__get_lock(cmd)) {
+	if (lock_path && clish_action__get_lock(clish_command__get_action(cmd))) {
 		lock_fd = clish_shell_lock(lock_path);
 		if (-1 == lock_fd) {
 			result = -1;
@@ -123,8 +123,7 @@ int clish_shell_execute(clish_context_t *context, char **out)
 
 	/* Execute ACTION */
 	clish_context__set_action(context, clish_command__get_action(cmd));
-	result = clish_shell_exec_action(context, out,
-		clish_command__get_interrupt(cmd));
+	result = clish_shell_exec_action(context, out);
 
 	/* Call config callback */
 	if (!result)
@@ -299,7 +298,7 @@ stdout_error:
 }
 
 /*----------------------------------------------------------- */
-int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr)
+int clish_shell_exec_action(clish_context_t *context, char **out)
 {
 	int result = -1;
 	const clish_sym_t *sym;
@@ -307,6 +306,7 @@ int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr)
 	const void *func = NULL; /* We don't know the func API at this time */
 	const clish_action_t *action = clish_context__get_action(context);
 	clish_shell_t *shell = clish_context__get_shell(context);
+	bool_t intr = clish_action__get_interrupt(action);
 	/* Signal vars */
 	struct sigaction old_sigint, old_sigquit, old_sighup;
 	struct sigaction sa;

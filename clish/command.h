@@ -65,12 +65,6 @@ _CLISH_SET(command, bool_t, internal);
 _CLISH_GET(command, bool_t, internal);
 _CLISH_SET(command, bool_t, dynamic);
 _CLISH_GET(command, bool_t, dynamic);
-#ifdef LEGACY
-_CLISH_SET(command, bool_t, lock);
-_CLISH_GET(command, bool_t, lock);
-_CLISH_SET(command, bool_t, interrupt);
-_CLISH_GET(command, bool_t, interrupt);
-#endif
 
 const char *clish_command__get_suffix(const clish_command_t * instance);
 unsigned int clish_command__get_param_count(const clish_command_t * instance);

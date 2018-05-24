@@ -114,7 +114,7 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
 clish_ptype_t *clish_shell_find_ptype(clish_shell_t *instance,
 	const char *name);
 void clish_shell_help(clish_shell_t * instance, const char *line);
-int clish_shell_exec_action(clish_context_t *context, char **out, bool_t intr);
+int clish_shell_exec_action(clish_context_t *context, char **out);
 int clish_shell_execute(clish_context_t *context, char **out);
 int clish_shell_forceline(clish_shell_t *instance, const char *line, char ** out);
 int clish_shell_readline(clish_shell_t *instance, char ** out);
