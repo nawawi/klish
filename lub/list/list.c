@@ -196,7 +196,7 @@ lub_list_node_t *lub_list_search_node(lub_list_t *this, void *data)
 		res = this->compareFn(data, iter->data);
 		if (!res)
 			return iter;
-		if (res > 0)
+		if (res < 0)
 			break; // No chances to find it
 		iter = iter->next;
 	}

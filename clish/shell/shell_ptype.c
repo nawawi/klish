@@ -24,7 +24,7 @@ clish_ptype_t *clish_shell_find_ptype(clish_shell_t *this, const char *name)
 		r = strcmp(name, clish_ptype__get_name(ptype));
 		if (!r)
 			return ptype;
-		if (r > 0)
+		if (r < 0)
 			break;
 	}
 
@@ -39,21 +39,11 @@ clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * this,
 	clish_ptype_t *ptype = clish_shell_find_ptype(this, name);
 
 	if (!ptype) {
-		/* create a ptype */
+		/* Create a ptype */
 		ptype = clish_ptype_new(name, text, pattern,
 			method, preprocess);
 		assert(ptype);
 		lub_list_add(this->ptype_tree, ptype);
-	} else {
-		if (pattern) {
-			/* set the pattern */
-			clish_ptype__set_pattern(ptype, pattern, method);
-			/* set the preprocess */
-			clish_ptype__set_preprocess(ptype, preprocess);
-		}
-		/* set the help text */
-		if (text)
-			clish_ptype__set_text(ptype, text);
 	}
 
 	return ptype;
