@@ -27,7 +27,8 @@ lub_list_node_t *lub_list_iterator_next(lub_list_node_t *node);
 lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *node);
 lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
 void lub_list_del(lub_list_t *list, lub_list_node_t *node);
-lub_list_node_t *lub_list_search(lub_list_t *list, void *data);
+lub_list_node_t *lub_list_search_node(lub_list_t *list, void *data);
+void *lub_list_search(lub_list_t *list, void *data);
 unsigned int lub_list_len(lub_list_t *list);
 
 _END_C_DECL

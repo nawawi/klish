@@ -19,58 +19,45 @@ typedef struct clish_ptype_s clish_ptype_t;
 /* The means by which the pattern is interpreted and validated. */
 typedef enum {
 	/* [default] - A POSIX regular expression. */
-	CLISH_PTYPE_REGEXP,
+	CLISH_PTYPE_METHOD_REGEXP,
 	/* A numeric definition "min..max" signed and unsigned versions */
-	CLISH_PTYPE_INTEGER,
-	CLISH_PTYPE_UNSIGNEDINTEGER,
-	/**
-	* A list of possible values. 
-	* The syntax of the string is of the form: 
-	*  "valueOne(ONE) valueTwo(TWO) valueThree(THREE)"
-	* where the text before the parethesis defines the syntax 
-	* that the user must use, and the value within the parenthesis 
-	* is the result expanded as a parameter value. 
+	CLISH_PTYPE_METHOD_INTEGER,
+	CLISH_PTYPE_METHOD_UNSIGNEDINTEGER,
+	/* A list of possible values. The syntax of the string is of the form:
+	* "valueOne(ONE) valueTwo(TWO) valueThree(THREE)" where the text before
+	* the parethesis defines the syntax that the user must use, and the
+	* value within the parenthesis is the result expanded as a parameter value.
 	*/
-	CLISH_PTYPE_SELECT,
+	CLISH_PTYPE_METHOD_SELECT,
 	/* User-defined code in ACTION */
-	CLISH_PTYPE_CODE,
+	CLISH_PTYPE_METHOD_CODE,
 	/* Used to detect errors */
-	CLISH_PTYPE_MAX
+	CLISH_PTYPE_METHOD_MAX
 
 } clish_ptype_method_e;
-/**
- * This defines the pre processing which is to be
- * performed before a string is validated.
- */
+
+/* This defines the pre processing which is to be performed before a string is validated. */
 typedef enum {
-    /**
-     * [default] - do nothing
-     */
-	CLISH_PTYPE_NONE,
-    /**
-     * before validation convert to uppercase.
-     */
-	CLISH_PTYPE_TOUPPER,
-    /**
-     * before validation convert to lowercase.
-     */
-	CLISH_PTYPE_TOLOWER
+	/* [default] - do nothing */
+	CLISH_PTYPE_PRE_NONE,
+	/* before validation convert to uppercase. */
+	CLISH_PTYPE_PRE_TOUPPER,
+	/* before validation convert to lowercase. */
+	CLISH_PTYPE_PRE_TOLOWER,
+	/* Used to detect errors */
+	CLISH_PTYPE_PRE_MAX
 } clish_ptype_preprocess_e;
 
-int clish_ptype_bt_compare(const void *clientnode, const void *clientkey);
-void clish_ptype_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
-size_t clish_ptype_bt_offset(void);
-const char *clish_ptype_method__get_name(clish_ptype_method_e method);
+int clish_ptype_compare(const void *first, const void *second);
+const char *clish_ptype__get_method_name(clish_ptype_method_e method);
 clish_ptype_method_e clish_ptype_method_resolve(const char *method_name);
-const char *clish_ptype_preprocess__get_name(clish_ptype_preprocess_e
-	preprocess);
-clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char
-	*preprocess_name);
+const char *clish_ptype__get_preprocess_name(clish_ptype_preprocess_e preprocess);
+clish_ptype_preprocess_e clish_ptype_preprocess_resolve(const char *preprocess_name);
 clish_ptype_t *clish_ptype_new(const char *name, const char *text,
 	const char *pattern, clish_ptype_method_e method,
 	clish_ptype_preprocess_e preprocess);
 
-void clish_ptype_delete(clish_ptype_t * instance);
+void clish_ptype_free(clish_ptype_t *instance);
 /**
  * This is the validation method for the specified type.
  * \return

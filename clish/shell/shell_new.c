@@ -28,10 +28,8 @@ static void clish_shell_init(clish_shell_t * this,
 		clish_view_bt_offset(),
 		clish_view_bt_compare, clish_view_bt_getkey);
 
-	/* initialise the tree of ptypes */
-	lub_bintree_init(&this->ptype_tree,
-		clish_ptype_bt_offset(),
-		clish_ptype_bt_compare, clish_ptype_bt_getkey);
+	/* Init PTYPE list */
+	this->ptype_tree = lub_list_new(clish_ptype_compare);
 
 	/* initialise the tree of vars */
 	lub_bintree_init(&this->var_tree,
@@ -90,8 +88,8 @@ static void clish_shell_init(clish_shell_t * this,
 	tmp_ptype = clish_shell_find_create_ptype(this,
 		"__ptype_ARGS",
 		"Arguments", "[^\\\\]+",
-		CLISH_PTYPE_REGEXP,
-		CLISH_PTYPE_NONE);
+		CLISH_PTYPE_METHOD_REGEXP,
+		CLISH_PTYPE_PRE_NONE);
 	assert(tmp_ptype);
 
 	/* Push non-NULL istream */
@@ -103,7 +101,6 @@ static void clish_shell_init(clish_shell_t * this,
 static void clish_shell_fini(clish_shell_t *this)
 {
 	clish_view_t *view;
-	clish_ptype_t *ptype;
 	clish_var_t *var;
 	unsigned i;
 	lub_list_node_t *iter;
@@ -125,11 +122,13 @@ static void clish_shell_fini(clish_shell_t *this)
 		clish_view_delete(view);
 	}
 
-	/* delete each PTYPE held  */
-	while ((ptype = lub_bintree_findfirst(&this->ptype_tree))) {
-		lub_bintree_remove(&this->ptype_tree, ptype);
-		clish_ptype_delete(ptype);
+	/* Delete each PTYPE  */
+	while ((iter = lub_list__get_head(this->ptype_tree))) {
+		lub_list_del(this->ptype_tree, iter);
+		clish_ptype_free((clish_ptype_t *)lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
 	}
+	lub_list_free(this->ptype_tree);
 
 	/* delete each VAR held  */
 	while ((var = lub_bintree_findfirst(&this->var_tree))) {

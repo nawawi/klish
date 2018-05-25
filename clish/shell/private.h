@@ -11,15 +11,7 @@
 #include "clish/plugin.h"
 #include "clish/udata.h"
 
-/*-------------------------------------
- * PRIVATE TYPES
- *------------------------------------- */
-
-/*-------------------------------------------------------- */
-
-/*
- * iterate around commands
- */
+/* iterate around commands */
 typedef struct {
 	const char *last_cmd;
 	clish_nspace_visibility_e field;
@@ -55,7 +47,7 @@ struct clish_context_s {
 /* Shell structure */
 struct clish_shell_s {
 	lub_bintree_t view_tree; /* Tree of views */
-	lub_bintree_t ptype_tree; /* Tree of ptypes */
+	lub_list_t *ptype_tree; /* PTYPE list */
 	lub_bintree_t var_tree; /* Tree of global variables */
 
 	/* Hooks */
@@ -139,7 +131,6 @@ const clish_command_t *clish_shell_resolve_command(const clish_shell_t *
 	instance, const char *line);
 const clish_command_t *clish_shell_resolve_prefix(const clish_shell_t *
 	instance, const char *line);
-void clish_shell_insert_ptype(clish_shell_t * instance, clish_ptype_t * ptype);
 void clish_shell_tinyrl_history(clish_shell_t * instance, unsigned int *limit);
 tinyrl_t *clish_shell_tinyrl_new(FILE * instream,
 	FILE * outstream, unsigned stifle);

@@ -155,7 +155,6 @@ clish_sym_t *clish_plugin_add_phook(clish_plugin_t *this,
 		name, type, BOOL_TRUE);
 }
 
-
 /*--------------------------------------------------------- */
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *this, const char *name, int type)
 {

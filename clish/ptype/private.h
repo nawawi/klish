@@ -20,7 +20,6 @@ struct clish_ptype_select_s {
 };
 
 struct clish_ptype_s {
-	lub_bintree_node_t bt_node;
 	char *name;
 	char *text;
 	char *pattern;

@@ -388,11 +388,11 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 	}
 
 	method = clish_ptype_method_resolve(method_name);
-	if (CLISH_PTYPE_MAX == method) {
+	if (CLISH_PTYPE_METHOD_MAX == method) {
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("method"));
 		goto error;
 	}
-	if ((method != CLISH_PTYPE_CODE) && !pattern) {
+	if ((method != CLISH_PTYPE_METHOD_CODE) && !pattern) {
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("pattern"));
 		goto error;
 	}
@@ -756,12 +756,9 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 		 * name of ptype is hardcoded. It's not good but
 		 * it's only the service ptype.
 		 */
-		tmp = (clish_ptype_t *)lub_bintree_find(
-			&shell->ptype_tree, ptype_name);
-		if (!tmp)
-			tmp = clish_shell_find_create_ptype(shell,
-				ptype_name, "Option", "[^\\\\]+",
-				CLISH_PTYPE_REGEXP, CLISH_PTYPE_NONE);
+		tmp = clish_shell_find_create_ptype(shell,
+			ptype_name, "Option", "[^\\\\]+",
+			CLISH_PTYPE_METHOD_REGEXP, CLISH_PTYPE_PRE_NONE);
 		assert(tmp);
 		lub_string_cat(&str, "_prefix_");
 		lub_string_cat(&str, name);

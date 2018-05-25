@@ -178,9 +178,10 @@ inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src)
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_search(lub_list_t *this, void *data)
+lub_list_node_t *lub_list_search_node(lub_list_t *this, void *data)
 {
 	lub_list_node_t *iter;
+	int res;
 
 	/* Empty list */
 	if (!this->head)
@@ -192,12 +193,23 @@ lub_list_node_t *lub_list_search(lub_list_t *this, void *data)
 	/* Sorted list */
 	iter = this->head;
 	while (iter) {
-		if (!this->compareFn(data, iter->data))
+		res = this->compareFn(data, iter->data);
+		if (!res)
 			return iter;
+		if (res > 0)
+			break; // No chances to find it
 		iter = iter->next;
 	}
 
 	return NULL;
+}
+
+/*--------------------------------------------------------- */
+void *lub_list_search(lub_list_t *this, void *data)
+{
+	lub_list_node_t *iter = lub_list_search_node(this, data);
+
+	return iter->data;
 }
 
 /*--------------------------------------------------------- */
