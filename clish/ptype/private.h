@@ -33,4 +33,5 @@ struct clish_ptype_s {
 		clish_ptype_integer_t integer;
 		clish_ptype_select_t select;
 	} u;
+	clish_action_t *action;
 };

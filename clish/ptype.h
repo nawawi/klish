@@ -12,6 +12,7 @@ typedef struct clish_ptype_s clish_ptype_t;
 #include "clish/macros.h"
 #include "lub/bintree.h"
 #include "lub/argv.h"
+#include "clish/action.h"
 
 #include <stddef.h>
 
@@ -104,6 +105,7 @@ _CLISH_SET_STR_ONCE(ptype, text);
 _CLISH_GET_STR(ptype, text);
 _CLISH_SET_ONCE(ptype, clish_ptype_preprocess_e, preprocess);
 _CLISH_GET_STR(ptype, range);
+_CLISH_GET(ptype, clish_action_t *, action);
 
 void clish_ptype__set_pattern(clish_ptype_t * instance,
 	const char *pattern, clish_ptype_method_e method);

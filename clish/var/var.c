@@ -29,8 +29,8 @@ static void clish_var_fini(clish_var_t *this)
 {
 	lub_string_free(this->name);
 	lub_string_free(this->value);
-	clish_action_delete(this->action);
 	lub_string_free(this->saved);
+	clish_action_delete(this->action);
 }
 
 /*--------------------------------------------------------- */

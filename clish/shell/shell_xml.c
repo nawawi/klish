@@ -373,6 +373,7 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 	clish_ptype_method_e method;
 	clish_ptype_preprocess_e preprocess;
 	int res = -1;
+	clish_ptype_t *ptype;
 
 	char *name = clish_xmlnode_fetch_attr(element, "name");
 	char *help = clish_xmlnode_fetch_attr(element, "help");
@@ -393,10 +394,10 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 	method = clish_ptype_method_resolve(method_name);
 
 	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
-	clish_shell_find_create_ptype(shell,
+	ptype = clish_shell_find_create_ptype(shell,
 		name, help, pattern, method, preprocess);
 
-	res = 0;
+	res = process_children(shell, element, ptype);
 error:
 	clish_xml_release(name);
 	clish_xml_release(help);
@@ -876,6 +877,8 @@ static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	if (pname && lub_string_nocasecmp(pname, "VAR") == 0)
 		action = clish_var__get_action((clish_var_t *)parent);
+	else if (pname && lub_string_nocasecmp(pname, "PTYPE") == 0)
+		action = clish_ptype__get_action((clish_ptype_t *)parent);
 	else
 		action = clish_command__get_action((clish_command_t *)parent);
 

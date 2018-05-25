@@ -375,6 +375,7 @@ static void clish_ptype_init(clish_ptype_t * this,
 	this->pattern = NULL;
 	this->preprocess = preprocess;
 	this->range = NULL;
+	this->action = clish_action_new();
 
 	/* Be a good binary tree citizen */
 	lub_bintree_node_init(&this->bt_node);
@@ -441,6 +442,7 @@ static void clish_ptype_fini(clish_ptype_t * this)
 	this->pattern = NULL;
 	lub_string_free(this->range);
 	this->range = NULL;
+	clish_action_delete(this->action);
 }
 
 /*--------------------------------------------------------- */
@@ -455,6 +457,7 @@ CLISH_SET_STR_ONCE(ptype, text);
 CLISH_GET_STR(ptype, text);
 CLISH_SET_ONCE(ptype, clish_ptype_preprocess_e, preprocess);
 CLISH_GET_STR(ptype, range);
+CLISH_GET(ptype, clish_action_t *, action);
 
 /*--------------------------------------------------------- */
 void clish_ptype__set_pattern(clish_ptype_t * this,
