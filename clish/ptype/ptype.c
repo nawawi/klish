@@ -97,6 +97,9 @@ static void clish_ptype__set_range(clish_ptype_t * this)
 		break;
 	}
 	/*------------------------------------------------- */
+	default:
+		break;
+	/*------------------------------------------------- */
 	}
 }
 
@@ -129,7 +132,8 @@ static const char *method_names[] = {
 	"regexp",
 	"integer",
 	"unsignedInteger",
-	"select"
+	"select",
+	"code"
 };
 
 /*--------------------------------------------------------- */
@@ -143,21 +147,19 @@ const char *clish_ptype_method__get_name(clish_ptype_method_e method)
 }
 
 /*--------------------------------------------------------- */
+/* Return value CLISH_PTYPE_MAX indicates an illegal method */
 clish_ptype_method_e clish_ptype_method_resolve(const char *name)
 {
-	clish_ptype_method_e result = CLISH_PTYPE_REGEXP;
-	if (NULL != name) {
-		unsigned i;
-		for (i = 0; i < CLISH_PTYPE_SELECT + 1; i++) {
-			if (0 == strcmp(name, method_names[i])) {
-				result = (clish_ptype_method_e) i;
-				break;
-			}
-		}
-		/* error for incorrect type spec */
-		assert(i <= CLISH_PTYPE_SELECT);
+	unsigned int i;
+
+	if (NULL == name)
+		return CLISH_PTYPE_REGEXP;
+	for (i = 0; i < CLISH_PTYPE_MAX; i++) {
+		if (!strcmp(name, method_names[i]))
+			break;
 	}
-	return result;
+
+	return (clish_ptype_method_e)i;
 }
 
 /*--------------------------------------------------------- */
@@ -431,6 +433,8 @@ static void clish_ptype_fini(clish_ptype_t * this)
 		case CLISH_PTYPE_SELECT:
 			lub_argv_delete(this->u.select.items);
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -511,6 +515,8 @@ void clish_ptype__set_pattern(clish_ptype_t * this,
 		this->u.select.items = lub_argv_new(this->pattern, 0);
 		break;
 	/*------------------------------------------------- */
+	default:
+		break;
 	}
 	/* now set up the range details */
 	clish_ptype__set_range(this);

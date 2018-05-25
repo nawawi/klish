@@ -16,29 +16,27 @@ typedef struct clish_ptype_s clish_ptype_t;
 
 #include <stddef.h>
 
-/**
- * The means by which the pattern is interpreted and 
- * validated.
- */
+/* The means by which the pattern is interpreted and validated. */
 typedef enum {
-    /**
-     * [default] - A POSIX regular expression.
-    */
+	/* [default] - A POSIX regular expression. */
 	CLISH_PTYPE_REGEXP,
-    /**
-     * A numeric definition "min..max" signed and unsigned versions
-     */
+	/* A numeric definition "min..max" signed and unsigned versions */
 	CLISH_PTYPE_INTEGER,
 	CLISH_PTYPE_UNSIGNEDINTEGER,
-    /**
-     * A list of possible values. 
-     * The syntax of the string is of the form: 
-     *  "valueOne(ONE) valueTwo(TWO) valueThree(THREE)"
-     * where the text before the parethesis defines the syntax 
-     * that the user must use, and the value within the parenthesis 
-     * is the result expanded as a parameter value. 
-     */
-	CLISH_PTYPE_SELECT
+	/**
+	* A list of possible values. 
+	* The syntax of the string is of the form: 
+	*  "valueOne(ONE) valueTwo(TWO) valueThree(THREE)"
+	* where the text before the parethesis defines the syntax 
+	* that the user must use, and the value within the parenthesis 
+	* is the result expanded as a parameter value. 
+	*/
+	CLISH_PTYPE_SELECT,
+	/* User-defined code in ACTION */
+	CLISH_PTYPE_CODE,
+	/* Used to detect errors */
+	CLISH_PTYPE_MAX
+
 } clish_ptype_method_e;
 /**
  * This defines the pre processing which is to be

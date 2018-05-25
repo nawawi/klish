@@ -386,12 +386,16 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
 		goto error;
 	}
-	if (!pattern) {
+
+	method = clish_ptype_method_resolve(method_name);
+	if (CLISH_PTYPE_MAX == method) {
+		fprintf(stderr, CLISH_XML_ERROR_ATTR("method"));
+		goto error;
+	}
+	if ((method != CLISH_PTYPE_CODE) && !pattern) {
 		fprintf(stderr, CLISH_XML_ERROR_ATTR("pattern"));
 		goto error;
 	}
-
-	method = clish_ptype_method_resolve(method_name);
 
 	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
 	ptype = clish_shell_find_create_ptype(shell,
