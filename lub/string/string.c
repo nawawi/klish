@@ -18,7 +18,6 @@ void lub_string_free(char *ptr)
 	if (!ptr)
 		return;
 	free(ptr);
-	ptr = NULL;
 }
 
 /*--------------------------------------------------------- */
