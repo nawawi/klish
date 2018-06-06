@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "lub/c_decl.h"
+#include "types.h"
 
 typedef struct lub_list_node_s lub_list_node_t;
 typedef int lub_list_compare_fn(const void *first, const void *second);
@@ -29,6 +30,8 @@ lub_list_node_t *lub_list_iterator_init(lub_list_t *list);
 lub_list_node_t *lub_list_iterator_next(lub_list_node_t *node);
 lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *node);
 lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
+lub_list_node_t *lub_list_add_uniq(lub_list_t *list, void *data);
+lub_list_node_t *lub_list_find_add(lub_list_t *list, void *data);
 void lub_list_del(lub_list_t *list, lub_list_node_t *node);
 lub_list_node_t *lub_list_search_node(lub_list_t *list, void *data);
 void *lub_list_search(lub_list_t *list, void *data);

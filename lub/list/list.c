@@ -129,7 +129,13 @@ inline void *lub_list_node__get_data(lub_list_node_t *this)
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_add(lub_list_t *this, void *data)
+/* uniq - true/false Don't add entry with identical order
+ *	key (when the compareFn() returns 0)
+ * find - true/false Function returns list_node if there is
+ *	identical entry. Or NULL if find is false.
+ */
+static lub_list_node_t *lub_list_add_generic(lub_list_t *this, void *data,
+	bool_t uniq, bool_t find)
 {
 	lub_list_node_t *node = lub_list_node_new(data);
 	lub_list_node_t *iter;
@@ -155,7 +161,12 @@ lub_list_node_t *lub_list_add(lub_list_t *this, void *data)
 	/* Sorted list */
 	iter = this->tail;
 	while (iter) {
-		if (this->compareFn(node->data, iter->data) >= 0) {
+		int res = this->compareFn(node->data, iter->data);
+		if (uniq && (res == 0)) {
+			this->len--; // Revert previous increment
+			return (find ? iter : NULL);
+		}
+		if (res >= 0) {
 			node->next = iter->next;
 			node->prev = iter;
 			iter->next = node;
@@ -176,6 +187,24 @@ lub_list_node_t *lub_list_add(lub_list_t *this, void *data)
 		this->tail = node;
 
 	return node;
+}
+
+/*--------------------------------------------------------- */
+lub_list_node_t *lub_list_add(lub_list_t *this, void *data)
+{
+	return lub_list_add_generic(this, data, BOOL_FALSE, BOOL_FALSE);
+}
+
+/*--------------------------------------------------------- */
+lub_list_node_t *lub_list_add_uniq(lub_list_t *this, void *data)
+{
+	return lub_list_add_generic(this, data, BOOL_TRUE, BOOL_FALSE);
+}
+
+/*--------------------------------------------------------- */
+lub_list_node_t *lub_list_find_add(lub_list_t *this, void *data)
+{
+	return lub_list_add_generic(this, data, BOOL_TRUE, BOOL_TRUE);
 }
 
 /*--------------------------------------------------------- */

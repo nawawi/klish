@@ -35,7 +35,7 @@ static void clish_shell_init(clish_shell_t * this,
 		clish_var_bt_compare, clish_var_bt_getkey);
 
 	/* Initialize plugin list */
-	this->plugins = lub_list_new(NULL, NULL);
+	this->plugins = lub_list_new(NULL, clish_plugin_free);
 
 	/* Initialise the list of unresolved (yet) symbols */
 	this->syms = lub_list_new(clish_sym_compare, clish_sym_free);
@@ -103,15 +103,7 @@ static void clish_shell_fini(clish_shell_t *this)
 	lub_list_node_t *iter;
 
 	/* Free all loaded plugins */
-	while ((iter = lub_list__get_head(this->plugins))) {
-		/* Remove the symbol from the list */
-		lub_list_del(this->plugins, iter);
-		/* Free the instance */
-		clish_plugin_free((clish_plugin_t *)lub_list_node__get_data(iter),
-			(void *)this);
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->plugins);
+	lub_list_free_all(this->plugins);
 
 	/* Delete each VIEW  */
 	lub_list_free_all(this->view_tree);
