@@ -52,6 +52,13 @@ void *clish_udata_free(clish_udata_t *this)
 	return data;
 }
 
+/*--------------------------------------------------------- */
+void clish_udata_delete(void *data)
+{
+	clish_udata_t *this = (clish_udata_t *)data;
+	clish_udata_free(this);
+}
+
 CLISH_SET(udata, void *, data);
 CLISH_GET(udata, void *, data);
 CLISH_GET_STR(udata, name);

@@ -23,13 +23,11 @@ static void clish_shell_init(clish_shell_t * this,
 	int i;
 	char template[PATH_MAX];
 
-	/* initialise the tree of views */
-	lub_bintree_init(&this->view_tree,
-		clish_view_bt_offset(),
-		clish_view_bt_compare, clish_view_bt_getkey);
+	/* Initialise VIEW list */
+	this->view_tree = lub_list_new(clish_view_compare, clish_view_delete);
 
 	/* Init PTYPE list */
-	this->ptype_tree = lub_list_new(clish_ptype_compare);
+	this->ptype_tree = lub_list_new(clish_ptype_compare, clish_ptype_free);
 
 	/* initialise the tree of vars */
 	lub_bintree_init(&this->var_tree,
@@ -37,14 +35,13 @@ static void clish_shell_init(clish_shell_t * this,
 		clish_var_bt_compare, clish_var_bt_getkey);
 
 	/* Initialize plugin list */
-	this->plugins = lub_list_new(NULL);
+	this->plugins = lub_list_new(NULL, NULL);
 
 	/* Initialise the list of unresolved (yet) symbols */
-	this->syms = lub_list_new(clish_sym_compare);
+	this->syms = lub_list_new(clish_sym_compare, clish_sym_free);
 
 	/* Create userdata storage */
-	this->udata = lub_list_new(clish_udata_compare);
-	assert(this->udata);
+	this->udata = lub_list_new(clish_udata_compare, clish_udata_delete);
 
 	/* Hooks */
 	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
@@ -102,7 +99,7 @@ static void clish_shell_fini(clish_shell_t *this)
 {
 	clish_view_t *view;
 	clish_var_t *var;
-	unsigned i;
+	unsigned int i;
 	lub_list_node_t *iter;
 
 	/* Free all loaded plugins */
@@ -116,19 +113,11 @@ static void clish_shell_fini(clish_shell_t *this)
 	}
 	lub_list_free(this->plugins);
 
-	/* delete each VIEW held  */
-	while ((view = lub_bintree_findfirst(&this->view_tree))) {
-		lub_bintree_remove(&this->view_tree, view);
-		clish_view_delete(view);
-	}
+	/* Delete each VIEW  */
+	lub_list_free_all(this->view_tree);
 
 	/* Delete each PTYPE  */
-	while ((iter = lub_list__get_head(this->ptype_tree))) {
-		lub_list_del(this->ptype_tree, iter);
-		clish_ptype_free((clish_ptype_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->ptype_tree);
+	lub_list_free_all(this->ptype_tree);
 
 	/* delete each VAR held  */
 	while ((var = lub_bintree_findfirst(&this->var_tree))) {
@@ -144,24 +133,10 @@ static void clish_shell_fini(clish_shell_t *this)
 	}
 
 	/* Free symbol list */
-	while ((iter = lub_list__get_head(this->syms))) {
-		/* Remove the symbol from the list */
-		lub_list_del(this->syms, iter);
-		/* Free the instance */
-		clish_sym_free((clish_sym_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->syms);
+	lub_list_free_all(this->syms);
 
 	/* Free user data storage */
-	while ((iter = lub_list__get_head(this->udata))) {
-		/* Remove the symbol from the list */
-		lub_list_del(this->udata, iter);
-		/* Free the instance */
-		clish_udata_free((clish_udata_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->udata);
+	lub_list_free_all(this->udata);
 
 	/* free the textual details */
 	lub_string_free(this->overview);

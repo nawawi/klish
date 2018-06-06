@@ -229,7 +229,7 @@ static int clish_shell_exec_oaction(clish_hook_oaction_fn_t func,
 
 		close(pipe1[1]);
 		close(pipe2[0]);
-		l = lub_list_new(NULL);
+		l = lub_list_new(NULL, NULL);
 
 		/* Read the result of script execution */
 		while (1) {

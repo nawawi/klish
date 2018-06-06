@@ -15,21 +15,12 @@
 #include <stdio.h>
 
 /*-------------------------------------------------------- */
-int clish_view_bt_compare(const void *clientnode, const void *clientkey)
+int clish_view_compare(const void *clientnode, const void *clientkey)
 {
 	const clish_view_t *this = clientnode;
 	const char *key = clientkey;
 
 	return strcmp(this->name, key);
-}
-
-/*-------------------------------------------------------- */
-void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
-{
-	const clish_view_t *this = clientnode;
-
-	/* fill out the opaque key */
-	strcpy((char *)key, this->name);
 }
 
 /*-------------------------------------------------------- */
@@ -42,9 +33,6 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	this->restore = CLISH_RESTORE_NONE;
 	this->access = NULL;
 
-	/* Be a good binary tree citizen */
-	lub_bintree_node_init(&this->bt_node);
-
 	/* initialise the tree of commands for this view */
 	lub_bintree_init(&this->tree,
 		clish_command_bt_offset(),
@@ -54,7 +42,7 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	 * It's important to add new items to the
 	 * tail of list.
 	 */
-	this->nspaces = lub_list_new(NULL);
+	this->nspaces = lub_list_new(NULL, clish_nspace_delete);
 
 	/* set up the defaults */
 	clish_view__set_prompt(this, prompt);
@@ -79,15 +67,7 @@ static void clish_view_fini(clish_view_t * this)
 	}
 
 	/* Free namespaces list */
-	while ((iter = lub_list__get_head(this->nspaces))) {
-		/* Remove the nspace from the list */
-		lub_list_del(this->nspaces, iter);
-		nspace = (clish_nspace_t *)lub_list_node__get_data(iter);
-		lub_list_node_free(iter);
-		/* Free the instance */
-		clish_nspace_delete(nspace);
-	}
-	lub_list_free(this->nspaces);
+	lub_list_free_all(this->nspaces);
 
 	/* Free hotkey structures */
 	clish_hotkeyv_delete(this->hotkeys);
@@ -96,12 +76,6 @@ static void clish_view_fini(clish_view_t * this)
 	lub_string_free(this->name);
 	lub_string_free(this->prompt);
 	lub_string_free(this->access);
-}
-
-/*-------------------------------------------------------- */
-size_t clish_view_bt_offset(void)
-{
-	return offsetof(clish_view_t, bt_node);
 }
 
 /*--------------------------------------------------------- */
@@ -115,8 +89,9 @@ clish_view_t *clish_view_new(const char *name, const char *prompt)
 }
 
 /*-------------------------------------------------------- */
-void clish_view_delete(clish_view_t * this)
+void clish_view_delete(void *data)
 {
+	clish_view_t this = (clish_view_t *)data;
 	clish_view_fini(this);
 	free(this);
 }

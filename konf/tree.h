@@ -1,16 +1,6 @@
 /*
  * conf.h
  */
- /**
-\ingroup clish
-\defgroup clish_conf config
-@{
-
-\brief This class is a config in memory container.
-
-Use it to implement config in memory.
-
-*/
 #ifndef _konf_tree_h
 #define _konf_tree_h
 
@@ -25,18 +15,9 @@ typedef struct konf_tree_s konf_tree_t;
 #define KONF_ENTRY_DIRTY 0xfffe
 #define KONF_ENTRY_NEW 0xfffd
 
-/*=====================================
- * CONF INTERFACE
- *===================================== */
-/*-----------------
- * meta functions
- *----------------- */
 konf_tree_t *konf_tree_new(const char *line, unsigned short priority);
 
-/*-----------------
- * methods
- *----------------- */
-void konf_tree_delete(konf_tree_t * instance);
+void konf_tree_delete(void *instance);
 void konf_tree_fprintf(konf_tree_t * instance, FILE * stream,
 	const char *pattern, int top_depth, int depth,
 	bool_t seq, bool_t splitter, unsigned char prev_pri_hi);
@@ -50,9 +31,6 @@ int konf_tree_del_pattern(konf_tree_t * instance,
 	const char *pattern, unsigned short priority,
 	bool_t seq, unsigned short seq_num);
 
-/*-----------------
- * attributes
- *----------------- */
 unsigned short konf_tree__get_priority(const konf_tree_t * instance);
 unsigned char konf_tree__get_priority_hi(const konf_tree_t * instance);
 unsigned char konf_tree__get_priority_lo(const konf_tree_t * instance);
@@ -67,4 +45,3 @@ void konf_tree__set_depth(konf_tree_t * instance, int depth);
 int konf_tree__get_depth(const konf_tree_t * instance);
 
 #endif				/* _konf_tree_h */
-/** @} clish_conf */

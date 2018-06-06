@@ -88,8 +88,9 @@ clish_ptype_t *clish_ptype_new(const char *name,
 }
 
 /*--------------------------------------------------------- */
-void clish_ptype_free(clish_ptype_t *this)
+void clish_ptype_free(void *data)
 {
+	clish_ptype_t *this = (clish_ptype_t *)data;
 	clish_ptype_fini(this);
 	free(this);
 }

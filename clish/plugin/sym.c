@@ -43,9 +43,10 @@ clish_sym_t *clish_sym_new(const char *name, void *func, int type)
 }
 
 /*--------------------------------------------------------- */
-void clish_sym_free(clish_sym_t *this)
+void clish_sym_free(void *data)
 {
-	if (!this)
+	clish_sym_t *this = (clish_sym_t *)data;
+	if (!data)
 		return;
 	lub_string_free(this->name);
 	free(this);

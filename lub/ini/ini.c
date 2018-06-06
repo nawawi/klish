@@ -16,7 +16,7 @@ void lub_ini_init(lub_ini_t *this)
 {
 	assert(this);
 	memset(this, 0, sizeof(*this));
-	this->list = lub_list_new(lub_pair_compare);
+	this->list = lub_list_new(lub_pair_compare, lub_pair_free);
 }
 
 /*--------------------------------------------------------- */
@@ -34,15 +34,7 @@ lub_ini_t *lub_ini_new(void)
 /*--------------------------------------------------------- */
 void lub_ini_fini(lub_ini_t *this)
 {
-	lub_list_node_t *iter;
-
-	assert(this);
-	while ((iter = lub_list__get_head(this->list))) {
-		lub_list_del(this->list, iter);
-		lub_pair_free((lub_pair_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->list);
+	lub_list_free_all(this->list);
 }
 
 /*--------------------------------------------------------- */

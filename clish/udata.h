@@ -18,6 +18,7 @@ typedef struct clish_udata_s clish_udata_t;
 int clish_udata_compare(const void *first, const void *second);
 clish_udata_t *clish_udata_new(const char *name, void *data);
 void *clish_udata_free(clish_udata_t *instance);
+void clish_udata_delete(void *data);
 
 _CLISH_SET(udata, void *, data);
 _CLISH_GET(udata, void *, data);

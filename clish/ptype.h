@@ -57,7 +57,7 @@ clish_ptype_t *clish_ptype_new(const char *name, const char *text,
 	const char *pattern, clish_ptype_method_e method,
 	clish_ptype_preprocess_e preprocess);
 
-void clish_ptype_free(clish_ptype_t *instance);
+void clish_ptype_free(void *instance);
 /**
  * This is the validation method for the specified type.
  * \return

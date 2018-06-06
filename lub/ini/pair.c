@@ -48,9 +48,10 @@ void lub_pair_fini(lub_pair_t *this)
 }
 
 /*--------------------------------------------------------- */
-void lub_pair_free(lub_pair_t *this)
+void lub_pair_free(void *data)
 {
-	assert(this);
+	assert(data);
+	lub_pair_t *this = (lub_pair_t *)data;
 	lub_pair_fini(this);
 	free(this);
 }

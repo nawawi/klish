@@ -19,7 +19,7 @@
 #endif
 
 /*--------------------------------------------------------- */
-clish_plugin_t *clish_plugin_new(const char *name)
+clish_plugin_t *clish_plugin_new(const char *name, void *userdata)
 {
 	clish_plugin_t *this;
 
@@ -32,27 +32,27 @@ clish_plugin_t *clish_plugin_new(const char *name)
 	this->builtin_flag = BOOL_FALSE; /* The plugin is shared object by default */
 	this->dlhan = NULL;
 	/* Initialise the list of symbols */
-	this->syms = lub_list_new(clish_sym_compare);
+	this->syms = lub_list_new(clish_sym_compare, clish_sym_free);
 	/* Constructor and destructor */
 	this->init = NULL;
 	this->fini = NULL;
 	/* Flags */
 	this->rtld_global = BOOL_FALSE; /* The dlopen() use RTLD_LOCAL by default */
+	/* Userdata */
+	this->userdata = userdata;
 
 	return this;
 }
 
 /*--------------------------------------------------------- */
-void clish_plugin_free(clish_plugin_t *this, void *userdata)
+void clish_plugin_free(clish_plugin_t *this)
 {
-	lub_list_node_t *iter;
-
 	if (!this)
 		return;
 
 	/* Execute destructor */
 	if (this->fini)
-		this->fini(userdata, this);
+		this->fini(this->userdata, this);
 
 	lub_string_free(this->name);
 	lub_string_free(this->alias);
@@ -60,14 +60,7 @@ void clish_plugin_free(clish_plugin_t *this, void *userdata)
 	lub_string_free(this->conf);
 
 	/* Free symbol list */
-	while ((iter = lub_list__get_head(this->syms))) {
-		/* Remove the symbol from the list */
-		lub_list_del(this->syms, iter);
-		/* Free the instance */
-		clish_sym_free((clish_sym_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->syms);
+	lub_list_free_all(this->syms);
 #ifdef HAVE_DLFCN_H
 	if (this->dlhan)
 		dlclose(this->dlhan);
@@ -227,7 +220,7 @@ static int clish_plugin_load_shared(clish_plugin_t *this)
 }
 
 /*--------------------------------------------------------- */
-int clish_plugin_load(clish_plugin_t *this, void *userdata)
+int clish_plugin_load(clish_plugin_t *this)
 {
 	int res;
 
@@ -246,7 +239,7 @@ int clish_plugin_load(clish_plugin_t *this, void *userdata)
 		return -1;
 	}
 	/* Execute init function */
-	if ((res = this->init(userdata, this)))
+	if ((res = this->init(this->userdata, this)))
 		fprintf(stderr, "Error: Plugin %s init retcode: %d\n",
 			this->name, res);
 

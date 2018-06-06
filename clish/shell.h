@@ -203,6 +203,8 @@ int clish_shell__restore_history(clish_shell_t *instance, const char *fname);
 void clish_shell__stifle_history(clish_shell_t *instance, unsigned int stifle);
 
 /* Plugin functions */
+clish_plugin_t * clish_shell_create_plugin(clish_shell_t *instance,
+	const char *name);
 clish_plugin_t * clish_shell_find_plugin(clish_shell_t *instance,
 	const char *name);
 clish_plugin_t * clish_shell_find_create_plugin(clish_shell_t *instance,

@@ -9,6 +9,7 @@ struct lub_list_node_s {
 struct lub_list_s {
 	lub_list_node_t *head;
 	lub_list_node_t *tail;
-	lub_list_compare_fn *compareFn;
+	lub_list_compare_fn *compareFn; // Function to compare two list elements
+	lub_list_free_fn *freeFn; // Function to properly free data field
 	unsigned int len;
 };

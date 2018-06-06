@@ -16,9 +16,7 @@
 #include <sys/types.h>
 #include <regex.h>
 
-/*---------------------------------------------------------
- * PRIVATE META FUNCTIONS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 static int konf_tree_compare(const void *first, const void *second)
 {
 	const konf_tree_t *f = (const konf_tree_t *)first;
@@ -37,9 +35,7 @@ static int konf_tree_compare(const void *first, const void *second)
 	return strcmp(f->line, s->line);
 }
 
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
+/*--------------------------------------------------------- */
 static void konf_tree_init(konf_tree_t * this, const char *line,
 	unsigned short priority)
 {
@@ -52,33 +48,15 @@ static void konf_tree_init(konf_tree_t * this, const char *line,
 	this->depth = -1;
 
 	/* initialise the list of commands for this conf */
-	this->list = lub_list_new(konf_tree_compare);
+	this->list = lub_list_new(konf_tree_compare, konf_tree_delete);
 }
 
 /*--------------------------------------------------------- */
 static void konf_tree_fini(konf_tree_t * this)
 {
-	lub_list_node_t *iter;
-
-	/* delete each conf held by this conf */
-	
-	while ((iter = lub_list__get_head(this->list))) {
-		/* remove the conf from the tree */
-		lub_list_del(this->list, iter);
-		/* release the instance */
-		konf_tree_delete((konf_tree_t *)lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(this->list);
-
-	/* free our memory */
+	lub_list_free_all(this->list);
 	free(this->line);
-	this->line = NULL;
 }
-
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
 
 /*--------------------------------------------------------- */
 konf_tree_t *konf_tree_new(const char *line, unsigned short priority)
@@ -91,11 +69,10 @@ konf_tree_t *konf_tree_new(const char *line, unsigned short priority)
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
-void konf_tree_delete(konf_tree_t * this)
+/*--------------------------------------------------------- */
+void konf_tree_delete(void *data)
 {
+	konf_tree_t *this = (konf_tree_t *)data;
 	konf_tree_fini(this);
 	free(this);
 }

@@ -6,6 +6,7 @@
 
 typedef struct lub_list_node_s lub_list_node_t;
 typedef int lub_list_compare_fn(const void *first, const void *second);
+typedef void lub_list_free_fn(void *data);
 typedef struct lub_list_s lub_list_t;
 typedef struct lub_list_node_s lub_list_iterator_t;
 
@@ -18,8 +19,10 @@ void *lub_list_node__get_data(lub_list_node_t *node);
 void lub_list_node_free(lub_list_node_t *node);
 void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src);
 
-lub_list_t *lub_list_new(lub_list_compare_fn compareFn);
+lub_list_t *lub_list_new(lub_list_compare_fn compareFn,
+	lub_list_free_fn freeFn);
 void lub_list_free(lub_list_t *list);
+void lub_list_free_all(lub_list_t *list);
 lub_list_node_t *lub_list__get_head(lub_list_t *list);
 lub_list_node_t *lub_list__get_tail(lub_list_t *list);
 lub_list_node_t *lub_list_iterator_init(lub_list_t *list);

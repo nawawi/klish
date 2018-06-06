@@ -19,7 +19,7 @@ int lub_pair_compare(const void *first, const void *second);
 void lub_pair_init(lub_pair_t *instance, const char *name, const char *value);
 lub_pair_t *lub_pair_new(const char *name, const char *value);
 void lub_pair_fini(lub_pair_t *instance);
-void lub_pair_free(lub_pair_t *instance);
+void lub_pair_free(void *instance);
 const char *lub_pair__get_name(const lub_pair_t *instance);
 void lub_pair__set_name(lub_pair_t *instance, const char *name);
 const char *lub_pair__get_value(const lub_pair_t *instance);

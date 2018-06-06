@@ -6,12 +6,8 @@
 #include "lub/list.h"
 #include "clish/hotkey.h"
 
-/*---------------------------------------------------------
- * PRIVATE TYPES
- *--------------------------------------------------------- */
 struct clish_view_s {
 	lub_bintree_t tree;
-	lub_bintree_node_t bt_node;
 	char *name;
 	char *prompt;
 	char *access;

@@ -1235,8 +1235,7 @@ static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
 			CLISH_XML_ERROR_STR"PLUGIN %s duplication.\n", name);
 		goto error;
 	}
-	plugin = clish_plugin_new(name);
-	lub_list_add(shell->plugins, plugin);
+	plugin = clish_shell_create_plugin(shell, name);
 
 	if (alias && *alias)
 		clish_plugin__set_alias(plugin, alias);

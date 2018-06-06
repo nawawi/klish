@@ -46,7 +46,7 @@ struct clish_context_s {
 
 /* Shell structure */
 struct clish_shell_s {
-	lub_bintree_t view_tree; /* Tree of views */
+	lub_list_t *view_tree; /* VIEW list */
 	lub_list_t *ptype_tree; /* PTYPE list */
 	lub_bintree_t var_tree; /* Tree of global variables */
 

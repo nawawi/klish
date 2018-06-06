@@ -5,23 +5,26 @@
 #include "private.h"
 
 /*--------------------------------------------------------- */
-static inline void lub_list_init(lub_list_t * this,
-	lub_list_compare_fn compareFn)
+static void lub_list_init(lub_list_t *this,
+	lub_list_compare_fn compareFn,
+	lub_list_free_fn freeFn)
 {
 	this->head = NULL;
 	this->tail = NULL;
 	this->compareFn = compareFn;
+	this->freeFn = freeFn;
 	this->len = 0;
 }
 
 /*--------------------------------------------------------- */
-lub_list_t *lub_list_new(lub_list_compare_fn compareFn)
+lub_list_t *lub_list_new(lub_list_compare_fn compareFn,
+	lub_list_free_fn freeFn)
 {
 	lub_list_t *this;
 
 	this = malloc(sizeof(*this));
 	assert(this);
-	lub_list_init(this, compareFn);
+	lub_list_init(this, compareFn, freeFn);
 
 	return this;
 }
@@ -30,6 +33,25 @@ lub_list_t *lub_list_new(lub_list_compare_fn compareFn)
 inline void lub_list_free(lub_list_t *this)
 {
 	free(this);
+}
+
+/*--------------------------------------------------------- */
+/* Free all nodes and data from list and finally
+ * free the list itself. It uses special callback
+ * function specified by user to free the abstract
+ * data.
+ */
+void lub_list_free_all(lub_list_t *this)
+{
+	lub_list_node_t *iter;
+
+	while ((iter = lub_list__get_head(this))) {
+		lub_list_del(this, iter);
+		if (this->freeFn)
+			this->freeFn(lub_list_node__get_data(iter));
+		lub_list_node_free(iter);
+	}
+	lub_list_free(this);
 }
 
 /*--------------------------------------------------------- */
@@ -45,7 +67,7 @@ inline lub_list_node_t *lub_list__get_tail(lub_list_t *this)
 }
 
 /*--------------------------------------------------------- */
-static inline void lub_list_node_init(lub_list_node_t *this,
+static void lub_list_node_init(lub_list_node_t *this,
 	void *data)
 {
 	this->prev = this->next = NULL;

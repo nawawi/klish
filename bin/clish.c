@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* Var initialization */
-	cmds = lub_list_new(NULL);
+	cmds = lub_list_new(NULL, free);
 
 	/* Parse command line options */
 	while(1) {
@@ -374,12 +374,7 @@ end:
 		fclose(outfd);
 
 	/* Delete each cmds element */
-	while ((iter = lub_list__get_head(cmds))) {
-		lub_list_del(cmds, iter);
-		free(lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
-	}
-	lub_list_free(cmds);
+	lub_list_free_all(cmds);
 
 	/* Stop XML engine */
 	clish_xmldoc_stop();

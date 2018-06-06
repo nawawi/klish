@@ -140,8 +140,9 @@ clish_nspace_t *clish_nspace_new(const char *view_name)
 }
 
 /*--------------------------------------------------------- */
-void clish_nspace_delete(clish_nspace_t *this)
+void clish_nspace_delete(void *data)
 {
+	clish_nspace_t *this = (clish_nspace_t *)data;
 	clish_nspace_fini(this);
 	free(this);
 }

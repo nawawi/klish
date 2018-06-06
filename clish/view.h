@@ -30,9 +30,7 @@ typedef enum {
 #include "clish/var.h"
 
 clish_view_t *clish_view_new(const char *name, const char *prompt);
-int clish_view_bt_compare(const void *clientnode, const void *clientkey);
-void clish_view_bt_getkey(const void *clientnode, lub_bintree_key_t * key);
-size_t clish_view_bt_offset(void);
+int clish_view_compare(const void *clientnode, const void *clientkey);
 void clish_view_delete(clish_view_t * instance);
 clish_command_t *clish_view_new_command(clish_view_t * instance,
 	const char *name, const char *text);

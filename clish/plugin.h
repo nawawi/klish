@@ -71,7 +71,7 @@ extern clish_plugin_builtin_list_t clish_plugin_builtin_list[];
 
 int clish_sym_compare(const void *first, const void *second);
 clish_sym_t *clish_sym_new(const char *name, void *func, int type);
-void clish_sym_free(clish_sym_t *instance);
+void clish_sym_free(void *instance);
 int clish_sym_clone(clish_sym_t *dst, clish_sym_t *src);
 
 _CLISH_SET(sym, const void *, func);
@@ -89,9 +89,9 @@ _CLISH_GET(sym, clish_sym_api_e, api);
 
 /* Plugin */
 
-clish_plugin_t *clish_plugin_new(const char *name);
-void clish_plugin_free(clish_plugin_t *instance, void *userdata);
-int clish_plugin_load(clish_plugin_t *instance, void *userdata);
+clish_plugin_t *clish_plugin_new(const char *name, void *userdata);
+void clish_plugin_free(clish_plugin_t *instance);
+int clish_plugin_load(clish_plugin_t *instance);
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name, int type);
 clish_sym_t *clish_plugin_add_generic(clish_plugin_t *instance,
