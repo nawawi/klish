@@ -229,6 +229,45 @@ inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src)
 }
 
 /*--------------------------------------------------------- */
+lub_list_node_t *lub_list_match_node(lub_list_t *this,
+	lub_list_match_fn matchFn, const void *userkey,
+	lub_list_node_t **saveptr)
+{
+	lub_list_node_t *iter;
+	if (!this || !matchFn || !this->head)
+		return NULL;
+	if (saveptr)
+		iter = *saveptr;
+	if (!iter)
+		iter = this->head;
+	while (iter) {
+		int res;
+		lub_list_node_t *node = iter;
+		iter = lub_list_node__get_next(iter);
+		if (saveptr)
+			*saveptr = iter;
+		res = matchFn(userkey, lub_list_node__get_data(node));
+		if (!res)
+			return node;
+		if (res < 0) // No chances to find match
+			return NULL;
+	}
+
+	return NULL;
+}
+
+/*--------------------------------------------------------- */
+void *lub_list_match(lub_list_t *this,
+	lub_list_match_fn matchFn, const void *userkey,
+	lub_list_node_t **saveptr)
+{
+	lub_list_node_t *res = lub_list_match_node(this, matchFn, userkey, saveptr);
+	if (!res)
+		return NULL;
+	return lub_list_node__get_data(res);
+}
+
+/*--------------------------------------------------------- */
 lub_list_node_t *lub_list_search_node(lub_list_t *this, void *data)
 {
 	lub_list_node_t *iter;

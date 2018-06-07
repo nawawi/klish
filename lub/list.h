@@ -8,6 +8,7 @@
 typedef struct lub_list_node_s lub_list_node_t;
 typedef int lub_list_compare_fn(const void *first, const void *second);
 typedef void lub_list_free_fn(void *data);
+typedef int lub_list_match_fn(const void *key, const void *data);
 typedef struct lub_list_s lub_list_t;
 typedef struct lub_list_node_s lub_list_iterator_t;
 
@@ -36,6 +37,12 @@ void lub_list_del(lub_list_t *list, lub_list_node_t *node);
 lub_list_node_t *lub_list_search_node(lub_list_t *list, void *data);
 void *lub_list_search(lub_list_t *list, void *data);
 unsigned int lub_list_len(lub_list_t *list);
+lub_list_node_t *lub_list_match_node(lub_list_t *list,
+	lub_list_match_fn matchFn, const void *userkey,
+	lub_list_node_t **saveptr);
+void *lub_list_match(lub_list_t *list,
+	lub_list_match_fn matchFn, const void *userkey,
+	lub_list_node_t **saveptr);
 
 _END_C_DECL
 #endif				/* _lub_list_h */
