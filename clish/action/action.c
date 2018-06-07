@@ -10,7 +10,6 @@
 #include <assert.h>
 
 #include "private.h"
-#include "lub/bintree.h"
 #include "lub/string.h"
 
 /*--------------------------------------------------------- */

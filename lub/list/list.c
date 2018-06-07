@@ -282,44 +282,7 @@ void *lub_list_find(lub_list_t *this,
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_search_node(lub_list_t *this, void *data)
-{
-	lub_list_node_t *iter;
-	int res;
-
-	/* Empty list */
-	if (!this->head)
-		return NULL;
-	/* Not sorted list. Can't search. */
-	if (!this->compareFn)
-		return NULL;
-
-	/* Sorted list */
-	iter = this->head;
-	while (iter) {
-		res = this->compareFn(data, iter->data);
-		if (!res)
-			return iter;
-		if (res < 0)
-			break; // No chances to find it
-		iter = iter->next;
-	}
-
-	return NULL;
-}
-
-/*--------------------------------------------------------- */
-void *lub_list_search(lub_list_t *this, void *data)
-{
-	lub_list_node_t *iter = lub_list_search_node(this, data);
-
-	return iter->data;
-}
-
-/*--------------------------------------------------------- */
 inline unsigned int lub_list_len(lub_list_t *this)
 {
 	return this->len;
 }
-
-/*--------------------------------------------------------- */

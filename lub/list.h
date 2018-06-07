@@ -34,8 +34,6 @@ lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
 lub_list_node_t *lub_list_add_uniq(lub_list_t *list, void *data);
 lub_list_node_t *lub_list_find_add(lub_list_t *list, void *data);
 void lub_list_del(lub_list_t *list, lub_list_node_t *node);
-lub_list_node_t *lub_list_search_node(lub_list_t *list, void *data);
-void *lub_list_search(lub_list_t *list, void *data);
 unsigned int lub_list_len(lub_list_t *list);
 lub_list_node_t *lub_list_match_node(lub_list_t *list,
 	lub_list_match_fn matchFn, const void *userkey,

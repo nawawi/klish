@@ -2,7 +2,6 @@
  * ptype.h
  */
 #include "clish/pargv.h"
-#include "lub/bintree.h"
 #include "lub/argv.h"
 
 #include <sys/types.h>

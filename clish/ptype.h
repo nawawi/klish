@@ -10,7 +10,6 @@ typedef struct clish_ptype_s clish_ptype_t;
 
 #include "lub/types.h"
 #include "clish/macros.h"
-#include "lub/bintree.h"
 #include "lub/argv.h"
 #include "clish/action.h"
 

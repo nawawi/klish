@@ -7,7 +7,6 @@
 
 typedef struct clish_action_s clish_action_t;
 
-#include "lub/bintree.h"
 #include "clish/macros.h"
 #include "clish/plugin.h"
 

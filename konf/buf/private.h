@@ -2,10 +2,8 @@
 #define _konf_buf_private_h
 
 #include "konf/buf.h"
-#include "lub/bintree.h"
 
 struct konf_buf_s {
-	lub_bintree_node_t bt_node;
 	int fd;
 	int size;
 	char *buf;
