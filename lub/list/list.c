@@ -257,6 +257,13 @@ lub_list_node_t *lub_list_match_node(lub_list_t *this,
 }
 
 /*--------------------------------------------------------- */
+void *lub_list_find_node(lub_list_t *this,
+	lub_list_match_fn matchFn, const void *userkey)
+{
+	return lub_list_match_node(this, matchFn, userkey, NULL);
+}
+
+/*--------------------------------------------------------- */
 void *lub_list_match(lub_list_t *this,
 	lub_list_match_fn matchFn, const void *userkey,
 	lub_list_node_t **saveptr)

@@ -16,39 +16,16 @@
 
 #define KONF_BUF_CHUNK 1024
 
-/*---------------------------------------------------------
- * PRIVATE META FUNCTIONS
- *--------------------------------------------------------- */
-int konf_buf_bt_compare(const void *clientnode, const void *clientkey)
+/*-------------------------------------------------------- */
+int konf_buf_compare(const void *first, const void *second)
 {
-	const konf_buf_t *this = clientnode;
-	int keyfd;
-
-	memcpy(&keyfd, clientkey, sizeof(keyfd));
-
-	return (this->fd - keyfd);
+	const konf_buf_t *f = (const konf_buf_t *)first;
+	const konf_buf_t *s = (const konf_buf_t *)second;
+	return (f->fd - s->fd);
 }
 
 /*-------------------------------------------------------- */
-static void konf_buf_key(lub_bintree_key_t * key,
-	int fd)
-{
-	memcpy(key, &fd, sizeof(fd));
-}
-
-/*-------------------------------------------------------- */
-void konf_buf_bt_getkey(const void *clientnode, lub_bintree_key_t * key)
-{
-	const konf_buf_t *this = clientnode;
-
-	konf_buf_key(key, this->fd);
-}
-
-/*---------------------------------------------------------
- * PRIVATE METHODS
- *--------------------------------------------------------- */
-static void
-konf_buf_init(konf_buf_t * this, int fd)
+static void konf_buf_init(konf_buf_t * this, int fd)
 {
 	this->fd = fd;
 	this->buf = malloc(KONF_BUF_CHUNK);
@@ -56,23 +33,12 @@ konf_buf_init(konf_buf_t * this, int fd)
 	this->pos = 0;
 	this->rpos = 0;
 	this->data = NULL;
-
-	/* Be a good binary tree citizen */
-	lub_bintree_node_init(&this->bt_node);
 }
 
 /*--------------------------------------------------------- */
 static void konf_buf_fini(konf_buf_t * this)
 {
 	free(this->buf);
-}
-
-/*---------------------------------------------------------
- * PUBLIC META FUNCTIONS
- *--------------------------------------------------------- */
-size_t konf_buf_bt_offset(void)
-{
-	return offsetof(konf_buf_t, bt_node);
 }
 
 /*--------------------------------------------------------- */
@@ -86,11 +52,10 @@ konf_buf_t *konf_buf_new(int fd)
 	return this;
 }
 
-/*---------------------------------------------------------
- * PUBLIC METHODS
- *--------------------------------------------------------- */
-void konf_buf_delete(konf_buf_t * this)
+/*-------------------------------------------------------- */
+void konf_buf_delete(void *data)
 {
+	konf_buf_t *this = (konf_buf_t *)data;
 	konf_buf_fini(this);
 	free(this);
 }
@@ -262,52 +227,27 @@ void konf_buf__set_data(konf_buf_t *this, void *data)
  *--------------------------------------------------------- */
 
 /*--------------------------------------------------------- */
-konf_buf_t *konf_buftree_find(lub_bintree_t * this,
-	int fd)
+static int find_fd(const void *key, const void *data)
 {
-	lub_bintree_key_t key;
-
-	konf_buf_key(&key, fd);
-
-	return lub_bintree_find(this, &key);
+	const int *fd = (const int *)key;
+	const konf_buf_t *d = (const konf_buf_t *)data;
+	return (*fd - d->fd);
 }
 
 /*--------------------------------------------------------- */
-void konf_buftree_remove(lub_bintree_t * this,
-	int fd)
+konf_buf_t *konf_buftree_find(lub_list_t *this, int fd)
 {
-	konf_buf_t *tbuf;
+	return lub_list_find(this, find_fd, &fd);
+}
 
-	if ((tbuf = konf_buftree_find(this, fd)) == NULL)
+/*--------------------------------------------------------- */
+void konf_buftree_remove(lub_list_t *this, int fd)
+{
+	lub_list_node_t *t;
+
+	if ((t = lub_list_find_node(this, find_fd, &fd)) == NULL)
 		return;
 
-	lub_bintree_remove(this, tbuf);
-	konf_buf_delete(tbuf);
+	konf_buf_delete((konf_buf_t *)lub_list_node__get_data(t));
+	lub_list_del(this, t);
 }
-
-/*--------------------------------------------------------- */
-int konf_buftree_read(lub_bintree_t * this, int fd)
-{
-	konf_buf_t *buf;
-
-	buf = konf_buftree_find(this, fd);
-	if (!buf)
-		return -1;
-
-	return konf_buf_read(buf);
-}
-
-
-/*--------------------------------------------------------- */
-char * konf_buftree_parse(lub_bintree_t * this,
-	int fd)
-{
-	konf_buf_t *buf;
-
-	buf = konf_buftree_find(this, fd);
-	if (!buf)
-		return NULL;
-
-	return konf_buf_parse(buf);
-}
-

@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	int i;
 	char *str;
 	konf_tree_t *conf;
-	lub_bintree_t bufs;
+	lub_list_t *bufs;
 	konf_buf_t *tbuf;
 	struct options *opts = NULL;
 	int pidfd = -1;
@@ -193,9 +193,7 @@ int main(int argc, char **argv)
 	conf = konf_tree_new("", 0);
 
 	/* Initialize the tree of buffers */
-	lub_bintree_init(&bufs,
-		konf_buf_bt_offset(),
-		konf_buf_bt_compare, konf_buf_bt_getkey);
+	bufs = lub_list_new(konf_buf_compare, konf_buf_delete);
 
 	/* Set signal handler */
 	sigemptyset(&sig_set);
@@ -247,19 +245,16 @@ int main(int argc, char **argv)
 			if ((i == sock) || (i == ro_sock)) {
 				int new;
 				socklen_t size = sizeof(raddr);
-				new = accept(i,
-					(struct sockaddr *)&raddr, &size);
-				if (new < 0) {
+				new = accept(i, (struct sockaddr *)&raddr, &size);
+				if (new < 0)
 					continue;
-				}
 #ifdef DEBUG
 				fprintf(stderr, "------------------------------\n");
 				fprintf(stderr, "Connection established %u\n", new);
 #endif
-				konf_buftree_remove(&bufs, new);
+				konf_buftree_remove(bufs, new);
 				tbuf = konf_buf_new(new);
-				/* Insert it into the binary tree */
-				lub_bintree_insert(&bufs, tbuf);
+				lub_list_add(bufs, tbuf);
 				/* In a case of RW socket we use buf's data pointer
 				  to indicate RW or RO socket. NULL=RO, not-NULL=RW */
 				if (i == sock)
@@ -268,12 +263,12 @@ int main(int argc, char **argv)
 			} else {
 				int nbytes;
 
-				tbuf = konf_buftree_find(&bufs, i);
+				tbuf = konf_buftree_find(bufs, i);
 				/* Data arriving on an already-connected socket. */
 				if ((nbytes = konf_buf_read(tbuf)) <= 0) {
 					close(i);
 					FD_CLR(i, &active_fd_set);
-					konf_buftree_remove(&bufs, i);
+					konf_buftree_remove(bufs, i);
 #ifdef DEBUG
 					fprintf(stderr, "Connection closed %u\n", i);
 #endif
@@ -294,13 +289,8 @@ int main(int argc, char **argv)
 	/* Free resources */
 	konf_tree_delete(conf);
 
-	/* delete each buf */
-	while ((tbuf = lub_bintree_findfirst(&bufs))) {
-		/* remove the buf from the tree */
-		lub_bintree_remove(&bufs, tbuf);
-		/* release the instance */
-		konf_buf_delete(tbuf);
-	}
+	/* Delete bufs */
+	lub_list_free_all(bufs);
 
 	retval = 0;
 err:
