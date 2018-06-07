@@ -233,7 +233,7 @@ lub_list_node_t *lub_list_match_node(lub_list_t *this,
 	lub_list_match_fn matchFn, const void *userkey,
 	lub_list_node_t **saveptr)
 {
-	lub_list_node_t *iter;
+	lub_list_node_t *iter = NULL;
 	if (!this || !matchFn || !this->head)
 		return NULL;
 	if (saveptr)
