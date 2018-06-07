@@ -90,7 +90,7 @@ _CLISH_GET(sym, clish_sym_api_e, api);
 /* Plugin */
 
 clish_plugin_t *clish_plugin_new(const char *name, void *userdata);
-void clish_plugin_free(clish_plugin_t *instance);
+void clish_plugin_free(void *instance);
 int clish_plugin_load(clish_plugin_t *instance);
 clish_sym_t *clish_plugin_get_sym(clish_plugin_t *instance,
 	const char *name, int type);

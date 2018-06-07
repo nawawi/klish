@@ -29,9 +29,9 @@ typedef enum {
 #include "clish/nspace.h"
 #include "clish/var.h"
 
-clish_view_t *clish_view_new(const char *name, const char *prompt);
+clish_view_t *clish_view_new(const char *name);
 int clish_view_compare(const void *clientnode, const void *clientkey);
-void clish_view_delete(clish_view_t * instance);
+void clish_view_delete(void *instance);
 clish_command_t *clish_view_new_command(clish_view_t * instance,
 	const char *name, const char *text);
 clish_command_t *clish_view_find_command(clish_view_t * instance,

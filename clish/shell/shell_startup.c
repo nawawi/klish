@@ -142,10 +142,10 @@ int clish_shell_prepare(clish_shell_t *this)
 	clish_command_t *cmd;
 	clish_view_t *view;
 	clish_nspace_t *nspace;
-	lub_bintree_t *view_tree, *cmd_tree;
-	lub_list_t *nspace_tree;
-	lub_bintree_iterator_t cmd_iter, view_iter;
-	lub_list_node_t *nspace_iter;
+	lub_list_t *view_tree, *nspace_tree;
+	lub_list_node_t *nspace_iter, *view_iter;
+	lub_bintree_t *cmd_tree;
+	lub_bintree_iterator_t cmd_iter;
 	clish_hook_access_fn_t *access_fn = NULL;
 	clish_paramv_t *paramv;
 	int i = 0;
@@ -189,10 +189,13 @@ int clish_shell_prepare(clish_shell_t *this)
 	access_fn = clish_sym__get_func(clish_shell_get_hook(this, CLISH_SYM_TYPE_ACCESS));
 
 	/* Iterate the VIEWs */
-	view_tree = &this->view_tree;
-	view = lub_bintree_findfirst(view_tree);
-	for (lub_bintree_iterator_init(&view_iter, view_tree, view);
-		view; view = lub_bintree_iterator_next(&view_iter)) {
+	view_tree = this->view_tree;
+	view_iter = lub_list_iterator_init(view_tree);
+	while(view_iter) {
+		lub_list_node_t *old_view_iter;
+		view = (clish_view_t *)lub_list_node__get_data(view_iter);
+		old_view_iter = view_iter;
+		view_iter = lub_list_node__get_next(view_iter);
 		/* Check access rights for the VIEW */
 		if (access_fn && clish_view__get_access(view) &&
 			access_fn(this, clish_view__get_access(view))) {
@@ -200,7 +203,8 @@ int clish_shell_prepare(clish_shell_t *this)
 			fprintf(stderr, "Warning: Access denied. Remove VIEW \"%s\"\n",
 				clish_view__get_name(view));
 #endif
-			lub_bintree_remove(view_tree, view);
+			lub_list_del(view_tree, old_view_iter);
+			lub_list_node_free(old_view_iter);
 			clish_view_delete(view);
 			continue;
 		}

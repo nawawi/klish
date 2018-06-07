@@ -3,38 +3,33 @@
  */
 
 #include <assert.h>
+#include <string.h>
 
 #include "private.h"
 
-/*--------------------------------------------------------- */
-clish_view_t *clish_shell_find_create_view(clish_shell_t * this,
-	const char *name, const char *prompt)
+static int find_view(const void *key, const void *data)
 {
-	clish_view_t *view = lub_bintree_find(&this->view_tree, name);
+	clish_view_t *view = (clish_view_t *)data;
+	const char *name = key;
+	return strcmp(name, clish_view__get_name(view));
+}
 
-	if (!view) {
-		/* create a view */
-		view = clish_view_new(name, prompt);
-		assert(view);
-		clish_shell_insert_view(this, view);
-	} else {
-		/* set the prompt */
-		if (prompt)
-			clish_view__set_prompt(view, prompt);
-	}
+/*--------------------------------------------------------- */
+clish_view_t *clish_shell_find_create_view(clish_shell_t *this,
+	const char *name)
+{
+	clish_view_t *view = clish_shell_find_view(this, name);
+	if (view)
+		return view;
+	view = clish_view_new(name);
+	lub_list_add(this->view_tree, view);
 	return view;
 }
 
 /*--------------------------------------------------------- */
-clish_view_t *clish_shell_find_view(clish_shell_t * this, const char *name)
+clish_view_t *clish_shell_find_view(clish_shell_t *this, const char *name)
 {
-	return lub_bintree_find(&this->view_tree, name);
-}
-
-/*--------------------------------------------------------- */
-void clish_shell_insert_view(clish_shell_t * this, clish_view_t * view)
-{
-	(void)lub_bintree_insert(&this->view_tree, view);
+	return lub_list_find(this->view_tree, find_view, name);
 }
 
 /*--------------------------------------------------------- */

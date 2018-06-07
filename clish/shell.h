@@ -88,24 +88,11 @@ typedef enum {
 
 _BEGIN_C_DECL
 
-/*-----------------
- * meta functions
- *----------------- */
-
-clish_shell_t *clish_shell_new(FILE * istream, FILE * ostream,
-	bool_t stop_on_error);
-/*-----------------
- * methods
- *----------------- */
-/*
- * Called to invoke the startup command for this shell
- */
-int clish_shell_startup(clish_shell_t * instance);
-void clish_shell_delete(clish_shell_t * instance);
-clish_view_t *clish_shell_find_create_view(clish_shell_t * instance,
-	const char *name,
-	const char *prompt);
-clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t * instance,
+clish_shell_t *clish_shell_new(FILE *istream, FILE *ostream, bool_t stop_on_error);
+int clish_shell_startup(clish_shell_t *instance);
+void clish_shell_delete(clish_shell_t *instance);
+clish_view_t *clish_shell_find_create_view(clish_shell_t *instance, const char *name);
+clish_ptype_t *clish_shell_find_create_ptype(clish_shell_t *instance,
 	const char *name,
 	const char *text,
 	const char *pattern,

@@ -45,8 +45,10 @@ clish_plugin_t *clish_plugin_new(const char *name, void *userdata)
 }
 
 /*--------------------------------------------------------- */
-void clish_plugin_free(clish_plugin_t *this)
+void clish_plugin_free(void *plugin)
 {
+	clish_plugin_t *this = (clish_plugin_t *)plugin;
+
 	if (!this)
 		return;
 

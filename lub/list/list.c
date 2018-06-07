@@ -268,6 +268,13 @@ void *lub_list_match(lub_list_t *this,
 }
 
 /*--------------------------------------------------------- */
+void *lub_list_find(lub_list_t *this,
+	lub_list_match_fn matchFn, const void *userkey)
+{
+	return lub_list_match(this, matchFn, userkey, NULL);
+}
+
+/*--------------------------------------------------------- */
 lub_list_node_t *lub_list_search_node(lub_list_t *this, void *data)
 {
 	lub_list_node_t *iter;

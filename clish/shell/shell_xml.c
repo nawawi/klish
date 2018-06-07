@@ -304,8 +304,7 @@ static int process_clish_module(clish_shell_t *shell, clish_xmlnode_t *element,
 {
 	/* Create the global view */
 	if (!shell->global)
-		shell->global = clish_shell_find_create_view(shell,
-			"__view_global", "");
+		shell->global = clish_shell_find_create_view(shell, "__view_global");
 
 	parent = parent; /* Happy compiler */
 
@@ -332,7 +331,10 @@ static int process_view(clish_shell_t *shell, clish_xmlnode_t *element,
 	}
 
 	/* re-use a view if it already exists */
-	view = clish_shell_find_create_view(shell, name, prompt);
+	view = clish_shell_find_create_view(shell, name);
+
+	if (prompt)
+		clish_view__set_prompt(view, prompt);
 
 	if (depth && (lub_ctype_isdigit(*depth))) {
 		unsigned int res = 0;

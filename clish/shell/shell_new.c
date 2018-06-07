@@ -97,10 +97,8 @@ static void clish_shell_init(clish_shell_t * this,
 /*--------------------------------------------------------- */
 static void clish_shell_fini(clish_shell_t *this)
 {
-	clish_view_t *view;
 	clish_var_t *var;
 	unsigned int i;
-	lub_list_node_t *iter;
 
 	/* Free all loaded plugins */
 	lub_list_free_all(this->plugins);

@@ -15,16 +15,15 @@
 #include <stdio.h>
 
 /*-------------------------------------------------------- */
-int clish_view_compare(const void *clientnode, const void *clientkey)
+int clish_view_compare(const void *first, const void *second)
 {
-	const clish_view_t *this = clientnode;
-	const char *key = clientkey;
-
-	return strcmp(this->name, key);
+	const clish_view_t *f = (const clish_view_t *)first;
+	const clish_view_t *s = (const clish_view_t *)second;
+	return strcmp(f->name, s->name);
 }
 
 /*-------------------------------------------------------- */
-static void clish_view_init(clish_view_t * this, const char *name, const char *prompt)
+static void clish_view_init(clish_view_t * this, const char *name)
 {
 	/* set up defaults */
 	this->name = lub_string_dup(name);
@@ -44,9 +43,6 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 	 */
 	this->nspaces = lub_list_new(NULL, clish_nspace_delete);
 
-	/* set up the defaults */
-	clish_view__set_prompt(this, prompt);
-
 	/* Initialize hotkey structures */
 	this->hotkeys = clish_hotkeyv_new();
 }
@@ -55,8 +51,6 @@ static void clish_view_init(clish_view_t * this, const char *name, const char *p
 static void clish_view_fini(clish_view_t * this)
 {
 	clish_command_t *cmd;
-	lub_list_node_t *iter;
-	clish_nspace_t *nspace;
 
 	/* delete each command held by this view */
 	while ((cmd = lub_bintree_findfirst(&this->tree))) {
@@ -79,19 +73,19 @@ static void clish_view_fini(clish_view_t * this)
 }
 
 /*--------------------------------------------------------- */
-clish_view_t *clish_view_new(const char *name, const char *prompt)
+clish_view_t *clish_view_new(const char *name)
 {
 	clish_view_t *this = malloc(sizeof(clish_view_t));
 
 	if (this)
-		clish_view_init(this, name, prompt);
+		clish_view_init(this, name);
 	return this;
 }
 
 /*-------------------------------------------------------- */
 void clish_view_delete(void *data)
 {
-	clish_view_t this = (clish_view_t *)data;
+	clish_view_t *this = (clish_view_t *)data;
 	clish_view_fini(this);
 	free(this);
 }

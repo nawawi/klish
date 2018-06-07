@@ -54,7 +54,7 @@ clish_plugin_t * clish_shell_find_create_plugin(clish_shell_t *this,
 	const char *name)
 {
 	clish_plugin_t *plugin = clish_shell_find_plugin(this, name);
-	return (plugin ? plugin : clish_shell_create_plugin(this, name);
+	return (plugin ? plugin : clish_shell_create_plugin(this, name));
 }
 
 /*----------------------------------------------------------------------- */
@@ -74,7 +74,7 @@ int clish_shell_load_plugins(clish_shell_t *this)
 	for(iter = lub_list__get_head(this->plugins);
 		iter; iter = lub_list_node__get_next(iter)) {
 		plugin = (clish_plugin_t *)lub_list_node__get_data(iter);
-		if (clish_plugin_load(plugin, (void *)this))
+		if (clish_plugin_load(plugin))
 			return -1;
 #ifdef DEBUG
 		clish_plugin_dump(plugin);
