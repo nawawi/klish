@@ -40,7 +40,7 @@ The Klish incorporates all the features of clish. See the clish documentation on
  * [CLISH_VIEW The initial view redefinition]. User can define CLISH_VIEW environment variable to set initial view instead of the initial view from STARTUP tag.
  * [Klish_examples The Klish specific XML examples]. The Klish source tree contain the Klish specific XML examples that show basic CISCO-like interface to configure network interfaces and routing in Linux system.
  * [sequence The ordered sequences] support in user configuration. In some cases the ordered numerated lists is needed. The example is a CISCO-like access lists in which the order of entries is important. The entries can be addressed by the line number.
- * [internal_variables The automatic internal variables]. For each command the Klish engine generates the automatic variables that can be used the same way as a variables origin from PARAM tags. These are current command line (`${__cmd}`), the whole entered line (`${__line}`) etc.
+ * [internal_variables The automatic internal variables]. For each command the Klish engine generates the automatic variables that can be used the same way as a variables originating from PARAM tags. These are current command line (`${__cmd}`), the whole entered line (`${__line}`) etc.
  * [builtin_functions The Klish specific builtin functions]. The clish contain a set of builtin functions (that don't need a scripting within ACTION tag). The additional Klish specific builtin functions is available.
  * [conditional_param The conditional parameters] support. The [PARAM parameter] can be dynamically enabled or disabled depending on the condition. The condition have the syntax same as standard /bin/test utility. So the [PARAM parameter] visibility can depend on the previous [PARAM parameters] values.
  * [locking_mechanism The locking mechanism]. The locking mechanism allows to execute several instances of clish utility (or another programs based on libclish library) simultaneously without conflicts.
@@ -352,7 +352,7 @@ Some keys has predefined hardcoded behaviour. If key has a predefined behaviour 
 
 ## The automatic internal variables {#internal_variables}
 
-The Klish engine generates the automatic variables that can be used the same way as a variables origin from [PARAM] or [VAR] tags. To specify these variables use ${`<name>`} syntax. The variables will be expanded before execution of [ACTION] script or before using some tag's fields that is dynamic and allow to use variables. The example of such field is [CONFIG]'s "pattern" attribute.
+The Klish engine generates the automatic variables that can be used the same way as a variables originating from [PARAM] or [VAR] tags. To specify these variables use ${`<name>`} syntax. The variables will be expanded before execution of [ACTION] script or before using some tag's fields that is dynamic and allow to use variables. The example of such field is [CONFIG]'s "pattern" attribute.
 
 ### `${__cmd}`
 
@@ -477,7 +477,8 @@ There is a good example of using nested parameters in [optional parameters](opti
 
 ## The namespaces or logically nested views {#nested_views}
 
-The tag [allows to import the command set from the specified view into another view. So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode). See the [NAMESPACE](NAMESPACE]) for the tag description.
+The tag [NAMESPACE] allows to import the command set from the specified view into another view, using the "ref" attribute.
+So these commands can be used within target view. It allows to create logically nested views. The further view in hierarchy can use commands of previous views. The behaviour is like a CISCO modes (there is the availability to use "configure"-mode commands from "config-if" mode). See the [NAMESPACE](NAMESPACE]) for the tag description.
 
 ### Logically nested views
 
@@ -589,7 +590,7 @@ The typical "configure-view" has the restore="depth" field:
 
 ## The optional arguments {#optional_arguments}
 
-The command arguments can be optional. The [tag supports "optional" parameter that specify whether parameter is optional. It can be a sequence of optional parameters. The order of optional parameters define the order to validate values. If the value was  validated by optional parameter the next optional parameters will not validate this value. Each parameter can be specified only once. See the [PARAM](PARAM]) for the tag description.
+The command arguments can be optional. The [PARAM] tag supports "optional" parameter that specify whether parameter is optional. It can be a sequence of optional parameters. The order of optional parameters define the order to validate values. If the value was  validated by optional parameter the next optional parameters will not validate this value. Each parameter can be specified only once. See the [PARAM](PARAM]) for the tag description.
 
 The following code creates three optional arguments and the mandatory one:
 
@@ -662,7 +663,7 @@ Notice the order="true" field within "-c" subcommand definition. Now the "flag" 
 
 ### The clish compatibility
 
-The [clish](PARAM]) has the optional parameters support too but there is a differencies. The "prefix" [option definition means that parameter is optional and the prefix must be followed by argument with "ptype" specified in the same [PARAM](PARAM]). So the parameter without prefix cannot be optional.
+The [clish](PARAM]) has the optional parameters support too but there is a differences. The "prefix" [option definition means that parameter is optional and the prefix must be followed by argument with "ptype" specified in the same [PARAM](PARAM]). So the parameter without prefix cannot be optional.
 
 The Klish emulates clish behaviour when the "prefix" option is defined. The following two [is equivalent.
 
@@ -851,15 +852,15 @@ The CLISH_MODULE can contain the following tags:
 
 * [OVERVIEW] - once
 * [STARTUP] - once
-* [PTYPE] - multiply
-* [COMMAND] - multiply
-* [VIEW] - multiply
-* [NAMESPACE] - multiply
-* [VAR] - multiply
+* [PTYPE] - multiple
+* [COMMAND] - multiple
+* [VIEW] - multiple
+* [NAMESPACE] - multiple
+* [VAR] - multiple
 * [WATCHDOG] - once
-* [HOTKEY] - multiply
-* [PLUGIN] - multiply
-* [HOOK] - multiply
+* [HOTKEY] - multiple
+* [PLUGIN] - multiple
+* [HOOK] - multiple
 
 
 ## VIEW
@@ -868,9 +869,9 @@ The VIEW tag defines a view. The view aggregates the commands. While the Klish e
 
 The VIEW tag can contain the following tags:
 
-* [NAMESPACE] - multiply
-* [COMMAND] - multiply
-* [HOTKEY] - multiply
+* [NAMESPACE] - multiple
+* [COMMAND] - multiple
+* [HOTKEY] - multiple
 
 ### name {#VIEW_name}
 The unique name of the VIEW. The VIEW can be referred by this name. For example the "view" field of [COMMAND] tag can refer to this name. The "name" field can contain letters, digits, hyphens, underscores. The name must not begin with the underscore.
@@ -922,8 +923,11 @@ The "ref" field is used to create a [command alias](#command_alias). If the "ref
 This field controls the access rights for the COMMAND. If the access is denied then the user can't use command. Generally the content of this field is arbitrary. It means that the real function that controls permissions can be set by [HOOK] tag. By default (builtin function) the "access" field contain the list of UNIX groups to grant access to. The groups are separated by ":" symbol. If access field is not defined the access is granted.
 
 ### \[args\] {#COMMAND_args}
+The value of this optional attribute specifies the name of a variable. This variable will contain all that is left over after processing all PARAMs.
+If this field is present the attribute args_help must also be present. If this field is not present it is not  possible to enter additional arguments.
 
 ### \[args_help\] {#COMMAND_args_help}
+The help string for the additional arguments.
 
 ### \[escape_chars\] {#COMMAND_escape_chars}
 
@@ -982,7 +986,7 @@ Specify the name of an internally registered function. The content of the ACTION
 ### \[shebang\] {#ACTION_shebang}
 Defines the scripting language (the binary file) to use for the ACTION script execution.
 
-Default is the shebang defined within [STARTUP] tag using "default_shebang" field. If the "default_sheband" is undefined the "/bin/sh" is used.
+Default is the shebang defined within [STARTUP] tag using "default_shebang" field. If the "default_shebang" is undefined the "/bin/sh" is used.
 
 
 ## OVERVIEW
@@ -1029,7 +1033,7 @@ This tag may be used within the scope of a [COMMAND] element. The PARAM tag defi
 
 The VIEW tag can contain the following tags:
 
-* [PARAM] multiply
+* [PARAM] multiple
 
 ### name {#PARAM_name}
 
@@ -1257,7 +1261,7 @@ $ clish [options] [script_filename]
 
 ### Description
 
-The clish is command line interface shell. The available shell commands and its actions are defined by XML configuration files. The clish utility can get input commands from terminal in interactive mode, from files specified in command line (multiply "script_filename" arguments) or standard input.
+The clish is command line interface shell. The available shell commands and its actions are defined by XML configuration files. The clish utility can get input commands from terminal in interactive mode, from files specified in command line (multiple "script_filename" arguments) or standard input.
 
 ### Options
 
