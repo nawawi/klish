@@ -152,7 +152,7 @@ static const char *clish_nspace_after_prefix(const regex_t *prefix_regex,
 	const char *line, char **real_prefix)
 {
 	const char *in_line = NULL;
-	regmatch_t pmatch[1];
+	regmatch_t pmatch[1] = {};
 	int res;
 
 	if (!line)
