@@ -18,6 +18,12 @@ struct clish_ptype_select_s {
 	lub_argv_t *items;
 };
 
+typedef struct clish_ptype_regex_s clish_ptype_regex_t;
+struct clish_ptype_regex_s {
+	bool_t is_compiled;
+	regex_t re;
+};
+
 struct clish_ptype_s {
 	char *name;
 	char *text;
@@ -25,9 +31,9 @@ struct clish_ptype_s {
 	char *range;
 	clish_ptype_method_e method;
 	clish_ptype_preprocess_e preprocess;
-	unsigned last_name;	/* index used for auto-completion */
+	unsigned int last_name; /* Index used for auto-completion */
 	union {
-		regex_t regexp;
+		clish_ptype_regex_t regex;
 		clish_ptype_integer_t integer;
 		clish_ptype_select_t select;
 	} u;

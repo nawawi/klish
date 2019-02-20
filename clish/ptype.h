@@ -65,7 +65,7 @@ void clish_ptype_free(void *instance);
  *   may not be identical to that passed in. e.g. it may have been
  *   a case-modified "select" or a preprocessed value.
  */
-char *clish_ptype_validate(const clish_ptype_t * instance, const char *text);
+char *clish_ptype_validate(clish_ptype_t * instance, const char *text);
 /**
  * This is the translation method for the specified type. The text is
  * first validated then translated into the form which should be used
@@ -76,7 +76,7 @@ char *clish_ptype_validate(const clish_ptype_t * instance, const char *text);
  *   may not be identical to that passed in. e.g. it may have been
  *   a translated "select" value.
  */
-char *clish_ptype_translate(const clish_ptype_t * instance, const char *text);
+char *clish_ptype_translate(clish_ptype_t * instance, const char *text);
 /**
  * This is used to perform parameter auto-completion
  */

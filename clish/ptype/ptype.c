@@ -55,7 +55,8 @@ static void clish_ptype_fini(clish_ptype_t * this)
 	if (this->pattern) {
 		switch (this->method) {
 		case CLISH_PTYPE_METHOD_REGEXP:
-			regfree(&this->u.regexp);
+			if (this->u.regex.is_compiled)
+				regfree(&this->u.regex.re);
 			break;
 		case CLISH_PTYPE_METHOD_INTEGER:
 		case CLISH_PTYPE_METHOD_UNSIGNEDINTEGER:
@@ -287,7 +288,7 @@ void clish_ptype_word_generator(clish_ptype_t * this,
 }
 
 /*--------------------------------------------------------- */
-static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
+static char *clish_ptype_validate_or_translate(clish_ptype_t * this,
 	const char *text, bool_t translate)
 {
 	char *result = lub_string_dup(text);
@@ -326,8 +327,18 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 	switch (this->method) {
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_METHOD_REGEXP:
-		/* test the regular expression against the string */
-		if (0 != regexec(&this->u.regexp, result, 0, NULL, 0)) {
+		/* Lazy compilation of the regular expression */
+		if (!this->u.regex.is_compiled) {
+			if (regcomp(&this->u.regex.re, this->pattern,
+				REG_NOSUB | REG_EXTENDED)) {
+				lub_string_free(result);
+				result = NULL;
+				break;
+			}
+			this->u.regex.is_compiled = BOOL_TRUE;
+		}
+
+		if (regexec(&this->u.regex.re, result, 0, NULL, 0)) {
 			lub_string_free(result);
 			result = NULL;
 		}
@@ -423,13 +434,13 @@ static char *clish_ptype_validate_or_translate(const clish_ptype_t * this,
 }
 
 /*--------------------------------------------------------- */
-char *clish_ptype_validate(const clish_ptype_t * this, const char *text)
+char *clish_ptype_validate(clish_ptype_t * this, const char *text)
 {
 	return clish_ptype_validate_or_translate(this, text, BOOL_FALSE);
 }
 
 /*--------------------------------------------------------- */
-char *clish_ptype_translate(const clish_ptype_t * this, const char *text)
+char *clish_ptype_translate(clish_ptype_t * this, const char *text)
 {
 	return clish_ptype_validate_or_translate(this, text, BOOL_TRUE);
 }
@@ -452,17 +463,11 @@ void clish_ptype__set_pattern(clish_ptype_t * this,
 	/*------------------------------------------------- */
 	case CLISH_PTYPE_METHOD_REGEXP:
 	{
-		int result;
-
-		/* only the expression is allowed */
 		lub_string_cat(&this->pattern, "^");
 		lub_string_cat(&this->pattern, pattern);
 		lub_string_cat(&this->pattern, "$");
-
-		/* compile the regular expression for later use */
-		result = regcomp(&this->u.regexp, this->pattern,
-			REG_NOSUB | REG_EXTENDED);
-		assert(0 == result);
+		/* Use lazy mechanism to compile regular expressions */
+		this->u.regex.is_compiled = BOOL_FALSE;
 		break;
 	}
 	/*------------------------------------------------- */
