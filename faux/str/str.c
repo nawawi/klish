@@ -1,5 +1,9 @@
 /** @file str.c
- * About this file2
+ * @brief String related functions
+ *
+ * This file implements some often used string functions.
+ * Some functions are more portable versions of standard
+ * functions but others are original ones.
  */
 
 #include <stdlib.h>
@@ -8,23 +12,27 @@
 #include "faux/ctype.h"
 #include "faux/str.h"
 
+/* TODO: Are that vars erally needed? */
 const char *lub_string_esc_default = "`|$<>&()#;\\\"!";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
+
 
 /** @brief Free the memory allocated for the string.
  *
  * Safely free the memory allocated for the string. You can use NULL
  * pointer with this function. POSIX's free() checks for the NULL pointer
- * but not all systems do so.
+ * but not all systems do so. Function uses address of string pointer as an
+ * argument to NULLify pointer after freeing.
  *
- * @param [in] ptr Pointer to allocated string
+ * @param [in] str Address of string pointer
  */
-void lub_string_free(char *ptr)
-{
-	if (!ptr)
+void faux_str_free(char **str) {
+
+	if (!*str)
 		return;
-	free(ptr);
+	free(*str);
+	*str = NULL;
 }
 
 
