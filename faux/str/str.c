@@ -37,6 +37,29 @@ void faux_str_free(char **str) {
 
 
 /*--------------------------------------------------------- */
+char *lub_string_dup(const char *string)
+{
+	if (!string)
+		return NULL;
+	return strdup(string);
+}
+
+/*--------------------------------------------------------- */
+char *lub_string_dupn(const char *string, unsigned int len)
+{
+	char *res = NULL;
+
+	if (!string)
+		return res;
+	res = malloc(len + 1);
+	strncpy(res, string, len);
+	res[len] = '\0';
+
+	return res;
+}
+
+
+/*--------------------------------------------------------- */
 char *lub_string_ndecode(const char *string, unsigned int len)
 {
 	const char *s = string;
@@ -154,27 +177,6 @@ void lub_string_cat(char **string, const char *text)
 	lub_string_catn(string, text, len);
 }
 
-/*--------------------------------------------------------- */
-char *lub_string_dup(const char *string)
-{
-	if (!string)
-		return NULL;
-	return strdup(string);
-}
-
-/*--------------------------------------------------------- */
-char *lub_string_dupn(const char *string, unsigned int len)
-{
-	char *res = NULL;
-
-	if (!string)
-		return res;
-	res = malloc(len + 1);
-	strncpy(res, string, len);
-	res[len] = '\0';
-
-	return res;
-}
 
 /*--------------------------------------------------------- */
 int lub_string_nocasecmp(const char *cs, const char *ct)
