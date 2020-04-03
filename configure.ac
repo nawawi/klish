@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-m4_define([MAJOR_VERSION], 2)
-m4_define([MINOR_VERSION], 1)
-m4_define([MICRO_VERSION], 4)
+m4_define([MAJOR_VERSION], 3)
+m4_define([MINOR_VERSION], 0)
+m4_define([MICRO_VERSION], 0)
 
 AC_PREREQ(2.59)
 AC_INIT([klish],
@@ -629,7 +629,7 @@ AC_CHECK_HEADERS(dlfcn.h, [
 AC_SUBST([CLISH_PLUGIN_BUILTIN_LIST])
 AC_SUBST([CLISH_PLUGIN_BUILTIN_DEFS])
 AC_SUBST([CLISH_PLUGIN_BUILTIN_LIBS])
-AC_CONFIG_FILES([clish/plugin_builtin.c])
+#AC_CONFIG_FILES([clish/plugin_builtin.c])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

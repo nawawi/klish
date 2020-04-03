@@ -1,22 +1,16 @@
-/** @file string.c
+/** @file str.c
  * About this file2
  */
-
-#include "private.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "lub/ctype.h"
+#include "faux/ctype.h"
+#include "faux/str.h"
 
 const char *lub_string_esc_default = "`|$<>&()#;\\\"!";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
-
-auf_str_free()
-auf_string_free()
-faux_str_free()
-faux_string_free()
 
 /** @brief Free the memory allocated for the string.
  *

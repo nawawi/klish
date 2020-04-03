@@ -8,15 +8,10 @@ VERSION_INFO = -version-info $(SONAME_CURRENT):$(SONAME_REVISION):$(SONAME_AGE)
 AM_LDFLAGS = $(VERSION_INFO)
 
 if DEBUG
-  DEBUG_CFLAGS = -DDEBUG
-endif
-
-if LEGACY
-  LEGACY_CFLAGS = -DLEGACY
+DEBUG_CFLAGS = -DDEBUG
 endif
 
 AM_CFLAGS = -Wall $(DEBUG_CFLAGS) $(LEGACY_CFLAGS)
-#AM_CFLAGS = -ansi -pedantic -Werror -Wall -D_POSIX_C_SOURCE=199309 -DVERSION=$(VERSION) $(DEBUG_CFLAGS)
 
 bin_PROGRAMS =
 lib_LTLIBRARIES =
@@ -24,28 +19,29 @@ lib_LIBRARIES =
 nobase_include_HEADERS =
 
 EXTRA_DIST = \
-	bin/module.am \
-	clish/module.am \
-	lub/Makefile.am \
-	tinyrl/module.am \
-	konf/module.am \
-	plugins/module.am \
-	libc/module.am \
-	doc/module.am \
-	contrib \
-	xml-examples \
-	debian \
-	clish.xsd \
-	LICENCE \
-	README \
-	CHANGES \
-	ISSUES
+	faux/Makefile.am
 
-include $(top_srcdir)/lub/Makefile.am
-include $(top_srcdir)/tinyrl/module.am
-include $(top_srcdir)/konf/module.am
-include $(top_srcdir)/clish/module.am
-include $(top_srcdir)/bin/module.am
-include $(top_srcdir)/plugins/module.am
-include $(top_srcdir)/libc/module.am
-include $(top_srcdir)/doc/module.am
+#	bin/module.am \
+#	clish/module.am \
+#	tinyrl/module.am \
+#	konf/module.am \
+#	plugins/module.am \
+#	libc/module.am \
+#	doc/module.am \
+#	contrib \
+#	xml-examples \
+#	debian \
+#	clish.xsd \
+#	LICENCE \
+#	README \
+#	CHANGES \
+#	ISSUES
+
+include $(top_srcdir)/faux/Makefile.am
+#include $(top_srcdir)/tinyrl/module.am
+#include $(top_srcdir)/konf/module.am
+#include $(top_srcdir)/clish/module.am
+#include $(top_srcdir)/bin/module.am
+#include $(top_srcdir)/plugins/module.am
+#include $(top_srcdir)/libc/module.am
+#include $(top_srcdir)/doc/module.am

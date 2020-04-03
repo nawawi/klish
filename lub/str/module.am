@@ -1,4 +1,0 @@
-liblub_la_SOURCES += \
-	lub/string/string.c \
-	lub/string/private.h
-
