@@ -37,7 +37,7 @@ include $(top_srcdir)/lub/bintree/module.am
 include $(top_srcdir)/lub/list/module.am
 include $(top_srcdir)/lub/ctype/module.am
 include $(top_srcdir)/lub/dump/module.am
-include $(top_srcdir)/lub/string/module.am
+include $(top_srcdir)/lub/str/Makefile.am
 include $(top_srcdir)/lub/system/module.am
 include $(top_srcdir)/lub/db/module.am
 include $(top_srcdir)/lub/ini/module.am

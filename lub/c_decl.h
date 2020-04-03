@@ -1,18 +1,20 @@
-/* 
- * c_decl.h 
- * 
+/*
+ * c_decl.h
+ *
  * a simple set of macros to ease declaration of C interfaces.
  */
- /**
+
+///@{
+/**
 \ingroup lub
 \defgroup lub_c_decl C linkage macros
-@{
+
 These two macros are used to simplify the declaration of C-linkage code.
 Rather than worry about preprocessor directives similar to
 \code
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 int foobar(void);
 
@@ -43,5 +45,5 @@ _END_C_DECL
 #define _END_C_DECL
 #endif				/* not __cplusplus */
 
-/** @} */
+/// /** @} */
 #endif				/* _lub_c_decl_h */

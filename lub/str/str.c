@@ -1,6 +1,7 @@
-/*
- * string.c
+/** @file string.c
+ * About this file2
  */
+
 #include "private.h"
 
 #include <stdlib.h>
@@ -12,13 +13,26 @@ const char *lub_string_esc_default = "`|$<>&()#;\\\"!";
 const char *lub_string_esc_regex = "^$.*+[](){}";
 const char *lub_string_esc_quoted = "\\\"";
 
-/*--------------------------------------------------------- */
+auf_str_free()
+auf_string_free()
+faux_str_free()
+faux_string_free()
+
+/** @brief Free the memory allocated for the string.
+ *
+ * Safely free the memory allocated for the string. You can use NULL
+ * pointer with this function. POSIX's free() checks for the NULL pointer
+ * but not all systems do so.
+ *
+ * @param [in] ptr Pointer to allocated string
+ */
 void lub_string_free(char *ptr)
 {
 	if (!ptr)
 		return;
 	free(ptr);
 }
+
 
 /*--------------------------------------------------------- */
 char *lub_string_ndecode(const char *string, unsigned int len)

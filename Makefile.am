@@ -26,7 +26,7 @@ nobase_include_HEADERS =
 EXTRA_DIST = \
 	bin/module.am \
 	clish/module.am \
-	lub/module.am \
+	lub/Makefile.am \
 	tinyrl/module.am \
 	konf/module.am \
 	plugins/module.am \
@@ -41,7 +41,7 @@ EXTRA_DIST = \
 	CHANGES \
 	ISSUES
 
-include $(top_srcdir)/lub/module.am
+include $(top_srcdir)/lub/Makefile.am
 include $(top_srcdir)/tinyrl/module.am
 include $(top_srcdir)/konf/module.am
 include $(top_srcdir)/clish/module.am
