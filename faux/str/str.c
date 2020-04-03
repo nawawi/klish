@@ -187,8 +187,8 @@ int lub_string_nocasecmp(const char *cs, const char *ct)
 		 * MACRO implementation uses braces to prevent multiple increments
 		 * when called.
 		 */
-		int s = lub_ctype_tolower(*cs++);
-		int t = lub_ctype_tolower(*ct++);
+		int s = faux_ctype_tolower(*cs++);
+		int t = faux_ctype_tolower(*ct++);
 
 		result = s - t;
 	}
@@ -236,7 +236,7 @@ const char *lub_string_nocasestr(const char *cs, const char *ct)
 		 * (see above)
 		 */
 		while (*p && *q
-		       && (lub_ctype_tolower(*p) == lub_ctype_tolower(*q))) {
+		       && (faux_ctype_tolower(*p) == faux_ctype_tolower(*q))) {
 			p++, q++;
 		}
 		if (0 == *p) {
@@ -282,7 +282,7 @@ const char *lub_string_suffix(const char *string)
 	const char *p1, *p2;
 	p1 = p2 = string;
 	while (*p1) {
-		if (lub_ctype_isspace(*p1)) {
+		if (faux_ctype_isspace(*p1)) {
 			p2 = p1;
 			p2++;
 		}

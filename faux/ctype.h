@@ -8,7 +8,6 @@
 #include <ctype.h>
 
 #include "faux/types.h"
-#include "faux/c_decl.h"
 
 C_DECL_BEGIN
 

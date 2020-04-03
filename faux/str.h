@@ -14,34 +14,20 @@ lub_string_free() to release the dynamically allocated memory.
 
 If a "const char *" is returned then the client has no responsiblity for releasing memory.
 */
-/*---------------------------------------------------------------
- * HISTORY
- * 7-Dec-2004		Graeme McKerrell	
- *    Updated to use the "lub" prefix
- * 6-Feb-2004		Graeme McKerrell	
- *    removed init_fn type definition and parameter, the client had
- *    more flexiblity in defining their own initialisation operation with
- *    arguments rather than use a "one-size-fits-all" approach.
- *    Modified blockpool structure to support FIFO block allocation.
- * 23-Jan-2004		Graeme McKerrell	
- *    Initial version
- *---------------------------------------------------------------
- * Copyright (C) 2004 3Com Corporation. All Rights Reserved.
- *--------------------------------------------------------------- */
-#ifndef _lub_string_h
-#define _lub_string_h
+
+#ifndef _faux_str_h
+#define _faux_str_h
 
 #include <stddef.h>
 
-#include "lub/c_decl.h"
-#include "lub/types.h"
+#include "faux/types.h"
 
 #define UTF8_MASK 0xC0
 #define UTF8_7BIT_MASK 0x80 /* One byte or multibyte */
 #define UTF8_11   0xC0 /* First UTF8 byte */
 #define UTF8_10   0x80 /* Next UTF8 bytes */
 
-_BEGIN_C_DECL
+C_DECL_BEGIN
 /**
  * This operation duplicates the specified string.
  *
@@ -274,6 +260,6 @@ const char *lub_string_nextword(const char *string,
 	size_t *len, size_t *offset, size_t *quoted);
 unsigned int lub_string_wordcount(const char *line);
 
-_END_C_DECL
-#endif				/* _lub_string_h */
+C_DECL_END
+#endif				/* _faux_str_h */
 /** @} */
