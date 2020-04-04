@@ -1,5 +1,11 @@
-/* It must be here to include config.h before another headers */
-#include "lub/db.h"
+/** @file sysdb.c
+ * @brief Wrappers for system database functions like getpwnam(), getgrnam().
+ */
+
+// It must be here to include config.h before another headers
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -8,13 +14,23 @@
 #include <grp.h>
 #include <unistd.h>
 
+#include "faux/sysdb.h"
+
 #define DEFAULT_GETPW_R_SIZE_MAX 1024
 
-struct passwd *lub_db_getpwnam(const char *name)
-{
+/** @brief Wrapper for ugly getpwnam_r() function.
+ *
+ * Gets passwd structure by user name. Easy to use.
+ *
+ * @param [in] name User name.
+ * @return Pointer to allocated passwd structure.
+ * @warning The resulting pointer (return value) must be freed by free().
+ */
+struct passwd *faux_sysdb_getpwnam(const char *name) {
+
 	long int size;
 	char *buf;
-	struct passwd *pwbuf; 
+	struct passwd *pwbuf;
 	struct passwd *pw = NULL;
 	int res = 0;
 
@@ -28,7 +44,7 @@ struct passwd *lub_db_getpwnam(const char *name)
 	if (!pwbuf)
 		return NULL;
 	buf = (char *)pwbuf + sizeof(*pwbuf);
-	
+
 	res = getpwnam_r(name, pwbuf, buf, size, &pw);
 
 	if (res || !pw) {
@@ -43,8 +59,16 @@ struct passwd *lub_db_getpwnam(const char *name)
 	return pwbuf;
 }
 
-struct passwd *lub_db_getpwuid(uid_t uid)
-{
+/** @brief Wrapper for ugly getpwuid_r() function.
+ *
+ * Gets passwd structure by UID. Easy to use.
+ *
+ * @param [in] uid UID.
+ * @return Pointer to allocated passwd structure.
+ * @warning The resulting pointer (return value) must be freed by free().
+ */
+struct passwd *faux_sysdb_getpwuid(uid_t uid) {
+
 	long int size;
 	char *buf;
 	struct passwd *pwbuf; 
@@ -61,7 +85,7 @@ struct passwd *lub_db_getpwuid(uid_t uid)
 	if (!pwbuf)
 		return NULL;
 	buf = (char *)pwbuf + sizeof(*pwbuf);
-	
+
 	res = getpwuid_r(uid, pwbuf, buf, size, &pw);
 
 	if (NULL == pw) {
@@ -76,8 +100,16 @@ struct passwd *lub_db_getpwuid(uid_t uid)
 	return pwbuf;
 }
 
-struct group *lub_db_getgrnam(const char *name)
-{
+/** @brief Wrapper for ugly getgrnam_r() function.
+ *
+ * Gets group structure by group name. Easy to use.
+ *
+ * @param [in] name Group name.
+ * @return Pointer to allocated group structure.
+ * @warning The resulting pointer (return value) must be freed by free().
+ */
+struct group *faux_sysdb_getgrnam(const char *name) {
+
 	long int size;
 	char *buf;
 	struct group *grbuf; 
@@ -109,8 +141,16 @@ struct group *lub_db_getgrnam(const char *name)
 	return grbuf;
 }
 
-struct group *lub_db_getgrgid(gid_t gid)
-{
+/** @brief Wrapper for ugly getgrgid_r() function.
+ *
+ * Gets group structure by GID. Easy to use.
+ *
+ * @param [in] gid GID.
+ * @return Pointer to allocated group structure.
+ * @warning The resulting pointer (return value) must be freed by free().
+ */
+struct group *faux_sysdb_getgrgid(gid_t gid) {
+
 	long int size;
 	char *buf;
 	struct group *grbuf;

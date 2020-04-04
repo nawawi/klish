@@ -12,10 +12,10 @@
 #include "faux/ctype.h"
 #include "faux/str.h"
 
-/* TODO: Are that vars erally needed? */
-const char *lub_string_esc_default = "`|$<>&()#;\\\"!";
-const char *lub_string_esc_regex = "^$.*+[](){}";
-const char *lub_string_esc_quoted = "\\\"";
+/* TODO: Are that vars really needed? */
+//const char *lub_string_esc_default = "`|$<>&()#;\\\"!";
+//const char *lub_string_esc_regex = "^$.*+[](){}";
+//const char *lub_string_esc_quoted = "\\\"";
 
 
 /** @brief Free the memory allocated for the string.
@@ -36,30 +36,170 @@ void faux_str_free(char **str) {
 }
 
 
-/*--------------------------------------------------------- */
-char *lub_string_dup(const char *string)
-{
-	if (!string)
+/** @brief Duplicates the string.
+ *
+ * Duplicates the string. Same as standard strdup() function. Allocates
+ * memory with malloc(). Checks for NULL pointer.
+ *
+ * @warning Resulting string must be freed by faux_str_free().
+ *
+ * @param [in] str String to duplicate.
+ * @return Pointer to allocated string or NULL.
+ */
+char *faux_str_dup(const char *str) {
+
+	if (!str)
 		return NULL;
-	return strdup(string);
+	return strdup(str);
 }
 
-/*--------------------------------------------------------- */
-char *lub_string_dupn(const char *string, unsigned int len)
-{
-	char *res = NULL;
 
-	if (!string)
-		return res;
+/** @brief Duplicates the first n bytes of the string.
+ *
+ * Duplicates at most n bytes of the string. Allocates
+ * memory with malloc(). Checks for NULL pointer. Function will allocate
+ * n + 1 bytes to store string and terminating null byte.
+ *
+ * @warning Resulting string must be freed by faux_str_free().
+ *
+ * @param [in] str String to duplicate.
+ * @param [in] n Number of bytes to copy.
+ * @return Pointer to allocated string or NULL.
+ */
+char *faux_str_dupn(const char *str, size_t n) {
+
+	char *res = NULL;
+	size_t len = 0;
+
+	if (!str)
+		return NULL;
+	len = strlen(str);
+	len = (len < n) ? len : n;
 	res = malloc(len + 1);
-	strncpy(res, string, len);
+	if (!res)
+		return NULL;
+	strncpy(res, str, len);
 	res[len] = '\0';
 
 	return res;
 }
 
 
-/*--------------------------------------------------------- */
+/** @brief Generates lowercase copy of input string.
+ *
+ * Allocates the copy of input string and convert that copy to lowercase.
+ *
+ * @warning Resulting string must be freed by faux_str_free().
+ *
+ * @param [in] str String to convert.
+ * @return Pointer to lowercase string copy or NULL.
+ */
+char *faux_str_tolower(const char *str)
+{
+	char *res = faux_str_dup(str);
+	char *p = res;
+
+	if (!res)
+		return NULL;
+
+	while (*p) {
+		*p = faux_ctype_tolower(*p);
+		p++;
+	}
+
+	return res;
+}
+
+
+/** @brief Generates uppercase copy of input string.
+ *
+ * Allocates the copy of input string and convert that copy to uppercase.
+ *
+ * @warning Resulting string must be freed by faux_str_free().
+ *
+ * @param [in] str String to convert.
+ * @return Pointer to lowercase string copy or NULL.
+ */
+char *faux_str_toupper(const char *str)
+{
+	char *res = faux_str_dup(str);
+	char *p = res;
+
+	if (!res)
+		return NULL;
+
+	while (*p) {
+		*p = faux_ctype_toupper(*p);
+		p++;
+	}
+
+	return res;
+}
+
+
+/** @brief Add n bytes of text to existent string.
+ *
+ * Concatenate two strings. Add n bytes of second string to the end of the
+ * first one. The first argument is address of string pointer. The pointer
+ * can be changed due to realloc() features. The first pointer can be NULL.
+ * In this case the memory will be malloc()-ed and stored to the first pointer.
+ *
+ * @param [in,out] str Address of first string pointer.
+ * @param [in] text Text to add to the first string.
+ * @param [in] n Number of bytes to add.
+ * @return Pointer to resulting string or NULL.
+ */
+char *faux_str_catn(char **str, const char *text, size_t n) {
+
+	size_t str_len = 0;
+	size_t text_len = 0;
+	char *res = NULL;
+	char *p = NULL;
+
+	if (!text)
+		return *str;
+
+	str_len = (*str) ? strlen(*str) : 0;
+	text_len = strlen(text);
+	text_len = (text_len < n) ? text_len : n;
+
+	res = realloc(*str, str_len + text_len + 1);
+	if (!res)
+		return NULL;
+	p = res + str_len;
+	strncpy(p, text, text_len);
+	p[text_len] = '\0';
+	*str = res;
+
+	return res;
+}
+
+
+/** @brief Add some text to existent string.
+ *
+ * Concatenate two strings. Add second string to the end of the first one.
+ * The first argument is address of string pointer. The pointer can be
+ * changed due to realloc() features. The first pointer can be NULL. In this
+ * case the memory will be malloc()-ed and stored to the first pointer.
+ *
+ * @param [in,out] str Address of first string pointer.
+ * @param [in] text Text to add to the first string.
+ * @return Pointer to resulting string or NULL.
+ */
+char *faux_str_cat(char **str, const char *text) {
+
+	size_t len = 0;
+
+	if (!text)
+		return *str;
+	len = strlen(text);
+
+	return faux_str_catn(str, text, len);
+}
+
+
+// TODO: Is it needed?
+/*
 char *lub_string_ndecode(const char *string, unsigned int len)
 {
 	const char *s = string;
@@ -69,7 +209,6 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 	if (!string)
 		return NULL;
 
-	/* Allocate enough memory for result */
 	p = res = malloc(len + 1);
 
 	while (*s && (s < (string +len))) {
@@ -79,19 +218,19 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 			else
 				*p = *s;
 		} else {
-/*			switch (*s) {
-			case 'r':
-			case 'n':
-				*p = '\n';
-				break;
-			case 't':
-				*p = '\t';
-				break;
-			default:
-				*p = *s;
-				break;
-			}
-*/			*p = *s;
+//			switch (*s) {
+//			case 'r':
+//			case 'n':
+//				*p = '\n';
+//				break;
+//			case 't':
+//				*p = '\t';
+//				break;
+//			default:
+//				*p = *s;
+//				break;
+//			}
+//			*p = *s;
 			esc = 0;
 		}
 		if (!esc)
@@ -102,18 +241,23 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 
 	return res;
 }
+*/
 
-/*--------------------------------------------------------- */
+// TODO: Is it needed?
+/*
 inline char *lub_string_decode(const char *string)
 {
 	return lub_string_ndecode(string, strlen(string));
 }
+*/
 
+// TODO: Is it needed?
 /*----------------------------------------------------------- */
 /*
  * This needs to escape any dangerous characters within the command line
  * to prevent gaining access to the underlying system shell.
  */
+/*
 char *lub_string_encode(const char *string, const char *escape_chars)
 {
 	char *result = NULL;
@@ -121,11 +265,11 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 
 	if (!escape_chars)
 		return lub_string_dup(string);
-	if (string && !(*string)) /* Empty string */
+	if (string && !(*string)) // Empty string
 		return lub_string_dup(string);
 
 	for (p = string; p && *p; p++) {
-		/* find any special characters and prefix them with '\' */
+		// find any special characters and prefix them with '\'
 		size_t len = strcspn(p, escape_chars);
 		lub_string_catn(&result, p, len);
 		p += len;
@@ -138,86 +282,41 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 	}
 	return result;
 }
+*/
 
+
+// TODO: Is it needed?
 /*--------------------------------------------------------- */
-void lub_string_catn(char **string, const char *text, size_t len)
-{
-	if (text) {
-		char *q;
-		size_t length, initlen, textlen = strlen(text);
-
-		/* make sure the client cannot give us duff details */
-		len = (len < textlen) ? len : textlen;
-
-		/* remember the size of the original string */
-		initlen = *string ? strlen(*string) : 0;
-
-		/* account for '\0' */
-		length = initlen + len + 1;
-
-		/* allocate the memory for the result */
-		q = realloc(*string, length);
-		if (NULL != q) {
-			*string = q;
-			/* move to the end of the initial string */
-			q += initlen;
-
-			while (len--) {
-				*q++ = *text++;
-			}
-			*q = '\0';
-		}
-	}
-}
-
-/*--------------------------------------------------------- */
-void lub_string_cat(char **string, const char *text)
-{
-	size_t len = text ? strlen(text) : 0;
-	lub_string_catn(string, text, len);
-}
-
-
-/*--------------------------------------------------------- */
+/*
 int lub_string_nocasecmp(const char *cs, const char *ct)
 {
 	int result = 0;
 	while ((0 == result) && *cs && *ct) {
-		/*lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
-		 * MACRO implementation uses braces to prevent multiple increments
-		 * when called.
-		 */
+		//lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
+		// MACRO implementation uses braces to prevent multiple increments
+		// when called.
+		//
 		int s = faux_ctype_tolower(*cs++);
 		int t = faux_ctype_tolower(*ct++);
 
 		result = s - t;
 	}
-	/*lint -e774 Boolean within 'if' always evealuates to True 
-	 * not the case because of tolower() evaluating to 0 under lint
-	 * (see above)
-	 */
+	//lint -e774 Boolean within 'if' always evealuates to True 
+	// not the case because of tolower() evaluating to 0 under lint
+	// (see above)
+	//
 	if (0 == result) {
-		/* account for different string lengths */
+		// account for different string lengths
 		result = *cs - *ct;
 	}
 	return result;
 }
+*/
+
+// TODO: Is it needed?
 
 /*--------------------------------------------------------- */
-char *lub_string_tolower(const char *str)
-{
-	char *tmp = strdup(str);
-	char *p = tmp;
-
-	while (*p) {
-		*p = tolower(*p);
-		p++;
-	}
-
-	return tmp;
-}
-
-/*--------------------------------------------------------- */
+/*
 const char *lub_string_nocasestr(const char *cs, const char *ct)
 {
 	const char *p = NULL;
@@ -227,14 +326,14 @@ const char *lub_string_nocasestr(const char *cs, const char *ct)
 		const char *q = cs;
 
 		p = ct;
-		/*lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
-		 * MACRO implementation uses braces to prevent multiple increments
-		 * when called.
-		 */
-		/*lint -e506 Constant value Boolean
-		 * not the case because of tolower() evaluating to 0 under lint
-		 * (see above)
-		 */
+		//lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
+		// MACRO implementation uses braces to prevent multiple increments
+		// when called.
+		//
+		//lint -e506 Constant value Boolean
+		// not the case because of tolower() evaluating to 0 under lint
+		// (see above)
+		//
 		while (*p && *q
 		       && (faux_ctype_tolower(*p) == faux_ctype_tolower(*q))) {
 			p++, q++;
@@ -245,13 +344,16 @@ const char *lub_string_nocasestr(const char *cs, const char *ct)
 		cs++;
 	}
 	if (p && !*p) {
-		/* we've found the first match of ct within cs */
+		// we've found the first match of ct within cs
 		result = cs;
 	}
 	return result;
 }
+*/
 
+// TODO: Is it needed?
 /*--------------------------------------------------------- */
+/*
 unsigned int lub_string_equal_part(const char *str1, const char *str2,
 	bool_t utf8)
 {
@@ -269,14 +371,18 @@ unsigned int lub_string_equal_part(const char *str1, const char *str2,
 	if (!utf8)
 		return cnt;
 
-	/* UTF8 features */
+	// UTF8 features
 	if (cnt && (UTF8_11 == (*(str1 - 1) & UTF8_MASK)))
 		cnt--;
 
 	return cnt;
 }
+*/
+
+// TODO: Is it needed?
 
 /*--------------------------------------------------------- */
+/*
 const char *lub_string_suffix(const char *string)
 {
 	const char *p1, *p2;
@@ -290,8 +396,11 @@ const char *lub_string_suffix(const char *string)
 	}
 	return p2;
 }
+*/
 
+// TODO: Is it needed?
 /*--------------------------------------------------------- */
+/*
 const char *lub_string_nextword(const char *string,
 	size_t *len, size_t *offset, size_t *quoted)
 {
@@ -299,12 +408,12 @@ const char *lub_string_nextword(const char *string,
 
 	*quoted = 0;
 
-	/* Find the start of a word (not including an opening quote) */
+	// Find the start of a word (not including an opening quote)
 	while (*string && isspace(*string)) {
 		string++;
 		(*offset)++;
 	}
-	/* Is this the start of a quoted string ? */
+	// Is this the start of a quoted string ?
 	if (*string == '"') {
 		*quoted = 1;
 		string++;
@@ -312,7 +421,7 @@ const char *lub_string_nextword(const char *string,
 	word = string;
 	*len = 0;
 
-	/* Find the end of the word */
+	// Find the end of the word
 	while (*string) {
 		if (*string == '\\') {
 			string++;
@@ -323,11 +432,11 @@ const char *lub_string_nextword(const char *string,
 			}
 			continue;
 		}
-		/* End of word */
+		// End of word
 		if (!*quoted && isspace(*string))
 			break;
 		if (*string == '"') {
-			/* End of a quoted string */
+			// End of a quoted string
 			*quoted = 2;
 			break;
 		}
@@ -337,8 +446,11 @@ const char *lub_string_nextword(const char *string,
 
 	return word;
 }
+*/
 
+// TODO: Is it needed?
 /*--------------------------------------------------------- */
+/*
 unsigned int lub_string_wordcount(const char *line)
 {
 	const char *word;
@@ -349,12 +461,11 @@ unsigned int lub_string_wordcount(const char *line)
 	for (word = lub_string_nextword(line, &len, &offset, &quoted);
 		*word || quoted;
 		word = lub_string_nextword(word + len, &len, &offset, &quoted)) {
-		/* account for the terminating quotation mark */
+		// account for the terminating quotation mark
 		len += quoted ? quoted - 1 : 0;
 		result++;
 	}
 
 	return result;
 }
-
-/*--------------------------------------------------------- */
+*/
