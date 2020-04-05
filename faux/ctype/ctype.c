@@ -3,8 +3,9 @@
  *
  * Some ctype functions are not compatible among different OSes.
  * So faux library functions use their own versions of some
- * ctype functions to unify the behaviour. Really the most of the
+ * ctype functions to unify the behaviour. Really for now all
  * faux ctype functions are only a wrappers for standard functions.
+ * But it can be changed in future for portability purposes.
  */
 
 #include <ctype.h>

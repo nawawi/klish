@@ -198,6 +198,94 @@ char *faux_str_cat(char **str, const char *text) {
 }
 
 
+/** @brief Compare n first characters of two strings ignoring case.
+ *
+ * The difference beetween this function an standard strncasecmp() is
+ * faux function uses faux ctype functions. It can be important for
+ * portability.
+ *
+ * @param [in] str1 First string to compare.
+ * @param [in] str2 Second string to compare.
+ * @param [in] n Number of characters to compare.
+ * @return < 0, 0, > 0, see the strcasecmp().
+ */
+int faux_str_ncasecmp(const char *str1, const char *str2, size_t n) {
+
+	const char *p1 = str1;
+	const char *p2 = str2;
+	size_t num = n;
+
+	while ((*p1 || *p2) && num) {
+		int res = 0;
+		char c1 = faux_ctype_tolower(*p1);
+		char c2 = faux_ctype_tolower(*p2);
+		res = c1 - c2;
+		if (res)
+			return res;
+		p1++;
+		p2++;
+		num--;
+	}
+
+	return 0;
+}
+
+
+/** @brief Compare two strings ignoring case.
+ *
+ * The difference beetween this function an standard strcasecmp() is
+ * faux function uses faux ctype functions. It can be important for
+ * portability.
+ *
+ * @param [in] str1 First string to compare.
+ * @param [in] str2 Second string to compare.
+ * @return < 0, 0, > 0, see the strcasecmp().
+ */
+int faux_str_casecmp(const char *str1, const char *str2) {
+
+	const char *p1 = str1;
+	const char *p2 = str2;
+
+	while (*p1 || *p2) {
+		int res = 0;
+		char c1 = faux_ctype_tolower(*p1);
+		char c2 = faux_ctype_tolower(*p2);
+		res = c1 - c2;
+		if (res)
+			return res;
+		p1++;
+		p2++;
+	}
+
+	return 0;
+}
+
+
+const char *lub_string_nocasestr(const char *cs, const char *ct)
+{
+	const char *p = NULL;
+	const char *result = NULL;
+
+	while (*cs) {
+		const char *q = cs;
+
+		p = ct;
+		while (*p && *q
+		       && (faux_ctype_tolower(*p) == faux_ctype_tolower(*q))) {
+			p++, q++;
+		}
+		if (0 == *p) {
+			break;
+		}
+		cs++;
+	}
+	if (p && !*p) {
+		result = cs;
+	}
+	return result;
+}
+
+
 // TODO: Is it needed?
 /*
 char *lub_string_ndecode(const char *string, unsigned int len)
@@ -285,71 +373,6 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 */
 
 
-// TODO: Is it needed?
-/*--------------------------------------------------------- */
-/*
-int lub_string_nocasecmp(const char *cs, const char *ct)
-{
-	int result = 0;
-	while ((0 == result) && *cs && *ct) {
-		//lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
-		// MACRO implementation uses braces to prevent multiple increments
-		// when called.
-		//
-		int s = faux_ctype_tolower(*cs++);
-		int t = faux_ctype_tolower(*ct++);
-
-		result = s - t;
-	}
-	//lint -e774 Boolean within 'if' always evealuates to True 
-	// not the case because of tolower() evaluating to 0 under lint
-	// (see above)
-	//
-	if (0 == result) {
-		// account for different string lengths
-		result = *cs - *ct;
-	}
-	return result;
-}
-*/
-
-// TODO: Is it needed?
-
-/*--------------------------------------------------------- */
-/*
-const char *lub_string_nocasestr(const char *cs, const char *ct)
-{
-	const char *p = NULL;
-	const char *result = NULL;
-
-	while (*cs) {
-		const char *q = cs;
-
-		p = ct;
-		//lint -e155 Ignoring { }'ed sequence within an expression, 0 assumed 
-		// MACRO implementation uses braces to prevent multiple increments
-		// when called.
-		//
-		//lint -e506 Constant value Boolean
-		// not the case because of tolower() evaluating to 0 under lint
-		// (see above)
-		//
-		while (*p && *q
-		       && (faux_ctype_tolower(*p) == faux_ctype_tolower(*q))) {
-			p++, q++;
-		}
-		if (0 == *p) {
-			break;
-		}
-		cs++;
-	}
-	if (p && !*p) {
-		// we've found the first match of ct within cs
-		result = cs;
-	}
-	return result;
-}
-*/
 
 // TODO: Is it needed?
 /*--------------------------------------------------------- */

@@ -1,13 +1,16 @@
-#ifndef _lub_log_h
-#define _lub_log_h
+/** @file log.h
+ * @brief Public interface for faux log functions.
+ */
 
-#include <syslog.h>
+#ifndef _faux_log_h
+#define _faux_log_h
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
+#include "faux/types.h"
 
-int lub_log_facility(const char *str, int *facility);
+C_DECL_BEGIN
+
+int faux_log_facility(const char *str, int *facility);
+
+C_DECL_END
 
 #endif
-
