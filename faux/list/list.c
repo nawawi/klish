@@ -179,7 +179,11 @@ faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
  */
 void faux_list_free(faux_list_t *list) {
 
-	faux_list_node_t *iter;
+	faux_list_node_t *iter = NULL;
+
+	assert(list);
+	if (!list)
+		return;
 
 	while ((iter = faux_list_head(list))) {
 		faux_list_del(list, iter);
@@ -187,59 +191,102 @@ void faux_list_free(faux_list_t *list) {
 	free(list);
 }
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_head(faux_list_t *this) {
-	return this->head;
-}
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_tail(faux_list_t *this) {
-	return this->tail;
-}
-
-/*--------------------------------------------------------- */
-size_t faux_list_len(faux_list_t *this) {
-	return this->len;
-}
-
-
-
-/*--------------------------------------------------------- */
-/* uniq - true/false Don't add entry with identical order
- *	key (when the compareFn() returns 0)
- * find - true/false Function returns list_node if there is
- *	identical entry. Or NULL if find is false.
+/** @brief Gets head of list.
+ *
+ * @param [in] list List.
+ * @return List node first in list.
  */
-static faux_list_node_t *faux_list_add_generic(faux_list_t *this, void *data,
+faux_list_node_t *faux_list_head(const faux_list_t *list) {
+
+	assert(list);
+	if (!list)
+		return NULL;
+
+	return list->head;
+}
+
+
+/** @brief Gets tail of list.
+ *
+ * @param [in] list List.
+ * @return List node last in list.
+ */
+faux_list_node_t *faux_list_tail(const faux_list_t *list) {
+
+	assert(list);
+	if (!list)
+		return NULL;
+
+	return list->tail;
+}
+
+
+/** @brief Gets current length of list.
+ *
+ * @param [in] list List.
+ * @return Current length of list.
+ */
+size_t faux_list_len(const faux_list_t *list) {
+
+	assert(list);
+	if (!list)
+		return 0;
+
+	return list->len;
+}
+
+
+/** @brief Generic static function for adding new list nodes.
+ *
+ * @param [in] list List to add node to.
+ * @param [in] data User data for new list node.
+ * @param [in] uniq - true/false Don't add entry with identical order
+ * key (when the compareFn() returns 0)
+ * @param [in] find - true/false Function returns list node if there is
+ * identical entry. Or NULL if find is false.
+ * @return Newly added list node.
+ */
+static faux_list_node_t *faux_list_add_generic(faux_list_t *list, void *data,
 	bool_t uniq, bool_t find) {
-	faux_list_node_t *node = faux_list_new_node(data);
-	faux_list_node_t *iter;
 
-	this->len++;
+	faux_list_node_t *node = NULL;
+	faux_list_node_t *iter = NULL;
 
-	/* Empty list */
-	if (!this->head) {
-		this->head = node;
-		this->tail = node;
+	assert(list);
+	assert(data);
+	if (!list || !data)
+		return NULL;
+
+	node = faux_list_new_node(data);
+	if (!node)
+		return NULL;
+
+	// Empty list.
+	if (!list->head) {
+		list->head = node;
+		list->tail = node;
+		list->len++;
 		return node;
 	}
 
-	/* Not sorted list. Add to the tail. */
-	if (!this->compareFn) {
-		node->prev = this->tail;
+	// Not sorted list. Add to the tail.
+	if (!list->compareFn) {
+		node->prev = list->tail;
 		node->next = NULL;
-		this->tail->next = node;
-		this->tail = node;
+		list->tail->next = node;
+		list->tail = node;
+		list->len++;
 		return node;
 	}
 
-	/* Sorted list */
-	iter = this->tail;
+	// Sorted list.
+	iter = list->tail;
 	while (iter) {
-		int res = this->compareFn(node->data, iter->data);
+		int res = list->compareFn(node->data, iter->data);
 
 		if (uniq && (res == 0)) {
-			this->len--;	// Revert previous increment
+			faux_list_free_node(node);
 			return (find ? iter : NULL);
 		}
 		if (res >= 0) {
@@ -252,15 +299,16 @@ static faux_list_node_t *faux_list_add_generic(faux_list_t *this, void *data,
 		}
 		iter = iter->prev;
 	}
-	/* Insert node into the list head */
+	// Insert node into the list head
 	if (!iter) {
-		node->next = this->head;
+		node->next = list->head;
 		node->prev = NULL;
-		this->head->prev = node;
-		this->head = node;
+		list->head->prev = node;
+		list->head = node;
 	}
 	if (!node->next)
-		this->tail = node;
+		list->tail = node;
+	list->len++;
 
 	return node;
 }

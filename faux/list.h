@@ -26,13 +26,14 @@ faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
 	faux_list_free_fn freeFn);
 void faux_list_free(faux_list_t *list);
 
-faux_list_node_t *faux_list_head(faux_list_t *list);
-faux_list_node_t *faux_list_tail(faux_list_t *list);
-size_t faux_list_len(faux_list_t *list);
+faux_list_node_t *faux_list_head(const faux_list_t *list);
+faux_list_node_t *faux_list_tail(const faux_list_t *list);
+size_t faux_list_len(const faux_list_t *list);
 
 faux_list_node_t *faux_list_add(faux_list_t *list, void *data);
 faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data);
 faux_list_node_t *faux_list_find_add(faux_list_t *list, void *data);
+void *faux_list_getaway(faux_list_t *list, faux_list_node_t *node);
 void faux_list_del(faux_list_t *list, faux_list_node_t *node);
 
 faux_list_node_t *faux_list_match_node(faux_list_t *list,
