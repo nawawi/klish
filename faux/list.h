@@ -1,51 +1,52 @@
-#ifndef _lub_list_h
-#define _lub_list_h
+#ifndef _faux_list_h
+#define _faux_list_h
 
 #include <stddef.h>
-#include "lub/c_decl.h"
+
 #include "types.h"
 
-typedef struct lub_list_node_s lub_list_node_t;
-typedef int lub_list_compare_fn(const void *first, const void *second);
-typedef void lub_list_free_fn(void *data);
-typedef int lub_list_match_fn(const void *key, const void *data);
-typedef struct lub_list_s lub_list_t;
-typedef struct lub_list_node_s lub_list_iterator_t;
+typedef struct faux_list_node_s faux_list_node_t;
+typedef struct faux_list_s faux_list_t;
 
-_BEGIN_C_DECL
+typedef int faux_list_compare_fn(const void *first, const void *second);
+typedef void faux_list_free_fn(void *data);
+typedef int faux_list_match_fn(const void *key, const void *data);
 
-lub_list_node_t *lub_list_node_new(void *data);
-lub_list_node_t *lub_list_node__get_prev(lub_list_node_t *node);
-lub_list_node_t *lub_list_node__get_next(lub_list_node_t *node);
-void *lub_list_node__get_data(lub_list_node_t *node);
-void lub_list_node_free(lub_list_node_t *node);
-void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src);
+C_DECL_BEGIN
 
-lub_list_t *lub_list_new(lub_list_compare_fn compareFn,
-	lub_list_free_fn freeFn);
-void lub_list_free(lub_list_t *list);
-void lub_list_free_all(lub_list_t *list);
-lub_list_node_t *lub_list__get_head(lub_list_t *list);
-lub_list_node_t *lub_list__get_tail(lub_list_t *list);
-lub_list_node_t *lub_list_iterator_init(lub_list_t *list);
-lub_list_node_t *lub_list_iterator_next(lub_list_node_t *node);
-lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *node);
-lub_list_node_t *lub_list_add(lub_list_t *list, void *data);
-lub_list_node_t *lub_list_add_uniq(lub_list_t *list, void *data);
-lub_list_node_t *lub_list_find_add(lub_list_t *list, void *data);
-void lub_list_del(lub_list_t *list, lub_list_node_t *node);
-unsigned int lub_list_len(lub_list_t *list);
-lub_list_node_t *lub_list_match_node(lub_list_t *list,
-	lub_list_match_fn matchFn, const void *userkey,
-	lub_list_node_t **saveptr);
-void *lub_list_find_node(lub_list_t *list,
-	lub_list_match_fn matchFn, const void *userkey);
-void *lub_list_match(lub_list_t *list,
-	lub_list_match_fn matchFn, const void *userkey,
-	lub_list_node_t **saveptr);
-void *lub_list_find(lub_list_t *list,
-	lub_list_match_fn matchFn, const void *userkey);
+// list_node_t methods
+faux_list_node_t *faux_list_prev_node(const faux_list_node_t *node);
+faux_list_node_t *faux_list_next_node(const faux_list_node_t *node);
+void *faux_list_data(const faux_list_node_t *node);
+faux_list_node_t *faux_list_each_node(faux_list_node_t **iter);
+void *faux_list_each(faux_list_node_t **iter);
 
-_END_C_DECL
-#endif				/* _lub_list_h */
+// list_t methods
+faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
+	faux_list_free_fn freeFn);
+void faux_list_free(faux_list_t *list);
+
+faux_list_node_t *faux_list_head(faux_list_t *list);
+faux_list_node_t *faux_list_tail(faux_list_t *list);
+size_t faux_list_len(faux_list_t *list);
+
+faux_list_node_t *faux_list_add(faux_list_t *list, void *data);
+faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data);
+faux_list_node_t *faux_list_find_add(faux_list_t *list, void *data);
+void faux_list_del(faux_list_t *list, faux_list_node_t *node);
+
+faux_list_node_t *faux_list_match_node(faux_list_t *list,
+	faux_list_match_fn matchFn, const void *userkey,
+	faux_list_node_t **saveptr);
+void *faux_list_match(faux_list_t *list,
+	faux_list_match_fn matchFn, const void *userkey,
+	faux_list_node_t **saveptr);
+faux_list_node_t *faux_list_find_node(faux_list_t *list,
+	faux_list_match_fn matchFn, const void *userkey);
+void *faux_list_find(faux_list_t *list,
+	faux_list_match_fn matchFn, const void *userkey);
+
+C_DECL_END
+
+#endif				/* _faux_list_h */
 

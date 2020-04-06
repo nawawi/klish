@@ -1,132 +1,208 @@
+/** @file list.c
+ * @brief Implementation of a bidirectional list.
+ *
+ * Bidirectional List stores special structures (nodes) as its elements.
+ * Nodes are linked to each other. Node stores abstract user data (i.e. void *).
+ *
+ * List can be sorted or unsorted. To sort list user provides special callback
+ * function to compare two nodes. The list will be sorted
+ * due to this function return value that indicates "less than",
+ * "equal", "greater than". Additionally user may provide another callback
+ * function to free user defined data on list freeing.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
 #include "private.h"
+#include "faux/list.h"
 
-/*--------------------------------------------------------- */
-static void lub_list_init(lub_list_t *this,
-	lub_list_compare_fn compareFn,
-	lub_list_free_fn freeFn)
-{
-	this->head = NULL;
-	this->tail = NULL;
-	this->compareFn = compareFn;
-	this->freeFn = freeFn;
-	this->len = 0;
-}
 
-/*--------------------------------------------------------- */
-lub_list_t *lub_list_new(lub_list_compare_fn compareFn,
-	lub_list_free_fn freeFn)
-{
-	lub_list_t *this;
-
-	this = malloc(sizeof(*this));
-	assert(this);
-	lub_list_init(this, compareFn, freeFn);
-
-	return this;
-}
-
-/*--------------------------------------------------------- */
-inline void lub_list_free(lub_list_t *this)
-{
-	free(this);
-}
-
-/*--------------------------------------------------------- */
-/* Free all nodes and data from list and finally
- * free the list itself. It uses special callback
- * function specified by user to free the abstract
- * data.
+/** @brief Allocates and initializes new list node instance.
+ *
+ * @param [in] data User defined data to store within node.
+ * @return Newly created list node instance or NULL on error.
  */
-void lub_list_free_all(lub_list_t *this)
-{
-	lub_list_node_t *iter;
+static faux_list_node_t *faux_list_new_node(void *data) {
 
-	while ((iter = lub_list__get_head(this))) {
-		lub_list_del(this, iter);
-		if (this->freeFn)
-			this->freeFn(lub_list_node__get_data(iter));
-		lub_list_node_free(iter);
+	faux_list_node_t *node = NULL;
+
+	node = malloc(sizeof(*node));
+	assert(node);
+	if (!node)
+		return NULL;
+
+	// Initialize
+	node->prev = NULL;
+	node->next = NULL;
+	node->data = data;
+
+	return node;
+}
+
+
+/** @brief Free list node instance.
+ *
+ * @param [in] node List node instance.
+ */
+static void faux_list_free_node(faux_list_node_t *node) {
+
+	assert(node);
+
+	if (node)
+		free(node);
+}
+
+
+/** @brief Gets previous list node.
+ *
+ * @param [in] this List node instance.
+ * @return List node previous in list.
+ */
+faux_list_node_t *faux_list_prev_node(const faux_list_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return node->prev;
+}
+
+
+/** @brief Gets next list node.
+ *
+ * @param [in] this List node instance.
+ * @return List node next in list.
+ */
+faux_list_node_t *faux_list_next_node(const faux_list_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return node->next;
+}
+
+
+/** @brief Gets user data from list node.
+ *
+ * @param [in] this List node instance.
+ * @return User data stored within specified list node.
+ */
+void *faux_list_data(const faux_list_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return node->data;
+}
+
+
+/** @brief Iterate through each list node.
+ *
+ * On each call to this function the iterator will change its value.
+ * Before function using the iterator must be initialised by list head node.
+ *
+ * @param [in,out] iter List node ptr used as an iterator.
+ * @return List node or NULL if list elements are over.
+ */
+faux_list_node_t *faux_list_each_node(faux_list_node_t **iter) {
+
+	faux_list_node_t *current_node = *iter;
+
+	if (!current_node)
+		return NULL;
+	*iter = faux_list_next_node(current_node);
+
+	return current_node;
+}
+
+
+/** @brief Iterate through each list node and returns user data.
+ *
+ * On each call to this function the iterator will change its value.
+ * Before function using the iterator must be initialised by list head node.
+ *
+ * @param [in,out] iter List node ptr used as an iterator.
+ * @return User data or NULL if list elements are over.
+ */
+void *faux_list_each(faux_list_node_t **iter) {
+
+	faux_list_node_t *current_node = NULL;
+
+	if (!*iter)
+		return NULL;
+	current_node = faux_list_each_node(iter);
+
+	return faux_list_data(current_node);
+}
+
+
+/** @brief Allocate and initialize bidirectional list.
+ *
+ * @param [in] compareFn Callback function to compare two user data instances
+ * to sort list.
+ * @param [in] freeFn Callback function to free user data.
+ * @return Newly created bidirectional list or NULL on error.
+ */
+faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
+	faux_list_free_fn freeFn) {
+
+	faux_list_t *list;
+
+	list = malloc(sizeof(*list));
+	assert(list);
+	if (!list)
+		return NULL;
+
+	// Initialize
+	list->head = NULL;
+	list->tail = NULL;
+	list->compareFn = compareFn;
+	list->freeFn = freeFn;
+	list->len = 0;
+
+	return list;
+}
+
+
+/** @brief Free bidirectional list
+ *
+ * Free all nodes and user data from list and finally
+ * free the list itself. It uses special callback
+ * function specified by user (while faux_list_new()) to free the abstract
+ * user data.
+ *
+ * @param [in] list List to free.
+ */
+void faux_list_free(faux_list_t *list) {
+
+	faux_list_node_t *iter;
+
+	while ((iter = faux_list_head(list))) {
+		faux_list_del(list, iter);
 	}
-	lub_list_free(this);
+	free(list);
 }
 
 /*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list__get_head(lub_list_t *this)
-{
+faux_list_node_t *faux_list_head(faux_list_t *this) {
 	return this->head;
 }
 
 /*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list__get_tail(lub_list_t *this)
-{
+faux_list_node_t *faux_list_tail(faux_list_t *this) {
 	return this->tail;
 }
 
 /*--------------------------------------------------------- */
-static void lub_list_node_init(lub_list_node_t *this,
-	void *data)
-{
-	this->prev = this->next = NULL;
-	this->data = data;
+size_t faux_list_len(faux_list_t *this) {
+	return this->len;
 }
 
-/*--------------------------------------------------------- */
-lub_list_node_t *lub_list_node_new(void *data)
-{
-	lub_list_node_t *this;
 
-	this = malloc(sizeof(*this));
-	assert(this);
-	lub_list_node_init(this, data);
-
-	return this;
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_iterator_init(lub_list_t *this)
-{
-	return this->head;
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_node__get_prev(lub_list_node_t *this)
-{
-	return this->prev;
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_node__get_next(lub_list_node_t *this)
-{
-	return this->next;
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_iterator_next(lub_list_node_t *this)
-{
-	return lub_list_node__get_next(this);
-}
-
-/*--------------------------------------------------------- */
-inline lub_list_node_t *lub_list_iterator_prev(lub_list_node_t *this)
-{
-	return lub_list_node__get_prev(this);
-}
-
-/*--------------------------------------------------------- */
-inline void lub_list_node_free(lub_list_node_t *this)
-{
-	free(this);
-}
-
-/*--------------------------------------------------------- */
-inline void *lub_list_node__get_data(lub_list_node_t *this)
-{
-	return this->data;
-}
 
 /*--------------------------------------------------------- */
 /* uniq - true/false Don't add entry with identical order
@@ -134,11 +210,10 @@ inline void *lub_list_node__get_data(lub_list_node_t *this)
  * find - true/false Function returns list_node if there is
  *	identical entry. Or NULL if find is false.
  */
-static lub_list_node_t *lub_list_add_generic(lub_list_t *this, void *data,
-	bool_t uniq, bool_t find)
-{
-	lub_list_node_t *node = lub_list_node_new(data);
-	lub_list_node_t *iter;
+static faux_list_node_t *faux_list_add_generic(faux_list_t *this, void *data,
+	bool_t uniq, bool_t find) {
+	faux_list_node_t *node = faux_list_new_node(data);
+	faux_list_node_t *iter;
 
 	this->len++;
 
@@ -162,8 +237,9 @@ static lub_list_node_t *lub_list_add_generic(lub_list_t *this, void *data,
 	iter = this->tail;
 	while (iter) {
 		int res = this->compareFn(node->data, iter->data);
+
 		if (uniq && (res == 0)) {
-			this->len--; // Revert previous increment
+			this->len--;	// Revert previous increment
 			return (find ? iter : NULL);
 		}
 		if (res >= 0) {
@@ -190,50 +266,68 @@ static lub_list_node_t *lub_list_add_generic(lub_list_t *this, void *data,
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_add(lub_list_t *this, void *data)
-{
-	return lub_list_add_generic(this, data, BOOL_FALSE, BOOL_FALSE);
+faux_list_node_t *faux_list_add(faux_list_t *this, void *data) {
+	return faux_list_add_generic(this, data, BOOL_FALSE, BOOL_FALSE);
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_add_uniq(lub_list_t *this, void *data)
-{
-	return lub_list_add_generic(this, data, BOOL_TRUE, BOOL_FALSE);
+faux_list_node_t *faux_list_add_uniq(faux_list_t *this, void *data) {
+	return faux_list_add_generic(this, data, BOOL_TRUE, BOOL_FALSE);
 }
 
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_find_add(lub_list_t *this, void *data)
-{
-	return lub_list_add_generic(this, data, BOOL_TRUE, BOOL_TRUE);
+faux_list_node_t *faux_list_find_add(faux_list_t *this, void *data) {
+	return faux_list_add_generic(this, data, BOOL_TRUE, BOOL_TRUE);
 }
 
-/*--------------------------------------------------------- */
-void lub_list_del(lub_list_t *this, lub_list_node_t *node)
-{
+
+void *faux_list_takeaway(faux_list_t *list, faux_list_node_t *node) {
+
+	void *data = NULL;
+
+	assert(list);
+	assert(node);
+	if (!list || !node)
+		return NULL;
+
 	if (node->prev)
 		node->prev->next = node->next;
 	else
-		this->head = node->next;
+		list->head = node->next;
 	if (node->next)
 		node->next->prev = node->prev;
 	else
-		this->tail = node->prev;
+		list->tail = node->prev;
+	list->len--;
 
-	this->len--;
+	data = faux_list_data(node);
+	faux_list_free_node(node);
+
+	return data;
 }
 
 /*--------------------------------------------------------- */
-inline void lub_list_node_copy(lub_list_node_t *dst, lub_list_node_t *src)
-{
-	memcpy(dst, src, sizeof(lub_list_node_t));
+void faux_list_del(faux_list_t *list, faux_list_node_t *node) {
+
+	void *data = NULL;
+
+	assert(list);
+	assert(node);
+	if (!list || !node)
+		return;
+
+	data = faux_list_takeaway(list, node);
+	if (list->freeFn)
+		list->freeFn(data);
 }
 
+
 /*--------------------------------------------------------- */
-lub_list_node_t *lub_list_match_node(lub_list_t *this,
-	lub_list_match_fn matchFn, const void *userkey,
-	lub_list_node_t **saveptr)
-{
-	lub_list_node_t *iter = NULL;
+faux_list_node_t *faux_list_match_node(faux_list_t *this,
+	faux_list_match_fn matchFn, const void *userkey,
+	faux_list_node_t **saveptr) {
+	faux_list_node_t *iter = NULL;
+
 	if (!this || !matchFn || !this->head)
 		return NULL;
 	if (saveptr)
@@ -242,14 +336,15 @@ lub_list_node_t *lub_list_match_node(lub_list_t *this,
 		iter = this->head;
 	while (iter) {
 		int res;
-		lub_list_node_t *node = iter;
-		iter = lub_list_node__get_next(iter);
+		faux_list_node_t *node = iter;
+
+		iter = faux_list_next_node(iter);
 		if (saveptr)
 			*saveptr = iter;
-		res = matchFn(userkey, lub_list_node__get_data(node));
+		res = matchFn(userkey, faux_list_data(node));
 		if (!res)
 			return node;
-		if (res < 0) // No chances to find match
+		if (res < 0)	// No chances to find match
 			return NULL;
 	}
 
@@ -257,32 +352,24 @@ lub_list_node_t *lub_list_match_node(lub_list_t *this,
 }
 
 /*--------------------------------------------------------- */
-void *lub_list_find_node(lub_list_t *this,
-	lub_list_match_fn matchFn, const void *userkey)
-{
-	return lub_list_match_node(this, matchFn, userkey, NULL);
+faux_list_node_t *faux_list_find_node(faux_list_t *this,
+	faux_list_match_fn matchFn, const void *userkey) {
+	return faux_list_match_node(this, matchFn, userkey, NULL);
 }
 
 /*--------------------------------------------------------- */
-void *lub_list_match(lub_list_t *this,
-	lub_list_match_fn matchFn, const void *userkey,
-	lub_list_node_t **saveptr)
-{
-	lub_list_node_t *res = lub_list_match_node(this, matchFn, userkey, saveptr);
+void *faux_list_match(faux_list_t *this,
+	faux_list_match_fn matchFn, const void *userkey,
+	faux_list_node_t **saveptr) {
+	faux_list_node_t *res =
+		faux_list_match_node(this, matchFn, userkey, saveptr);
 	if (!res)
 		return NULL;
-	return lub_list_node__get_data(res);
+	return faux_list_data(res);
 }
 
 /*--------------------------------------------------------- */
-void *lub_list_find(lub_list_t *this,
-	lub_list_match_fn matchFn, const void *userkey)
-{
-	return lub_list_match(this, matchFn, userkey, NULL);
-}
-
-/*--------------------------------------------------------- */
-inline unsigned int lub_list_len(lub_list_t *this)
-{
-	return this->len;
+void *faux_list_find(faux_list_t *this,
+	faux_list_match_fn matchFn, const void *userkey) {
+	return faux_list_match(this, matchFn, userkey, NULL);
 }

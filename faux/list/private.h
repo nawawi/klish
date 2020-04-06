@@ -1,15 +1,15 @@
-#include "lub/list.h"
+#include "faux/list.h"
 
-struct lub_list_node_s {
-	lub_list_node_t *prev;
-	lub_list_node_t *next;
+struct faux_list_node_s {
+	faux_list_node_t *prev;
+	faux_list_node_t *next;
 	void *data;
 };
 
-struct lub_list_s {
-	lub_list_node_t *head;
-	lub_list_node_t *tail;
-	lub_list_compare_fn *compareFn; // Function to compare two list elements
-	lub_list_free_fn *freeFn; // Function to properly free data field
-	unsigned int len;
+struct faux_list_s {
+	faux_list_node_t *head;
+	faux_list_node_t *tail;
+	faux_list_compare_fn *compareFn; // Function to compare two list elements
+	faux_list_free_fn *freeFn; // Function to properly free data field
+	size_t len;
 };
