@@ -142,6 +142,12 @@ void *faux_list_each(faux_list_node_t **iter) {
 
 /** @brief Allocate and initialize bidirectional list.
  *
+ * Prototypes for callback functions:
+ * @code
+ * int faux_list_compare_fn(const void *first, const void *second);
+ * void faux_list_free_fn(void *data);
+ * @endcode
+ *
  * @param [in] compareFn Callback function to compare two user data instances
  * to sort list.
  * @param [in] freeFn Callback function to free user data.
@@ -435,6 +441,11 @@ int faux_list_del(faux_list_t *list, faux_list_node_t *node) {
  * return matched list node. To continue searching the saveptr argument contains
  * current iterator. So user can call to faux_list_match_node() for several
  * times and gets all matched nodes from list.
+ *
+ * Prototype for matchFn callback function:
+ * @code
+ * int faux_list_match_fn(const void *key, const void *data);
+ * @endcode
  *
  * @param [in] list List.
  * @param [in] matchFn User defined matching callback function.

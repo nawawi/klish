@@ -1,3 +1,7 @@
+/** @file list.h
+ * @brief Public interface for a bidirectional list.
+ */
+
 #ifndef _faux_list_h
 #define _faux_list_h
 
