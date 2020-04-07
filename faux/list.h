@@ -33,18 +33,18 @@ size_t faux_list_len(const faux_list_t *list);
 faux_list_node_t *faux_list_add(faux_list_t *list, void *data);
 faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data);
 faux_list_node_t *faux_list_find_add(faux_list_t *list, void *data);
-void *faux_list_getaway(faux_list_t *list, faux_list_node_t *node);
-void faux_list_del(faux_list_t *list, faux_list_node_t *node);
+void *faux_list_takeaway(faux_list_t *list, faux_list_node_t *node);
+int faux_list_del(faux_list_t *list, faux_list_node_t *node);
 
-faux_list_node_t *faux_list_match_node(faux_list_t *list,
+faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr);
-void *faux_list_match(faux_list_t *list,
+void *faux_list_match(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr);
-faux_list_node_t *faux_list_find_node(faux_list_t *list,
+faux_list_node_t *faux_list_find_node(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey);
-void *faux_list_find(faux_list_t *list,
+void *faux_list_find(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey);
 
 C_DECL_END

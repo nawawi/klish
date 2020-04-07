@@ -313,22 +313,63 @@ static faux_list_node_t *faux_list_add_generic(faux_list_t *list, void *data,
 	return node;
 }
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_add(faux_list_t *this, void *data) {
-	return faux_list_add_generic(this, data, BOOL_FALSE, BOOL_FALSE);
+
+/** @brief Adds user data (not unique) to the list.
+ *
+ * The user data is not unique. It means that two equal user data instances
+ * can be added to the list.
+ *
+ * @param [in] list List to add entry to.
+ * @param [in] data User data.
+ * @return Newly created list node or NULL on error.
+ */
+faux_list_node_t *faux_list_add(faux_list_t *list, void *data) {
+
+	return faux_list_add_generic(list, data, BOOL_FALSE, BOOL_FALSE);
 }
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_add_uniq(faux_list_t *this, void *data) {
-	return faux_list_add_generic(this, data, BOOL_TRUE, BOOL_FALSE);
+
+/** @brief Adds user data (unique) to the list.
+ *
+ * The user data must be unique. It means that two equal user data instances
+ * can not be added to the list. Function will return NULL if equal user
+ * data is already in the list.
+ *
+ * @param [in] list List to add entry to.
+ * @param [in] data User data.
+ * @return Newly created list node or NULL on error.
+ */
+faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data) {
+
+	return faux_list_add_generic(list, data, BOOL_TRUE, BOOL_FALSE);
 }
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_find_add(faux_list_t *this, void *data) {
-	return faux_list_add_generic(this, data, BOOL_TRUE, BOOL_TRUE);
+
+/** @brief Adds user data (unique) to the list or return equal existent node.
+ *
+ * The user data must be unique in this case. Function compares list nodes
+ * with the new one. If equal node is already in the list then function
+ * returns this node. Else new unique node will be added to the list.
+ *
+ * @param [in] list List to add entry to.
+ * @param [in] data User data.
+ * @return Newly created list node, existent equal node or NULL on error.
+ */
+faux_list_node_t *faux_list_find_add(faux_list_t *list, void *data) {
+
+	return faux_list_add_generic(list, data, BOOL_TRUE, BOOL_TRUE);
 }
 
 
+/** Takes away list node from the list.
+ *
+ * Function removes list node from the list and returns user data
+ * stored in this node.
+ *
+ * @param [in] list List to take away node from.
+ * @param [in] node List node to take away.
+ * @return User data from removed node or NULL on error.
+ */
 void *faux_list_takeaway(faux_list_t *list, faux_list_node_t *node) {
 
 	void *data = NULL;
@@ -354,34 +395,67 @@ void *faux_list_takeaway(faux_list_t *list, faux_list_node_t *node) {
 	return data;
 }
 
-/*--------------------------------------------------------- */
-void faux_list_del(faux_list_t *list, faux_list_node_t *node) {
+
+/** @brief Deletes list node from the list.
+ *
+ * Functions removes node from the list and free user data memory if
+ * freeFn callback was defined while list creation. If freeFn callback
+ * is not defined then function is the same as faux_list_takeaway().
+ *
+ * @param [in] list List to delete node from.
+ * @param [in] node List node to delete.
+ * @return 0 on success, < 0 on error.
+ */
+int faux_list_del(faux_list_t *list, faux_list_node_t *node) {
 
 	void *data = NULL;
 
 	assert(list);
 	assert(node);
 	if (!list || !node)
-		return;
+		return -1;
 
 	data = faux_list_takeaway(list, node);
+	assert(data);
+	if (!data) // Illegal case
+		return -1;
 	if (list->freeFn)
 		list->freeFn(data);
+
+	return 0;
 }
 
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_match_node(faux_list_t *this,
+/** @brief Search list for matching (match function).
+ *
+ * Function iterates through the list and executes special matching user defined
+ * callback function matchFn for every list node. User can provide "userkey" -
+ * the data that matchFn can use how it wants. The matchFn is arbitrary
+ * argument. The userkey argument can be NULL. The function will immediately
+ * return matched list node. To continue searching the saveptr argument contains
+ * current iterator. So user can call to faux_list_match_node() for several
+ * times and gets all matched nodes from list.
+ *
+ * @param [in] list List.
+ * @param [in] matchFn User defined matching callback function.
+ * @param [in] userkey User defined data to use in matchFn function.
+ * @param [in,out] saveptr Ptr to save iterator.
+ * @return Matched list node.
+ */
+faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr) {
+
 	faux_list_node_t *iter = NULL;
 
-	if (!this || !matchFn || !this->head)
+	assert(list);
+	assert(matchFn);
+	if (!list || !matchFn || !list->head)
 		return NULL;
 	if (saveptr)
 		iter = *saveptr;
 	if (!iter)
-		iter = this->head;
+		iter = list->head;
 	while (iter) {
 		int res;
 		faux_list_node_t *node = iter;
@@ -392,32 +466,54 @@ faux_list_node_t *faux_list_match_node(faux_list_t *this,
 		res = matchFn(userkey, faux_list_data(node));
 		if (!res)
 			return node;
-		if (res < 0)	// No chances to find match
+		if (res < 0) // No chances to find match
 			return NULL;
 	}
 
 	return NULL;
 }
 
-/*--------------------------------------------------------- */
-faux_list_node_t *faux_list_find_node(faux_list_t *this,
-	faux_list_match_fn matchFn, const void *userkey) {
-	return faux_list_match_node(this, matchFn, userkey, NULL);
-}
 
-/*--------------------------------------------------------- */
-void *faux_list_match(faux_list_t *this,
-	faux_list_match_fn matchFn, const void *userkey,
-	faux_list_node_t **saveptr) {
+/** @brief Search list for matching (match function) and returns user data.
+ *
+ * Same as faux_list_match_node() but returns user data structure.
+ *
+ * @sa faux_list_match_node()
+ */
+void *faux_list_match(const faux_list_t *list, faux_list_match_fn matchFn,
+	const void *userkey, faux_list_node_t **saveptr) {
+
 	faux_list_node_t *res =
-		faux_list_match_node(this, matchFn, userkey, saveptr);
+		faux_list_match_node(list, matchFn, userkey, saveptr);
 	if (!res)
 		return NULL;
 	return faux_list_data(res);
 }
 
-/*--------------------------------------------------------- */
-void *faux_list_find(faux_list_t *this,
+
+/** @brief Search list for first matching (match function).
+ *
+ * Same as faux_list_match_node() but search for the fisrt matching.
+ * Doesn't use saveptr iterator.
+ *
+ * @sa faux_list_match_node()
+ */
+faux_list_node_t *faux_list_find_node(const faux_list_t *list,
 	faux_list_match_fn matchFn, const void *userkey) {
-	return faux_list_match(this, matchFn, userkey, NULL);
+
+	return faux_list_match_node(list, matchFn, userkey, NULL);
+}
+
+
+/** @brief Search list for first matching (match function) and returns user data.
+ *
+ * Same as faux_list_match_node() but returns user data structure and search
+ * only for the first matching. Doesn't use saveptr iterator.
+ *
+ * @sa faux_list_match_node()
+ */
+void *faux_list_find(const faux_list_t *list, faux_list_match_fn matchFn,
+	const void *userkey) {
+
+	return faux_list_match(list, matchFn, userkey, NULL);
 }
