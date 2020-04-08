@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-#include "faux/types.h"
+#include "faux/faux.h"
 
 #define UTF8_MASK 0xC0
 #define UTF8_7BIT_MASK 0x80 /* One byte or multibyte */

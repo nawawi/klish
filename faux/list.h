@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-#include "types.h"
+#include "faux.h"
 
 typedef struct faux_list_node_s faux_list_node_t;
 typedef struct faux_list_s faux_list_t;

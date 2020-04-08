@@ -25,7 +25,7 @@ contains four "words" the third of which is a string.
 #include <stddef.h>
 
 #include "c_decl.h"
-#include "types.h"
+#include "faux.h"
 
 _BEGIN_C_DECL
 /**

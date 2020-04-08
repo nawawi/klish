@@ -1,10 +1,11 @@
-/** @file types.h
- * @brief Additional usefull data types
+/** @file faux.h
+ * @brief Additional usefull data types and base functions.
  */
 
 #ifndef _faux_types_h
 #define _faux_types_h
 
+#include <stdlib.h>
 
 /**
  * A standard boolean type. The possible values are
@@ -55,5 +56,13 @@ typedef enum {
 #define C_DECL_END
 #endif
 
+C_DECL_BEGIN
+
+void faux_free(void *ptr);
+void *faux_malloc(size_t size);
+void faux_bzero(void *ptr, size_t size);
+void *faux_zmalloc(size_t size);
+
+C_DECL_END
 
 #endif /* _faux_types_h */

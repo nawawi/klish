@@ -3,7 +3,7 @@ libfaux_la_SOURCES =
 libfaux_la_LIBADD =
 
 nobase_include_HEADERS += \
-	faux/types.h \
+	faux/faux.h \
 	faux/ctype.h \
 	faux/str.h \
 	faux/sysdb.h \
@@ -17,6 +17,7 @@ nobase_include_HEADERS += \
 #	faux/system.h
 
 EXTRA_DIST += \
+	faux/base/Makefile.am \
 	faux/ctype/Makefile.am \
 	faux/str/Makefile.am \
 	faux/sysdb/Makefile.am \
@@ -30,6 +31,7 @@ EXTRA_DIST += \
 #	faux/system/Makefile.am \
 #	faux/README
 
+include $(top_srcdir)/faux/base/Makefile.am
 include $(top_srcdir)/faux/ctype/Makefile.am
 include $(top_srcdir)/faux/str/Makefile.am
 include $(top_srcdir)/faux/sysdb/Makefile.am

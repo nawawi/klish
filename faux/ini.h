@@ -5,7 +5,7 @@
 #ifndef _faux_ini_h
 #define _faux_ini_h
 
-#include "faux/types.h"
+#include "faux/faux.h"
 #include "faux/list.h"
 
 typedef struct faux_pair_s faux_pair_t;

@@ -5,7 +5,7 @@
 #ifndef _faux_log_h
 #define _faux_log_h
 
-#include "faux/types.h"
+#include "faux/faux.h"
 
 C_DECL_BEGIN
 
