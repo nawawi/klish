@@ -28,7 +28,7 @@ static faux_list_node_t *faux_list_new_node(void *data) {
 
 	faux_list_node_t *node = NULL;
 
-	node = malloc(sizeof(*node));
+	node = faux_zmalloc(sizeof(*node));
 	assert(node);
 	if (!node)
 		return NULL;
@@ -49,9 +49,7 @@ static faux_list_node_t *faux_list_new_node(void *data) {
 static void faux_list_free_node(faux_list_node_t *node) {
 
 	assert(node);
-
-	if (node)
-		free(node);
+	faux_free(node);
 }
 
 
@@ -156,9 +154,9 @@ void *faux_list_each(faux_list_node_t **iter) {
 faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
 	faux_list_free_fn freeFn) {
 
-	faux_list_t *list;
+	faux_list_t *list = NULL;
 
-	list = malloc(sizeof(*list));
+	list = faux_zmalloc(sizeof(*list));
 	assert(list);
 	if (!list)
 		return NULL;
@@ -194,7 +192,7 @@ void faux_list_free(faux_list_t *list) {
 	while ((iter = faux_list_head(list))) {
 		faux_list_del(list, iter);
 	}
-	free(list);
+	faux_free(list);
 }
 
 

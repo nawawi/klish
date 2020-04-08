@@ -28,8 +28,7 @@
  */
 void faux_str_free(char *str) {
 
-	if (str)
-		free(str);
+	faux_free(str);
 }
 
 
@@ -72,7 +71,7 @@ char *faux_str_dupn(const char *str, size_t n) {
 		return NULL;
 	len = strlen(str);
 	len = (len < n) ? len : n;
-	res = malloc(len + 1);
+	res = faux_zmalloc(len + 1);
 	if (!res)
 		return NULL;
 	strncpy(res, str, len);
@@ -294,7 +293,7 @@ char *lub_string_ndecode(const char *string, unsigned int len)
 	if (!string)
 		return NULL;
 
-	p = res = malloc(len + 1);
+	p = res = faux_zmalloc(len + 1);
 
 	while (*s && (s < (string +len))) {
 		if (!esc) {

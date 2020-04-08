@@ -23,13 +23,12 @@ faux_pair_t *faux_pair_new(const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;
 
-	pair = malloc(sizeof(*pair));
+	pair = faux_zmalloc(sizeof(*pair));
 	assert(pair);
 	if (!pair)
 		return NULL;
 
 	// Initialize
-	memset(pair, 0, sizeof(*pair));
 	pair->name = faux_str_dup(name);
 	pair->value = faux_str_dup(value);
 
@@ -46,7 +45,7 @@ void faux_pair_free(void *ptr) {
 		return;
 	faux_str_free(pair->name);
 	faux_str_free(pair->value);
-	free(pair);
+	faux_free(pair);
 }
 
 

@@ -26,7 +26,7 @@ static void lub_argv_init(lub_argv_t * this, const char *line, size_t offset)
 	if (0 == this->argc)
 		return;
 	/* allocate space to hold the vector */
-	arg = this->argv = malloc(sizeof(lub_arg_t) * this->argc);
+	arg = this->argv = faux_zmalloc(sizeof(lub_arg_t) * this->argc);
 	assert(arg);
 
 	/* then fill out the array with the words */
@@ -52,7 +52,7 @@ lub_argv_t *lub_argv_new(const char *line, size_t offset)
 {
 	lub_argv_t *this;
 
-	this = malloc(sizeof(lub_argv_t));
+	this = faux_zmalloc(sizeof(lub_argv_t));
 	if (this)
 		lub_argv_init(this, line, offset);
 
@@ -80,8 +80,8 @@ static void lub_argv_fini(lub_argv_t * this)
 	unsigned i;
 
 	for (i = 0; i < this->argc; i++)
-		free(this->argv[i].arg);
-	free(this->argv);
+		faux_free(this->argv[i].arg);
+	faux_free(this->argv);
 	this->argv = NULL;
 }
 
@@ -89,7 +89,7 @@ static void lub_argv_fini(lub_argv_t * this)
 void lub_argv_delete(lub_argv_t * this)
 {
 	lub_argv_fini(this);
-	free(this);
+	faux_free(this);
 }
 
 /*--------------------------------------------------------- */
@@ -131,7 +131,7 @@ char **lub_argv__get_argv(const lub_argv_t * this, const char *argv0)
 	if (argv0)
 		a = 1;
 
-	result = malloc(sizeof(char *) * (this->argc + 1 + a));
+	result = faux_zmalloc(sizeof(char *) * (this->argc + 1 + a));
 
 	if (argv0)
 		result[0] = strdup(argv0);
@@ -151,8 +151,8 @@ void lub_argv__free_argv(char **argv)
 		return;
 
 	for (i = 0; argv[i]; i++)
-		free(argv[i]);
-	free(argv);
+		faux_free(argv[i]);
+	faux_free(argv);
 }
 
 /*--------------------------------------------------------- */

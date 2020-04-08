@@ -24,7 +24,7 @@
  *
  * @param [in] name User name.
  * @return Pointer to allocated passwd structure.
- * @warning The resulting pointer (return value) must be freed by free().
+ * @warning The resulting pointer (return value) must be freed by faux_free().
  */
 struct passwd *faux_sysdb_getpwnam(const char *name) {
 
@@ -40,7 +40,7 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
 #else
 	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
-	pwbuf = malloc(sizeof(*pwbuf) + size);
+	pwbuf = faux_zmalloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
 		return NULL;
 	buf = (char *)pwbuf + sizeof(*pwbuf);
@@ -48,7 +48,7 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
 	res = getpwnam_r(name, pwbuf, buf, size, &pw);
 
 	if (res || !pw) {
-		free(pwbuf);
+		faux_free(pwbuf);
 		if (res != 0)
 			errno = res;
 		else
@@ -65,7 +65,7 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
  *
  * @param [in] uid UID.
  * @return Pointer to allocated passwd structure.
- * @warning The resulting pointer (return value) must be freed by free().
+ * @warning The resulting pointer (return value) must be freed by faux_free().
  */
 struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 
@@ -81,7 +81,7 @@ struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 #else
 	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
-	pwbuf = malloc(sizeof(*pwbuf) + size);
+	pwbuf = faux_zmalloc(sizeof(*pwbuf) + size);
 	if (!pwbuf)
 		return NULL;
 	buf = (char *)pwbuf + sizeof(*pwbuf);
@@ -89,7 +89,7 @@ struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 	res = getpwuid_r(uid, pwbuf, buf, size, &pw);
 
 	if (NULL == pw) {
-		free(pwbuf);
+		faux_free(pwbuf);
 		if (res != 0)
 			errno = res;
 		else
@@ -106,7 +106,7 @@ struct passwd *faux_sysdb_getpwuid(uid_t uid) {
  *
  * @param [in] name Group name.
  * @return Pointer to allocated group structure.
- * @warning The resulting pointer (return value) must be freed by free().
+ * @warning The resulting pointer (return value) must be freed by faux_free().
  */
 struct group *faux_sysdb_getgrnam(const char *name) {
 
@@ -122,7 +122,7 @@ struct group *faux_sysdb_getgrnam(const char *name) {
 #else
 	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
-	grbuf = malloc(sizeof(*grbuf) + size);
+	grbuf = faux_zmalloc(sizeof(*grbuf) + size);
 	if (!grbuf)
 		return NULL;
 	buf = (char *)grbuf + sizeof(*grbuf);
@@ -130,7 +130,7 @@ struct group *faux_sysdb_getgrnam(const char *name) {
 	res = getgrnam_r(name, grbuf, buf, size, &gr);
 
 	if (!gr) {
-		free(grbuf);
+		faux_free(grbuf);
 		if (res != 0)
 			errno = res;
 		else
@@ -147,7 +147,7 @@ struct group *faux_sysdb_getgrnam(const char *name) {
  *
  * @param [in] gid GID.
  * @return Pointer to allocated group structure.
- * @warning The resulting pointer (return value) must be freed by free().
+ * @warning The resulting pointer (return value) must be freed by faux_free().
  */
 struct group *faux_sysdb_getgrgid(gid_t gid) {
 
@@ -163,7 +163,7 @@ struct group *faux_sysdb_getgrgid(gid_t gid) {
 #else
 	size = DEFAULT_GETPW_R_SIZE_MAX;
 #endif
-	grbuf = malloc(sizeof(struct group) + size);
+	grbuf = faux_zmalloc(sizeof(struct group) + size);
 	if (!grbuf)
 		return NULL;
 	buf = (char *)grbuf + sizeof(struct group);
@@ -171,7 +171,7 @@ struct group *faux_sysdb_getgrgid(gid_t gid) {
 	res = getgrgid_r(gid, grbuf, buf, size, &gr);
 
 	if (!gr) {
-		free(grbuf);
+		faux_free(grbuf);
 		if (res != 0)
 			errno = res;
 		else

@@ -9,6 +9,7 @@
 #include <ctype.h>
 
 #include "private.h"
+#include "faux/faux.h"
 #include "faux/str.h"
 #include "faux/ini.h"
 
@@ -17,12 +18,11 @@ faux_ini_t *faux_ini_new(void) {
 
 	faux_ini_t *ini;
 
-	ini = malloc(sizeof(*ini));
+	ini = faux_zmalloc(sizeof(*ini));
 	if (!ini)
 		return NULL;
 
 	// Init
-	memset(ini, 0, sizeof(*ini));
 	ini->list = faux_list_new(faux_pair_compare, faux_pair_free);
 
 	return ini;
@@ -36,11 +36,11 @@ void faux_ini_free(faux_ini_t *ini) {
 		return;
 
 	faux_list_free(ini->list);
-	free(ini);
+	faux_free(ini);
 }
 
 
-static int faux_ini_del(faux_ini_t *ini, faux_ini_node_t node) {
+static int faux_ini_del(faux_ini_t *ini, faux_ini_node_t *node) {
 
 }
 
@@ -194,7 +194,7 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 	if (!f)
 		return -1;
 
-	buf = malloc(size);
+	buf = faux_zmalloc(size);
 	while (fgets(buf + p, size - p, f)) {
 		char *tmp = NULL;
 
@@ -213,7 +213,7 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 
 	ret = 0;
 error:
-	free(buf);
+	faux_free(buf);
 	fclose(f);
 
 	return ret;
