@@ -22,8 +22,8 @@
  */
 int faux_conv_atol(const char *str, long int *val, int base) {
 
-	char *endptr;
-	long int res;
+	char *endptr = NULL;
+	long int res = 0;
 
 	errno = 0; // man recommends to do so
 	res = strtol(str, &endptr, base);
@@ -52,8 +52,8 @@ int faux_conv_atol(const char *str, long int *val, int base) {
  */
 int faux_conv_atoul(const char *str, unsigned long int *val, int base) {
 
-	char *endptr;
-	unsigned long int res;
+	char *endptr = NULL;
+	unsigned long int res = 0;
 
 	errno = 0; // man recommends to do so
 	res = strtoul(str, &endptr, base);
@@ -82,8 +82,8 @@ int faux_conv_atoul(const char *str, unsigned long int *val, int base) {
  */
 int faux_conv_atoll(const char *str, long long int *val, int base) {
 
-	char *endptr;
-	long long int res;
+	char *endptr = NULL;
+	long long int res = 0;
 
 	errno = 0; // man recommends to do so
 	res = strtoll(str, &endptr, base);
@@ -112,8 +112,8 @@ int faux_conv_atoll(const char *str, long long int *val, int base) {
  */
 int faux_conv_atoull(const char *str, unsigned long long int *val, int base) {
 
-	char *endptr;
-	unsigned long long int res;
+	char *endptr = NULL;
+	unsigned long long int res = 0;
 
 	errno = 0; // man recommends to do so
 	res = strtoull(str, &endptr, base);
@@ -142,7 +142,7 @@ int faux_conv_atoull(const char *str, unsigned long long int *val, int base) {
  */
 int faux_conv_atoi(const char *str, int *val, int base) {
 
-	long int tmp;
+	long int tmp = 0;
 
 	// Use existent func. The long int is longer or equal to int.
 	if (faux_conv_atol(str, &tmp, base) < 0)
@@ -168,7 +168,7 @@ int faux_conv_atoi(const char *str, int *val, int base) {
  */
 int faux_conv_atoui(const char *str, unsigned int *val, int base) {
 
-	unsigned long int tmp;
+	unsigned long int tmp = 0;
 
 	// Use existent func. The long int is longer or equal to int.
 	if (faux_conv_atoul(str, &tmp, base) < 0)
@@ -194,7 +194,7 @@ int faux_conv_atoui(const char *str, unsigned int *val, int base) {
  */
 int faux_conv_atos(const char *str, short *val, int base)
 {
-	long int tmp;
+	long int tmp = 0;
 
 	if (faux_conv_atol(str, &tmp, base) < 0)
 		return -1;
@@ -219,7 +219,7 @@ int faux_conv_atos(const char *str, short *val, int base)
  */
 int faux_conv_atous(const char *str, unsigned short *val, int base)
 {
-	unsigned long int tmp;
+	unsigned long int tmp = 0;
 
 	if (faux_conv_atoul(str, &tmp, base) < 0)
 		return -1;
@@ -244,7 +244,7 @@ int faux_conv_atous(const char *str, unsigned short *val, int base)
  */
 int faux_conv_atoc(const char *str, char *val, int base)
 {
-	long int tmp;
+	long int tmp = 0;
 
 	if (faux_conv_atol(str, &tmp, base) < 0)
 		return -1;
@@ -269,7 +269,7 @@ int faux_conv_atoc(const char *str, char *val, int base)
  */
 int faux_conv_atouc(const char *str, unsigned char *val, int base)
 {
-	unsigned long int tmp;
+	unsigned long int tmp = 0;
 
 	if (faux_conv_atoul(str, &tmp, base) < 0)
 		return -1;
