@@ -47,9 +47,9 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
 	buf = (char *)pwbuf + sizeof(*pwbuf);
 
 	res = getpwnam_r(name, pwbuf, buf, size, &pw);
-	if (res || !pw) {
+	if ((res != 0) || !pw) {
 		faux_free(pwbuf);
-		if (res)
+		if (res != 0)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -89,7 +89,7 @@ struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 	res = getpwuid_r(uid, pwbuf, buf, size, &pw);
 	if (!pw) {
 		faux_free(pwbuf);
-		if (res)
+		if (res != 0)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -129,7 +129,7 @@ struct group *faux_sysdb_getgrnam(const char *name) {
 	res = getgrnam_r(name, grbuf, buf, size, &gr);
 	if (!gr) {
 		faux_free(grbuf);
-		if (res)
+		if (res != 0)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -169,7 +169,7 @@ struct group *faux_sysdb_getgrgid(gid_t gid) {
 	res = getgrgid_r(gid, grbuf, buf, size, &gr);
 	if (!gr) {
 		faux_free(grbuf);
-		if (res)
+		if (res != 0)
 			errno = res;
 		else
 			errno = ENOENT;

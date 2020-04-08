@@ -110,6 +110,7 @@ faux_list_node_t *faux_list_each_node(faux_list_node_t **iter) {
 
 	faux_list_node_t *current_node = *iter;
 
+	// No assert() on current_node. NULL iterator is normal
 	if (!current_node)
 		return NULL;
 	*iter = faux_list_next_node(current_node);
@@ -130,6 +131,7 @@ void *faux_list_each(faux_list_node_t **iter) {
 
 	faux_list_node_t *current_node = NULL;
 
+	// No assert() on current_node. NULL iterator is normal
 	if (!*iter)
 		return NULL;
 	current_node = faux_list_each_node(iter);
@@ -289,7 +291,7 @@ static faux_list_node_t *faux_list_add_generic(faux_list_t *list, void *data,
 	while (iter) {
 		int res = list->compareFn(node->data, iter->data);
 
-		if (uniq && (res == 0)) {
+		if (uniq && (0 == res)) {
 			faux_list_free_node(node);
 			return (find ? iter : NULL);
 		}
