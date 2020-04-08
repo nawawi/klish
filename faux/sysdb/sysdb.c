@@ -14,6 +14,7 @@
 #include <grp.h>
 #include <unistd.h>
 
+#include "faux/faux.h"
 #include "faux/sysdb.h"
 
 #define DEFAULT_GETPW_R_SIZE_MAX 1024
@@ -28,9 +29,9 @@
  */
 struct passwd *faux_sysdb_getpwnam(const char *name) {
 
-	long int size;
-	char *buf;
-	struct passwd *pwbuf;
+	long int size = 0;
+	char *buf = NULL;
+	struct passwd *pwbuf = NULL;
 	struct passwd *pw = NULL;
 	int res = 0;
 
@@ -46,10 +47,9 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
 	buf = (char *)pwbuf + sizeof(*pwbuf);
 
 	res = getpwnam_r(name, pwbuf, buf, size, &pw);
-
 	if (res || !pw) {
 		faux_free(pwbuf);
-		if (res != 0)
+		if (res)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -69,9 +69,9 @@ struct passwd *faux_sysdb_getpwnam(const char *name) {
  */
 struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 
-	long int size;
-	char *buf;
-	struct passwd *pwbuf; 
+	long int size = 0;
+	char *buf = NULL;
+	struct passwd *pwbuf = NULL;
 	struct passwd *pw = NULL;
 	int res = 0;
 
@@ -87,10 +87,9 @@ struct passwd *faux_sysdb_getpwuid(uid_t uid) {
 	buf = (char *)pwbuf + sizeof(*pwbuf);
 
 	res = getpwuid_r(uid, pwbuf, buf, size, &pw);
-
-	if (NULL == pw) {
+	if (!pw) {
 		faux_free(pwbuf);
-		if (res != 0)
+		if (res)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -126,12 +125,11 @@ struct group *faux_sysdb_getgrnam(const char *name) {
 	if (!grbuf)
 		return NULL;
 	buf = (char *)grbuf + sizeof(*grbuf);
-	
-	res = getgrnam_r(name, grbuf, buf, size, &gr);
 
+	res = getgrnam_r(name, grbuf, buf, size, &gr);
 	if (!gr) {
 		faux_free(grbuf);
-		if (res != 0)
+		if (res)
 			errno = res;
 		else
 			errno = ENOENT;
@@ -169,10 +167,9 @@ struct group *faux_sysdb_getgrgid(gid_t gid) {
 	buf = (char *)grbuf + sizeof(struct group);
 
 	res = getgrgid_r(gid, grbuf, buf, size, &gr);
-
 	if (!gr) {
 		faux_free(grbuf);
-		if (res != 0)
+		if (res)
 			errno = res;
 		else
 			errno = ENOENT;
