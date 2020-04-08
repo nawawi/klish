@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "faux/faux.h"
 
@@ -33,14 +34,19 @@ void faux_free(void *ptr) {
 /** Portable implementation of malloc() function.
  *
  * The faux library implements its own free() function (called faux_free()) so
- * it's suitable to implement their own complementary malloc() function. May be
- * somedays it will be more portable than standard malloc().
+ * it's suitable to implement their own complementary malloc() function.
+ * The behaviour when the size is 0 must be strictly defined. This function
+ * will assert() and return NULL when size is 0.
  *
  * @param [in] size Memory size to allocate.
  * @return Allocated memory or NULL on error.
  * @sa malloc()
  */
 void *faux_malloc(size_t size) {
+
+	assert(size != 0);
+	if (0 == size)
+		return NULL;
 
 	return malloc(size);
 }
