@@ -40,7 +40,11 @@ void faux_ini_free(faux_ini_t *ini) {
 }
 
 
-faux_pair_t *faux_ini_add(faux_ini_t *ini, const char *name, const char *value) {
+static int faux_ini_del(faux_ini_t *ini, faux_ini_node_t node) {
+
+}
+
+faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;
 	faux_list_node_t *node = NULL;
@@ -66,6 +70,12 @@ faux_pair_t *faux_ini_add(faux_ini_t *ini, const char *name, const char *value) 
 	}
 
 	return pair;
+}
+
+
+faux_pair_t *faux_ini_unset(faux_ini_t *ini, const char *name) {
+
+	return faux_ini_set(ini, name, NULL);
 }
 
 
@@ -154,7 +164,7 @@ int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 			begin = faux_str_nextword(value, &len, &offset, &quoted);
 			rvalue = faux_str_dupn(begin, len);
 		}
-		faux_ini_add(ini, rname, rvalue);
+		faux_ini_set(ini, rname, rvalue);
 		faux_str_free(rname);
 		faux_str_free(rvalue);
 		faux_str_free(str);

@@ -34,7 +34,8 @@ faux_ini_node_t *faux_ini_next(const faux_ini_node_t *node);
 faux_ini_node_t *faux_ini_prev(const faux_ini_node_t *node);
 faux_pair_t *faux_ini_data(const faux_ini_node_t *node);
 
-faux_pair_t *faux_ini_add(faux_ini_t *ini, const char *name, const char *value);
+faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value);
+faux_pair_t *faux_ini_unset(faux_ini_t *ini, const char *name);
 int faux_ini_parse_str(faux_ini_t *ini, const char *str);
 int faux_ini_parse_file(faux_ini_t *ini, const char *fn);
 
