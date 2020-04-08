@@ -468,14 +468,14 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 	if (!iter)
 		iter = list->head;
 	while (iter) {
-		int res;
+		int res = 0;
 		faux_list_node_t *node = iter;
 
 		iter = faux_list_next_node(iter);
 		if (saveptr)
 			*saveptr = iter;
 		res = matchFn(userkey, faux_list_data(node));
-		if (!res)
+		if (0 == res)
 			return node;
 		if (res < 0) // No chances to find match
 			return NULL;
@@ -494,10 +494,11 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 void *faux_list_match(const faux_list_t *list, faux_list_match_fn matchFn,
 	const void *userkey, faux_list_node_t **saveptr) {
 
-	faux_list_node_t *res =
-		faux_list_match_node(list, matchFn, userkey, saveptr);
+	faux_list_node_t *res = faux_list_match_node(list, matchFn,
+		userkey, saveptr);
 	if (!res)
 		return NULL;
+
 	return faux_list_data(res);
 }
 
