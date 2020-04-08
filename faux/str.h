@@ -16,7 +16,7 @@
 
 C_DECL_BEGIN
 
-void faux_str_free(char **str);
+void faux_str_free(char *str);
 
 char *faux_str_dupn(const char *str, size_t n);
 char *faux_str_dup(const char *str);
@@ -26,9 +26,10 @@ char *faux_str_cat(char **str, const char *text);
 
 char *faux_str_tolower(const char *str);
 
+int faux_str_casecmp(const char *str1, const char *str2);
+
 
 //const char *faux_str_suffix(const char *string);
-//int faux_str_nocasecmp(const char *cs, const char *ct);
 //const char *faux_str_nocasestr(const char *cs, const char *ct);
 /*
  * These are the escape characters which are used by default when 

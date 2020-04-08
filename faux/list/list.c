@@ -361,7 +361,7 @@ faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data) {
  * @param [in] data User data.
  * @return Newly created list node, existent equal node or NULL on error.
  */
-faux_list_node_t *faux_list_find_add(faux_list_t *list, void *data) {
+faux_list_node_t *faux_list_add_find(faux_list_t *list, void *data) {
 
 	return faux_list_add_generic(list, data, BOOL_TRUE, BOOL_TRUE);
 }

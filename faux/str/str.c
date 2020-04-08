@@ -22,17 +22,14 @@
  *
  * Safely free the memory allocated for the string. You can use NULL
  * pointer with this function. POSIX's free() checks for the NULL pointer
- * but not all systems do so. Function uses address of string pointer as an
- * argument to NULLify pointer after freeing.
+ * but not all systems do so.
  *
- * @param [in] str Address of string pointer
+ * @param [in] str String to free
  */
-void faux_str_free(char **str) {
+void faux_str_free(char *str) {
 
-	if (!*str)
-		return;
-	free(*str);
-	*str = NULL;
+	if (str)
+		free(str);
 }
 
 

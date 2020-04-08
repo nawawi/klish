@@ -1,46 +1,46 @@
-/*
- * ini.h
+/** @file ini.h
+ * @brief Public interface to work with ini files and strings.
  */
 
-#ifndef _lub_ini_h
-#define _lub_ini_h
+#ifndef _faux_ini_h
+#define _faux_ini_h
 
-#include "lub/c_decl.h"
-#include "lub/list.h"
+#include "faux/types.h"
+#include "faux/list.h"
 
-typedef struct lub_pair_s lub_pair_t;
-typedef struct lub_ini_s lub_ini_t;
-typedef lub_list_node_t lub_ini_node_t;
+typedef struct faux_pair_s faux_pair_t;
+typedef struct faux_ini_s faux_ini_t;
+typedef faux_list_node_t faux_ini_node_t;
 
-_BEGIN_C_DECL
+C_DECL_BEGIN
 
-/* Pair */
-int lub_pair_compare(const void *first, const void *second);
-void lub_pair_init(lub_pair_t *instance, const char *name, const char *value);
-lub_pair_t *lub_pair_new(const char *name, const char *value);
-void lub_pair_fini(lub_pair_t *instance);
-void lub_pair_free(void *instance);
-const char *lub_pair__get_name(const lub_pair_t *instance);
-void lub_pair__set_name(lub_pair_t *instance, const char *name);
-const char *lub_pair__get_value(const lub_pair_t *instance);
-void lub_pair__set_value(lub_pair_t *instance, const char *value);
+// Pair
+int faux_pair_compare(const void *first, const void *second);
+faux_pair_t *faux_pair_new(const char *name, const char *value);
+void faux_pair_free(void *pair);
 
-/* Ini */
-void lub_ini_init(lub_ini_t *instance);
-lub_ini_t *lub_ini_new(void);
-void lub_ini_fini(lub_ini_t *instance);
-void lub_ini_free(lub_ini_t *instance);
-lub_pair_t *lub_ini_find_pair(const lub_ini_t *instance, const char *name);
-const char *lub_ini_find(const lub_ini_t *instance, const char *name);
-void lub_ini_add(lub_ini_t *instance, lub_pair_t *pair);
-int lub_ini_parse_str(lub_ini_t *instance, const char *ini);
-int lub_ini_parse_file(lub_ini_t *instance, const char *fn);
-lub_ini_node_t *lub_ini__get_head(lub_ini_t *instance);
-lub_ini_node_t *lub_ini__get_tail(lub_ini_t *instance);
-lub_ini_node_t *lub_ini__get_next(lub_ini_node_t *node);
-lub_ini_node_t *lub_ini__get_prev(lub_ini_node_t *node);
-lub_pair_t *lub_ini__iter_data(lub_ini_node_t *node);
+const char *faux_pair_name(const faux_pair_t *pair);
+void faux_pair_set_name(faux_pair_t *pair, const char *name);
+const char *faux_pair_value(const faux_pair_t *pair);
+void faux_pair_set_value(faux_pair_t *pair, const char *value);
 
-_END_C_DECL
+// Ini
+faux_ini_t *faux_ini_new(void);
+void faux_ini_free(faux_ini_t *ini);
 
-#endif				/* _lub_ini_h */
+faux_ini_node_t *faux_ini_head(const faux_ini_t *ini);
+faux_ini_node_t *faux_ini_tail(const faux_ini_t *ini);
+faux_ini_node_t *faux_ini_next(const faux_ini_node_t *node);
+faux_ini_node_t *faux_ini_prev(const faux_ini_node_t *node);
+faux_pair_t *faux_ini_data(const faux_ini_node_t *node);
+
+faux_pair_t *faux_ini_add(faux_ini_t *ini, const char *name, const char *value);
+int faux_ini_parse_str(faux_ini_t *ini, const char *str);
+int faux_ini_parse_file(faux_ini_t *ini, const char *fn);
+
+faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name);
+const char *faux_ini_find(const faux_ini_t *ini, const char *name);
+
+C_DECL_END
+
+#endif				/* _faux_ini_h */

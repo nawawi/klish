@@ -1,89 +1,92 @@
-/*
- * pair.c
+/** @file pair.c
+ * Ini file pairs key/value.
  */
-
-#include "private.h"
-#include "lub/string.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-/*--------------------------------------------------------- */
-int lub_pair_compare(const void *first, const void *second)
-{
-	const lub_pair_t *f = (const lub_pair_t *)first;
-	const lub_pair_t *s = (const lub_pair_t *)second;
+#include "private.h"
+#include "faux/str.h"
+#include "faux/ini.h"
+
+int faux_pair_compare(const void *first, const void *second) {
+
+	const faux_pair_t *f = (const faux_pair_t *)first;
+	const faux_pair_t *s = (const faux_pair_t *)second;
 
 	return strcmp(f->name, s->name);
 }
 
-/*--------------------------------------------------------- */
-void lub_pair_init(lub_pair_t *this, const char *name, const char *value)
-{
-	assert(this);
-	memset(this, 0, sizeof(*this));
-	this->name = lub_string_dup(name);
-	this->value = lub_string_dup(value);
+
+faux_pair_t *faux_pair_new(const char *name, const char *value) {
+
+	faux_pair_t *pair = NULL;
+
+	pair = malloc(sizeof(*pair));
+	assert(pair);
+	if (!pair)
+		return NULL;
+
+	// Initialize
+	memset(pair, 0, sizeof(*pair));
+	pair->name = faux_str_dup(name);
+	pair->value = faux_str_dup(value);
+
+	return pair;
 }
 
-/*--------------------------------------------------------- */
-lub_pair_t *lub_pair_new(const char *name, const char *value)
-{
-	lub_pair_t *this;
 
-	this = malloc(sizeof(*this));
-	if (this)
-		lub_pair_init(this, name, value);
+void faux_pair_free(void *ptr) {
 
-	return this;
+	faux_pair_t *pair = (faux_pair_t *)ptr;
+
+	assert(pair);
+	if (!pair)
+		return;
+	faux_str_free(pair->name);
+	faux_str_free(pair->value);
+	free(pair);
 }
 
-/*--------------------------------------------------------- */
-void lub_pair_fini(lub_pair_t *this)
-{
-	assert(this);
-	lub_string_free(this->name);
-	lub_string_free(this->value);
+
+const char *faux_pair_name(const faux_pair_t *pair) {
+
+	assert(pair);
+	if (!pair)
+		return NULL;
+
+	return pair->name;
 }
 
-/*--------------------------------------------------------- */
-void lub_pair_free(void *data)
-{
-	assert(data);
-	lub_pair_t *this = (lub_pair_t *)data;
-	lub_pair_fini(this);
-	free(this);
+
+void faux_pair_set_name(faux_pair_t *pair, const char *name) {
+
+	assert(pair);
+	if (!pair)
+		return;
+
+	faux_str_free(pair->name);
+	pair->name = faux_str_dup(name);
 }
 
-/*--------------------------------------------------------- */
-const char *lub_pair__get_name(const lub_pair_t *this)
-{
-	assert(this);
-	return this->name;
+
+const char *faux_pair_value(const faux_pair_t *pair) {
+
+	assert(pair);
+	if (!pair)
+		return NULL;
+
+	return pair->value;
 }
 
-/*--------------------------------------------------------- */
-void lub_pair__set_name(lub_pair_t *this, const char *name)
-{
-	assert(this);
-	lub_string_free(this->name);
-	this->name = lub_string_dup(name);
-}
 
-/*--------------------------------------------------------- */
-const char *lub_pair__get_value(const lub_pair_t *this)
-{
-	assert(this);
-	return this->value;
-}
+void faux_pair_set_value(faux_pair_t *pair, const char *value) {
 
-/*--------------------------------------------------------- */
-void lub_pair__set_value(lub_pair_t *this, const char *value)
-{
-	assert(this);
-	lub_string_free(this->value);
-	this->value = lub_string_dup(value);
-}
+	assert(pair);
+	if (!pair)
+		return;
 
-/*--------------------------------------------------------- */
+	faux_str_free(pair->value);
+	pair->value = faux_str_dup(value);
+}

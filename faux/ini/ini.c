@@ -1,9 +1,6 @@
-/*
- * ini.c
+/** @file ini.c
+ * @brief Functions for working with INI files.
  */
-
-#include "private.h"
-#include "lub/string.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,144 +8,176 @@
 #include <assert.h>
 #include <ctype.h>
 
-/*--------------------------------------------------------- */
-void lub_ini_init(lub_ini_t *this)
-{
-	assert(this);
-	memset(this, 0, sizeof(*this));
-	this->list = lub_list_new(lub_pair_compare, lub_pair_free);
-}
+#include "private.h"
+#include "faux/str.h"
+#include "faux/ini.h"
 
-/*--------------------------------------------------------- */
-lub_ini_t *lub_ini_new(void)
-{
-	lub_ini_t *this;
 
-	this = malloc(sizeof(*this));
-	if (this)
-		lub_ini_init(this);
+faux_ini_t *faux_ini_new(void) {
 
-	return this;
-}
+	faux_ini_t *ini;
 
-/*--------------------------------------------------------- */
-void lub_ini_fini(lub_ini_t *this)
-{
-	lub_list_free_all(this->list);
-}
-
-/*--------------------------------------------------------- */
-void lub_ini_free(lub_ini_t *this)
-{
-	assert(this);
-	lub_ini_fini(this);
-	free(this);
-}
-
-/*--------------------------------------------------------- */
-void lub_ini_add(lub_ini_t *this, lub_pair_t *pair)
-{
-	assert(this);
-	lub_list_add(this->list, pair);
-}
-
-/*--------------------------------------------------------- */
-/* Find pair by name */
-lub_pair_t *lub_ini_find_pair(const lub_ini_t *this, const char *name)
-{
-	lub_list_node_t *iter;
-	lub_pair_t *pair;
-
-	if (!this || !name)
+	ini = malloc(sizeof(*ini));
+	if (!ini)
 		return NULL;
-	/* Iterate elements */
-	for(iter = lub_list__get_head(this->list);
-		iter; iter = lub_list_node__get_next(iter)) {
-		int res;
-		pair = (lub_pair_t *)lub_list_node__get_data(iter);
-		res = strcmp(lub_pair__get_name(pair), name);
-		if (!res)
-			return pair;
-		if (res > 0) /* No chance to find name */
-			break;
+
+	// Init
+	memset(ini, 0, sizeof(*ini));
+	ini->list = faux_list_new(faux_pair_compare, faux_pair_free);
+
+	return ini;
+}
+
+
+void faux_ini_free(faux_ini_t *ini) {
+
+	assert(ini);
+	if (!ini)
+		return;
+
+	faux_list_free(ini->list);
+	free(ini);
+}
+
+
+faux_pair_t *faux_ini_add(faux_ini_t *ini, const char *name, const char *value) {
+
+	faux_pair_t *pair = NULL;
+	faux_list_node_t *node = NULL;
+	faux_pair_t *found_pair = NULL;
+
+	assert(ini);
+	if (!ini)
+		return NULL;
+
+	pair = faux_pair_new(name, value);
+	if (!pair)
+		return NULL;
+	node = faux_list_add_find(ini->list, pair);
+	if (NULL == node) { // Something went wrong
+		faux_pair_free(pair);
+		return NULL;
+	}
+	found_pair = faux_list_data(node);
+	if (found_pair != pair) { // Item already exists
+		faux_pair_free(pair);
+		faux_pair_set_value(found_pair, value); // Replace value by new one
+		return found_pair;
 	}
 
-	return NULL;
+	return pair;
 }
 
-/*--------------------------------------------------------- */
+
 /* Find pair by name */
-const char *lub_ini_find(const lub_ini_t *this, const char *name)
-{
-	lub_pair_t *pair = lub_ini_find_pair(this, name);
+faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
+
+	faux_list_node_t *iter = NULL;
+	faux_pair_t *pair = NULL;
+
+	assert(ini);
+	assert(name);
+	if (!ini || !name)
+		return NULL;
+
+	pair = faux_pair_new(name, NULL);
+	if (!pair)
+		return NULL;
+	iter = faux_list_find_node(ini->list, faux_pair_compare, pair);
+	faux_pair_free(pair);
+
+	return faux_list_data(iter);
+}
+
+
+/* Find value by name */
+const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
+
+	faux_pair_t *pair = faux_ini_find_pair(ini, name);
 
 	if (!pair)
 		return NULL;
-	return lub_pair__get_value(pair);
+
+	return faux_pair_value(pair);
 }
 
-/*--------------------------------------------------------- */
-int lub_ini_parse_str(lub_ini_t *this, const char *ini)
-{
-	char *buffer;
-	char *saveptr = NULL;
-	char *line;
 
-	buffer = lub_string_dup(ini);
-	/* Now loop though each line */
+int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
+
+	char *buffer = NULL;
+	char *saveptr = NULL;
+	char *line = NULL;
+
+	assert(ini);
+	if (!ini)
+		return -1;
+	if (!string)
+		return 0;
+
+	buffer = faux_str_dup(string);
+	// Now loop though each line
 	for (line = strtok_r(buffer, "\n", &saveptr);
 		line; line = strtok_r(NULL, "\n", &saveptr)) {
 
-		char *str, *name, *value, *savestr = NULL, *ns = line;
-		const char *begin;
-		size_t len, offset, quoted;
-		char *rname, *rvalue;
-		lub_pair_t *pair;
+		char *str = NULL;
+		char *name = NULL;
+		char *value = NULL;
+		char *savestr = NULL;
+		char *ns = line;
+		const char *begin = NULL;
+		size_t len = 0;
+		size_t offset = 0;
+		size_t quoted = 0;
+		char *rname = NULL;
+		char *rvalue = NULL;
 
-		if (!*ns) /* Empty */
+		if (!*ns) // Empty
 			continue;
 		while (*ns && isspace(*ns))
 			ns++;
-		if ('#' == *ns) /* Comment */
+		if ('#' == *ns) // Comment
 			continue;
-		if ('=' == *ns) /* Broken string */
+		if ('=' == *ns) // Broken string
 			continue;
-		str = lub_string_dup(ns);
+		str = faux_str_dup(ns);
 		name = strtok_r(str, "=", &savestr);
 		if (!name) {
-			lub_string_free(str);
+			faux_str_free(str);
 			continue;
 		}
 		value = strtok_r(NULL, "=", &savestr);
-		begin = lub_string_nextword(name, &len, &offset, &quoted);
-		rname = lub_string_dupn(begin, len);
-		if (!value) /* Empty value */
+		begin = faux_str_nextword(name, &len, &offset, &quoted);
+		rname = faux_str_dupn(begin, len);
+		if (!value) { // Empty value
 			rvalue = NULL;
-		else {
-			begin = lub_string_nextword(value, &len, &offset, &quoted);
-			rvalue = lub_string_dupn(begin, len);
+		} else {
+			begin = faux_str_nextword(value, &len, &offset, &quoted);
+			rvalue = faux_str_dupn(begin, len);
 		}
-		pair = lub_pair_new(rname, rvalue);
-		lub_ini_add(this, pair);
-		lub_string_free(rname);
-		lub_string_free(rvalue);
-		lub_string_free(str);
+		faux_ini_add(ini, rname, rvalue);
+		faux_str_free(rname);
+		faux_str_free(rvalue);
+		faux_str_free(str);
 	}
-	lub_string_free(buffer);
+	faux_str_free(buffer);
 
 	return 0;
 }
 
-/*--------------------------------------------------------- */
-int lub_ini_parse_file(lub_ini_t *this, const char *fn)
-{
+
+int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
+
 	int ret = -1;
-	FILE *f;
-	char *buf;
+	FILE *f = NULL;
+	char *buf = NULL;
 	unsigned int p = 0;
 	const int chunk_size = 128;
 	int size = chunk_size;
 
+	assert(ini);
+	assert(fn);
+	if (!ini)
+		return -1;
 	if (!fn || !*fn)
 		return -1;
 	f = fopen(fn, "r");
@@ -157,9 +186,10 @@ int lub_ini_parse_file(lub_ini_t *this, const char *fn)
 
 	buf = malloc(size);
 	while (fgets(buf + p, size - p, f)) {
-		char *tmp;
+		char *tmp = NULL;
+
 		if (feof(f) || strchr(buf + p, '\n') || strchr(buf + p, '\r')) {
-			lub_ini_parse_str(this, buf);
+			faux_ini_parse_str(ini, buf);
 			p = 0;
 			continue;
 		}
@@ -179,37 +209,52 @@ error:
 	return ret;
 }
 
-/*--------------------------------------------------------- */
-lub_ini_node_t *lub_ini__get_head(lub_ini_t *this)
-{
-	return lub_list__get_head(this->list);
+
+faux_ini_node_t *faux_ini_head(const faux_ini_t *ini) {
+
+	assert(ini);
+	if (!ini)
+		return NULL;
+
+	return faux_list_head(ini->list);
 }
 
-/*--------------------------------------------------------- */
-lub_ini_node_t *lub_ini__get_tail(lub_ini_t *this)
-{
-	return lub_list__get_tail(this->list);
+
+faux_ini_node_t *faux_ini_tail(const faux_ini_t *ini) {
+
+	assert(ini);
+	if (!ini)
+		return NULL;
+
+	return faux_list_tail(ini->list);
 }
 
-/*--------------------------------------------------------- */
 
-lub_ini_node_t *lub_ini__get_next(lub_ini_node_t *node)
-{
-	return lub_list_node__get_next(node);
+faux_ini_node_t *faux_ini_next(const faux_ini_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return faux_list_next_node(node);
 }
 
-/*--------------------------------------------------------- */
 
-lub_ini_node_t *lub_ini__get_prev(lub_ini_node_t *node)
-{
-	return lub_list_node__get_next(node);
+faux_ini_node_t *faux_ini_prev(const faux_ini_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return faux_list_prev_node(node);
 }
 
-/*--------------------------------------------------------- */
 
-lub_pair_t *lub_ini__iter_data(lub_ini_node_t *node)
-{
-	return (lub_pair_t *)lub_list_node__get_data(node);
+faux_pair_t *faux_ini_data(const faux_ini_node_t *node) {
+
+	assert(node);
+	if (!node)
+		return NULL;
+
+	return (faux_pair_t *)faux_list_data(node);
 }
-
-/*--------------------------------------------------------- */
