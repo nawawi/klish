@@ -194,6 +194,26 @@ char *faux_str_cat(char **str, const char *text) {
 }
 
 
+/** @brief Service function to compare to chars in right way.
+ *
+ * The problem is char type can be signed or unsigned on different
+ * platforms. So stright comparision can return different results.
+ *
+ * @param [in] char1 First char
+ * @param [in] char2 Second char
+ * @return
+ * < 0 if char1 < char2
+ * = 0 if char1 = char2
+ * > 0 if char1 > char2
+ */
+static int faux_str_cmp_chars(char char1, char char2) {
+
+	unsigned char ch1 = (unsigned char)char1;
+	unsigned char ch2 = (unsigned char)char2;
+
+	return (int)ch1 - (int)ch2;
+}
+
 /** @brief Compare n first characters of two strings ignoring case.
  *
  * The difference beetween this function an standard strncasecmp() is
@@ -211,19 +231,21 @@ int faux_str_ncasecmp(const char *str1, const char *str2, size_t n) {
 	const char *p2 = str2;
 	size_t num = n;
 
-	while ((*p1 || *p2) && num) {
-		int res = 0;
-		char c1 = faux_ctype_tolower(*p1);
-		char c2 = faux_ctype_tolower(*p2);
-		res = c1 - c2;
-		if (res)
+	while (*p1 != '\0' && *p2 != '\0' && num != 0) {
+		int res = faux_str_cmp_chars(faux_ctype_tolower(*p1),
+			faux_ctype_tolower(*p2));
+		if (res != 0)
 			return res;
 		p1++;
 		p2++;
 		num--;
 	}
 
-	return 0;
+	if (0 == n) // It means n first characters are equal.
+		return 0;
+
+	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
+			faux_ctype_tolower(*p2));
 }
 
 
@@ -242,18 +264,17 @@ int faux_str_casecmp(const char *str1, const char *str2) {
 	const char *p1 = str1;
 	const char *p2 = str2;
 
-	while (*p1 || *p2) {
-		int res = 0;
-		char c1 = faux_ctype_tolower(*p1);
-		char c2 = faux_ctype_tolower(*p2);
-		res = c1 - c2;
-		if (res)
+	while (*p1 != '\0' && *p2 != '\0') {
+		int res = faux_str_cmp_chars(faux_ctype_tolower(*p1),
+			faux_ctype_tolower(*p2));
+		if (res != 0)
 			return res;
 		p1++;
 		p2++;
 	}
 
-	return 0;
+	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
+			faux_ctype_tolower(*p2));
 }
 
 
