@@ -214,6 +214,57 @@ const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
 }
 
 
+static char *faux_ini_purify_word(const char *str)
+{
+	const char *word;
+	const char *string = str;
+	bool_t quoted = BOOL_FALSE;
+	size_t len = 0;
+
+	assert(str);
+	if (!str)
+		return NULL;
+
+	// Find the start of a word
+	while (*string != '\0' && isspace(*string)) {
+		string++;
+	}
+	// Is this the start of a quoted string?
+	if ('"' == *string) {
+		quoted = BOOL_TRUE;
+		string++;
+	}
+	word = string; // Begin of purified word
+
+	// Find the end of the word
+	while (*string != '\0') {
+		if ('\\' == *string) {
+			string++;
+			if ('\0' == *string) // Unfinished escaping
+				break; // Don't increment 'len'
+			len++;
+			// Skip escaped char
+			string++;
+			len++;
+			continue;
+		}
+		// End of word
+		if (!quoted && isspace(*string))
+			break;
+		if ('"' == *string) {
+			// End of a quoted string
+			break;
+		}
+		string++;
+		len++;
+	}
+
+	if (len == 0)
+		return NULL;
+
+	return faux_str_dupn(word, len);
+}
+
 /** @brief Parse string for pairs 'name/value'.
  *
  * String can contain an `name/value` pairs in following format:
@@ -242,44 +293,45 @@ int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 
 	buffer = faux_str_dup(string);
 	// Now loop though each line
-	for (line = strtok_r(buffer, "\n", &saveptr);
-		line; line = strtok_r(NULL, "\n", &saveptr)) {
+	for (line = strtok_r(buffer, "\n\r", &saveptr);
+		line; line = strtok_r(NULL, "\n\r", &saveptr)) {
 
+		// Now 'line' contain one 'name/value' pair. Single line.
 		char *str = NULL;
 		char *name = NULL;
 		char *value = NULL;
 		char *savestr = NULL;
-		char *ns = line;
-		const char *begin = NULL;
-		size_t len = 0;
-		size_t offset = 0;
-		size_t quoted = 0;
 		char *rname = NULL;
 		char *rvalue = NULL;
 
-		if (!*ns) // Empty
+		while ((*line != '\0') && isspace(*line)) // Skip spaces
+			line++;
+		if ('\0' == *line) // Empty line
 			continue;
-		while (*ns && isspace(*ns))
-			ns++;
-		if ('#' == *ns) // Comment
+		if ('#' == *line) // Comment. Skip it.
 			continue;
-		if ('=' == *ns) // Broken string
-			continue;
-		str = faux_str_dup(ns);
+		str = faux_str_dup(line);
+
+		// Find out name
 		name = strtok_r(str, "=", &savestr);
 		if (!name) {
 			faux_str_free(str);
 			continue;
 		}
+		rname = faux_ini_purify_word(name);
+		if (!rname) {
+			faux_str_free(str);
+			continue;
+		}
+
+		// Find out value
 		value = strtok_r(NULL, "=", &savestr);
-		begin = faux_str_nextword(name, &len, &offset, &quoted);
-		rname = faux_str_dupn(begin, len);
 		if (!value) { // Empty value
 			rvalue = NULL;
 		} else {
-			begin = faux_str_nextword(value, &len, &offset, &quoted);
-			rvalue = faux_str_dupn(begin, len);
+			rvalue = faux_ini_purify_word(value);
 		}
+
 		faux_ini_set(ini, rname, rvalue);
 		faux_str_free(rname);
 		faux_str_free(rvalue);

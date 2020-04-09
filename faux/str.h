@@ -27,7 +27,7 @@ char *faux_str_cat(char **str, const char *text);
 char *faux_str_tolower(const char *str);
 char *faux_str_toupper(const char *str);
 
-int faux_str_ncasecmp(const char *str1, const char *str2, size_t n);
+int faux_str_casecmpn(const char *str1, const char *str2, size_t n);
 int faux_str_casecmp(const char *str1, const char *str2);
 char *faux_str_casestr(const char *haystack, const char *needle);
 

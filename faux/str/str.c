@@ -227,7 +227,7 @@ static int faux_str_cmp_chars(char char1, char char2) {
  * @param [in] n Number of characters to compare.
  * @return < 0, 0, > 0, see the strcasecmp().
  */
-int faux_str_ncasecmp(const char *str1, const char *str2, size_t n) {
+int faux_str_casecmpn(const char *str1, const char *str2, size_t n) {
 
 	const char *p1 = str1;
 	const char *p2 = str2;
@@ -280,6 +280,16 @@ int faux_str_casecmp(const char *str1, const char *str2) {
 }
 
 
+/** @brief Finds the first occurrence of the substring in the string
+ *
+ * Function is a faux version of strcasestr() function.
+ *
+ * @param [in] haystack String to find substring in it.
+ * @param [in] needle Substring to find.
+ * @return
+ * Pointer to first occurence of substring in the string.
+ * NULL on error
+ */
 char *faux_str_casestr(const char *haystack, const char *needle)
 {
 	const char *ptr = haystack;
@@ -295,7 +305,7 @@ char *faux_str_casestr(const char *haystack, const char *needle)
 	needle_len = strlen(needle);
 
 	while ((*ptr != '\0') && (ptr_len >= needle_len)) {
-		int res = faux_str_ncasecmp(ptr, needle, needle_len);
+		int res = faux_str_casecmpn(ptr, needle, needle_len);
 		if (0 == res)
 			return (char *)ptr;
 		ptr++;
@@ -305,6 +315,53 @@ char *faux_str_casestr(const char *haystack, const char *needle)
 	return NULL; // Not found
 }
 
+/* TODO: If it nedeed?
+const char *faux_str_nextword(const char *string,
+	size_t *len, size_t *offset, size_t *quoted)
+{
+	const char *word;
+
+	*quoted = 0;
+
+	// Find the start of a word (not including an opening quote)
+	while (*string && isspace(*string)) {
+		string++;
+		(*offset)++;
+	}
+	// Is this the start of a quoted string ?
+	if (*string == '"') {
+		*quoted = 1;
+		string++;
+	}
+	word = string;
+	*len = 0;
+
+	// Find the end of the word
+	while (*string) {
+		if (*string == '\\') {
+			string++;
+			(*len)++;
+			if (*string) {
+				(*len)++;
+				string++;
+			}
+			continue;
+		}
+		// End of word
+		if (!*quoted && isspace(*string))
+			break;
+		if (*string == '"') {
+			// End of a quoted string
+			*quoted = 2;
+			break;
+		}
+		(*len)++;
+		string++;
+	}
+
+	return word;
+}
+*/
 
 // TODO: Is it needed?
 /*
@@ -441,55 +498,6 @@ const char *lub_string_suffix(const char *string)
 }
 */
 
-// TODO: Is it needed?
-/*--------------------------------------------------------- */
-/*
-const char *lub_string_nextword(const char *string,
-	size_t *len, size_t *offset, size_t *quoted)
-{
-	const char *word;
-
-	*quoted = 0;
-
-	// Find the start of a word (not including an opening quote)
-	while (*string && isspace(*string)) {
-		string++;
-		(*offset)++;
-	}
-	// Is this the start of a quoted string ?
-	if (*string == '"') {
-		*quoted = 1;
-		string++;
-	}
-	word = string;
-	*len = 0;
-
-	// Find the end of the word
-	while (*string) {
-		if (*string == '\\') {
-			string++;
-			(*len)++;
-			if (*string) {
-				(*len)++;
-				string++;
-			}
-			continue;
-		}
-		// End of word
-		if (!*quoted && isspace(*string))
-			break;
-		if (*string == '"') {
-			// End of a quoted string
-			*quoted = 2;
-			break;
-		}
-		(*len)++;
-		string++;
-	}
-
-	return word;
-}
-*/
 
 // TODO: Is it needed?
 /*--------------------------------------------------------- */
