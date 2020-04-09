@@ -213,6 +213,21 @@ const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
 	return (const faux_pair_t *)faux_list_each((faux_list_node_t **)iter);
 }
 
+
+/** @brief Parse string for pairs 'name/value'.
+ *
+ * String can contain an `name/value` pairs in following format:
+ * @code
+ * var1=value1
+ * var2 = "value 2"
+ * @endcode
+ * Function parses that string and stores 'name/value' pairs to
+ * the INI object.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] string String to parse.
+ * @return 0 - succes, < 0 - error
+ */
 int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 
 	char *buffer = NULL;
@@ -276,46 +291,67 @@ int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 }
 
 
+/** @brief Parse file for pairs 'name/value'.
+ *
+ * File can contain an `name/value` pairs in following format:
+ * @code
+ * var1=value1
+ * var2 = "value 2"
+ * @endcode
+ * Function parses file and stores 'name/value' pairs to
+ * the INI object.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] string String to parse.
+ * @return 0 - succes, < 0 - error
+ * @sa faux_ini_parse_str()
+ */
 int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 
-	int ret = -1;
-	FILE *f = NULL;
+	int ret = -1; // Pessimistic retval
+	FILE *fd = NULL;
 	char *buf = NULL;
-	unsigned int p = 0;
+	unsigned int bytes_readed = 0;
 	const int chunk_size = 128;
-	int size = chunk_size;
+	int size = chunk_size; // Buffer size
 
 	assert(ini);
 	assert(fn);
 	if (!ini)
 		return -1;
-	if (!fn || !*fn)
+	if (!fn || '\0' == *fn)
 		return -1;
-	f = fopen(fn, "r");
-	if (!f)
+	fd = fopen(fn, "r");
+	if (!fd)
 		return -1;
 
 	buf = faux_zmalloc(size);
-	while (fgets(buf + p, size - p, f)) {
-		char *tmp = NULL;
+	while (fgets(buf + bytes_readed, size - bytes_readed, fd)) {
 
-		if (feof(f) || strchr(buf + p, '\n') || strchr(buf + p, '\r')) {
-			faux_ini_parse_str(ini, buf);
-			p = 0;
-			continue;
+		// Not enough space in buffer. Make it larger.
+		if (feof(fd) == 0 &&
+			!strchr(buf + bytes_readed, '\n') &&
+			!strchr(buf + bytes_readed, '\r')) {
+			char *tmp = NULL;
+			bytes_readed = size - 1; // fgets() put '\0' to last byte
+			size += chunk_size;
+			tmp = realloc(buf, size);
+			if (!tmp) // Memory problems
+				goto error;
+			buf = tmp;
+			continue; // Read the rest of line
 		}
-		p = size - 1;
-		size += chunk_size;
-		tmp = realloc(buf, size);
-		if (!tmp)
-			goto error;
-		buf = tmp;
+
+		// Don't analyze retval because it's not obvious what
+		// to do on error. May be next string will be ok.
+		faux_ini_parse_str(ini, buf);
+		bytes_readed = 0;
 	}
 
 	ret = 0;
 error:
 	faux_free(buf);
-	fclose(f);
+	fclose(fd);
 
 	return ret;
 }
