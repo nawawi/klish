@@ -40,17 +40,7 @@ void faux_ini_free(faux_ini_t *ini) {
 }
 
 
-static int faux_ini_del(faux_ini_t *ini, faux_ini_node_t *node) {
-
-	assert(ini);
-	assert(node);
-	if (!ini || !node)
-		return -1;
-
-	return faux_list_del(ini->list, (faux_list_node_t *)node);
-}
-
-faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value) {
+const faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;
 	faux_list_node_t *node = NULL;
@@ -100,7 +90,7 @@ void faux_ini_unset(faux_ini_t *ini, const char *name) {
 
 
 /* Find pair by name */
-faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
+const faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
 
 	faux_list_node_t *iter = NULL;
 	faux_pair_t *pair = NULL;
@@ -123,7 +113,7 @@ faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
 /* Find value by name */
 const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
 
-	faux_pair_t *pair = faux_ini_find_pair(ini, name);
+	const faux_pair_t *pair = faux_ini_find_pair(ini, name);
 
 	if (!pair)
 		return NULL;
@@ -131,6 +121,20 @@ const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
 	return faux_pair_value(pair);
 }
 
+
+faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
+
+	assert(ini);
+	if (!ini)
+		return NULL;
+
+	return (faux_ini_node_t *)faux_list_head(ini->list);
+}
+
+const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
+
+	return (const faux_pair_t *)faux_list_each((faux_list_node_t **)iter);
+}
 
 int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 
@@ -237,54 +241,4 @@ error:
 	fclose(f);
 
 	return ret;
-}
-
-
-faux_ini_node_t *faux_ini_head(const faux_ini_t *ini) {
-
-	assert(ini);
-	if (!ini)
-		return NULL;
-
-	return faux_list_head(ini->list);
-}
-
-
-faux_ini_node_t *faux_ini_tail(const faux_ini_t *ini) {
-
-	assert(ini);
-	if (!ini)
-		return NULL;
-
-	return faux_list_tail(ini->list);
-}
-
-
-faux_ini_node_t *faux_ini_next(const faux_ini_node_t *node) {
-
-	assert(node);
-	if (!node)
-		return NULL;
-
-	return faux_list_next_node(node);
-}
-
-
-faux_ini_node_t *faux_ini_prev(const faux_ini_node_t *node) {
-
-	assert(node);
-	if (!node)
-		return NULL;
-
-	return faux_list_prev_node(node);
-}
-
-
-faux_pair_t *faux_ini_data(const faux_ini_node_t *node) {
-
-	assert(node);
-	if (!node)
-		return NULL;
-
-	return (faux_pair_t *)faux_list_data(node);
 }
