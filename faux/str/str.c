@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "faux/ctype.h"
 #include "faux/str.h"
@@ -245,7 +246,7 @@ int faux_str_ncasecmp(const char *str1, const char *str2, size_t n) {
 		return 0;
 
 	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
-			faux_ctype_tolower(*p2));
+		faux_ctype_tolower(*p2));
 }
 
 
@@ -274,32 +275,33 @@ int faux_str_casecmp(const char *str1, const char *str2) {
 	}
 
 	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
-			faux_ctype_tolower(*p2));
+		faux_ctype_tolower(*p2));
 }
 
 
-const char *lub_string_nocasestr(const char *cs, const char *ct)
+char *faux_str_casestr(const char *haystack, const char *needle)
 {
-	const char *p = NULL;
-	const char *result = NULL;
+	const char *ptr = haystack;
+	size_t ptr_len = 0;
+	size_t needle_len = 0;
 
-	while (*cs) {
-		const char *q = cs;
+	assert(haystack);
+	assert(needle);
+	if (!haystack || !needle)
+		return NULL;
 
-		p = ct;
-		while (*p && *q
-		       && (faux_ctype_tolower(*p) == faux_ctype_tolower(*q))) {
-			p++, q++;
-		}
-		if (0 == *p) {
-			break;
-		}
-		cs++;
+	ptr_len = strlen(haystack);
+	needle_len = strlen(needle);
+
+	while ((*ptr != '\0') && (ptr_len >= needle_len)) {
+		int res = faux_str_ncasecmp(ptr, needle, needle_len);
+		if (0 == res)
+			return (char *)ptr;
+		ptr++;
+		ptr_len--;
 	}
-	if (p && !*p) {
-		result = cs;
-	}
-	return result;
+
+	return NULL; // Not found
 }
 
 

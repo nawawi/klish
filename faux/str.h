@@ -29,10 +29,10 @@ char *faux_str_toupper(const char *str);
 
 int faux_str_ncasecmp(const char *str1, const char *str2, size_t n);
 int faux_str_casecmp(const char *str1, const char *str2);
+char *faux_str_casestr(const char *haystack, const char *needle);
 
 
 //const char *faux_str_suffix(const char *string);
-//const char *faux_str_nocasestr(const char *cs, const char *ct);
 /*
  * These are the escape characters which are used by default when 
  * expanding variables. These characters will be backslash escaped
