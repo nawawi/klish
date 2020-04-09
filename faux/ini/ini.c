@@ -14,6 +14,12 @@
 #include "faux/ini.h"
 
 
+/** @brief Allocates new INI object.
+ *
+ * Before working with INI object it must be allocated and initialized.
+ *
+ * @return Allocated and initialized INI object or NULL on error.
+ */
 faux_ini_t *faux_ini_new(void) {
 
 	faux_ini_t *ini;
@@ -29,6 +35,11 @@ faux_ini_t *faux_ini_new(void) {
 }
 
 
+/** @brief Frees the INI object.
+ *
+ * After using the INI object must be freed. Function frees INI objecr itself
+ * and all pairs 'name/value' stored within INI object.
+ */
 void faux_ini_free(faux_ini_t *ini) {
 
 	assert(ini);
@@ -40,6 +51,24 @@ void faux_ini_free(faux_ini_t *ini) {
 }
 
 
+/** @brief Adds pair 'name/value' to INI object.
+ *
+ * The 'name' field is a key. The key must be unique. Each key has its
+ * correspondent value.
+ *
+ * If key is new for the INI object then the pair 'name/value' will be added
+ * to it. If INI object already contain the same key then value of this pair
+ * will be replaced by newer one. If new specified value is NULL then the
+ * entry with the correspondent key will be removed from the INI object.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] name Name field for pair 'name/value'.
+ * @param [in] value Value field for pair 'name/value'.
+ * @return
+ * Newly created pair object.
+ * NULL if entry was removed (value == NULL)
+ * NULL on error
+ */
 const faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;
@@ -83,13 +112,30 @@ const faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *v
 }
 
 
+/** @brief Removes pair 'name/value' from INI object.
+ *
+ * Function search for the pair with specified name within INI object and
+ * removes it.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] name Name field to search for the entry.
+ */
 void faux_ini_unset(faux_ini_t *ini, const char *name) {
 
 	faux_ini_set(ini, name, NULL);
 }
 
 
-/* Find pair by name */
+/** @brief Searches for pair by name.
+ *
+ * The name field is a key to search INI object for pair 'name/value'.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] name Name field to search for.
+ * @return
+ * Found pair 'name/value'.
+ * NULL on errror.
+ */
 const faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
 
 	faux_list_node_t *iter = NULL;
@@ -110,7 +156,16 @@ const faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
 }
 
 
-/* Find value by name */
+/** @brief Searches for pair by name and returns correspondent value.
+ *
+ * The name field is a key to search INI object for pair 'name/value'.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] name Name field to search for.
+ * @return
+ * Found value field.
+ * NULL on errror.
+ */
 const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
 
 	const faux_pair_t *pair = faux_ini_find_pair(ini, name);
@@ -122,6 +177,15 @@ const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
 }
 
 
+/** @brief Initializes iterator to iterate through the entire INI object.
+ *
+ * Before iterating with the faux_ini_each() function the iterator must be
+ * initialized. This function do it.
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @return Initialized iterator.
+ * @sa faux_ini_each()
+ */
 faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
 
 	assert(ini);
@@ -131,6 +195,19 @@ faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
 	return (faux_ini_node_t *)faux_list_head(ini->list);
 }
 
+
+/** @brief Iterate entire INI object for pairs 'name/value'.
+ *
+ * Before iteration the iterator must be initialized by faux_ini_init_iter()
+ * function. Doesn't use faux_ini_each() with uninitialized iterator.
+ *
+ * On each call function returns pair 'name/value' and modify iterator.
+ * Stop iteration when function returns NULL.
+ *
+ * @param [in,out] iter Iterator.
+ * @return Pair 'name/value'.
+ * @sa faux_ini_init_iter()
+ */
 const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
 
 	return (const faux_pair_t *)faux_list_each((faux_list_node_t **)iter);
