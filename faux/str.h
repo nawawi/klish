@@ -10,9 +10,9 @@
 #include "faux/faux.h"
 
 #define UTF8_MASK 0xC0
-#define UTF8_7BIT_MASK 0x80 /* One byte or multibyte */
-#define UTF8_11   0xC0 /* First UTF8 byte */
-#define UTF8_10   0x80 /* Next UTF8 bytes */
+#define UTF8_7BIT_MASK 0x80 // One byte or multibyte
+#define UTF8_11   0xC0 // First UTF8 byte
+#define UTF8_10   0x80 // Next UTF8 bytes
 
 C_DECL_BEGIN
 
@@ -25,7 +25,9 @@ char *faux_str_catn(char **str, const char *text, size_t n);
 char *faux_str_cat(char **str, const char *text);
 
 char *faux_str_tolower(const char *str);
+char *faux_str_toupper(const char *str);
 
+int faux_str_ncasecmp(const char *str1, const char *str2, size_t n);
 int faux_str_casecmp(const char *str1, const char *str2);
 
 
