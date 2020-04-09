@@ -215,6 +215,7 @@ static int faux_str_cmp_chars(char char1, char char2) {
 	return (int)ch1 - (int)ch2;
 }
 
+
 /** @brief Compare n first characters of two strings ignoring case.
  *
  * The difference beetween this function an standard strncasecmp() is
