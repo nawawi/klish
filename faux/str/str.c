@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "faux/ctype.h"
 #include "faux/str.h"
@@ -91,8 +92,8 @@ char *faux_str_dupn(const char *str, size_t n) {
  * @param [in] str String to convert.
  * @return Pointer to lowercase string copy or NULL.
  */
-char *faux_str_tolower(const char *str)
-{
+char *faux_str_tolower(const char *str) {
+
 	char *res = faux_str_dup(str);
 	char *p = res;
 
@@ -117,8 +118,8 @@ char *faux_str_tolower(const char *str)
  * @param [in] str String to convert.
  * @return Pointer to lowercase string copy or NULL.
  */
-char *faux_str_toupper(const char *str)
-{
+char *faux_str_toupper(const char *str) {
+
 	char *res = faux_str_dup(str);
 	char *p = res;
 
@@ -290,8 +291,8 @@ int faux_str_casecmp(const char *str1, const char *str2) {
  * Pointer to first occurence of substring in the string.
  * NULL on error
  */
-char *faux_str_casestr(const char *haystack, const char *needle)
-{
+char *faux_str_casestr(const char *haystack, const char *needle) {
+
 	const char *ptr = haystack;
 	size_t ptr_len = 0;
 	size_t needle_len = 0;
@@ -314,6 +315,88 @@ char *faux_str_casestr(const char *haystack, const char *needle)
 
 	return NULL; // Not found
 }
+
+
+/** Prepare string for embedding to C-code (make escaping).
+ *
+ * @warning The returned pointer must be freed by faux_str_free().
+ * @param [in] src String for escaping.
+ * @return Escaped string or NULL on error.
+ */
+char *faux_str_c_esc(const char *src) {
+
+	const char *src_ptr = src;
+	char *dst = NULL;
+	char *dst_ptr = NULL;
+	char *escaped = NULL;
+	size_t src_len = 0;
+	size_t dst_len = 0;
+
+	assert(src);
+	if (!src)
+		return NULL;
+
+	src_len = strlen(src);
+	// Calculate max destination string size.
+	// The worst case is when each src character will be replaced by
+	// something like '\xff'. So it's 4 dst chars for 1 src one.
+	dst_len = (src_len * 4) + 1; // one byte for '\0'
+	dst = faux_zmalloc(dst_len);
+	assert(dst);
+	if (!dst)
+		return NULL;
+
+	while (*src_ptr != '\0') {
+		char *esc = NULL; // escaped replacement
+		char buf[5]; // longest 'char' (4 bytes) + '\0'
+		size_t len = 0;
+
+		switch (*src_ptr) {
+		case '\n':
+			esc = "\\n";
+			break;
+		case '\"':
+			esc = "\\\"";
+			break;
+		case '\\':
+			esc = "\\\\";
+			break;
+		case '\'':
+			esc = "\\\'";
+			break;
+		case '\r':
+			esc = "\\r";
+			break;
+		case '\t':
+			esc = "\\t";
+			break;
+		default:
+			// Check is the symbol control character. Control
+			// characters has codes from 0x00 to 0x1f.
+			if (((unsigned char)*src_ptr & 0xe0) == 0) { // control
+				snprintf(buf, sizeof(buf), "\\x%02x",
+					(unsigned char)*src_ptr);
+				buf[4] = '\0'; // for safety
+			} else {
+				buf[0] = *src_ptr; // Common character
+				buf[1] = '\0';
+			}
+			esc = buf;
+			break;
+		}
+
+		len = strlen(esc);
+		memcpy(dst_ptr, esc, len); // zmalloc() nullify the rest
+		dst_ptr += len;
+		src_ptr++;
+	}
+
+	escaped = faux_str_dup(dst); // Free some memory
+	faux_str_free(dst); // 'dst' size >= 'escaped' size
+
+	return escaped;
+}
+
 
 /* TODO: If it nedeed?
 const char *faux_str_nextword(const char *string,
