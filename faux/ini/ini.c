@@ -214,6 +214,22 @@ const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
 }
 
 
+/** Service function to purify (clean out spaces, quotes) word.
+ *
+ * The 'word' in this case is a string without prepending or trailing spaces.
+ * If 'word' is quoted then it can contain spaces within quoting. The qoutes
+ * itself is not part of the 'word'. If 'word' is not quoted then it can't
+ * contain spaces, so the end of 'word' is a first space after non-space
+ * characters. The function searchs for the first occurence of 'word' within
+ * specified string, allocates memory and returns purified copy of the word.
+ * The return value must be faux_str_free()-ed later.
+ *
+ * Now the unclosed quoting is not an error. Suppose the end of the line can
+ * close quoting.
+ *
+ * @param [in] str String to find word in it.
+ * @return Purified copy of word or NULL.
+ */
 static char *faux_ini_purify_word(const char *str)
 {
 	const char *word;
@@ -264,6 +280,7 @@ static char *faux_ini_purify_word(const char *str)
 
 	return faux_str_dupn(word, len);
 }
+
 
 /** @brief Parse string for pairs 'name/value'.
  *
