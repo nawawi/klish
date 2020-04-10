@@ -345,6 +345,7 @@ char *faux_str_c_esc(const char *src) {
 	assert(dst);
 	if (!dst)
 		return NULL;
+	dst_ptr = dst;
 
 	while (*src_ptr != '\0') {
 		char *esc = NULL; // escaped replacement
