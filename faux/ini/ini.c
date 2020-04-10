@@ -427,3 +427,50 @@ error:
 
 	return ret;
 }
+
+
+/** Writes INI file using INI object.
+ *
+ * Write pairs 'name/value' to INI file. The source of pairs is an INI object.
+ * It's complementary operation to faux_ini_parse_file().
+ *
+ * @param [in] ini Allocated and initialized INI object.
+ * @param [in] fn File name to write to.
+ * @return 0 - success, < 0 - error
+ */
+int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
+
+	FILE *fd = NULL;
+	faux_ini_node_t *iter = NULL;
+	const faux_pair_t *pair = NULL;
+
+	assert(ini);
+	assert(fn);
+	if (!ini)
+		return -1;
+	if (!fn || '\0' == *fn)
+		return -1;
+
+	fd = fopen(fn, "w");
+	if (!fd)
+		return -1;
+
+	iter = faux_ini_init_iter(ini);
+	while ((pair = faux_ini_each(&iter))) {
+		char *quote = NULL;
+		const char *name = faux_pair_name(pair);
+		const char *value = faux_pair_value(pair);
+
+		// Print name field
+		quote = strchr(name, ' ') ? "" : "\""; // Word with spaces needs quotes
+		fprintf(fd, "%s%s%s=", quote, name, quote);
+
+		// Print value field
+		quote = strchr(value, ' ') ? "" : "\""; // Word with spaces needs quotes
+		fprintf(fd, "%s%s%s\n", quote, value, quote);
+	}
+
+	fclose(fd);
+
+	return 0;
+}
