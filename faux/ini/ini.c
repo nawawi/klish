@@ -395,6 +395,9 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 		return -1;
 
 	buf = faux_zmalloc(size);
+	assert(buf);
+	if (!buf)
+		goto error;
 	while (fgets(buf + bytes_readed, size - bytes_readed, fd)) {
 
 		// Not enough space in buffer. Make it larger.
