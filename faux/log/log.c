@@ -42,7 +42,7 @@ static struct log_name log_names[] = {
 	{"syslog", LOG_SYSLOG},
 	{"user", LOG_USER},
 	{"uucp", LOG_UUCP},
-	{NULL, 0},		// end of list
+	{NULL, 0}, // end of list
 };
 
 /** @brief Parses syslog facility string and returns the facility id.
@@ -56,12 +56,13 @@ static struct log_name log_names[] = {
  */
 int faux_log_facility(const char *str, int *facility) {
 
-	int i;
+	int i = 0;
 
 	assert(facility);
 	assert(str);
 	if (!str || !facility)
 		return -1;
+
 	for (i = 0; log_names[i].name; i++) {
 		if (faux_str_casecmp(str, log_names[i].name) == 0) {
 			*facility = log_names[i].facility;
