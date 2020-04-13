@@ -235,8 +235,8 @@ int faux_str_casecmpn(const char *str1, const char *str2, size_t n) {
 	size_t num = n;
 
 	while (*p1 != '\0' && *p2 != '\0' && num != 0) {
-		int res = faux_str_cmp_chars(faux_ctype_tolower(*p1),
-			faux_ctype_tolower(*p2));
+		int res = faux_str_cmp_chars(
+			faux_ctype_tolower(*p1), faux_ctype_tolower(*p2));
 		if (res != 0)
 			return res;
 		p1++;
@@ -247,8 +247,8 @@ int faux_str_casecmpn(const char *str1, const char *str2, size_t n) {
 	if (0 == n) // It means n first characters are equal.
 		return 0;
 
-	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
-		faux_ctype_tolower(*p2));
+	return faux_str_cmp_chars(
+		faux_ctype_tolower(*p1), faux_ctype_tolower(*p2));
 }
 
 
@@ -268,16 +268,16 @@ int faux_str_casecmp(const char *str1, const char *str2) {
 	const char *p2 = str2;
 
 	while (*p1 != '\0' && *p2 != '\0') {
-		int res = faux_str_cmp_chars(faux_ctype_tolower(*p1),
-			faux_ctype_tolower(*p2));
+		int res = faux_str_cmp_chars(
+			faux_ctype_tolower(*p1), faux_ctype_tolower(*p2));
 		if (res != 0)
 			return res;
 		p1++;
 		p2++;
 	}
 
-	return faux_str_cmp_chars(faux_ctype_tolower(*p1),
-		faux_ctype_tolower(*p2));
+	return faux_str_cmp_chars(
+		faux_ctype_tolower(*p1), faux_ctype_tolower(*p2));
 }
 
 
@@ -532,7 +532,6 @@ char *lub_string_encode(const char *string, const char *escape_chars)
 	return result;
 }
 */
-
 
 
 // TODO: Is it needed?

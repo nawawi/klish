@@ -153,8 +153,8 @@ void *faux_list_each(faux_list_node_t **iter) {
  * @param [in] freeFn Callback function to free user data.
  * @return Newly created bidirectional list or NULL on error.
  */
-faux_list_t *faux_list_new(faux_list_compare_fn compareFn,
-	faux_list_free_fn freeFn) {
+faux_list_t *faux_list_new(
+	faux_list_compare_fn compareFn, faux_list_free_fn freeFn) {
 
 	faux_list_t *list = NULL;
 
@@ -253,8 +253,8 @@ size_t faux_list_len(const faux_list_t *list) {
  * identical entry. Or NULL if find is false.
  * @return Newly added list node.
  */
-static faux_list_node_t *faux_list_add_generic(faux_list_t *list, void *data,
-	bool_t uniq, bool_t find) {
+static faux_list_node_t *faux_list_add_generic(
+	faux_list_t *list, void *data, bool_t uniq, bool_t find) {
 
 	faux_list_node_t *node = NULL;
 	faux_list_node_t *iter = NULL;
@@ -494,8 +494,8 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 void *faux_list_match(const faux_list_t *list, faux_list_match_fn matchFn,
 	const void *userkey, faux_list_node_t **saveptr) {
 
-	faux_list_node_t *res = faux_list_match_node(list, matchFn,
-		userkey, saveptr);
+	faux_list_node_t *res =
+		faux_list_match_node(list, matchFn, userkey, saveptr);
 	if (!res)
 		return NULL;
 

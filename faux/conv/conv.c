@@ -192,8 +192,8 @@ int faux_conv_atoui(const char *str, unsigned int *val, int base) {
  * @param [in] base Base to convert.
  * @return 0 - success, < 0 - error
  */
-int faux_conv_atos(const char *str, short *val, int base)
-{
+int faux_conv_atos(const char *str, short *val, int base) {
+
 	long int tmp = 0;
 
 	if (faux_conv_atol(str, &tmp, base) < 0)
@@ -217,8 +217,8 @@ int faux_conv_atos(const char *str, short *val, int base)
  * @param [in] base Base to convert.
  * @return 0 - success, < 0 - error
  */
-int faux_conv_atous(const char *str, unsigned short *val, int base)
-{
+int faux_conv_atous(const char *str, unsigned short *val, int base) {
+
 	unsigned long int tmp = 0;
 
 	if (faux_conv_atoul(str, &tmp, base) < 0)
@@ -242,8 +242,8 @@ int faux_conv_atous(const char *str, unsigned short *val, int base)
  * @param [in] base Base to convert.
  * @return 0 - success, < 0 - error
  */
-int faux_conv_atoc(const char *str, char *val, int base)
-{
+int faux_conv_atoc(const char *str, char *val, int base) {
+
 	long int tmp = 0;
 
 	if (faux_conv_atol(str, &tmp, base) < 0)
@@ -267,8 +267,8 @@ int faux_conv_atoc(const char *str, char *val, int base)
  * @param [in] base Base to convert.
  * @return 0 - success, < 0 - error
  */
-int faux_conv_atouc(const char *str, unsigned char *val, int base)
-{
+int faux_conv_atouc(const char *str, unsigned char *val, int base) {
+
 	unsigned long int tmp = 0;
 
 	if (faux_conv_atoul(str, &tmp, base) < 0)

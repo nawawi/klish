@@ -64,8 +64,8 @@ char faux_ctype_tolower(char c) {
  * @param [in] c Character to convert.
  * @return Converted character.
  */
-char faux_ctype_toupper(char c)
-{
+char faux_ctype_toupper(char c) {
+
 	// toupper() man says that argument must be unsigned char
 	return toupper((unsigned char)c);
 }

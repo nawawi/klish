@@ -111,7 +111,7 @@ struct group *faux_sysdb_getgrnam(const char *name) {
 
 	long int size;
 	char *buf;
-	struct group *grbuf; 
+	struct group *grbuf;
 	struct group *gr = NULL;
 	int res = 0;
 

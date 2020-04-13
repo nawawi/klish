@@ -69,7 +69,8 @@ void faux_ini_free(faux_ini_t *ini) {
  * NULL if entry was removed (value == NULL)
  * NULL on error
  */
-const faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *value) {
+const faux_pair_t *faux_ini_set(
+	faux_ini_t *ini, const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;
 	faux_list_node_t *node = NULL;
@@ -103,7 +104,8 @@ const faux_pair_t *faux_ini_set(faux_ini_t *ini, const char *name, const char *v
 	found_pair = faux_list_data(node);
 	if (found_pair != pair) { // Item already exists so use existent
 		faux_pair_free(pair);
-		faux_pair_set_value(found_pair, value); // Replace value by new one
+		faux_pair_set_value(
+			found_pair, value); // Replace value by new one
 		return found_pair;
 	}
 
@@ -230,8 +232,7 @@ const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
  * @param [in] str String to find word in it.
  * @return Purified copy of word or NULL.
  */
-static char *faux_ini_purify_word(const char *str)
-{
+static char *faux_ini_purify_word(const char *str) {
 	const char *word;
 	const char *string = str;
 	bool_t quoted = BOOL_FALSE;
@@ -310,8 +311,8 @@ int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
 
 	buffer = faux_str_dup(string);
 	// Now loop though each line
-	for (line = strtok_r(buffer, "\n\r", &saveptr);
-		line; line = strtok_r(NULL, "\n\r", &saveptr)) {
+	for (line = strtok_r(buffer, "\n\r", &saveptr); line;
+		line = strtok_r(NULL, "\n\r", &saveptr)) {
 
 		// Now 'line' contain one 'name/value' pair. Single line.
 		char *str = NULL;
@@ -401,11 +402,11 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 	while (fgets(buf + bytes_readed, size - bytes_readed, fd)) {
 
 		// Not enough space in buffer. Make it larger.
-		if (feof(fd) == 0 &&
-			!strchr(buf + bytes_readed, '\n') &&
+		if (feof(fd) == 0 && !strchr(buf + bytes_readed, '\n') &&
 			!strchr(buf + bytes_readed, '\r')) {
 			char *tmp = NULL;
-			bytes_readed = size - 1; // fgets() put '\0' to last byte
+			bytes_readed =
+				size - 1; // fgets() put '\0' to last byte
 			size += chunk_size;
 			tmp = realloc(buf, size);
 			if (!tmp) // Memory problems
@@ -462,11 +463,13 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 		const char *value = faux_pair_value(pair);
 
 		// Print name field
-		quote = strchr(name, ' ') ? "" : "\""; // Word with spaces needs quotes
+		// Word with spaces needs quotes
+		quote = strchr(name, ' ') ? "" : "\"";
 		fprintf(fd, "%s%s%s=", quote, name, quote);
 
 		// Print value field
-		quote = strchr(value, ' ') ? "" : "\""; // Word with spaces needs quotes
+		// Word with spaces needs quotes
+		quote = strchr(value, ' ') ? "" : "\"";
 		fprintf(fd, "%s%s%s\n", quote, value, quote);
 	}
 
