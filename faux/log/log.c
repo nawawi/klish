@@ -16,31 +16,31 @@ static struct {
 	const char *name;
 	int facility;
 } log_names[] = {
-       { "local0", LOG_LOCAL0 },
-       { "local1", LOG_LOCAL1 },
-       { "local2", LOG_LOCAL2 },
-       { "local3", LOG_LOCAL3 },
-       { "local4", LOG_LOCAL4 },
-       { "local5", LOG_LOCAL5 },
-       { "local6", LOG_LOCAL6 },
-       { "local7", LOG_LOCAL7 },
-       { "auth", LOG_AUTH },
+	{ "local0", LOG_LOCAL0 },
+	{ "local1", LOG_LOCAL1 },
+	{ "local2", LOG_LOCAL2 },
+	{ "local3", LOG_LOCAL3 },
+	{ "local4", LOG_LOCAL4 },
+	{ "local5", LOG_LOCAL5 },
+	{ "local6", LOG_LOCAL6 },
+	{ "local7", LOG_LOCAL7 },
+	{ "auth", LOG_AUTH },
 #ifdef LOG_AUTHPRIV
-       { "authpriv", LOG_AUTHPRIV },
+	{ "authpriv", LOG_AUTHPRIV },
 #endif
-       { "cron", LOG_CRON },
-       { "daemon", LOG_DAEMON },
+	{ "cron", LOG_CRON },
+	{ "daemon", LOG_DAEMON },
 #ifdef LOG_FTP
-       { "ftp", LOG_FTP },
+	{ "ftp", LOG_FTP },
 #endif
-       { "kern", LOG_KERN },
-       { "lpr", LOG_LPR },
-       { "mail", LOG_MAIL },
-       { "news", LOG_NEWS },
-       { "syslog", LOG_SYSLOG },
-       { "user", LOG_USER },
-       { "uucp", LOG_UUCP },
-       { NULL, 0 }, // end of list
+	{ "kern", LOG_KERN },
+	{ "lpr", LOG_LPR },
+	{ "mail", LOG_MAIL },
+	{ "news", LOG_NEWS },
+	{ "syslog", LOG_SYSLOG },
+	{ "user", LOG_USER },
+	{ "uucp", LOG_UUCP },
+	{ NULL, 0 }, // end of list
 };
 
 /** @brief Parses syslog facility string and returns the facility id.
