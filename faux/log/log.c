@@ -65,5 +65,6 @@ int faux_log_facility(const char *str, int *facility) {
 			return 0;
 		}
 	}
+
 	return -1;
 }
