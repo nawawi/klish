@@ -6,11 +6,42 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 
+#include <assert.h>
 #include <syslog.h>
 
 #include "faux/str.h"
 #include "faux/log.h"
 
+static struct {
+	const char *name;
+	int facility;
+} log_names[] = {
+	{ "local0", LOG_LOCAL0 },
+	{ "local1", LOG_LOCAL1 },
+	{ "local2", LOG_LOCAL2 },
+	{ "local3", LOG_LOCAL3 },
+	{ "local4", LOG_LOCAL4 },
+	{ "local5", LOG_LOCAL5 },
+	{ "local6", LOG_LOCAL6 },
+	{ "local7", LOG_LOCAL7 },
+	{ "auth", LOG_AUTH },
+#ifdef LOG_AUTHPRIV
+	{ "authpriv", LOG_AUTHPRIV },
+#endif
+	{ "cron", LOG_CRON },
+	{ "daemon", LOG_DAEMON },
+#ifdef LOG_FTP
+	{ "ftp", LOG_FTP },
+#endif
+	{ "kern", LOG_KERN },
+	{ "lpr", LOG_LPR },
+	{ "mail", LOG_MAIL },
+	{ "news", LOG_NEWS },
+	{ "syslog", LOG_SYSLOG },
+	{ "user", LOG_USER },
+	{ "uucp", LOG_UUCP },
+	{ NULL, 0 }, // end of list
+};
 
 /** @brief Parses syslog facility string and returns the facility id.
  *
@@ -23,52 +54,17 @@
  */
 int faux_log_facility(const char *str, int *facility) {
 
-	if (faux_str_casecmp(str, "local0") == 0)
-		*facility = LOG_LOCAL0;
-	else if (faux_str_casecmp(str, "local1") == 0)
-		*facility = LOG_LOCAL1;
-	else if (faux_str_casecmp(str, "local2") == 0)
-		*facility = LOG_LOCAL2;
-	else if (faux_str_casecmp(str, "local3") == 0)
-		*facility = LOG_LOCAL3;
-	else if (faux_str_casecmp(str, "local4") == 0)
-		*facility = LOG_LOCAL4;
-	else if (faux_str_casecmp(str, "local5") == 0)
-		*facility = LOG_LOCAL5;
-	else if (faux_str_casecmp(str, "local6") == 0)
-		*facility = LOG_LOCAL6;
-	else if (faux_str_casecmp(str, "local7") == 0)
-		*facility = LOG_LOCAL7;
-	else if (faux_str_casecmp(str, "auth") == 0)
-		*facility = LOG_AUTH;
-#ifdef LOG_AUTHPRIV
-	else if (faux_str_casecmp(str, "authpriv") == 0)
-		*facility = LOG_AUTHPRIV;
-#endif
-	else if (faux_str_casecmp(str, "cron") == 0)
-		*facility = LOG_CRON;
-	else if (faux_str_casecmp(str, "daemon") == 0)
-		*facility = LOG_DAEMON;
-#ifdef LOG_FTP
-	else if (faux_str_casecmp(str, "ftp") == 0)
-		*facility = LOG_FTP;
-#endif
-	else if (faux_str_casecmp(str, "kern") == 0)
-		*facility = LOG_KERN;
-	else if (faux_str_casecmp(str, "lpr") == 0)
-		*facility = LOG_LPR;
-	else if (faux_str_casecmp(str, "mail") == 0)
-		*facility = LOG_MAIL;
-	else if (faux_str_casecmp(str, "news") == 0)
-		*facility = LOG_NEWS;
-	else if (faux_str_casecmp(str, "syslog") == 0)
-		*facility = LOG_SYSLOG;
-	else if (faux_str_casecmp(str, "user") == 0)
-		*facility = LOG_USER;
-	else if (faux_str_casecmp(str, "uucp") == 0)
-		*facility = LOG_UUCP;
-	else
+	int i;
+	assert(facility);
+	assert(str);
+	if (!str || !facility)
 		return -1;
+	for (i = 0; log_names[i].name; i++) {
+		if (faux_str_casecmp(str, log_names[i].name) == 0) {
+			*facility = log_names[i].facility;
+			return 0;
+		}
+	}
 
-	return 0;
+	return -1;
 }
