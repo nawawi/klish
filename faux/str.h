@@ -30,6 +30,7 @@ char *faux_str_toupper(const char *str);
 int faux_str_casecmpn(const char *str1, const char *str2, size_t n);
 int faux_str_casecmp(const char *str1, const char *str2);
 char *faux_str_casestr(const char *haystack, const char *needle);
+char *faux_str_charsn(const char *str, const char *chars_to_search, size_t n);
 
 
 //const char *faux_str_suffix(const char *string);

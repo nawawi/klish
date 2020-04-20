@@ -66,6 +66,7 @@ void faux_bzero(void *ptr, size_t size) {
 	memset(ptr, '\0', size);
 }
 
+
 /** The malloc() implementation with writing zeroes to allocated buffer.
  *
  * The POSIX defines calloc() function to allocate memory and write zero bytes
