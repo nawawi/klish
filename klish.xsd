@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://clish.sourceforge.net/XMLSchema" targetNamespace="http://clish.sourceforge.net/XMLSchema">
 
-<!--
-***********************************************************
-* Forward declare the main element identifiers
-***********************************************************
--->
-	<xs:element name="CLISH_MODULE" type="clish_module_t"/>
+
+	<xs:annotation>
+		<xs:appinfo>XML schema for klish configuration files</xs:appinfo>
+		<xs:documentation xml:lang="en">
+		The klish utility uses XML files for configuration. This schema
+		allows to validate klish XML files. To check XML files use the
+		following command:
+		'xmllint --schema /path/to/klish.xsd --noout *.xml'
+		</xs:documentation>
+		<xs:documentation xml:lang="ru">
+		Утилита klish использует формат XML для своих конфигурационных
+		файлов. Схема позволяет проверить эти конфигурационные XML файлы
+		на правильность. Следующая команда выполнит проверку:
+		'xmllint --schema /path/to/klish.xsd --noout *.xml'
+		</xs:documentation>
+	</xs:annotation>
+
+
+	<xs:element name="KLISH" type="klish_t"/>
 	<xs:element name="VIEW" type="view_t"/>
 	<xs:element name="COMMAND" type="command_t"/>
 	<xs:element name="FILTER" type="command_t"/>
@@ -17,33 +30,27 @@
 	<xs:element name="PTYPE" type="ptype_t"/>
 	<xs:element name="PARAM" type="param_t"/>
 	<xs:element name="NAMESPACE" type="namespace_t"/>
-	<xs:element name="CONFIG" type="config_t"/>
 	<xs:element name="VAR" type="var_t"/>
 	<xs:element name="WATCHDOG" type="wdog_t"/>
 	<xs:element name="HOTKEY" type="hotkey_t"/>
 	<xs:element name="PLUGIN" type="plugin_t"/>
 	<xs:element name="HOOK" type="hook_t"/>
- 
-<!--
-***********************************************************
-* The common simple types
-***********************************************************
--->
-	<xs:simpleType name="bool_t">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="true"/>
-			<xs:enumeration value="false"/>
-		</xs:restriction>
-	</xs:simpleType>
 
-<!--
-***********************************************************
-* <CLISH_MODULE> is the top level container.
-* Any commands which are defined within this tag are global in scope 
-* i.e. they are visible from all views.
-***********************************************************
--->
-	<xs:complexType name="clish_module_t">
+
+	<xs:complexType name="klish_t">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+			'KLISH' is the top level container. Any object (command,
+			type, var) which are defined within this tag are global
+			in scope i.e. it is visible from all 'VIEW's.
+			</xs:documentation>
+			<xs:documentation xml:lang="ru">
+			Тег 'KLISH' - контейнер верхнего уровня. Все остальные
+			теги должны быть вложенными. Любой объект (команда,
+			тип, переменная т.д.), заданный внутри этого тега,
+			считается глобальным, т.е. видимым их любых 'VIEW".
+			</xs:documentation>
+		</xs:annotation>
 		<xs:sequence>
 			<xs:element ref="OVERVIEW" minOccurs="0"/>
 			<xs:element ref="STARTUP" minOccurs="0"/>
@@ -220,9 +227,7 @@
 		<xs:attribute name="viewid" type="xs:string" use="optional"/>
 		<xs:attribute name="default_shebang" type="xs:string" use="optional"/>
 		<xs:attribute name="timeout" type="xs:string" use="optional"/>
-		<xs:attribute name="default_plugin" type="bool_t" use="optional" default="true"/>
-<!-- legacy -->	<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
-<!-- legacy -->	<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
+		<xs:attribute name="default_plugin" type="xs:boolean" use="optional" default="true"/>
 	</xs:complexType>
 
 <!--
@@ -263,23 +268,12 @@
 *	parameter. If the "args" attribute is given then this MUST be
 *	given also.
 *
-* [lock] - !legacy! the boolean field that specify to lock lockfile while
-*	command execution or not. Default is true. Will be used in a case
-*	when klish was built with LEGACY macro. The attribute is moved
-	to ACTION tag.
-*
-* [interrupt] - !legacy! the boolean field that specify that action can be
-*	be interrupted by Ctrl^C. Will be used in a case
-*	when klish was built with LEGACY macro. The attribute is moved
-*	to ACTION tag.
-*
 ********************************************************
 -->
 	<xs:complexType name="command_t">
 		<xs:sequence>
 			<xs:element ref="DETAIL" minOccurs="0"/>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="CONFIG" minOccurs="0"/>
 			<xs:element ref="ACTION" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attributeGroup ref="menu_item_g"/>
@@ -290,8 +284,6 @@
 		<xs:attribute name="args" type="xs:string" use="optional"/>
 		<xs:attribute name="args_help" type="xs:string" use="optional"/>
 		<xs:attribute name="escape_chars" type="xs:string" use="optional"/>
-<!-- legacy -->	<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
-<!-- legacy -->	<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
 	</xs:complexType>
 
 <!--
@@ -364,10 +356,10 @@
 		<xs:attribute name="default" type="xs:string" use="optional"/>
 		<xs:attribute name="prefix" type="xs:string" use="optional"/>
 		<xs:attribute name="mode" type="param_mode_t" use="optional" default="common"/>
-		<xs:attribute name="optional" type="bool_t" use="optional" default="false"/>
-		<xs:attribute name="order" type="bool_t" use="optional" default="false"/>
+		<xs:attribute name="optional" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
-		<xs:attribute name="hidden" type="bool_t" use="optional" default="false"/>
+		<xs:attribute name="hidden" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="test" type="xs:string" use="optional"/>
 		<xs:attribute name="completion" type="xs:string" use="optional"/>
 		<xs:attribute name="access" type="xs:string" use="optional"/>
@@ -418,9 +410,9 @@
 			<xs:extension base="xs:string">
 				<xs:attribute name="builtin" type="xs:string" use="optional"/>
 				<xs:attribute name="shebang" type="xs:string" use="optional"/>
-				<xs:attribute name="lock" type="bool_t" use="optional" default="true"/>
-				<xs:attribute name="interrupt" type="bool_t" use="optional" default="false"/>
-				<xs:attribute name="interactive" type="bool_t" use="optional" default="false"/>
+				<xs:attribute name="lock" type="xs:boolean" use="optional" default="true"/>
+				<xs:attribute name="interrupt" type="xs:boolean" use="optional" default="false"/>
+				<xs:attribute name="interactive" type="xs:boolean" use="optional" default="false"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
@@ -492,39 +484,11 @@
 		<xs:attribute name="ref" type="xs:string" use="required"/>
 		<xs:attribute name="prefix" type="xs:string" use="optional"/>
 		<xs:attribute name="prefix_help" type="xs:string" use="optional"/>
-		<xs:attribute name="help" type="bool_t" use="optional" default="false"/>
-		<xs:attribute name="completion" type="bool_t" use="optional" default="true"/>
-		<xs:attribute name="context_help" type="bool_t" use="optional" default="false"/>
-		<xs:attribute name="inherit" type="bool_t" use="optional" default="true"/>
+		<xs:attribute name="help" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="completion" type="xs:boolean" use="optional" default="true"/>
+		<xs:attribute name="context_help" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="inherit" type="xs:boolean" use="optional" default="true"/>
 		<xs:attribute name="access" type="xs:string" use="optional"/>
-	</xs:complexType>
-
-<!--
-*******************************************************
-* <CONFIG> Specify the config operation.
-*
-* operation - config operation to perform
-*
-********************************************************
--->
-	<xs:simpleType name="operation_t">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="none"/>
-			<xs:enumeration value="set"/>
-			<xs:enumeration value="unset"/>
-			<xs:enumeration value="dump"/>
-		</xs:restriction>
-	</xs:simpleType>
-
-	<xs:complexType name="config_t">
-		<xs:attribute name="operation" type="operation_t" use="optional" default="set"/>
-		<xs:attribute name="priority" type="xs:string" use="optional" default="0x7f00"/>
-		<xs:attribute name="pattern" type="xs:string" use="optional" default="^${__cmd}"/>
-		<xs:attribute name="file" type="xs:string" use="optional" default="startup-config"/>
-		<xs:attribute name="splitter" type="bool_t" use="optional" default="true"/>
-		<xs:attribute name="sequence" type="xs:string" use="optional" default="0"/>
-		<xs:attribute name="unique" type="bool_t" use="optional" default="true"/>
-		<xs:attribute name="depth" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 <!--
@@ -542,7 +506,7 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
-		<xs:attribute name="dynamic" type="bool_t" use="optional" default="false"/>
+		<xs:attribute name="dynamic" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 <!--
@@ -583,7 +547,7 @@
 				<xs:attribute name="name" type="xs:string" use="required"/>
 				<xs:attribute name="alias" type="xs:string" use="optional"/>
 				<xs:attribute name="file" type="xs:string" use="optional"/>
-				<xs:attribute name="rtld_global" type="bool_t" use="optional" default="false"/>
+				<xs:attribute name="rtld_global" type="xs:boolean" use="optional" default="false"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
@@ -592,7 +556,7 @@
 *******************************************************
 * <HOOK> is used to redefine internal hooks
 *
-* name - The name of internal hook (init, fini, access, config, log).
+* name - The name of internal hook (init, fini, access, log).
 *
 * [builtin] - specify the name of an internally registered
 *	function.
@@ -604,7 +568,6 @@
 			<xs:enumeration value="init"/>
 			<xs:enumeration value="fini"/>
 			<xs:enumeration value="access"/>
-			<xs:enumeration value="config"/>
 			<xs:enumeration value="log"/>
 		</xs:restriction>
 	</xs:simpleType>
