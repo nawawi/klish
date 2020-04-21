@@ -239,3 +239,33 @@ char *faux_file_getline(faux_file_t *f) {
 	// The last line can be without eol. Consider it as a line too
 	return faux_file_takeaway_rest(f);
 }
+
+
+ssize_t faux_file_write(faux_file_t *f, const void *buf, size_t n) {
+
+	ssize_t bytes_written = 0;
+	size_t left = n;
+	const void *data = buf;
+
+	assert(f);
+	assert(buf);
+	if (!f || !buf)
+		return -1;
+	if (0 == n)
+		return 0;
+
+	do {
+		bytes_written = write(f->fd, data, left);
+		if (bytes_written < 0) {
+			if (EINTR == errno)
+				continue;
+			return -1;
+		}
+		if (0 == bytes_written) // Insufficient space
+			return -1;
+		data += bytes_written;
+		left = left - bytes_written;
+	} while (left > 0);
+
+	return n;
+}

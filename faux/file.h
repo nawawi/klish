@@ -22,6 +22,7 @@ int faux_file_close(faux_file_t *file);
 int faux_file_fileno(faux_file_t *file);
 bool_t faux_file_eof(const faux_file_t *file);
 char *faux_file_getline(faux_file_t *file);
+ssize_t faux_file_write(faux_file_t *file, const void *buf, size_t n);
 
 C_DECL_END
 

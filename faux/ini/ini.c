@@ -421,10 +421,10 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
  */
 int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 
-	FILE *fd = NULL;
+	faux_file_t *f = NULL;
 	faux_ini_node_t *iter = NULL;
 	const faux_pair_t *pair = NULL;
-	const char *spaces = " \t";
+	const char *spaces = " \t"; // String with spaces needs quotes
 
 	assert(ini);
 	assert(fn);
@@ -433,28 +433,42 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 	if (!fn || '\0' == *fn)
 		return -1;
 
-	fd = fopen(fn, "w");
-	if (!fd)
+	f = faux_file_open(fn, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (!f)
 		return -1;
 
 	iter = faux_ini_iter(ini);
 	while ((pair = faux_ini_each(&iter))) {
-		char *quote = NULL;
+		char *quote_name = NULL;
+		char *quote_value = NULL;
 		const char *name = faux_pair_name(pair);
 		const char *value = faux_pair_value(pair);
+		char *line = NULL;
+		ssize_t bytes_written = 0;
 
-		// Print name field
 		// Word with spaces needs quotes
-		quote = faux_str_chars(name, spaces) ? "\"" : "";
-		fprintf(fd, "%s%s%s=", quote, name, quote);
+		quote_name = faux_str_chars(name, spaces) ? "\"" : "";
+		quote_value = faux_str_chars(value, spaces) ? "\"" : "";
 
-		// Print value field
-		// Word with spaces needs quotes
-		quote = faux_str_chars(value, spaces) ? "\"" : "";
-		fprintf(fd, "%s%s%s\n", quote, value, quote);
+		// Prepare INI line
+		faux_str_cat(&line, quote_name);
+		faux_str_cat(&line, name);
+		faux_str_cat(&line, quote_name);
+		faux_str_cat(&line, "=");
+		faux_str_cat(&line, quote_value);
+		faux_str_cat(&line, value);
+		faux_str_cat(&line, quote_value);
+		faux_str_cat(&line, "\n");
+
+		bytes_written = faux_file_write(f, line, strlen(line));
+		faux_str_free(line);
+		if (bytes_written < 0) { // Can't write to file
+			faux_file_close(f);
+			return -1;
+		}
 	}
 
-	fclose(fd);
+	faux_file_close(f);
 
 	return 0;
 }
