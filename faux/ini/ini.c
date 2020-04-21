@@ -424,6 +424,7 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 	FILE *fd = NULL;
 	faux_ini_node_t *iter = NULL;
 	const faux_pair_t *pair = NULL;
+	const char *spaces = " \t";
 
 	assert(ini);
 	assert(fn);
@@ -444,12 +445,12 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 
 		// Print name field
 		// Word with spaces needs quotes
-		quote = strchr(name, ' ') ? "\"" : "";
+		quote = faux_str_chars(name, spaces) ? "\"" : "";
 		fprintf(fd, "%s%s%s=", quote, name, quote);
 
 		// Print value field
 		// Word with spaces needs quotes
-		quote = strchr(value, ' ') ? "\"" : "";
+		quote = faux_str_chars(value, spaces) ? "\"" : "";
 		fprintf(fd, "%s%s%s\n", quote, value, quote);
 	}
 
