@@ -23,6 +23,7 @@ char *faux_str_dup(const char *str);
 
 char *faux_str_catn(char **str, const char *text, size_t n);
 char *faux_str_cat(char **str, const char *text);
+char *faux_str_vcat(char **str, ...);
 
 char *faux_str_tolower(const char *str);
 char *faux_str_toupper(const char *str);

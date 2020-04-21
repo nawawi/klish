@@ -10,6 +10,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "faux/ctype.h"
 #include "faux/str.h"
@@ -193,6 +194,32 @@ char *faux_str_cat(char **str, const char *text) {
 	len = strlen(text);
 
 	return faux_str_catn(str, text, len);
+}
+
+/** @brief Add some text to existent string.
+ *
+ * Concatenate two strings. Add second string to the end of the first one.
+ * The first argument is address of string pointer. The pointer can be
+ * changed due to realloc() features. The first pointer can be NULL. In this
+ * case the memory will be malloc()-ed and stored to the first pointer.
+ *
+ * @param [in,out] str Address of first string pointer.
+ * @param [in] text Text to add to the first string.
+ * @return Pointer to resulting string or NULL.
+ */
+char *faux_str_vcat(char **str, ...) {
+
+	va_list ap;
+	const char *arg = NULL;
+	char *retval = NULL;
+
+	va_start(ap, str);
+	while ((arg = va_arg(ap, const char *))) {
+		retval = faux_str_cat(str, arg);
+	}
+	va_end(ap);
+
+	return retval;
 }
 
 
