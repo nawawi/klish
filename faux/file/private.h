@@ -9,4 +9,5 @@ struct faux_file_s {
 	char *buf; // Data buffer
 	size_t buf_size; // Current buffer size
 	size_t len; // Current data length
+	bool_t eof; // EOF flag
 };

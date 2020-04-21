@@ -401,20 +401,20 @@ char *faux_str_c_esc(const char *src) {
 
 /** @brief Search the n-th chars of string for one of the specified chars.
  *
- *	The function search for any of specified characters within string.
- *	The search is limited to first n characters of the string. If
- *	terminating '\0' is before n-th character then search will stop on
- *	it.
+ * The function search for any of specified characters within string.
+ * The search is limited to first n characters of the string. If
+ * terminating '\0' is before n-th character then search will stop on
+ * it. Can be used with raw memory block.
  *
- *	@param [in] str String (or memory block) to search in.
- *	@param [in] chars_to_string Chars enumeration to search for.
- *	@return Pointer to the first occurence of one of specified chars.
- *		NULL on error.
+ * @param [in] str String (or memory block) to search in.
+ * @param [in] chars_to_string Chars enumeration to search for.
+ * @param [in] n Maximum number of bytes to search within.
+ * @return Pointer to the first occurence of one of specified chars.
+ * NULL on error.
  */
 char *faux_str_charsn(const char *str, const char *chars_to_search, size_t n) {
 
-	const char *current_char = NULL;
-	char *nullp = NULL;
+	const char *current_char = str;
 	size_t len = n;
 
 	assert(str);
@@ -422,22 +422,33 @@ char *faux_str_charsn(const char *str, const char *chars_to_search, size_t n) {
 	if (!str || !chars_to_search)
 		return NULL;
 
-	// May be '\0' is before n-th char
-	nullp = memchr(str, '\0', n);
-	if (nullp)
-		len = nullp - str;
-
-	current_char = chars_to_search;
-	while (*current_char != '\0') {
-		void *find = NULL;
-
-		find = memchr(str, *current_char, len);
-		if (find)
-			return (char *)find;
+	while ((*current_char != '\0') && (len > 0)) {
+		if (strchr(chars_to_search, *current_char))
+			return (char *)current_char;
 		current_char++;
+		len--;
 	}
 
 	return NULL;
+}
+
+
+/** @brief Search string for one of the specified chars.
+ *
+ * The function search for any of specified characters within string.
+ *
+ * @param [in] str String to search in.
+ * @param [in] chars_to_string Chars enumeration to search for.
+ * @return Pointer to the first occurence of one of specified chars.
+ * NULL on error.
+ */
+char *faux_str_chars(const char *str, const char *chars_to_search) {
+
+	assert(str);
+	if (!str)
+		return NULL;
+
+	return faux_str_charsn(str, chars_to_search, strlen(str));
 }
 
 /* TODO: If it nedeed?

@@ -11,6 +11,7 @@
 #include "private.h"
 #include "faux/faux.h"
 #include "faux/str.h"
+#include "faux/file.h"
 #include "faux/ini.h"
 
 
@@ -188,7 +189,7 @@ const char *faux_ini_find(const faux_ini_t *ini, const char *name) {
  * @return Initialized iterator.
  * @sa faux_ini_each()
  */
-faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
+faux_ini_node_t *faux_ini_iter(const faux_ini_t *ini) {
 
 	assert(ini);
 	if (!ini)
@@ -200,7 +201,7 @@ faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
 
 /** @brief Iterate entire INI object for pairs 'name/value'.
  *
- * Before iteration the iterator must be initialized by faux_ini_init_iter()
+ * Before iteration the iterator must be initialized by faux_ini_iter()
  * function. Doesn't use faux_ini_each() with uninitialized iterator.
  *
  * On each call function returns pair 'name/value' and modify iterator.
@@ -208,7 +209,7 @@ faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini) {
  *
  * @param [in,out] iter Iterator.
  * @return Pair 'name/value'.
- * @sa faux_ini_init_iter()
+ * @sa faux_ini_iter()
  */
 const faux_pair_t *faux_ini_each(faux_ini_node_t **iter) {
 
@@ -378,12 +379,9 @@ int faux_ini_parse_str(faux_ini_t *ini, const char *string) {
  */
 int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 
-	int ret = -1; // Pessimistic retval
-	FILE *fd = NULL;
+	bool_t eof = BOOL_FALSE;
+	faux_file_t *f = NULL;
 	char *buf = NULL;
-	unsigned int bytes_readed = 0;
-	const int chunk_size = 128;
-	int size = chunk_size; // Buffer size
 
 	assert(ini);
 	assert(fn);
@@ -391,42 +389,24 @@ int faux_ini_parse_file(faux_ini_t *ini, const char *fn) {
 		return -1;
 	if (!fn || '\0' == *fn)
 		return -1;
-	fd = fopen(fn, "r");
-	if (!fd)
+
+	f = faux_file_open(fn, O_RDONLY, 0);
+	if (!f)
 		return -1;
 
-	buf = faux_zmalloc(size);
-	assert(buf);
-	if (!buf)
-		goto error;
-	while (fgets(buf + bytes_readed, size - bytes_readed, fd)) {
-
-		// Not enough space in buffer. Make it larger.
-		if (feof(fd) == 0 && !strchr(buf + bytes_readed, '\n') &&
-			!strchr(buf + bytes_readed, '\r')) {
-			char *tmp = NULL;
-			bytes_readed =
-				size - 1; // fgets() put '\0' to last byte
-			size += chunk_size;
-			tmp = realloc(buf, size);
-			if (!tmp) // Memory problems
-				goto error;
-			buf = tmp;
-			continue; // Read the rest of line
-		}
-
+	while ((buf = faux_file_getline(f))) {
 		// Don't analyze retval because it's not obvious what
 		// to do on error. May be next string will be ok.
 		faux_ini_parse_str(ini, buf);
-		bytes_readed = 0;
+		faux_str_free(buf);
 	}
 
-	ret = 0;
-error:
-	faux_free(buf);
-	fclose(fd);
+	eof = faux_file_eof(f);
+	faux_file_close(f);
+	if (!eof) // File reading was interrupted before EOF
+		return -1;
 
-	return ret;
+	return 0;
 }
 
 
@@ -456,7 +436,7 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 	if (!fd)
 		return -1;
 
-	iter = faux_ini_init_iter(ini);
+	iter = faux_ini_iter(ini);
 	while ((pair = faux_ini_each(&iter))) {
 		char *quote = NULL;
 		const char *name = faux_pair_name(pair);
@@ -464,12 +444,12 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 
 		// Print name field
 		// Word with spaces needs quotes
-		quote = strchr(name, ' ') ? "" : "\"";
+		quote = strchr(name, ' ') ? "\"" : "";
 		fprintf(fd, "%s%s%s=", quote, name, quote);
 
 		// Print value field
 		// Word with spaces needs quotes
-		quote = strchr(value, ' ') ? "" : "\"";
+		quote = strchr(value, ' ') ? "\"" : "";
 		fprintf(fd, "%s%s%s\n", quote, value, quote);
 	}
 

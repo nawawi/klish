@@ -27,7 +27,7 @@ void faux_ini_unset(faux_ini_t *ini, const char *name);
 
 const faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name);
 const char *faux_ini_find(const faux_ini_t *ini, const char *name);
-faux_ini_node_t *faux_ini_init_iter(const faux_ini_t *ini);
+faux_ini_node_t *faux_ini_iter(const faux_ini_t *ini);
 const faux_pair_t *faux_ini_each(faux_ini_node_t **iter);
 
 int faux_ini_parse_str(faux_ini_t *ini, const char *str);
