@@ -451,10 +451,15 @@ int faux_ini_write_file(const faux_ini_t *ini, const char *fn) {
 		quote_value = faux_str_chars(value, spaces) ? "\"" : "";
 
 		// Prepare INI line
-		faux_str_vcat(&line,
-			quote_name, name, quote_name, "=",
-			quote_value, value, quote_value, "\n", NULL);
+		line = faux_str_sprintf("%s%s%s=%s%s%s\n",
+			quote_name, name, quote_name,
+			quote_value, value, quote_value);
+		if (!line) {
+			faux_file_close(f);
+			return -1;
+		}
 
+		// Write to file
 		bytes_written = faux_file_write(f, line, strlen(line));
 		faux_str_free(line);
 		if (bytes_written < 0) { // Can't write to file
