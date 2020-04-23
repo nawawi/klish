@@ -186,7 +186,7 @@ void *faux_list_eachr(faux_list_node_t **iter) {
  *
  * Prototypes for callback functions:
  * @code
- * int faux_list_cmp_fn(const void *new_item, const void *list_item);
+ * int (*faux_list_cmp_fn)(const void *new_item, const void *list_item);
  * void faux_list_free_fn(void *data);
  * @endcode
  *
@@ -506,7 +506,7 @@ int faux_list_del(faux_list_t *list, faux_list_node_t *node) {
  *
  * Prototype for matchFn callback function:
  * @code
- * int faux_list_kcmp_fn(const void *key, const void *list_item);
+ * int (*faux_list_kcmp_fn)(const void *key, const void *list_item);
  * @endcode
  *
  * @param [in] list List.
@@ -525,6 +525,7 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 	assert(matchFn);
 	if (!list || !matchFn || !list->head)
 		return NULL;
+
 	if (saveptr)
 		iter = *saveptr;
 	if (!iter)
@@ -533,13 +534,13 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 		int res = 0;
 		faux_list_node_t *node = iter;
 
-		iter = faux_list_next_node(iter);
+		iter = faux_list_next_node(node);
 		if (saveptr)
 			*saveptr = iter;
 		res = matchFn(userkey, faux_list_data(node));
 		if (0 == res)
 			return node;
-		if (res < 0) // No chances to find match
+		if (list->sorted && (res < 0)) // No chances to find match
 			return NULL;
 	}
 
