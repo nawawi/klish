@@ -30,7 +30,7 @@ faux_ini_t *faux_ini_new(void) {
 		return NULL;
 
 	// Init
-	ini->list = faux_list_new(faux_pair_compare, faux_pair_free);
+	ini->list = faux_list_new(BOOL_TRUE, BOOL_TRUE, faux_pair_compare, NULL, faux_pair_free);
 
 	return ini;
 }

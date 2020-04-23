@@ -48,17 +48,27 @@ static void help(int status, const char *argv0);
 int main(int argc, char *argv[]) {
 
 	opts_t *opts = NULL;
+	faux_list_node_t *iter = NULL;
+	char *so = NULL;
 
 #if HAVE_LOCALE_H
 	// Set current locale
 	setlocale(LC_ALL, "");
 #endif
 
+	// Parse command line options
 	opts = opts_parse(argc, argv);
 	if (!opts) {
 		fprintf(stderr, "Error: Can't parse command line options\n");
 		return -1;
 	}
+
+	iter = faux_list_head(opts->so_list);
+	while ((so = faux_list_each(&iter))) {
+		printf("%s\n", so);
+	}
+	
+
 
 	opts_free(opts);
 
@@ -89,7 +99,8 @@ static opts_t *opts_new(void) {
 	opts->debug = BOOL_FALSE;
 
 	// Members of list are static strings from argv so don't free() it
-	opts->so_list = faux_list_new(NULL, NULL);
+	opts->so_list = faux_list_new(BOOL_FALSE, BOOL_TRUE,
+		(faux_list_cmp_fn)strcmp, NULL, NULL);
 	if (!opts->so_list) {
 		opts_free(opts);
 		return NULL;
@@ -147,9 +158,9 @@ static opts_t *opts_parse(int argc, char *argv[]) {
 	}
 
 	if (optind < argc) {
-		int i;
-		for (i = argc - 1; i >= optind; i--)
-			faux_list_add_uniq(opts->so_list, argv[i]);
+		int i = 0;
+		for (i = optind; i < argc; i++)
+			faux_list_add(opts->so_list, argv[i]);
 	} else {
 		help(-1, argv[0]);
 		exit(-1);

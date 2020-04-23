@@ -119,6 +119,27 @@ faux_list_node_t *faux_list_each_node(faux_list_node_t **iter) {
 }
 
 
+/** @brief Iterate through each list node. Reverse order.
+ *
+ * On each call to this function the iterator will change its value.
+ * Before function using the iterator must be initialised by list tail node.
+ *
+ * @param [in,out] iter List node ptr used as an iterator.
+ * @return List node or NULL if list elements are over.
+ */
+faux_list_node_t *faux_list_eachr_node(faux_list_node_t **iter) {
+
+	faux_list_node_t *current_node = *iter;
+
+	// No assert() on current_node. NULL iterator is normal
+	if (!current_node)
+		return NULL;
+	*iter = faux_list_prev_node(current_node);
+
+	return current_node;
+}
+
+
 /** @brief Iterate through each list node and returns user data.
  *
  * On each call to this function the iterator will change its value.
@@ -140,23 +161,55 @@ void *faux_list_each(faux_list_node_t **iter) {
 }
 
 
+/** @brief Iterate (reverse order) through each list node and returns user data.
+ *
+ * On each call to this function the iterator will change its value.
+ * Before function using the iterator must be initialised by list head node.
+ *
+ * @param [in,out] iter List node ptr used as an iterator.
+ * @return User data or NULL if list elements are over.
+ */
+void *faux_list_eachr(faux_list_node_t **iter) {
+
+	faux_list_node_t *current_node = NULL;
+
+	// No assert() on current_node. NULL iterator is normal
+	if (!*iter)
+		return NULL;
+	current_node = faux_list_eachr_node(iter);
+
+	return faux_list_data(current_node);
+}
+
+
 /** @brief Allocate and initialize bidirectional list.
  *
  * Prototypes for callback functions:
  * @code
- * int faux_list_compare_fn(const void *first, const void *second);
+ * int faux_list_cmp_fn(const void *new_item, const void *list_item);
  * void faux_list_free_fn(void *data);
  * @endcode
  *
+ * @param [in] sorted If list is sorted - BOOL_TRUE, unsorted - BOOL_FALSE.
+ * @param [in] unique If list entry is unique - BOOL_TRUE, else - BOOL_FALSE.
  * @param [in] compareFn Callback function to compare two user data instances
  * to sort list.
  * @param [in] freeFn Callback function to free user data.
  * @return Newly created bidirectional list or NULL on error.
  */
-faux_list_t *faux_list_new(
-	faux_list_compare_fn compareFn, faux_list_free_fn freeFn) {
+faux_list_t *faux_list_new(bool_t sorted, bool_t unique,
+	faux_list_cmp_fn cmpFn, faux_list_kcmp_fn kcmpFn,
+	faux_list_free_fn freeFn) {
 
 	faux_list_t *list = NULL;
+
+	// Sorted list must have cmpFn
+	if (sorted && !cmpFn)
+		return NULL;
+
+	// Unique list must have cmpFn
+	if (unique && !cmpFn)
+		return NULL;
 
 	list = faux_zmalloc(sizeof(*list));
 	assert(list);
@@ -166,7 +219,10 @@ faux_list_t *faux_list_new(
 	// Initialize
 	list->head = NULL;
 	list->tail = NULL;
-	list->compareFn = compareFn;
+	list->sorted = sorted;
+	list->unique = unique;
+	list->cmpFn = cmpFn;
+	list->kcmpFn = kcmpFn;
 	list->freeFn = freeFn;
 	list->len = 0;
 
@@ -187,7 +243,6 @@ void faux_list_free(faux_list_t *list) {
 
 	faux_list_node_t *iter = NULL;
 
-	assert(list);
 	if (!list)
 		return;
 
@@ -247,14 +302,13 @@ size_t faux_list_len(const faux_list_t *list) {
  *
  * @param [in] list List to add node to.
  * @param [in] data User data for new list node.
- * @param [in] uniq - true/false Don't add entry with identical order
- * key (when the compareFn() returns 0)
+ * key (when the cmpFn() returns 0)
  * @param [in] find - true/false Function returns list node if there is
  * identical entry. Or NULL if find is false.
  * @return Newly added list node.
  */
 static faux_list_node_t *faux_list_add_generic(
-	faux_list_t *list, void *data, bool_t uniq, bool_t find) {
+	faux_list_t *list, void *data, bool_t find) {
 
 	faux_list_node_t *node = NULL;
 	faux_list_node_t *iter = NULL;
@@ -268,7 +322,7 @@ static faux_list_node_t *faux_list_add_generic(
 	if (!node)
 		return NULL;
 
-	// Empty list.
+	// Empty list
 	if (!list->head) {
 		list->head = node;
 		list->tail = node;
@@ -276,8 +330,21 @@ static faux_list_node_t *faux_list_add_generic(
 		return node;
 	}
 
-	// Not sorted list. Add to the tail.
-	if (!list->compareFn) {
+	// Non-sorted: Insert to tail
+	if (!list->sorted) {
+		// Unique: Search through whole list
+		if (list->unique) {
+			iter = list->tail;
+			while (iter) {
+				int res = list->cmpFn(node->data, iter->data);
+				if (0 == res) { // Already in list
+					faux_list_free_node(node);
+					return (find ? iter : NULL);
+				}
+				iter = iter->prev;
+			}
+		}
+		// Add entry to the tail
 		node->prev = list->tail;
 		node->next = NULL;
 		list->tail->next = node;
@@ -286,15 +353,16 @@ static faux_list_node_t *faux_list_add_generic(
 		return node;
 	}
 
-	// Sorted list.
+	// Sorted: Insert from tail
 	iter = list->tail;
 	while (iter) {
-		int res = list->compareFn(node->data, iter->data);
-
-		if (uniq && (0 == res)) {
+		int res = list->cmpFn(node->data, iter->data);
+		// Unique: Already exists
+		if (list->unique && (0 == res)) {
 			faux_list_free_node(node);
 			return (find ? iter : NULL);
 		}
+		// Non-unique: Entry will be inserted after existent one
 		if (res >= 0) {
 			node->next = iter->next;
 			node->prev = iter;
@@ -320,7 +388,7 @@ static faux_list_node_t *faux_list_add_generic(
 }
 
 
-/** @brief Adds user data (not unique) to the list.
+/** @brief Adds user data to the list.
  *
  * The user data is not unique. It means that two equal user data instances
  * can be added to the list.
@@ -331,23 +399,7 @@ static faux_list_node_t *faux_list_add_generic(
  */
 faux_list_node_t *faux_list_add(faux_list_t *list, void *data) {
 
-	return faux_list_add_generic(list, data, BOOL_FALSE, BOOL_FALSE);
-}
-
-
-/** @brief Adds user data (unique) to the list.
- *
- * The user data must be unique. It means that two equal user data instances
- * can not be added to the list. Function will return NULL if equal user
- * data is already in the list.
- *
- * @param [in] list List to add entry to.
- * @param [in] data User data.
- * @return Newly created list node or NULL on error.
- */
-faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data) {
-
-	return faux_list_add_generic(list, data, BOOL_TRUE, BOOL_FALSE);
+	return faux_list_add_generic(list, data, BOOL_FALSE);
 }
 
 
@@ -363,7 +415,17 @@ faux_list_node_t *faux_list_add_uniq(faux_list_t *list, void *data) {
  */
 faux_list_node_t *faux_list_add_find(faux_list_t *list, void *data) {
 
-	return faux_list_add_generic(list, data, BOOL_TRUE, BOOL_TRUE);
+	assert(list);
+	if (!list)
+		return NULL;
+
+	// Function add_find has no meaning for non-unique list. What is the
+	// function behaviour? It found entry. Must it return existent entry or
+	// add new non-unique entry?
+	if (!list->unique)
+		return NULL;
+
+	return faux_list_add_generic(list, data, BOOL_TRUE);
 }
 
 
@@ -444,7 +506,7 @@ int faux_list_del(faux_list_t *list, faux_list_node_t *node) {
  *
  * Prototype for matchFn callback function:
  * @code
- * int faux_list_match_fn(const void *key, const void *data);
+ * int faux_list_kcmp_fn(const void *key, const void *list_item);
  * @endcode
  *
  * @param [in] list List.
@@ -454,7 +516,7 @@ int faux_list_del(faux_list_t *list, faux_list_node_t *node) {
  * @return Matched list node.
  */
 faux_list_node_t *faux_list_match_node(const faux_list_t *list,
-	faux_list_match_fn matchFn, const void *userkey,
+	faux_list_kcmp_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr) {
 
 	faux_list_node_t *iter = NULL;
@@ -491,7 +553,7 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
  *
  * @sa faux_list_match_node()
  */
-void *faux_list_match(const faux_list_t *list, faux_list_match_fn matchFn,
+void *faux_list_match(const faux_list_t *list, faux_list_kcmp_fn matchFn,
 	const void *userkey, faux_list_node_t **saveptr) {
 
 	faux_list_node_t *res =
@@ -511,7 +573,7 @@ void *faux_list_match(const faux_list_t *list, faux_list_match_fn matchFn,
  * @sa faux_list_match_node()
  */
 faux_list_node_t *faux_list_find_node(const faux_list_t *list,
-	faux_list_match_fn matchFn, const void *userkey) {
+	faux_list_kcmp_fn matchFn, const void *userkey) {
 
 	return faux_list_match_node(list, matchFn, userkey, NULL);
 }
@@ -524,7 +586,7 @@ faux_list_node_t *faux_list_find_node(const faux_list_t *list,
  *
  * @sa faux_list_match_node()
  */
-void *faux_list_find(const faux_list_t *list, faux_list_match_fn matchFn,
+void *faux_list_find(const faux_list_t *list, faux_list_kcmp_fn matchFn,
 	const void *userkey) {
 
 	return faux_list_match(list, matchFn, userkey, NULL);
