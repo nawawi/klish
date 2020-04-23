@@ -19,7 +19,8 @@ lib_LIBRARIES =
 nobase_include_HEADERS =
 
 EXTRA_DIST = \
-	faux/Makefile.am
+	faux/Makefile.am \
+	testc/Makefile.am
 
 #	bin/module.am \
 #	clish/module.am \
@@ -38,6 +39,7 @@ EXTRA_DIST = \
 #	ISSUES
 
 include $(top_srcdir)/faux/Makefile.am
+include $(top_srcdir)/testc/Makefile.am
 #include $(top_srcdir)/tinyrl/module.am
 #include $(top_srcdir)/konf/module.am
 #include $(top_srcdir)/clish/module.am
