@@ -14,6 +14,7 @@ struct faux_ini_s {
 C_DECL_BEGIN
 
 int faux_pair_compare(const void *first, const void *second);
+int faux_pair_kcompare(const void *key, const void *list_item);
 faux_pair_t *faux_pair_new(const char *name, const char *value);
 void faux_pair_free(void *pair);
 

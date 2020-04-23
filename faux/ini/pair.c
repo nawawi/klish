@@ -19,6 +19,15 @@ int faux_pair_compare(const void *first, const void *second) {
 }
 
 
+int faux_pair_kcompare(const void *key, const void *list_item) {
+
+	const char *f = (const char *)key;
+	const faux_pair_t *s = (const faux_pair_t *)list_item;
+
+	return strcmp(f, s->name);
+}
+
+
 faux_pair_t *faux_pair_new(const char *name, const char *value) {
 
 	faux_pair_t *pair = NULL;

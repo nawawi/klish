@@ -30,7 +30,8 @@ faux_ini_t *faux_ini_new(void) {
 		return NULL;
 
 	// Init
-	ini->list = faux_list_new(BOOL_TRUE, BOOL_TRUE, faux_pair_compare, NULL, faux_pair_free);
+	ini->list = faux_list_new(BOOL_TRUE, BOOL_TRUE, 
+		faux_pair_compare, faux_pair_kcompare, faux_pair_free);
 
 	return ini;
 }
@@ -82,19 +83,18 @@ const faux_pair_t *faux_ini_set(
 	if (!ini || !name)
 		return NULL;
 
-	pair = faux_pair_new(name, value);
-	assert(pair);
-	if (!pair)
-		return NULL;
-
 	// NULL 'value' means: remove entry from list
 	if (!value) {
-		node = faux_list_find_node(ini->list, faux_pair_compare, pair);
-		faux_pair_free(pair);
+		node = faux_list_kfind_node(ini->list, name);
 		if (node)
 			faux_list_del(ini->list, node);
 		return NULL;
 	}
+
+	pair = faux_pair_new(name, value);
+	assert(pair);
+	if (!pair)
+		return NULL;
 
 	// Try to add new entry or find existent entry with the same 'name'
 	node = faux_list_add_find(ini->list, pair);
@@ -141,21 +141,12 @@ void faux_ini_unset(faux_ini_t *ini, const char *name) {
  */
 const faux_pair_t *faux_ini_find_pair(const faux_ini_t *ini, const char *name) {
 
-	faux_list_node_t *iter = NULL;
-	faux_pair_t *pair = NULL;
-
 	assert(ini);
 	assert(name);
 	if (!ini || !name)
 		return NULL;
 
-	pair = faux_pair_new(name, NULL);
-	if (!pair)
-		return NULL;
-	iter = faux_list_find_node(ini->list, faux_pair_compare, pair);
-	faux_pair_free(pair);
-
-	return faux_list_data(iter);
+	return faux_list_kfind(ini->list, name);
 }
 
 

@@ -45,13 +45,21 @@ int faux_list_del(faux_list_t *list, faux_list_node_t *node);
 faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 	faux_list_kcmp_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr);
+faux_list_node_t *faux_list_kmatch_node(const faux_list_t *list,
+	const void *userkey, faux_list_node_t **saveptr);
 void *faux_list_match(const faux_list_t *list,
 	faux_list_kcmp_fn matchFn, const void *userkey,
 	faux_list_node_t **saveptr);
+void *faux_list_kmatch(const faux_list_t *list,
+	const void *userkey, faux_list_node_t **saveptr);
 faux_list_node_t *faux_list_find_node(const faux_list_t *list,
 	faux_list_kcmp_fn matchFn, const void *userkey);
+faux_list_node_t *faux_list_kfind_node(const faux_list_t *list,
+	const void *userkey);
 void *faux_list_find(const faux_list_t *list,
 	faux_list_kcmp_fn matchFn, const void *userkey);
+void *faux_list_kfind(const faux_list_t *list,
+	const void *userkey);
 
 C_DECL_END
 

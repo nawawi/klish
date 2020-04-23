@@ -548,6 +548,24 @@ faux_list_node_t *faux_list_match_node(const faux_list_t *list,
 }
 
 
+/** @brief Search list for matching (key cmp function).
+ *
+ * Same as faux_list_match_node() but uses userkey compare function defined
+ * while faux_list_new() function call.
+ *
+ * @sa faux_list_match_node()
+ */
+faux_list_node_t *faux_list_kmatch_node(const faux_list_t *list,
+	const void *userkey, faux_list_node_t **saveptr) {
+
+	assert(list);
+	if (!list)
+		return NULL;
+
+	return faux_list_match_node(list, list->kcmpFn, userkey, saveptr);
+}
+
+
 /** @brief Search list for matching (match function) and returns user data.
  *
  * Same as faux_list_match_node() but returns user data structure.
@@ -566,6 +584,24 @@ void *faux_list_match(const faux_list_t *list, faux_list_kcmp_fn matchFn,
 }
 
 
+/** @brief Search list for matching (key cmp function) and returns user data.
+ *
+ * Same as faux_list_match() but uses userkey compare function defined
+ * while faux_list_new() function call.
+ *
+ * @sa faux_list_match_node()
+ */
+void *faux_list_kmatch(const faux_list_t *list, const void *userkey,
+	faux_list_node_t **saveptr) {
+
+	assert(list);
+	if (!list)
+		return NULL;
+
+	return faux_list_match(list, list->kcmpFn, userkey, saveptr);
+}
+
+
 /** @brief Search list for first matching (match function).
  *
  * Same as faux_list_match_node() but search for the fisrt matching.
@@ -580,6 +616,20 @@ faux_list_node_t *faux_list_find_node(const faux_list_t *list,
 }
 
 
+/** @brief Search list for first matching (key cmp function).
+ *
+ * Same as faux_list_find_node() but uses userkey compare function defined
+ * while faux_list_new() function call.
+ *
+ * @sa faux_list_match_node()
+ */
+faux_list_node_t *faux_list_kfind_node(const faux_list_t *list,
+	const void *userkey) {
+
+	return faux_list_find_node(list, list->kcmpFn, userkey);
+}
+
+
 /** @brief Search list for first matching (match function) and returns user data.
  *
  * Same as faux_list_match_node() but returns user data structure and search
@@ -591,4 +641,18 @@ void *faux_list_find(const faux_list_t *list, faux_list_kcmp_fn matchFn,
 	const void *userkey) {
 
 	return faux_list_match(list, matchFn, userkey, NULL);
+}
+
+
+/** @brief Search list for first matching (key cmp function). Returns user data.
+ *
+ * Same as faux_list_find() but uses userkey compare function defined
+ * while faux_list_new() function call.
+ *
+ * @sa faux_list_match_node()
+ */
+void *faux_list_kfind(const faux_list_t *list,
+	const void *userkey) {
+
+	return faux_list_find(list, list->kcmpFn, userkey);
 }
