@@ -43,6 +43,6 @@ include $(top_srcdir)/faux/list/Makefile.am
 include $(top_srcdir)/faux/ini/Makefile.am
 include $(top_srcdir)/faux/file/Makefile.am
 
-#include $(top_srcdir)/faux/argv/Makefile.am
-#include $(top_srcdir)/faux/dump/Makefile.am
-#include $(top_srcdir)/faux/system/Makefile.am
+if TESTC
+include $(top_srcdir)/faux/testc_module/Makefile.am
+endif

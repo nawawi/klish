@@ -78,14 +78,14 @@ AC_ARG_ENABLE(debug,
 AM_CONDITIONAL(DEBUG,test x$enable_debug = xyes)
 
 ################################
-# Deal with legacy klish-2 features
+# Compile in testc tests
 ################################
-AC_ARG_ENABLE(legacy,
-              [AS_HELP_STRING([--enable-legacy],
-                              [Turn on legacy klish-2 features [default=no]])],
+AC_ARG_ENABLE(testc,
+              [AS_HELP_STRING([--enable-testc],
+                              [Enable testc tests compiling [default=no]])],
               [],
-              [enable_debug=no])
-AM_CONDITIONAL(LEGACY,test x$enable_legacy = xyes)
+              [enable_testc=no])
+AM_CONDITIONAL(TESTC,test x$enable_testc = xyes)
 
 ################################
 # Check for Lua support

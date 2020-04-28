@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
+#include <dlfcn.h>
 
 #if WITH_INTERNAL_GETOPT
 #include "libc/getopt.h"
@@ -32,6 +34,9 @@
 #define QUOTE(t) #t
 #define version(v) printf("%s\n", v)
 
+#define TESTC_LIST_SYM "testc_module"
+
+
 // Command line options */
 struct opts_s {
 	int debug;
@@ -50,6 +55,12 @@ int main(int argc, char *argv[]) {
 	opts_t *opts = NULL;
 	faux_list_node_t *iter = NULL;
 	char *so = NULL;
+	// Return value will be negative on any error or failed test.
+	// It doesn't mean that any error will break the processing.
+	// The following var is error counter.
+	unsigned int total_errors = 0;
+	unsigned int total_modules = 0;
+	unsigned int total_tests = 0;
 
 #if HAVE_LOCALE_H
 	// Set current locale
@@ -65,13 +76,80 @@ int main(int argc, char *argv[]) {
 
 	iter = faux_list_head(opts->so_list);
 	while ((so = faux_list_each(&iter))) {
-		printf("%s\n", so);
-	}
-	
+		void *so_handle = NULL;
+		const char **test_list = NULL;
+		const char *test_name = NULL;
+		const char *test_desc = NULL;
+		unsigned int module_tests = 0;
+		unsigned int module_errors = 0;
 
+		total_modules++;
+		printf("Processing module \"%s\"...\n", so);
+		if (access(so, R_OK) < 0) {
+			fprintf(stderr, "Error: Can't read module \"%s\"... Skipped\n", so);
+			total_errors++;
+			continue;
+		}
+
+		so_handle = dlopen(so, RTLD_LAZY | RTLD_LOCAL);
+		if (!so_handle) {
+			fprintf(stderr, "Error: Can't open module \"%s\"... Skipped\n", so);
+			total_errors++;
+			continue;
+		}
+
+		test_list = (const char **)dlsym(so_handle, TESTC_LIST_SYM);
+		while (*test_list) {
+			int (*test_sym)(void);
+			int retval = 0;
+			char *result = NULL;
+
+			test_name = *test_list;
+			test_list++;
+			if (!*test_list) // Broken test list structure
+				break;
+			test_desc = *test_list;
+			test_list++;
+			module_tests++;
+
+			test_sym = (int (*)(void))dlsym(so_handle, test_name);
+			if (!test_sym) {
+				fprintf(stderr, "Error: Can't find symbol \"%s\"... Skipped\n", test_name);
+				module_errors++;
+				continue;
+			}
+
+			retval = test_sym();
+			if (0 == retval) {
+				result = "success";
+			} else {
+				result = "fail";
+				module_errors++;
+			}
+			printf("Test #%03u %s() %s: %s\n", module_tests, test_name, test_desc, result);
+		}
+
+
+		dlclose(so_handle);
+		so_handle = NULL;
+
+		printf("Module tests: %u\n", module_tests);
+		printf("Module errors: %u\n", module_errors);
+
+		total_tests += module_tests;
+		total_errors += module_errors;
+
+	}
 
 	opts_free(opts);
 
+	// Total statistics
+	printf("Total modules: %u\n", total_modules);
+	printf("Total tests: %u\n", total_tests);
+	printf("Total errors: %u\n", total_errors);
+
+	if (total_errors > 0)
+		return -1;
 	return 0;
 }
 
