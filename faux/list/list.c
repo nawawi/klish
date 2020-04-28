@@ -347,7 +347,8 @@ static faux_list_node_t *faux_list_add_generic(
 		// Add entry to the tail
 		node->prev = list->tail;
 		node->next = NULL;
-		list->tail->next = node;
+		if (list->tail)
+			list->tail->next = node;
 		list->tail = node;
 		list->len++;
 		return node;
