@@ -34,7 +34,9 @@
 #define QUOTE(t) #t
 #define version(v) printf("%s\n", v)
 
-#define TESTC_LIST_SYM "testc_module"
+#define SYM_TESTC_VERSION_MAJOR "testc_version_major"
+#define SYM_TESTC_VERSION_MINOR "testc_version_minor"
+#define SYM_TESTC_MODULE "testc_module"
 
 
 // Command line options */
@@ -77,7 +79,7 @@ int main(int argc, char *argv[]) {
 	iter = faux_list_head(opts->so_list);
 	while ((so = faux_list_each(&iter))) {
 		void *so_handle = NULL;
-		const char *(*test_list)[2] = NULL;
+		const char *(*testc_module)[2] = NULL;
 		unsigned int module_tests = 0;
 		unsigned int module_errors = 0;
 
@@ -96,23 +98,25 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-		test_list = dlsym(so_handle, TESTC_LIST_SYM);
-		if (!test_list) {
+		testc_module = dlsym(so_handle, SYM_TESTC_MODULE);
+		if (!testc_module) {
 			fprintf(stderr, "Error: Can't get test list for module \"%s\"... Skipped\n", so);
 			total_errors++;
 			continue;
 		}
 
-		while ((*test_list)[0]) {
+		while ((*testc_module)[0]) {
 			const char *test_name = NULL;
 			const char *test_desc = NULL;
 			int (*test_sym)(void);
 			int retval = 0;
 			char *result = NULL;
 
-			test_name = (*test_list)[0];
-			test_desc = (*test_list)[1];
-			test_list++;
+			test_name = (*testc_module)[0];
+			test_desc = (*testc_module)[1];
+			if (!test_desc)
+				test_desc = "";
+			testc_module++;
 			module_tests++;
 
 			test_sym = (int (*)(void))dlsym(so_handle, test_name);
@@ -258,7 +262,7 @@ static void help(int status, const char *argv0) {
 	if (!argv0)
 		return;
 
-	/* Find the basename */
+	// Find the basename
 	name = strrchr(argv0, '/');
 	if (name)
 		name++;
