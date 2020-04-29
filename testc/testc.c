@@ -8,6 +8,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <dlfcn.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #if WITH_INTERNAL_GETOPT
 #include "libc/getopt.h"
@@ -53,6 +55,7 @@ typedef struct opts_s opts_t;
 static opts_t *opts_parse(int argc, char *argv[]);
 static void opts_free(opts_t *opts);
 static void help(int status, const char *argv0);
+static int exec_test(int (*test_sym)(void));
 
 
 int main(int argc, char *argv[]) {
@@ -143,8 +146,9 @@ int main(int argc, char *argv[]) {
 			const char *test_name = NULL;
 			const char *test_desc = NULL;
 			int (*test_sym)(void);
-			int retval = 0;
-			char *result = NULL;
+			int wstatus = 0;
+			char *result_str = NULL;
+			char *attention_str = NULL;
 
 			test_name = (*testc_module)[0];
 			test_desc = (*testc_module)[1];
@@ -160,14 +164,32 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			retval = test_sym();
-			if (0 == retval) {
-				result = "success";
+			wstatus = exec_test(test_sym);
+
+			if (WIFEXITED(wstatus)) {
+				if (WEXITSTATUS(wstatus) == 0) {
+					result_str = faux_str_dup("success");
+					attention_str = faux_str_dup("");
+				} else {
+					result_str = faux_str_sprintf("failed (%d)",
+						(int)((signed char)((unsigned char)WEXITSTATUS(wstatus))));
+					attention_str = faux_str_dup("(!) ");
+					module_errors++;
+				}
+			} else if (WIFSIGNALED(wstatus)) {
+				result_str = faux_str_sprintf("terminated (%d)",
+					WTERMSIG(wstatus));
+				attention_str = faux_str_dup("[!] ");
+				module_errors++;
 			} else {
-				result = "fail";
+				result_str = faux_str_dup("unknown");
+				attention_str = faux_str_dup("[!] ");
 				module_errors++;
 			}
-			printf("Test #%03u %s() %s: %s\n", module_tests, test_name, test_desc, result);
+
+			printf("%sTest #%03u %s() %s: %s\n", attention_str, module_tests, test_name, test_desc, result_str);
+			faux_str_free(result_str);
+			faux_str_free(attention_str);
 		}
 
 
@@ -193,6 +215,27 @@ int main(int argc, char *argv[]) {
 	if (total_errors > 0)
 		return -1;
 	return 0;
+}
+
+
+static int exec_test(int (*test_sym)(void)) {
+
+	pid_t pid = -1;
+	int wstatus = -1;
+
+	pid = fork();
+	assert(pid != -1);
+	if (pid == -1)
+		return -1;
+
+	// Child
+	if (pid == 0)
+		_exit(test_sym());
+
+	// Parent
+	while (waitpid(pid, &wstatus, 0) != pid);
+
+	return wstatus;
 }
 
 

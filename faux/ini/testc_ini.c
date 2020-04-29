@@ -17,3 +17,10 @@ int testc_faux_ini_bad(void) {
 	return -1;
 }
 
+int testc_faux_ini_signal(void) {
+
+	char *p = NULL;
+
+	printf("%s\n", p);
+	return -1;
+}
