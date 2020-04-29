@@ -34,6 +34,9 @@
 #define QUOTE(t) #t
 #define version(v) printf("%s\n", v)
 
+// Version of testc API (not version of programm)
+#define TESTC_VERSION_MAJOR_DEFAULT 1
+#define TESTC_VERSION_MINOR_DEFAULT 0
 #define SYM_TESTC_VERSION_MAJOR "testc_version_major"
 #define SYM_TESTC_VERSION_MINOR "testc_version_minor"
 #define SYM_TESTC_MODULE "testc_module"
@@ -79,12 +82,17 @@ int main(int argc, char *argv[]) {
 	iter = faux_list_head(opts->so_list);
 	while ((so = faux_list_each(&iter))) {
 		void *so_handle = NULL;
+		// Module symbols
+		unsigned char testc_version_major = TESTC_VERSION_MAJOR_DEFAULT;
+		unsigned char testc_version_minor = TESTC_VERSION_MINOR_DEFAULT;
+		unsigned char *testc_version = NULL;
 		const char *(*testc_module)[2] = NULL;
+		// Module counters
 		unsigned int module_tests = 0;
 		unsigned int module_errors = 0;
 
-		total_modules++;
-		printf("Processing module \"%s\"...\n", so);
+		printf("--------------------------------------------------------------------------------\n");
+
 		if (access(so, R_OK) < 0) {
 			fprintf(stderr, "Error: Can't read module \"%s\"... Skipped\n", so);
 			total_errors++;
@@ -98,12 +106,38 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
+		// Get testc API version from module
+		testc_version = dlsym(so_handle, SYM_TESTC_VERSION_MAJOR);
+		if (!testc_version) {
+			fprintf(stderr, "Warning: Can't get API version for module \"%s\"... Use defaults\n", so);
+		} else {
+			testc_version_major = *testc_version;
+			testc_version = dlsym(so_handle, SYM_TESTC_VERSION_MINOR);
+			if (!testc_version) {
+				fprintf(stderr, "Warning: Can't get API minor version for module \"%s\"... Use '0'\n", so);
+				testc_version_minor = 0;
+			} else {
+				testc_version_minor = *testc_version;
+			}
+		}
+		if ((testc_version_major > TESTC_VERSION_MAJOR_DEFAULT) ||
+			((testc_version_major == TESTC_VERSION_MAJOR_DEFAULT) &&
+			(testc_version_minor >TESTC_VERSION_MINOR_DEFAULT))) {
+			fprintf(stderr, "Error: Unsupported API v%u.%u for module \"%s\"... Skipped\n", 
+				testc_version_major, testc_version_minor, so);
+			continue;
+		}
+
 		testc_module = dlsym(so_handle, SYM_TESTC_MODULE);
 		if (!testc_module) {
 			fprintf(stderr, "Error: Can't get test list for module \"%s\"... Skipped\n", so);
 			total_errors++;
 			continue;
 		}
+
+		total_modules++;
+		printf("Processing module \"%s\" v%u.%u ...\n", so,
+			testc_version_major, testc_version_minor);
 
 		while ((*testc_module)[0]) {
 			const char *test_name = NULL;
@@ -151,6 +185,7 @@ int main(int argc, char *argv[]) {
 	opts_free(opts);
 
 	// Total statistics
+	printf("================================================================================\n");
 	printf("Total modules: %u\n", total_modules);
 	printf("Total tests: %u\n", total_tests);
 	printf("Total errors: %u\n", total_errors);
