@@ -22,9 +22,7 @@ lib_LTLIBRARIES =
 lib_LIBRARIES =
 nobase_include_HEADERS =
 
-EXTRA_DIST = \
-	faux/Makefile.am \
-	testc/Makefile.am
+EXTRA_DIST =
 
 #	bin/module.am \
 #	clish/module.am \
@@ -42,8 +40,6 @@ EXTRA_DIST = \
 #	CHANGES \
 #	ISSUES
 
-include $(top_srcdir)/faux/Makefile.am
-include $(top_srcdir)/testc/Makefile.am
 #include $(top_srcdir)/tinyrl/module.am
 #include $(top_srcdir)/konf/module.am
 #include $(top_srcdir)/clish/module.am
