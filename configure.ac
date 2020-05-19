@@ -87,6 +87,33 @@ AC_ARG_ENABLE(testc,
               [enable_testc=no])
 AM_CONDITIONAL(TESTC,test x$enable_testc = xyes)
 
+
+################################
+# Check for mandatory faux library
+################################
+AC_ARG_WITH(faux,
+            [AS_HELP_STRING([--with-faux=DIR],
+                            [Search DIR directory for faux library files [default=yes]])],
+            [use_faux=$withval],
+            [use_faux=yes])
+
+AS_IF([test x$use_faux != xyes],
+  [
+    CPPFLAGS="-I${use_faux} ${CPPFLAGS}"
+    LDFLAGS="-L${use_faux}/.libs ${LDFLAGS}"
+  ]
+)
+
+AC_CHECK_HEADERS([faux/faux.h],
+	[],
+	[AC_MSG_ERROR([cannot find <faux/faux.h> header file])]
+	)
+AC_SEARCH_LIBS([faux_zmalloc], [faux],
+	[],
+	[AC_MSG_ERROR([cannot find working faux library])]
+	)
+
+
 ################################
 # Check for Lua support
 ################################
@@ -106,6 +133,7 @@ if test x$use_lua != xno; then
     AX_LUA_HEADERS()
     AX_LUA_LIBS()
 fi
+
 
 ################################
 # Check for the roxml library
