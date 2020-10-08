@@ -2,6 +2,7 @@
 lib_LTLIBRARIES += libtinyrl.la
 libtinyrl_la_LIBADD = liblub.la
 libtinyrl_la_DEPENDENCIES = liblub.la
+libtinyrl_la_LDFLAGS = $(AM_LDFLAGS) $(VERSION_INFO)
 
 libtinyrl_la_SOURCES = \
 	tinyrl/tinyrl.c \
