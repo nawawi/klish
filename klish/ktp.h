@@ -23,4 +23,13 @@ typedef enum {
 	KTP_EXIT = 'x',
 } ktp_cmd_e;
 
+
+C_DECL_BEGIN
+
+int ktp_connect(const char *sun_path);
+void ktp_disconnect(int fd);
+int ktp_accept(int listen_sock);
+
+C_DECL_END
+
 #endif // _klish_ktp_h

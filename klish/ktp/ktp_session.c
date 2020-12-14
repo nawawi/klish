@@ -15,15 +15,12 @@
 
 #include "private.h"
 
-#define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
 
-
-ktp_session_t *ktp_session_new(const char *sun_path)
+ktp_session_t *ktp_session_new(int sock)
 {
 	ktp_session_t *session = NULL;
 
-	assert(sun_path);
-	if (!sun_path)
+	if (sock < 0)
 		return NULL;
 
 	session = faux_zmalloc(sizeof(*session));
@@ -32,11 +29,10 @@ ktp_session_t *ktp_session_new(const char *sun_path)
 		return NULL;
 
 	// Init
-	session->state = KTP_SESSION_STATE_DISCONNECTED;
-	session->sun_path = faux_str_dup(sun_path);
-	assert(session->sun_path);
+	session->state = KTP_SESSION_STATE_IDLE;
 	session->net = faux_net_new();
 	assert(session->net);
+	faux_net_set_fd(session->net, sock);
 
 	return session;
 }
@@ -47,67 +43,40 @@ void ktp_session_free(ktp_session_t *session)
 	if (!session)
 		return;
 
-	ktp_session_disconnect(session);
 	faux_net_free(session->net);
-	faux_str_free(session->sun_path);
 	faux_free(session);
 }
 
 
-int ktp_session_connect(ktp_session_t *session)
+bool_t ktp_session_connected(ktp_session_t *session)
 {
-	int sock = -1;
-	int opt = 1;
-	struct sockaddr_un laddr = {};
-
 	assert(session);
 	if (!session)
-		return -1;
-
-	if (session->state != KTP_SESSION_STATE_DISCONNECTED)
-		return faux_net_get_fd(session->net); // Already connected
-
-	// Create socket
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-		return -1;
-	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-		close(sock);
-		return -1;
-	}
-	laddr.sun_family = AF_UNIX;
-	strncpy(laddr.sun_path, session->sun_path, USOCK_PATH_MAX);
-	laddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
-
-	// Connect to server
-	if (connect(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
-		close(sock);
-		return -1;
-	}
-
-	// Update session state
-	faux_net_set_fd(session->net, sock);
-	session->state = KTP_SESSION_STATE_IDLE;
-
-	return sock;
-}
-
-
-int ktp_session_disconnect(ktp_session_t *session)
-{
-	int fd = -1;
-
-	assert(session);
-	if (!session)
-		return -1;
-
+		return BOOL_FALSE;
 	if (KTP_SESSION_STATE_DISCONNECTED == session->state)
-		return -1; // Already disconnected
-	session->state = KTP_SESSION_STATE_DISCONNECTED;
-	fd = faux_net_get_fd(session->net);
-	if (fd < 0)
-		return fd; // Strange - already disconnected
-	close(fd);
-	faux_net_unset_fd(session->net);
+		return BOOL_FALSE;
 
-	return fd;
+	return BOOL_TRUE;
 }
+
+
+int ktp_session_get_socket(ktp_session_t *session)
+{
+	assert(session);
+	if (!session)
+		return BOOL_FALSE;
+
+	return faux_net_get_fd(session->net);
+}
+
+
+#if 0
+static void ktp_session_bad_socket(ktp_session_t *session)
+{
+	assert(session);
+	if (!session)
+		return;
+
+	session->state = KTP_SESSION_STATE_DISCONNECTED;
+}
+#endif

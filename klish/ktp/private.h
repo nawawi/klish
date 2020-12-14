@@ -4,6 +4,8 @@
 #include <faux/net.h>
 #include <klish/ktp_session.h>
 
+#define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
+
 
 typedef enum {
 	KTPD_SESSION_STATE_DISCONNECTED = 'd',
@@ -28,7 +30,6 @@ typedef enum {
 
 struct ktp_session_s {
 	ktp_session_state_e state;
-	char *sun_path;
 	faux_net_t *net;
 };
 
