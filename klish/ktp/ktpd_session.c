@@ -29,7 +29,7 @@ ktpd_session_t *ktpd_session_new(int sock)
 		return NULL;
 
 	// Init
-	session->state = KTPD_SESSION_STATE_IDLE;
+	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
 	session->net = faux_net_new();
 	assert(session->net);
 	faux_net_set_fd(session->net, sock);

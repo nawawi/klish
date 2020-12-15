@@ -19,8 +19,11 @@ typedef enum {
 	KTP_COMPLETION_ACK = 'V',
 	KTP_HELP = 'h',
 	KTP_HELP_ACK = 'H',
-	KTP_ALERT = 'a',
+	KTP_NOTIFICATION = 'n',
 	KTP_EXIT = 'x',
+	KTP_AUTH = 'a',
+	KTP_AUTH_ACK = 'A',
+	KTP_KEEPALIVE = 'k',
 } ktp_cmd_e;
 
 

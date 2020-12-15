@@ -1,6 +1,4 @@
-bin_PROGRAMS += \
-	bin/klishd
+EXTRA_DIST += \
+	bin/klishd/Makefile.am
 
-bin_klishd_SOURCES = bin/klishd.c
-bin_klishd_LDADD = \
-	libklish.la
+include $(top_srcdir)/bin/klishd/Makefile.am

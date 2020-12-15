@@ -1,6 +1,9 @@
 #ifndef _klish_ktp_session_h
 #define _klish_ktp_session_h
 
+#define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
+
+#define KLISH_DEFAULT_UNIX_SOCKET_PATH "/tmp/klish-unix-socket"
 
 typedef struct ktpd_session_s ktpd_session_t;
 typedef struct ktp_session_s ktp_session_t;
