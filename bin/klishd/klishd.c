@@ -237,6 +237,7 @@ int main(int argc, char **argv)
 			int id = 0; // Event idenftifier
 			void *data = NULL; // Event data
 
+syslog(LOG_DEBUG, "Timeout\n");
 			// Some scheduled events
 			while(faux_sched_pop(sched, &id, &data) == 0) {
 				syslog(LOG_DEBUG, "sched: Update event\n");
@@ -249,6 +250,7 @@ int main(int argc, char **argv)
 		while ((pollfd = faux_pollfd_each_active(fds, &pollfd_iter))) {
 			int fd = pollfd->fd;
 
+syslog(LOG_DEBUG, "Listen\n");
 			// Listen socket
 			if (fd == listen_unix_sock) {
 				int new_conn = -1;
@@ -262,6 +264,7 @@ int main(int argc, char **argv)
 
 			// If it's not a listen socket then we have received
 			// a message from client.
+syslog(LOG_DEBUG, "Client\n");
 		}
 
 	} // Main loop end

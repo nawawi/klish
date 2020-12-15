@@ -137,13 +137,11 @@ void help(int status, const char *argv0)
 	} else {
 		printf("Version : %s\n", VERSION);
 		printf("Usage   : %s [options]\n", name);
-		printf("Certificate Revocation Service Daemon\n");
+		printf("Klish daemon\n");
 		printf("Options :\n");
 		printf("\t-h, --help Print this help.\n");
 		printf("\t-f, --foreground Don't daemonize.\n");
 		printf("\t-v, --verbose Be verbose.\n");
-		printf("\t-s, --silent Be silent.\n");
-		printf("\t-k, --check Check config only and exit.\n");
 		printf("\t-p <path>, --pid=<path> File to save daemon's PID to ("
 			DEFAULT_PIDFILE ").\n");
 		printf("\t-c <path>, --conf=<path> Config file ("
