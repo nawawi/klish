@@ -258,7 +258,7 @@ syslog(LOG_DEBUG, "Timeout\n");
 				if (new_conn < 0)
 					continue;
 				faux_pollfd_add(fds, new_conn, POLLIN);
-				syslog(LOG_DEBUG, "New connection %d\n", new_conn);
+				syslog(LOG_DEBUG, "New connection %d", new_conn);
 				continue;
 			}
 
@@ -274,9 +274,9 @@ syslog(LOG_DEBUG, "Client %d\n", fd);
 			// socket because buffer of disconnected socket can
 			// still contain data.
 			if (pollfd->revents & POLLHUP) {
-syslog(LOG_DEBUG, "Close connection %d\n", fd);
 				ktp_disconnect(fd);
 				faux_pollfd_del_by_fd(fds, fd);
+				syslog(LOG_DEBUG, "Close connection %d", fd);
 			}
 
 		}
