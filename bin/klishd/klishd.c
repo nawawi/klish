@@ -178,6 +178,7 @@ int main(int argc, char **argv)
 	// Add listen UNIX socket to pollfds vector
 	faux_pollfd_add(fds, listen_unix_sock, POLLIN);
 
+syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 	// Block signals to prevent race conditions while loop and ppoll()
 	// Catch signals while ppoll() only
 	sigemptyset(&sig_set);
@@ -250,7 +251,6 @@ syslog(LOG_DEBUG, "Timeout\n");
 		while ((pollfd = faux_pollfd_each_active(fds, &pollfd_iter))) {
 			int fd = pollfd->fd;
 
-syslog(LOG_DEBUG, "Listen\n");
 			// Listen socket
 			if (fd == listen_unix_sock) {
 				int new_conn = -1;
@@ -264,7 +264,21 @@ syslog(LOG_DEBUG, "Listen\n");
 
 			// If it's not a listen socket then we have received
 			// a message from client.
-syslog(LOG_DEBUG, "Client\n");
+syslog(LOG_DEBUG, "Client %d\n", fd);
+
+			// Receive message
+			
+			
+
+			// Check for closed connection. Do it after reading from
+			// socket because buffer of disconnected socket can
+			// still contain data.
+			if (pollfd->revents & POLLHUP) {
+syslog(LOG_DEBUG, "Close connection %d\n", fd);
+				ktp_disconnect(fd);
+				faux_pollfd_del_by_fd(fds, fd);
+			}
+
 		}
 
 	} // Main loop end

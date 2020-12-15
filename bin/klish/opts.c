@@ -29,7 +29,7 @@ struct options *opts_init(void)
 
 	// Initialize
 	opts->verbose = BOOL_FALSE;
-	opts->socket = faux_str_dup(KLISH_DEFAULT_UNIX_SOCKET_PATH);
+	opts->unix_socket_path = faux_str_dup(KLISH_DEFAULT_UNIX_SOCKET_PATH);
 
 	return opts;
 }
@@ -41,7 +41,7 @@ void opts_free(struct options *opts)
 {
 	if (!opts)
 		return;
-	faux_str_free(opts->socket);
+	faux_str_free(opts->unix_socket_path);
 	faux_free(opts);
 }
 
@@ -67,8 +67,8 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 			break;
 		switch (opt) {
 		case 'S':
-			faux_str_free(opts->socket);
-			opts->socket = faux_str_dup(optarg);
+			faux_str_free(opts->unix_socket_path);
+			opts->unix_socket_path = faux_str_dup(optarg);
 			break;
 		case 'v':
 			opts->verbose = BOOL_TRUE;

@@ -16,7 +16,7 @@
 #include "private.h"
 
 
-int ktp_connect(const char *sun_path)
+int ktp_connect_unix(const char *sun_path)
 {
 	int sock = -1;
 	int opt = 1;

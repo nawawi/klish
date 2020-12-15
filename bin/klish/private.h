@@ -8,7 +8,7 @@
  */
 struct options {
 	bool_t verbose;
-	char *socket;
+	char *unix_socket_path;
 };
 
 // Options
