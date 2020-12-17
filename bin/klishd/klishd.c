@@ -28,6 +28,7 @@
 #include <faux/list.h>
 #include <faux/conv.h>
 #include <faux/file.h>
+#include <faux/eloop.h>
 
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -46,6 +47,50 @@ static void sigchld_handler(int signo);
 static int create_listen_unix_sock(const char *path);
 
 
+bool_t unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+
+	if (info->revents & POLLIN) {
+printf("Data on %d\n", info->fd);
+	}
+
+	if (info->revents & POLLHUP) {
+		close(info->fd);
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+return BOOL_FALSE;
+	}
+
+	type = type; // Happy compiler
+	user_data = user_data; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+bool_t listen_unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	int new_conn = -1;
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+
+	new_conn = accept(info->fd, NULL, NULL);
+	if (new_conn < 0) {
+		syslog(LOG_ERR, "Can't accept() new connection");
+		return BOOL_TRUE;
+	}
+	faux_eloop_add_fd(eloop, new_conn, POLLIN, unix_socket_event, NULL);
+	syslog(LOG_DEBUG, "New connection %d", new_conn);
+
+	type = type; // Happy compiler
+	user_data = user_data; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+
 /** @brief Main function
  */
 int main(int argc, char **argv)
@@ -54,6 +99,7 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int pidfd = -1;
 	int logoptions = 0;
+	faux_eloop_t *eloop = NULL;
 
 	// Network
 	int listen_unix_sock = -1;
@@ -189,6 +235,13 @@ syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 	sigaddset(&sig_set, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &sig_set, &orig_sig_set);
 
+
+	eloop = faux_eloop_new(NULL);
+	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_unix_socket_event, NULL);
+	faux_eloop_loop(eloop);
+	faux_eloop_free(eloop);
+
+/*
 	// Main loop
 	while (!sigterm) {
 		int sn = 0;
@@ -282,7 +335,7 @@ syslog(LOG_DEBUG, "Client %d\n", fd);
 		}
 
 	} // Main loop end
-
+*/
 
 	retval = 0;
 
