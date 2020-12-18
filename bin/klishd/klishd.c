@@ -47,20 +47,39 @@ static void sigchld_handler(int signo);
 static int create_listen_unix_sock(const char *path);
 
 
-bool_t unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t stop_loop(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_signal_t *info = (faux_eloop_info_signal_t *)associated_data;
+printf("SIGNAL %d\n", info->signo);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_FALSE; // Stop Event Loop
+}
+
+static bool_t unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
 
 	if (info->revents & POLLIN) {
-printf("Data on %d\n", info->fd);
+		char buf[1000];
+		ssize_t s = 0;
+
+		s = read(info->fd, buf, 1000);
+printf("Received %ld bytes on fd %d\n", s, info->fd);
+//faux_eloop_add_signal(eloop, SIGINT, stop_loop, NULL);
 	}
 
 	if (info->revents & POLLHUP) {
 		close(info->fd);
 		faux_eloop_del_fd(eloop, info->fd);
 		syslog(LOG_DEBUG, "Close connection %d", info->fd);
-return BOOL_FALSE;
 	}
 
 	type = type; // Happy compiler
@@ -69,7 +88,7 @@ return BOOL_FALSE;
 	return BOOL_TRUE;
 }
 
-bool_t listen_unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t listen_unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	int new_conn = -1;
@@ -237,6 +256,9 @@ syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 
 
 	eloop = faux_eloop_new(NULL);
+	faux_eloop_add_signal(eloop, SIGINT, stop_loop, NULL);
+	faux_eloop_add_signal(eloop, SIGTERM, stop_loop, NULL);
+	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop, NULL);
 	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_unix_socket_event, NULL);
 	faux_eloop_loop(eloop);
 	faux_eloop_free(eloop);
