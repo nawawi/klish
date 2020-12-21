@@ -108,6 +108,35 @@ static bool_t listen_unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e ty
 	return BOOL_TRUE;
 }
 
+static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
+printf("Once %d\n", info->ev_id);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_TRUE;
+}
+
+static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
+printf("Periodic %d\n", info->ev_id);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_TRUE;
+}
 
 
 /** @brief Main function
@@ -131,6 +160,9 @@ int main(int argc, char **argv)
 	struct sigaction sig_act = {};
 	sigset_t sig_set = {};
 	sigset_t orig_sig_set = {}; // Saved signal mask
+
+	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
+	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
 
 	// Parse command line options
 	opts = opts_init();
@@ -260,6 +292,8 @@ syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop, NULL);
 	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_unix_socket_event, NULL);
+	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
+	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
 	faux_eloop_loop(eloop);
 	faux_eloop_free(eloop);
 
