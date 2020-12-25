@@ -51,3 +51,20 @@ include $(top_srcdir)/bin/Makefile.am
 #include $(top_srcdir)/plugins/module.am
 #include $(top_srcdir)/libc/module.am
 #include $(top_srcdir)/doc/module.am
+
+define CONTROL
+PACKAGE: klish
+Version: $(PACKAGE_VERSION)
+Architecture: amd64
+Depends: faux
+Maintainer: pkun
+Description: The klish is a framework for implementing a CISCO-like CLI on a UNIX systems. It is configurable by XML files
+Homepage: http://klish.libcode.org
+endef
+
+export CONTROL
+deb: all
+	mkdir -p deb/DEBIAN
+	echo "$$CONTROL" > deb/DEBIAN/control
+	DESTDIR=$(shell pwd)/deb make install
+	dpkg-deb --build deb/ klish_$(PACKAGE_VERSION).deb

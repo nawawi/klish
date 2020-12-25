@@ -25,6 +25,7 @@
 /Makefile.in
 /clish/plugin_builtin.c
 /*.patch
+/deb
 
 # Debian files
 /build-stamp
@@ -45,3 +46,4 @@
 /cov-int
 /klish-*.tar*
 /*.tgz
+/*.deb
