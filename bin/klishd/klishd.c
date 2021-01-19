@@ -35,108 +35,21 @@
 
 #include "private.h"
 
-// Signal handlers
-static volatile int sigterm = 0; // Exit if 1
-static void sighandler(int signo);
-static volatile int sighup = 0; // Re-read config file
-static void sighup_handler(int signo);
-static volatile int sigchld = 0; // Child execution is finished
-static void sigchld_handler(int signo);
-
-// Network
 static int create_listen_unix_sock(const char *path);
 
-
-static bool_t stop_loop(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_signal_t *info = (faux_eloop_info_signal_t *)associated_data;
-printf("SIGNAL %d\n", info->signo);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_FALSE; // Stop Event Loop
-}
-
-static bool_t unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-
-	if (info->revents & POLLIN) {
-		char buf[1000];
-		ssize_t s = 0;
-
-		s = read(info->fd, buf, 1000);
-printf("Received %ld bytes on fd %d\n", s, info->fd);
-//faux_eloop_add_signal(eloop, SIGINT, stop_loop, NULL);
-	}
-
-	if (info->revents & POLLHUP) {
-		close(info->fd);
-		faux_eloop_del_fd(eloop, info->fd);
-		syslog(LOG_DEBUG, "Close connection %d", info->fd);
-	}
-
-	type = type; // Happy compiler
-	user_data = user_data; // Happy compiler
-
-	return BOOL_TRUE;
-}
-
-static bool_t listen_unix_socket_event(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	int new_conn = -1;
-	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-
-	new_conn = accept(info->fd, NULL, NULL);
-	if (new_conn < 0) {
-		syslog(LOG_ERR, "Can't accept() new connection");
-		return BOOL_TRUE;
-	}
-	faux_eloop_add_fd(eloop, new_conn, POLLIN, unix_socket_event, NULL);
-	syslog(LOG_DEBUG, "New connection %d", new_conn);
-
-	type = type; // Happy compiler
-	user_data = user_data; // Happy compiler
-
-	return BOOL_TRUE;
-}
-
+// Main loop events
+static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
-printf("Once %d\n", info->ev_id);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_TRUE;
-}
-
+	void *associated_data, void *user_data);
 static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
-printf("Periodic %d\n", info->ev_id);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_TRUE;
-}
+	void *associated_data, void *user_data);
 
 
 /** @brief Main function
@@ -151,15 +64,6 @@ int main(int argc, char **argv)
 
 	// Network
 	int listen_unix_sock = -1;
-	faux_pollfd_t *fds = NULL;
-
-	// Event scheduler
-	faux_sched_t *sched = NULL;
-
-	// Signal vars
-	struct sigaction sig_act = {};
-	sigset_t sig_set = {};
-	sigset_t orig_sig_set = {}; // Saved signal mask
 
 	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -226,74 +130,20 @@ int main(int argc, char **argv)
 	listen_unix_sock = create_listen_unix_sock(opts->unix_socket_path);
 	if (listen_unix_sock < 0)
 		goto err;
-
-	// Set signal handler
-	syslog(LOG_DEBUG, "Set signal handlers\n");
-	sigemptyset(&sig_set);
-	sigaddset(&sig_set, SIGTERM);
-	sigaddset(&sig_set, SIGINT);
-	sigaddset(&sig_set, SIGQUIT);
-
-	sig_act.sa_flags = 0;
-	sig_act.sa_mask = sig_set;
-	sig_act.sa_handler = &sighandler;
-	sigaction(SIGTERM, &sig_act, NULL);
-	sigaction(SIGINT, &sig_act, NULL);
-	sigaction(SIGQUIT, &sig_act, NULL);
-
-	// SIGHUP handler
-	sigemptyset(&sig_set);
-	sigaddset(&sig_set, SIGHUP);
-
-	sig_act.sa_flags = 0;
-	sig_act.sa_mask = sig_set;
-	sig_act.sa_handler = &sighup_handler;
-	sigaction(SIGHUP, &sig_act, NULL);
-
-	// SIGCHLD handler
-	sigemptyset(&sig_set);
-	sigaddset(&sig_set, SIGCHLD);
-
-	sig_act.sa_flags = 0;
-	sig_act.sa_mask = sig_set;
-	sig_act.sa_handler = &sigchld_handler;
-	sigaction(SIGCHLD, &sig_act, NULL);
-
-	// Initialize event scheduler
-	sched = faux_sched_new();
-	if (!sched) {
-		syslog(LOG_ERR, "Can't init event scheduler");
-		goto err;
-	}
-
-	// The struct pollfd vector for ppoll()
-	fds = faux_pollfd_new();
-	if (!fds) {
-		syslog(LOG_ERR, "Can't init pollfd vector");
-		goto err;
-	}
-	// Add listen UNIX socket to pollfds vector
-	faux_pollfd_add(fds, listen_unix_sock, POLLIN);
-
-syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
-	// Block signals to prevent race conditions while loop and ppoll()
-	// Catch signals while ppoll() only
-	sigemptyset(&sig_set);
-	sigaddset(&sig_set, SIGTERM);
-	sigaddset(&sig_set, SIGINT);
-	sigaddset(&sig_set, SIGQUIT);
-	sigaddset(&sig_set, SIGHUP);
-	sigaddset(&sig_set, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &sig_set, &orig_sig_set);
-
+	syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 
 	eloop = faux_eloop_new(NULL);
-	faux_eloop_add_signal(eloop, SIGINT, stop_loop, NULL);
-	faux_eloop_add_signal(eloop, SIGTERM, stop_loop, NULL);
-	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop, NULL);
-	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_unix_socket_event, NULL);
+	// Signals
+	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGHUP, refresh_config_ev, opts);
+	// Listen socket. Waiting for new connections
+	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_socket_ev, NULL);
+	// Scheduled events
 	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
 	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
+	// Main loop
 	faux_eloop_loop(eloop);
 	faux_eloop_free(eloop);
 
@@ -398,10 +248,6 @@ syslog(LOG_DEBUG, "Client %d\n", fd);
 err:
 	syslog(LOG_DEBUG, "Cleanup.\n");
 
-	sigprocmask(SIG_BLOCK, &orig_sig_set, NULL);
-	faux_pollfd_free(fds);
-	faux_sched_free(sched);
-
 	// Close listen socket
 	if (listen_unix_sock >= 0)
 		close(listen_unix_sock);
@@ -476,28 +322,121 @@ err:
 }
 
 
-/** @brief Signal handler for temination signals (like SIGTERM, SIGINT, ...)
+/** @brief Stop main event loop.
  */
-static void sighandler(int signo)
+static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
 {
-	sigterm = 1;
-	signo = signo; // Happy compiler
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_FALSE; // Stop Event Loop
 }
 
 
-/** @brief Re-read config file on SIGHUP
+/** @brief Re-read config file.
  */
-static void sighup_handler(int signo)
+static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
 {
-	sighup = 1;
-	signo = signo; // Happy compiler
+	struct options *opts = (struct options *)user_data;
+
+	if (access(opts->cfgfile, R_OK) == 0) {
+		syslog(LOG_DEBUG, "Re-reading config file \"%s\"\n", opts->cfgfile);
+		if (config_parse(opts->cfgfile, opts) < 0)
+			syslog(LOG_ERR, "Error while config file parsing.\n");
+	} else if (opts->cfgfile_userdefined) {
+		syslog(LOG_ERR, "Can't find config file \"%s\"\n", opts->cfgfile);
+	}
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
 }
 
 
-/** @brief Child was finished
+/** @brief Event on listen socket. New remote client.
  */
-static void sigchld_handler(int signo)
+static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
 {
-	sigchld = 1;
-	signo = signo; // Happy compiler
+	int new_conn = -1;
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+
+	new_conn = accept(info->fd, NULL, NULL);
+	if (new_conn < 0) {
+		syslog(LOG_ERR, "Can't accept() new connection");
+		return BOOL_TRUE;
+	}
+	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, NULL);
+	syslog(LOG_DEBUG, "New connection %d", new_conn);
+
+	type = type; // Happy compiler
+	user_data = user_data; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+
+	if (info->revents & POLLIN) {
+		char buf[1000];
+		ssize_t s = 0;
+
+		s = read(info->fd, buf, 1000);
+printf("Received %ld bytes on fd %d\n", s, info->fd);
+//faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
+	}
+
+	if (info->revents & POLLHUP) {
+		close(info->fd);
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+	}
+
+	type = type; // Happy compiler
+	user_data = user_data; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
+printf("Once %d\n", info->ev_id);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_TRUE;
+}
+
+static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
+printf("Periodic %d\n", info->ev_id);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_TRUE;
 }

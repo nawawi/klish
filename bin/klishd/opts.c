@@ -162,7 +162,7 @@ int config_parse(const char *cfgfile, struct options *opts)
 	assert(ini);
 	if (!ini)
 		return -1;
-	if (faux_ini_parse_file(ini, cfgfile)) {
+	if (!faux_ini_parse_file(ini, cfgfile)) {
 		syslog(LOG_ERR, "Can't parse config file: %s\n", cfgfile);
 		faux_ini_free(ini);
 		return -1;
