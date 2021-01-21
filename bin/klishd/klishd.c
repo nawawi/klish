@@ -334,13 +334,14 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		return BOOL_TRUE;
 	}
 
+	// Read data
 	if (info->revents & POLLIN) {
-		char buf[1000];
-		ssize_t s = 0;
-
-		s = read(info->fd, buf, 1000);
-printf("Received %ld bytes on fd %d\n", s, info->fd);
-//faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
+		if (!ktpd_session_async_in(session)) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			ktpd_clients_del(clients, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+		}
 	}
 
 	// EOF

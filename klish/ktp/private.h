@@ -19,6 +19,8 @@ struct ktpd_session_s {
 	gid_t gid;
 	char *user;
 	faux_async_t *async;
+	faux_session_stall_cb_f stall_cb; // Stall callback
+	void *stall_udata;
 };
 
 

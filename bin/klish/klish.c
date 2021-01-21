@@ -47,7 +47,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
-	
+
+	write(ktp_session_fd(session), "hello", 5);
 
 	retval = 0;
 
