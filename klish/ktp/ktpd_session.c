@@ -11,6 +11,7 @@
 #include <sys/un.h>
 
 #include <faux/str.h>
+#include <faux/async.h>
 #include <klish/ktp_session.h>
 
 #include "private.h"
@@ -30,9 +31,8 @@ ktpd_session_t *ktpd_session_new(int sock)
 
 	// Init
 	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
-	session->net = faux_net_new();
-	assert(session->net);
-	faux_net_set_fd(session->net, sock);
+	session->async = faux_async_new(sock);
+	assert(session->async);
 
 	return session;
 }
@@ -43,7 +43,8 @@ void ktpd_session_free(ktpd_session_t *session)
 	if (!session)
 		return;
 
-	faux_net_free(session->net);
+	close(ktpd_session_fd(session));
+	faux_async_free(session->async);
 	faux_free(session);
 }
 
@@ -60,13 +61,13 @@ bool_t ktpd_session_connected(ktpd_session_t *session)
 }
 
 
-int ktpd_session_get_socket(ktpd_session_t *session)
+int ktpd_session_fd(const ktpd_session_t *session)
 {
 	assert(session);
 	if (!session)
 		return BOOL_FALSE;
 
-	return faux_net_get_fd(session->net);
+	return faux_async_fd(session->async);
 }
 
 #if 0

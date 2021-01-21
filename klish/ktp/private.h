@@ -2,6 +2,7 @@
 #define _klish_ktp_private_h
 
 #include <faux/net.h>
+#include <faux/async.h>
 #include <klish/ktp_session.h>
 
 
@@ -17,7 +18,7 @@ struct ktpd_session_s {
 	uid_t uid;
 	gid_t gid;
 	char *user;
-	faux_net_t *net;
+	faux_async_t *async;
 };
 
 
@@ -33,6 +34,11 @@ typedef enum {
 struct ktp_session_s {
 	ktp_session_state_e state;
 	faux_net_t *net;
+};
+
+
+struct ktpd_clients_s {
+	faux_list_t *list;
 };
 
 #endif // _klish_ktp_private_h

@@ -60,7 +60,7 @@ bool_t ktp_session_connected(ktp_session_t *session)
 }
 
 
-int ktp_session_get_socket(ktp_session_t *session)
+int ktp_session_fd(const ktp_session_t *session)
 {
 	assert(session);
 	if (!session)

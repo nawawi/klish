@@ -35,7 +35,10 @@
 
 #include "private.h"
 
+
+// Local static functions
 static int create_listen_unix_sock(const char *path);
+
 
 // Main loop events
 static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -61,9 +64,8 @@ int main(int argc, char **argv)
 	int pidfd = -1;
 	int logoptions = 0;
 	faux_eloop_t *eloop = NULL;
-
-	// Network
 	int listen_unix_sock = -1;
+	ktpd_clients_t *clients = NULL;
 
 	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -125,13 +127,20 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Network initialization
+	// Listen socket
 	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);
 	listen_unix_sock = create_listen_unix_sock(opts->unix_socket_path);
 	if (listen_unix_sock < 0)
 		goto err;
 	syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
 
+	// Clients sessions DB
+	clients = ktpd_clients_new();
+	assert(clients);
+	if (!clients)
+		goto err;
+
+	// Event loop
 	eloop = faux_eloop_new(NULL);
 	// Signals
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
@@ -139,7 +148,7 @@ int main(int argc, char **argv)
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGHUP, refresh_config_ev, opts);
 	// Listen socket. Waiting for new connections
-	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_socket_ev, NULL);
+	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_socket_ev, clients);
 	// Scheduled events
 	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
 	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
@@ -148,105 +157,18 @@ int main(int argc, char **argv)
 	faux_eloop_free(eloop);
 
 /*
-	// Main loop
-	while (!sigterm) {
-		int sn = 0;
-		struct timespec *timeout = NULL;
-		struct timespec next_interval = {};
-		faux_pollfd_iterator_t pollfd_iter;
-		struct pollfd *pollfd = NULL;
-		pid_t pid = -1;
-
-		// Re-read config file on SIGHUP
-		if (sighup) {
-			if (access(opts->cfgfile, R_OK) == 0) {
-				syslog(LOG_INFO, "Re-reading config file \"%s\"\n", opts->cfgfile);
-				if (config_parse(opts->cfgfile, opts) < 0)
-					syslog(LOG_ERR, "Error while config file parsing.\n");
-			} else if (opts->cfgfile_userdefined) {
-				syslog(LOG_ERR, "Can't find config file \"%s\"\n", opts->cfgfile);
-			}
-			sighup = 0;
-		}
-
 		// Non-blocking wait for all children
 		while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
 			syslog(LOG_DEBUG, "Exit child process %d\n", pid);
 		}
-		sigchld = 0;
-
-		// Find out timeout interval
-		if (faux_sched_next_interval(sched, &next_interval) < 0) {
-			timeout = NULL;
-		} else {
-			timeout = &next_interval;
-			syslog(LOG_DEBUG, "Next interval: %ld\n", timeout->tv_sec);
-		}
-
-		// Wait for events
-		sn = ppoll(faux_pollfd_vector(fds), faux_pollfd_len(fds), timeout, &orig_sig_set);
-		if (sn < 0) {
-			if ((EAGAIN == errno) || (EINTR == errno))
-				continue;
-			syslog(LOG_ERR, "Error while select(): %s\n", strerror(errno));
-			break;
-		}
-
-		// Timeout (Scheduled event)
-		if (0 == sn) {
-			int id = 0; // Event idenftifier
-			void *data = NULL; // Event data
-
-syslog(LOG_DEBUG, "Timeout\n");
-			// Some scheduled events
-			while(faux_sched_pop(sched, &id, &data) == 0) {
-				syslog(LOG_DEBUG, "sched: Update event\n");
-			}
-			continue;
-		}
-
-		// Get data via socket
-		faux_pollfd_init_iterator(fds, &pollfd_iter);
-		while ((pollfd = faux_pollfd_each_active(fds, &pollfd_iter))) {
-			int fd = pollfd->fd;
-
-			// Listen socket
-			if (fd == listen_unix_sock) {
-				int new_conn = -1;
-				new_conn = accept(listen_unix_sock, NULL, NULL);
-				if (new_conn < 0)
-					continue;
-				faux_pollfd_add(fds, new_conn, POLLIN);
-				syslog(LOG_DEBUG, "New connection %d", new_conn);
-				continue;
-			}
-
-			// If it's not a listen socket then we have received
-			// a message from client.
-syslog(LOG_DEBUG, "Client %d\n", fd);
-
-			// Receive message
-			
-			
-
-			// Check for closed connection. Do it after reading from
-			// socket because buffer of disconnected socket can
-			// still contain data.
-			if (pollfd->revents & POLLHUP) {
-				ktp_disconnect(fd);
-				faux_pollfd_del_by_fd(fds, fd);
-				syslog(LOG_DEBUG, "Close connection %d", fd);
-			}
-
-		}
-
-	} // Main loop end
 */
 
 	retval = 0;
 
 err:
 	syslog(LOG_DEBUG, "Cleanup.\n");
+
+	ktpd_clients_free(clients);
 
 	// Close listen socket
 	if (listen_unix_sock >= 0)
@@ -368,13 +290,23 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	int new_conn = -1;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktpd_clients_t *clients = (ktpd_clients_t *)user_data;
+	ktpd_session_t *session = NULL;
+
+	assert(clients);
 
 	new_conn = accept(info->fd, NULL, NULL);
 	if (new_conn < 0) {
 		syslog(LOG_ERR, "Can't accept() new connection");
 		return BOOL_TRUE;
 	}
-	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, NULL);
+	session = ktpd_clients_add(clients, new_conn);
+	if (!session) {
+		syslog(LOG_ERR, "Duplicated client fd");
+		close(new_conn);
+		return BOOL_TRUE;
+	}
+	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
 	syslog(LOG_DEBUG, "New connection %d", new_conn);
 
 	type = type; // Happy compiler
@@ -388,6 +320,19 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktpd_clients_t *clients = (ktpd_clients_t *)user_data;
+	ktpd_session_t *session = NULL;
+
+	assert(clients);
+
+	// Find out session
+	session = ktpd_clients_find(clients, info->fd);
+	if (!session) { // Some strange case
+		syslog(LOG_ERR, "Can't find client session for fd %d", info->fd);
+		faux_eloop_del_fd(eloop, info->fd);
+		close(info->fd);
+		return BOOL_TRUE;
+	}
 
 	if (info->revents & POLLIN) {
 		char buf[1000];
@@ -398,9 +343,10 @@ printf("Received %ld bytes on fd %d\n", s, info->fd);
 //faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	}
 
+	// EOF
 	if (info->revents & POLLHUP) {
-		close(info->fd);
 		faux_eloop_del_fd(eloop, info->fd);
+		ktpd_clients_del(clients, info->fd);
 		syslog(LOG_DEBUG, "Close connection %d", info->fd);
 	}
 
