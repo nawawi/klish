@@ -125,7 +125,22 @@ bool_t ktpd_session_async_in(ktpd_session_t *session)
 }
 
 
-void faux_session_set_stall_cb(ktpd_session_t *session,
+bool_t ktpd_session_async_out(ktpd_session_t *session)
+{
+	assert(session);
+	if (!session)
+		return BOOL_FALSE;
+	if (!ktpd_session_connected(session))
+		return BOOL_FALSE;
+
+	if (faux_async_out(session->async) < 0)
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+void ktpd_session_set_stall_cb(ktpd_session_t *session,
 	faux_session_stall_cb_f stall_cb, void *user_data)
 {
 	assert(session);

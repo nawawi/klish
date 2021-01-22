@@ -29,6 +29,9 @@ void ktpd_session_free(ktpd_session_t *session);
 bool_t ktpd_session_connected(ktpd_session_t *session);
 int ktpd_session_fd(const ktpd_session_t *session);
 bool_t ktpd_session_async_in(ktpd_session_t *session);
+bool_t ktpd_session_async_out(ktpd_session_t *session);
+void ktpd_session_set_stall_cb(ktpd_session_t *session,
+	faux_session_stall_cb_f stall_cb, void *user_data);
 
 // Server's KTP clients database
 ktpd_clients_t *ktpd_clients_new(void);

@@ -283,6 +283,19 @@ static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+bool_t fd_stall_cb(ktpd_session_t *session, void *user_data)
+{
+	faux_eloop_t *eloop = (faux_eloop_t *)user_data;
+
+	assert(session);
+	assert(eloop);
+
+	faux_eloop_include_fd_event(eloop, ktpd_session_fd(session), POLLOUT);
+
+	return BOOL_TRUE;
+}
+
+
 /** @brief Event on listen socket. New remote client.
  */
 static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -306,6 +319,7 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		close(new_conn);
 		return BOOL_TRUE;
 	}
+	ktpd_session_set_stall_cb(session, fd_stall_cb, eloop);
 	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
 	syslog(LOG_DEBUG, "New connection %d", new_conn);
 
@@ -332,6 +346,17 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		faux_eloop_del_fd(eloop, info->fd);
 		close(info->fd);
 		return BOOL_TRUE;
+	}
+
+	// Write data
+	if (info->revents & POLLOUT) {
+		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
+		if (!ktpd_session_async_out(session)) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			ktpd_clients_del(clients, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+		}
 	}
 
 	// Read data
