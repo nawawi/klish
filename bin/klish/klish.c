@@ -14,6 +14,7 @@
 
 #include <faux/faux.h>
 #include <faux/str.h>
+#include <faux/msg.h>
 
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -27,6 +28,8 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int unix_sock = -1;
 	ktp_session_t *session = NULL;
+	faux_msg_t *msg = NULL;
+	faux_net_t *net = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -48,7 +51,15 @@ int main(int argc, char **argv)
 		goto err;
 	}
 
-	write(ktp_session_fd(session), "hello", 5);
+	net = faux_net_new();
+	faux_net_set_fd(net, ktp_session_fd(session));
+	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
+	faux_msg_set_cmd(msg, KTP_AUTH);
+	faux_msg_send(msg, net);
+//	write(ktp_session_fd(session), "hello", 5);
+
+	faux_msg_free(msg);
+	faux_net_free(net);
 
 	retval = 0;
 

@@ -8,6 +8,10 @@
 
 #include <faux/msg.h>
 
+#define KTP_MAGIC 0x2050544b
+#define KTP_MAJOR 0x01
+#define KTP_MINOR 0x00
+
 typedef enum {
 	KTP_NULL = '\0',
 	KTP_STDIN = 'i',
