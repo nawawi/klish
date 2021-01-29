@@ -8,7 +8,7 @@
 
 #include <faux/msg.h>
 
-#define KTP_MAGIC 0x2050544b
+#define KTP_MAGIC 0x4b545020
 #define KTP_MAJOR 0x01
 #define KTP_MINOR 0x00
 
