@@ -22,7 +22,7 @@ struct ktpd_session_s {
 	faux_async_t *async;
 	faux_session_stall_cb_f stall_cb; // Stall callback
 	void *stall_udata;
-	faux_msg_t *partial_msg; // Engine will receive header and then msg
+	faux_hdr_t *hdr; // Engine will receive header and then msg
 };
 
 

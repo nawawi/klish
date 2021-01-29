@@ -19,19 +19,19 @@
 #include "private.h"
 
 
-static bool_t check_ktp_header(faux_msg_t *msg)
+static bool_t check_ktp_header(faux_hdr_t *hdr)
 {
-	assert(msg);
-	if (!msg)
+	assert(hdr);
+	if (!hdr)
 		return BOOL_FALSE;
 
-	if (faux_msg_get_magic(msg) != KTP_MAGIC)
+	if (faux_hdr_magic(hdr) != KTP_MAGIC)
 		return BOOL_FALSE;
-	if (faux_msg_get_major(msg) != KTP_MAJOR)
+	if (faux_hdr_major(hdr) != KTP_MAJOR)
 		return BOOL_FALSE;
-	if (faux_msg_get_minor(msg) != KTP_MINOR)
+	if (faux_hdr_minor(hdr) != KTP_MINOR)
 		return BOOL_FALSE;
-	if (faux_msg_get_len(msg) < (int)sizeof(faux_hdr_t))
+	if (faux_hdr_len(hdr) < (int)sizeof(*hdr))
 		return BOOL_FALSE;
 
 	return BOOL_TRUE;
@@ -69,23 +69,20 @@ static bool_t ktpd_session_read_cb(faux_async_t *async,
 	assert(data);
 	assert(session);
 
-printf("cb %ld, phdr %ld, hdr %ld\n", len, sizeof(faux_phdr_t), sizeof(faux_hdr_t));
 	// Receive header
-	if (!session->partial_msg) {
+	if (!session->hdr) {
 		size_t whole_len = 0;
 		size_t msg_wo_hdr = 0;
 
-		session->partial_msg = (faux_msg_t *)data;
+		session->hdr = (faux_hdr_t *)data;
 		// Check for broken header
-		if (!check_ktp_header(session->partial_msg)) {
-			// Use faux_free() instead faux_msg_free() because
-			// it's not completed message.
-			faux_free(session->partial_msg);
-			session->partial_msg = NULL;
+		if (!check_ktp_header(session->hdr)) {
+			faux_free(session->hdr);
+			session->hdr = NULL;
 			return BOOL_FALSE;
 		}
 
-		whole_len = faux_msg_get_len(session->partial_msg);
+		whole_len = faux_hdr_len(session->hdr);
 		// msg_wo_hdr >= 0 because check_ktp_header() validates whole_len
 		msg_wo_hdr = whole_len - sizeof(faux_hdr_t);
 		// Plan to receive message body
@@ -95,22 +92,23 @@ printf("cb %ld, phdr %ld, hdr %ld\n", len, sizeof(faux_phdr_t), sizeof(faux_hdr_
 			return BOOL_TRUE;
 		}
 		// Here message is completed (msg body has zero length)
-		completed_msg = session->partial_msg;
+		completed_msg = faux_msg_deserialize_parts(session->hdr, NULL, 0);
 
 	// Receive message body
 	} else {
-		completed_msg = realloc(session->partial_msg,
-			sizeof(faux_hdr_t) + len);
-		memcpy((char *)completed_msg + sizeof(faux_hdr_t), data, len);
+		completed_msg = faux_msg_deserialize_parts(session->hdr, data, len);
+		faux_free(data);
 	}
 
-	// Here message is completed
-	ktpd_session_dispatch(session, session->partial_msg);
-	faux_msg_free(session->partial_msg);
-	session->partial_msg = NULL; // Ready to recv new header
 	// Plan to receive msg header
 	faux_async_set_read_limits(session->async,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
+	faux_free(session->hdr);
+	session->hdr = NULL; // Ready to recv new header
+
+	// Here message is completed
+	ktpd_session_dispatch(session, completed_msg);
+	faux_msg_free(completed_msg);
 
 	return BOOL_TRUE;
 }
@@ -156,7 +154,7 @@ ktpd_session_t *ktpd_session_new(int sock)
 	faux_async_set_read_limits(session->async,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
 	faux_async_set_read_cb(session->async, ktpd_session_read_cb, session);
-	session->partial_msg = NULL;
+	session->hdr = NULL;
 
 	return session;
 }
@@ -167,7 +165,7 @@ void ktpd_session_free(ktpd_session_t *session)
 	if (!session)
 		return;
 
-	faux_free(session->partial_msg); // It can be partial faux_msg_t
+	faux_free(session->hdr);
 	close(ktpd_session_fd(session));
 	faux_async_free(session->async);
 	faux_free(session);
