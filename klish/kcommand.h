@@ -16,6 +16,9 @@ typedef struct kcommand_info_s {
 
 C_DECL_BEGIN
 
+kcommand_t *kcommand_new(kcommand_info_t info);
+kcommand_t *kcommand_new_static(kcommand_info_t info);
+void kcommand_free(kcommand_t *command);
 
 C_DECL_END
 

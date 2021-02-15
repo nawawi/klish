@@ -17,6 +17,9 @@ typedef struct kparam_info_s {
 
 C_DECL_BEGIN
 
+kparam_t *kparam_new(kparam_info_t info);
+kparam_t *kparam_new_static(kparam_info_t info);
+void kparam_free(kparam_t *param);
 
 C_DECL_END
 

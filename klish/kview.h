@@ -15,6 +15,12 @@ typedef struct kview_info_s {
 
 C_DECL_BEGIN
 
+kview_t *kview_new(kview_info_t info);
+kview_t *kview_new_static(kview_info_t info);
+void kview_free(kview_t *view);
+
+const char *kview_name(const kview_t *view);
+
 
 C_DECL_END
 

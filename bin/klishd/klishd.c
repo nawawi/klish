@@ -33,6 +33,8 @@
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
+#include <klish/kparam.h>
+
 #include "private.h"
 
 
@@ -125,6 +127,13 @@ int main(int argc, char **argv)
 					opts->pidfile, strerror(errno));
 			close(pidfd);
 		}
+	}
+
+	// Load scheme
+	{
+	kparam_t *param = NULL;
+	param = kparam_new_static((kparam_info_t){.name="PARAM", .help="This is param", .ptype = "STRING" });
+	param = param;
 	}
 
 	// Listen socket
