@@ -6,6 +6,8 @@
 #ifndef _klish_kcommand_h
 #define _klish_kcommand_h
 
+#include <klish/kparam.h>
+
 typedef struct kcommand_s kcommand_t;
 
 typedef struct kcommand_info_s {
@@ -22,6 +24,8 @@ void kcommand_free(kcommand_t *command);
 
 const char *kcommand_name(const kcommand_t *command);
 const char *kcommand_help(const kcommand_t *command);
+
+bool_t kcommand_add_param(kcommand_t *command, kparam_t *param);
 
 C_DECL_END
 

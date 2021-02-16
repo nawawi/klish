@@ -7,9 +7,10 @@
 #define _klish_kscheme_h
 
 
-#include <klish/kview.h>
-#include <klish/kcommand.h>
+#include <klish/kptype.h>
 #include <klish/kparam.h>
+#include <klish/kcommand.h>
+#include <klish/kview.h>
 
 typedef struct kscheme_s kscheme_t;
 
