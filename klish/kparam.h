@@ -21,6 +21,10 @@ kparam_t *kparam_new(kparam_info_t info);
 kparam_t *kparam_new_static(kparam_info_t info);
 void kparam_free(kparam_t *param);
 
+const char *kparam_name(const kparam_t *param);
+const char *kparam_help(const kparam_t *param);
+const char *kparam_ptype_str(const kparam_t *param);
+
 C_DECL_END
 
 #endif // _klish_kparam_h

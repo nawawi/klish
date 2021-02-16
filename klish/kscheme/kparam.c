@@ -54,3 +54,33 @@ void kparam_free(kparam_t *param)
 
 	faux_free(param);
 }
+
+
+const char *kparam_name(const kparam_t *param)
+{
+	assert(param);
+	if (!param)
+		return NULL;
+
+	return param->info.name;
+}
+
+
+const char *kparam_help(const kparam_t *param)
+{
+	assert(param);
+	if (!param)
+		return NULL;
+
+	return param->info.help;
+}
+
+
+const char *kparam_ptype_str(const kparam_t *param)
+{
+	assert(param);
+	if (!param)
+		return NULL;
+
+	return param->info.ptype;
+}

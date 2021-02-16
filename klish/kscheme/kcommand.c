@@ -54,3 +54,23 @@ void kcommand_free(kcommand_t *command)
 
 	faux_free(command);
 }
+
+
+const char *kcommand_name(const kcommand_t *command)
+{
+	assert(command);
+	if (!command)
+		return NULL;
+
+	return command->info.name;
+}
+
+
+const char *kcommand_help(const kcommand_t *command)
+{
+	assert(command);
+	if (!command)
+		return NULL;
+
+	return command->info.help;
+}

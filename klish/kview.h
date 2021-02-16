@@ -6,6 +6,8 @@
 #ifndef _klish_kview_h
 #define _klish_kview_h
 
+#include <klish/kcommand.h>
+
 typedef struct kview_s kview_t;
 
 typedef struct kview_info_s {
@@ -21,6 +23,7 @@ void kview_free(kview_t *view);
 
 const char *kview_name(const kview_t *view);
 
+bool_t kview_add_command(kview_t *view, kcommand_t *command);
 
 C_DECL_END
 

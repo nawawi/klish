@@ -20,6 +20,9 @@ kcommand_t *kcommand_new(kcommand_info_t info);
 kcommand_t *kcommand_new_static(kcommand_info_t info);
 void kcommand_free(kcommand_t *command);
 
+const char *kcommand_name(const kcommand_t *command);
+const char *kcommand_help(const kcommand_t *command);
+
 C_DECL_END
 
 #endif // _klish_kcommand_h
