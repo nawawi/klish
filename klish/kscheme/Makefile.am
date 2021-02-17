@@ -1,5 +1,6 @@
 libklish_la_SOURCES += \
-	klish/kscheme/kscheme.c \
-	klish/kscheme/kview.c \
+	klish/kscheme/kptype.c \
+	klish/kscheme/kparam.c \
 	klish/kscheme/kcommand.c \
-	klish/kscheme/kparam.c
+	klish/kscheme/kview.c \
+	klish/kscheme/kscheme.c
