@@ -403,8 +403,26 @@
 * [interactive="true/false"] - specify is action interactive. The
 *	interactive ACTIONs can't be used with piped ("|") output.
 *
+* [exec_on="fail/success/always"] - ACTION's execution depends on
+*	return code of previous elements of ACTION chain. If the
+*	condition is not met then ACTION will not be executed. The "always"
+*	value means that ACTION will be always executed and chain return
+*	code will be ignored. Default is "success".
+*
+* [upadate_retcode="true/false"] - The chain return value can be updated
+*	by current ACTION's return code or ACTION's return code can be ignored.
+*	Default is "true".
+*
 ********************************************************
 -->
+	<xs:simpleType name="action_cond_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fail"/>
+			<xs:enumeration value="success"/>
+			<xs:enumeration value="always"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:complexType name="action_t">
 		<xs:simpleContent>
 			<xs:extension base="xs:string">
@@ -413,6 +431,8 @@
 				<xs:attribute name="lock" type="xs:boolean" use="optional" default="true"/>
 				<xs:attribute name="interrupt" type="xs:boolean" use="optional" default="false"/>
 				<xs:attribute name="interactive" type="xs:boolean" use="optional" default="false"/>
+				<xs:attribute name="exec_on" type="action_cond_t" use="optional" default="success"/>
+				<xs:attribute name="update_retcode" type="xs:boolean" use="optional" default="true"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>

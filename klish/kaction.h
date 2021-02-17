@@ -15,6 +15,13 @@ typedef struct kaction_info_s {
 } kaction_info_t;
 
 
+typedef enum {
+	KACTION_COND_FAIL,
+	KACTION_COND_SUCCESS,
+	KACTION_COND_ALWAYS
+} kaction_chain_e;
+
+
 C_DECL_BEGIN
 
 kaction_t *kaction_new(kaction_info_t info);

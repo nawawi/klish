@@ -33,7 +33,7 @@
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
-#include <klish/kparam.h>
+#include <klish/kscheme.h>
 
 #include "private.h"
 
@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 	faux_eloop_t *eloop = NULL;
 	int listen_unix_sock = -1;
 	ktpd_clients_t *clients = NULL;
+	kscheme_t *scheme = NULL;
 
 	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -130,6 +131,7 @@ int main(int argc, char **argv)
 	}
 
 	// Load scheme
+	scheme = kscheme_new();
 	{
 	kparam_t *param = NULL;
 	param = kparam_new_static((kparam_info_t){.name="PARAM", .help="This is param", .ptype = "STRING" });
@@ -190,6 +192,9 @@ err:
 			opts->pidfile, strerror(errno));
 		}
 	}
+
+	// Free scheme
+	kscheme_free(scheme);
 
 	// Free command line options
 	opts_free(opts);
