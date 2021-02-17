@@ -8,6 +8,7 @@
 
 
 #include <klish/kptype.h>
+#include <klish/kaction.h>
 #include <klish/kparam.h>
 #include <klish/kcommand.h>
 #include <klish/kview.h>
