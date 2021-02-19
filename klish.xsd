@@ -81,71 +81,18 @@
 * <PTYPE> is used to define the syntax for a parameter type.
 *
 * name - a textual name for this type. This name can be used to
-*	reference this type within a <PARAM? ptype attribute.
+*	reference this type within a PARAM's ptype attribute.
 *
 * help - a textual string which describes the syntax of this type.
-*	When a parameter is filled out incorrectly on the CLI, this
-*	text will be used to prompt the user to fill out the value 
-*	correctly.
-*
-* pattern - A regular expression which defines the syntax of the type.
-*
-* method - The means by which the pattern is interpreted.
-*
-*	regexp [default] - A POSIX regular expression.
-*
-*	integer - A numeric definition "min..max"
-*
-*	select  - A list of possible values.
-*		The syntax of the string is of the form:
-*		"valueOne(ONE) valueTwo(TWO) valueThree(THREE)"
-*		where the text before the parethesis defines the syntax 
-*		that the user must use, and the value within the parenthesis 
-*		is the result expanded as a parameter value.
-*
-*	code - The PTYPE check is handled by user-defined code.
-*		The code can be defined by builtin func or ACTION.
-*
-* preprocess  - An optional directive to process the value entered before
-*	validating it. This can greatly simplify the regular expressions
-*	needed to match case insensitive values.
-*
-*	none [default] - do nothing
-*
-*	toupper - before validation convert to uppercase.
-*
-*	tolower - before validation convert to lowercase.
 *
 ********************************************************
 -->
-	<xs:simpleType name="ptype_method_e">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="regexp"/>
-			<xs:enumeration value="integer"/>
-			<xs:enumeration value="unsignedInteger"/>
-			<xs:enumeration value="select"/>
-			<xs:enumeration value="choice"/>
-			<xs:enumeration value="subcommand"/>
-			<xs:enumeration value="code"/>
-		</xs:restriction>
-	</xs:simpleType>
-
-	<xs:simpleType name="ptype_preprocess_e">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="none"/>
-			<xs:enumeration value="toupper"/>
-			<xs:enumeration value="tolower"/>
-		</xs:restriction>
-	</xs:simpleType>
-
 	<xs:complexType name="ptype_t">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="required"/>
 		<xs:sequence>
-			<xs:element ref="ACTION" minOccurs="0"/>
+			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attributeGroup ref="menu_item_g"/>
-		<xs:attribute name="pattern" type="xs:string"/>
-		<xs:attribute name="method" type="ptype_method_e" use="optional" default="regexp"/>
-		<xs:attribute name="preprocess" type="ptype_preprocess_e" use="optional" default="none"/>
 	</xs:complexType>
 
 <!--
