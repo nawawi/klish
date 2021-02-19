@@ -171,11 +171,10 @@
 *******************************************************
 * <COMMAND> is used to define a command within the CLI.
 *
-* name - a textual name for this command. (This may contain
+* name="<string>" - A textual name for this command. (This may contain
 *	spaces e.g. "display acl")
 *
-* help - a textual string which describes the purpose of the
-*	command.
+* help="<string>" - Help for command.
 *
 * [view] - defines the view which will be transitioned to, on 
 *	successful execution of any <ACTION> tag. By default the

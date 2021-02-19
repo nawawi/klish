@@ -5,6 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <klish/khelper.h>
 #include <klish/kaction.h>
 
 

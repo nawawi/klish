@@ -6,6 +6,7 @@
 #ifndef _klish_kview_h
 #define _klish_kview_h
 
+#include <faux/faux.h>
 #include <klish/kcommand.h>
 
 typedef struct kview_s kview_t;
@@ -16,13 +17,21 @@ typedef struct iview_s {
 } iview_t;
 
 
+typedef enum {
+	KVIEW_ERROR_OK,
+	KVIEW_ERROR_MALLOC,
+	KVIEW_ERROR_LIST
+} kview_error_e;
+
+
 C_DECL_BEGIN
 
-kview_t *kview_new(iview_t info);
-kview_t *kview_new_static(iview_t info);
+kview_t *kview_new(const iview_t *info, kview_error_e *error);
 void kview_free(kview_t *view);
+bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error);
 
 const char *kview_name(const kview_t *view);
+bool_t kview_set_name(kview_t *view, const char *name);
 
 bool_t kview_add_command(kview_t *view, kcommand_t *command);
 

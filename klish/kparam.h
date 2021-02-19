@@ -8,11 +8,13 @@
 
 typedef struct kparam_s kparam_t;
 
-typedef struct iparam_s {
+typedef struct iparam_s iparam_t;
+struct iparam_s {
 	char *name;
 	char *help;
 	char *ptype;
-} iparam_t;
+	iparam_t * (*params)[]; // Nested PARAMs
+};
 
 
 C_DECL_BEGIN

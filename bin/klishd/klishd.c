@@ -37,13 +37,6 @@
 
 #include "private.h"
 
-#define VIEW_LIST .views = &(iview_t * []) {
-#define END_VIEW_LIST NULL }
-#define VIEW &(iview_t)
-#define COMMAND_LIST .commands = &(icommand_t * []) {
-#define END_COMMAND_LIST NULL }
-#define COMMAND &(icommand_t)
-
 ischeme_t sch = {
   VIEW_LIST
 

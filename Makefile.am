@@ -20,6 +20,7 @@ bin_PROGRAMS =
 lib_LTLIBRARIES =
 lib_LIBRARIES =
 nobase_include_HEADERS =
+noinst_HEADERS =
 
 EXTRA_DIST =
 	klish/Makefile.am \

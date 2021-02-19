@@ -13,6 +13,16 @@
 #include <klish/kcommand.h>
 #include <klish/kview.h>
 
+
+#define VIEW_LIST .views = &(iview_t * []) {
+#define END_VIEW_LIST NULL }
+#define VIEW &(iview_t)
+
+#define COMMAND_LIST .commands = &(icommand_t * []) {
+#define END_COMMAND_LIST NULL }
+#define COMMAND &(icommand_t)
+
+
 typedef struct kscheme_s kscheme_t;
 
 typedef struct ischeme_s {

@@ -14,6 +14,9 @@ nobase_include_HEADERS += \
 	klish/kcommand.h \
 	klish/kparam.h
 
+noinst_HEADERS += \
+	klish/khelper.h
+
 EXTRA_DIST += \
 	klish/ktp/Makefile.am \
 	klish/kscheme/Makefile.am

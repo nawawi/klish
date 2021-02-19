@@ -5,15 +5,19 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <klish/khelper.h>
 #include <klish/kcommand.h>
 #include <klish/kview.h>
 
-
 struct kview_s {
-	bool_t is_static;
-	iview_t info;
+	char *name;
 	faux_list_t *commands;
 };
+
+
+// Simple attributes
+KGET_STR(kview, name);
+KSET_STR_ONCE(kview, name);
 
 
 static int kview_command_compare(const void *first, const void *second)
@@ -34,7 +38,7 @@ static int kview_command_kcompare(const void *key, const void *list_item)
 }
 
 
-static kview_t *kview_new_internal(iview_t info, bool_t is_static)
+static kview_t *kview_new_empty(void)
 {
 	kview_t *view = NULL;
 
@@ -44,8 +48,7 @@ static kview_t *kview_new_internal(iview_t info, bool_t is_static)
 		return NULL;
 
 	// Initialize
-	view->is_static = is_static;
-	view->info = info;
+	view->name = NULL;
 
 	view->commands = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 		kview_command_compare, kview_command_kcompare,
@@ -56,15 +59,24 @@ static kview_t *kview_new_internal(iview_t info, bool_t is_static)
 }
 
 
-kview_t *kview_new(iview_t info)
+kview_t *kview_new(const iview_t *info, kview_error_e *error)
 {
-	return kview_new_internal(info, BOOL_FALSE);
-}
+	kview_t *view = NULL;
 
+	view = kview_new_empty();
+	assert(view);
+	if (!view)
+		return NULL;
 
-kview_t *kview_new_static(iview_t info)
-{
-	return kview_new_internal(info, BOOL_TRUE);
+	if (!info)
+		return view;
+
+	if (!kview_parse(view, info, error)) {
+		kview_free(view);
+		return NULL;
+	}
+
+	return view;
 }
 
 
@@ -73,22 +85,10 @@ void kview_free(kview_t *view)
 	if (!view)
 		return;
 
-	if (!view->is_static) {
-		faux_str_free(view->info.name);
-	}
+	faux_str_free(view->name);
 	faux_list_free(view->commands);
 
 	faux_free(view);
-}
-
-
-const char *kview_name(const kview_t *view)
-{
-	assert(view);
-	if (!view)
-		return NULL;
-
-	return view->info.name;
 }
 
 
@@ -103,6 +103,16 @@ bool_t kview_add_command(kview_t *view, kcommand_t *command)
 
 	if (!faux_list_add(view->commands, command))
 		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
+{
+	view = view;
+	info = info;
+	error = error;
 
 	return BOOL_TRUE;
 }
