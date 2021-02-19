@@ -370,38 +370,22 @@
 * <ACTION> specifies the action to be taken for
 * a command.
 *
-* The textual contents of the tag are variable expanded
-* (environment, dynamic and parameter) the the resulting
-* text is interpreted by the client's script interpreter.
-*
-* In addition the optional 'builtin' attribute can specify
+* In addition the optional 'sym' attribute can specify
 * the name of an internal command which will be invoked
-* instead of the client's script handler.
+* to handle script.
 *
-* NB. for security reasons any special shell characters 
-* (e.g. $|<>`) are escaped before evaluation.
-*
-* [builtin] - specify the name of an internally registered
+* [sym="<symbol>"] - specify the name of an internally registered
 *	function. The content of the ACTION tag is
 *	taken as the arguments to this builtin function.
 *
-* [shebang] - specify the programm to execute the action
-*	script.
+* [lock="<name>"] - Named lock. It will use special lockfile while
+*	action execution.
 *
-* [lock="true/false"] - the boolean field that specify to lock lockfile while
-*	action execution or not. Default is true. In a case the
-*	LEGACY macro is specified while klish building the
-*	value of this field is inherited from COMMAND tag (if
-*	lock is not specified in ACTION).
+* [interrupt="true/false"] - The boolean field that specify that action can be
+*	be interrupted by Ctrl^C. Default is false. Ignored for non-interactive
+*	actions.
 *
-* [interrupt="true/false"] - the boolean field that specify that action can be
-*	be interrupted by Ctrl^C. Default is false. In a case the
-*	LEGACY macro is specified while klish building the
-*	value of this field is inherited from COMMAND tag (if
-*	attr is not specified in ACTION).
-*
-* [interactive="true/false"] - specify is action interactive. The
-*	interactive ACTIONs can't be used with piped ("|") output.
+* [interactive="true/false"] - Is action interactive.
 *
 * [exec_on="fail/success/always"] - ACTION's execution depends on
 *	return code of previous elements of ACTION chain. If the
@@ -426,9 +410,8 @@
 	<xs:complexType name="action_t">
 		<xs:simpleContent>
 			<xs:extension base="xs:string">
-				<xs:attribute name="builtin" type="xs:string" use="optional"/>
-				<xs:attribute name="shebang" type="xs:string" use="optional"/>
-				<xs:attribute name="lock" type="xs:boolean" use="optional" default="true"/>
+				<xs:attribute name="sym" type="xs:string" use="optional"/>
+				<xs:attribute name="lock" type="xs:string" use="optional"/>
 				<xs:attribute name="interrupt" type="xs:boolean" use="optional" default="false"/>
 				<xs:attribute name="interactive" type="xs:boolean" use="optional" default="false"/>
 				<xs:attribute name="exec_on" type="action_cond_t" use="optional" default="success"/>

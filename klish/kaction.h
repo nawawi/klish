@@ -6,12 +6,14 @@
 #ifndef _klish_kaction_h
 #define _klish_kaction_h
 
-#include <klish/kcommand.h>
 
 typedef struct kaction_s kaction_t;
 
 typedef struct iaction_s {
 	char *sym;
+	char *lock;
+	char *interrupt;
+	char *interactive;
 	char *exec_on;
 	char *update_retcode;
 } iaction_t;
@@ -37,8 +39,6 @@ kaction_t *kaction_new_static(iaction_t info);
 void kaction_free(kaction_t *action);
 
 const char *kaction_name(const kaction_t *action);
-
-bool_t kaction_add_command(kaction_t *action, kcommand_t *command);
 
 C_DECL_END
 

@@ -7,6 +7,7 @@
 #define _klish_kcommand_h
 
 #include <klish/kparam.h>
+#include <klish/kaction.h>
 
 typedef struct kcommand_s kcommand_t;
 
@@ -14,6 +15,7 @@ typedef struct icommand_s {
 	char *name;
 	char *help;
 	iparam_t * (*params)[];
+	iaction_t * (*actions)[];
 } icommand_t;
 
 C_DECL_BEGIN

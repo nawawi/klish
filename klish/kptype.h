@@ -6,11 +6,14 @@
 #ifndef _klish_kptype_h
 #define _klish_kptype_h
 
+#include <klish/kaction.h>
+
 typedef struct kptype_s kptype_t;
 
 typedef struct iptype_s {
 	char *name;
 	char *help;
+	iaction_t * (*actions)[];
 } iptype_t;
 
 

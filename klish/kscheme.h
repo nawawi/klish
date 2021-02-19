@@ -17,6 +17,7 @@ typedef struct kscheme_s kscheme_t;
 
 typedef struct ischeme_s {
 	char *name;
+	iptype_t * (*ptypes)[];
 	iview_t * (*views)[];
 } ischeme_t;
 
