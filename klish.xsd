@@ -67,23 +67,13 @@
 	</xs:complexType>
 
 <!--
-***********************************************************
-* Identify some attribute groups
-***********************************************************
--->
-	<xs:attributeGroup name="menu_item_g">
-		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="help" type="xs:string" use="required"/>
-	</xs:attributeGroup>
-
-<!--
 *******************************************************
 * <PTYPE> is used to define the syntax for a parameter type.
 *
-* name - a textual name for this type. This name can be used to
+* name="<string>" - A textual name for this type. This name can be used to
 *	reference this type within a PARAM's ptype attribute.
 *
-* help - a textual string which describes the syntax of this type.
+* help="<string>" - Help string.
 *
 ********************************************************
 -->
@@ -218,12 +208,13 @@
 ********************************************************
 -->
 	<xs:complexType name="command_t">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="required"/>
 		<xs:sequence>
 			<xs:element ref="DETAIL" minOccurs="0"/>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ACTION" minOccurs="0"/>
 		</xs:sequence>
-		<xs:attributeGroup ref="menu_item_g"/>
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="view" type="xs:string" use="optional"/>
 		<xs:attribute name="viewid" type="xs:string" use="optional"/>
@@ -295,10 +286,11 @@
 	</xs:simpleType>
 
 	<xs:complexType name="param_t">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="required"/>
 		<xs:sequence>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attributeGroup ref="menu_item_g"/>
 		<xs:attribute name="ptype" type="xs:string" use="required"/>
 		<xs:attribute name="default" type="xs:string" use="optional"/>
 		<xs:attribute name="prefix" type="xs:string" use="optional"/>
