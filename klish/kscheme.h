@@ -15,6 +15,12 @@
 
 typedef struct kscheme_s kscheme_t;
 
+typedef struct ischeme_s {
+	char *name;
+	iview_t * (*views)[];
+} ischeme_t;
+
+
 C_DECL_BEGIN
 
 kscheme_t *kscheme_new(void);

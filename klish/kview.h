@@ -10,15 +10,16 @@
 
 typedef struct kview_s kview_t;
 
-typedef struct kview_info_s {
+typedef struct iview_s {
 	char *name;
-} kview_info_t;
+	icommand_t * (*commands)[];
+} iview_t;
 
 
 C_DECL_BEGIN
 
-kview_t *kview_new(kview_info_t info);
-kview_t *kview_new_static(kview_info_t info);
+kview_t *kview_new(iview_t info);
+kview_t *kview_new_static(iview_t info);
 void kview_free(kview_t *view);
 
 const char *kview_name(const kview_t *view);

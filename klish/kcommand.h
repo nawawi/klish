@@ -10,16 +10,16 @@
 
 typedef struct kcommand_s kcommand_t;
 
-typedef struct kcommand_info_s {
+typedef struct icommand_s {
 	char *name;
 	char *help;
-} kcommand_info_t;
-
+	iparam_t * (*params)[];
+} icommand_t;
 
 C_DECL_BEGIN
 
-kcommand_t *kcommand_new(kcommand_info_t info);
-kcommand_t *kcommand_new_static(kcommand_info_t info);
+kcommand_t *kcommand_new(icommand_t info);
+kcommand_t *kcommand_new_static(icommand_t info);
 void kcommand_free(kcommand_t *command);
 
 const char *kcommand_name(const kcommand_t *command);

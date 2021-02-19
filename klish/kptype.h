@@ -8,16 +8,16 @@
 
 typedef struct kptype_s kptype_t;
 
-typedef struct kptype_info_s {
+typedef struct iptype_s {
 	char *name;
 	char *help;
-} kptype_info_t;
+} iptype_t;
 
 
 C_DECL_BEGIN
 
-kptype_t *kptype_new(kptype_info_t info);
-kptype_t *kptype_new_static(kptype_info_t info);
+kptype_t *kptype_new(iptype_t info);
+kptype_t *kptype_new_static(iptype_t info);
 void kptype_free(kptype_t *ptype);
 
 const char *kptype_name(const kptype_t *ptype);

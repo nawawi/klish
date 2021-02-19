@@ -11,7 +11,8 @@
 
 struct kcommand_s {
 	bool_t is_static;
-	kcommand_info_t info;
+//	kaction_error_e error;
+	icommand_t info;
 	faux_list_t *params;
 };
 
@@ -34,7 +35,7 @@ static int kcommand_param_kcompare(const void *key, const void *list_item)
 }
 
 
-static kcommand_t *kcommand_new_internal(kcommand_info_t info, bool_t is_static)
+static kcommand_t *kcommand_new_internal(icommand_t info, bool_t is_static)
 {
 	kcommand_t *command = NULL;
 
@@ -45,24 +46,33 @@ static kcommand_t *kcommand_new_internal(kcommand_info_t info, bool_t is_static)
 
 	// Initialize
 	command->is_static = is_static;
+//	command->error = KACTION_ERROR_OK;
 	command->info = info;
 
+	// List of parameters
 	command->params = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
 		kcommand_param_compare, kcommand_param_kcompare,
 		(void (*)(void *))kparam_free);
 	assert(command->params);
+//	if (!command->params) {
+//		command->error = KACTION_ERROR_LIST;
+//		return NULL;
+//	}
+
+	// Field "exec_on"
+//	if (faux_str_casecmp(command->info.
 
 	return command;
 }
 
 
-kcommand_t *kcommand_new(kcommand_info_t info)
+kcommand_t *kcommand_new(icommand_t info)
 {
 	return kcommand_new_internal(info, BOOL_FALSE);
 }
 
 
-kcommand_t *kcommand_new_static(kcommand_info_t info)
+kcommand_t *kcommand_new_static(icommand_t info)
 {
 	return kcommand_new_internal(info, BOOL_TRUE);
 }

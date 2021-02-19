@@ -10,7 +10,7 @@
 
 struct kparam_s {
 	bool_t is_static;
-	kparam_info_t info;
+	iparam_t info;
 	faux_list_t *params; // Nested parameters
 };
 
@@ -33,7 +33,7 @@ static int kparam_param_kcompare(const void *key, const void *list_item)
 }
 
 
-static kparam_t *kparam_new_internal(kparam_info_t info, bool_t is_static)
+static kparam_t *kparam_new_internal(iparam_t info, bool_t is_static)
 {
 	kparam_t *param = NULL;
 
@@ -55,13 +55,13 @@ static kparam_t *kparam_new_internal(kparam_info_t info, bool_t is_static)
 }
 
 
-kparam_t *kparam_new(kparam_info_t info)
+kparam_t *kparam_new(iparam_t info)
 {
 	return kparam_new_internal(info, BOOL_FALSE);
 }
 
 
-kparam_t *kparam_new_static(kparam_info_t info)
+kparam_t *kparam_new_static(iparam_t info)
 {
 	return kparam_new_internal(info, BOOL_TRUE);
 }

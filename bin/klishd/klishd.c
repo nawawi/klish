@@ -37,6 +37,35 @@
 
 #include "private.h"
 
+#define VIEW_LIST .views = &(iview_t * []) {
+#define END_VIEW_LIST NULL }
+#define VIEW &(iview_t)
+#define COMMAND_LIST .commands = &(icommand_t * []) {
+#define END_COMMAND_LIST NULL }
+#define COMMAND &(icommand_t)
+
+ischeme_t sch = {
+  VIEW_LIST
+
+    VIEW {
+      .name = "view1",
+      COMMAND_LIST
+
+        COMMAND {
+          .name = "command1",
+          .help = "help1",
+        },
+
+      END_COMMAND_LIST,
+    },
+
+    VIEW {
+      .name = "view2",
+    },
+
+  END_VIEW_LIST,
+};
+
 
 // Local static functions
 static int create_listen_unix_sock(const char *path);
@@ -134,7 +163,7 @@ int main(int argc, char **argv)
 	scheme = kscheme_new();
 	{
 	kparam_t *param = NULL;
-	param = kparam_new_static((kparam_info_t){.name="PARAM", .help="This is param", .ptype = "STRING" });
+	param = kparam_new_static((iparam_t){.name="PARAM", .help="This is param", .ptype = "STRING" });
 	param = param;
 	}
 

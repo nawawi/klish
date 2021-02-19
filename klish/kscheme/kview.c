@@ -11,7 +11,7 @@
 
 struct kview_s {
 	bool_t is_static;
-	kview_info_t info;
+	iview_t info;
 	faux_list_t *commands;
 };
 
@@ -34,7 +34,7 @@ static int kview_command_kcompare(const void *key, const void *list_item)
 }
 
 
-static kview_t *kview_new_internal(kview_info_t info, bool_t is_static)
+static kview_t *kview_new_internal(iview_t info, bool_t is_static)
 {
 	kview_t *view = NULL;
 
@@ -56,13 +56,13 @@ static kview_t *kview_new_internal(kview_info_t info, bool_t is_static)
 }
 
 
-kview_t *kview_new(kview_info_t info)
+kview_t *kview_new(iview_t info)
 {
 	return kview_new_internal(info, BOOL_FALSE);
 }
 
 
-kview_t *kview_new_static(kview_info_t info)
+kview_t *kview_new_static(iview_t info)
 {
 	return kview_new_internal(info, BOOL_TRUE);
 }

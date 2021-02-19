@@ -10,11 +10,11 @@
 
 struct kptype_s {
 	bool_t is_static;
-	kptype_info_t info;
+	iptype_t info;
 };
 
 
-static kptype_t *kptype_new_internal(kptype_info_t info, bool_t is_static)
+static kptype_t *kptype_new_internal(iptype_t info, bool_t is_static)
 {
 	kptype_t *ptype = NULL;
 
@@ -31,13 +31,13 @@ static kptype_t *kptype_new_internal(kptype_info_t info, bool_t is_static)
 }
 
 
-kptype_t *kptype_new(kptype_info_t info)
+kptype_t *kptype_new(iptype_t info)
 {
 	return kptype_new_internal(info, BOOL_FALSE);
 }
 
 
-kptype_t *kptype_new_static(kptype_info_t info)
+kptype_t *kptype_new_static(iptype_t info)
 {
 	return kptype_new_internal(info, BOOL_TRUE);
 }

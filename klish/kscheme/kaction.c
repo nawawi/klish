@@ -11,12 +11,13 @@
 
 struct kaction_s {
 	bool_t is_static;
-	kaction_info_t info;
+	kaction_error_e error;
+	iaction_t info;
 	faux_list_t *commands;
 };
 
 
-static kaction_t *kaction_new_internal(kaction_info_t info, bool_t is_static)
+static kaction_t *kaction_new_internal(iaction_t info, bool_t is_static)
 {
 	kaction_t *action = NULL;
 
@@ -27,19 +28,20 @@ static kaction_t *kaction_new_internal(kaction_info_t info, bool_t is_static)
 
 	// Initialize
 	action->is_static = is_static;
+	action->error = KACTION_ERROR_OK;
 	action->info = info;
 
 	return action;
 }
 
 
-kaction_t *kaction_new(kaction_info_t info)
+kaction_t *kaction_new(iaction_t info)
 {
 	return kaction_new_internal(info, BOOL_FALSE);
 }
 
 
-kaction_t *kaction_new_static(kaction_info_t info)
+kaction_t *kaction_new_static(iaction_t info)
 {
 	return kaction_new_internal(info, BOOL_TRUE);
 }
