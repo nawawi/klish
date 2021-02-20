@@ -54,16 +54,7 @@ ischeme_t sch = {
 
     VIEW {
       .name = "view2",
-    }, 
-    VIEW {
-      .name = "view3",
-    }, 
-
-
-(iview_t *)NULL,
-    VIEW {
-      .name = "view4",
-    }, 
+    },
 
   END_VIEW_LIST,
 };
