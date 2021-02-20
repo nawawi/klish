@@ -54,7 +54,16 @@ ischeme_t sch = {
 
     VIEW {
       .name = "view2",
-    },
+    }, 
+    VIEW {
+      .name = "view3",
+    }, 
+
+
+(iview_t *)NULL,
+    VIEW {
+      .name = "view4",
+    }, 
 
   END_VIEW_LIST,
 };
@@ -154,11 +163,7 @@ int main(int argc, char **argv)
 
 	// Load scheme
 	scheme = kscheme_new();
-	{
-	kparam_t *param = NULL;
-	param = kparam_new_static((iparam_t){.name="PARAM", .help="This is param", .ptype = "STRING" });
-	param = param;
-	}
+	kscheme_from_ischeme(scheme, &sch, NULL);
 
 	// Listen socket
 	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);
