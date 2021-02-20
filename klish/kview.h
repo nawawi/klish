@@ -19,8 +19,8 @@ typedef struct iview_s {
 
 typedef enum {
 	KVIEW_ERROR_OK,
-	KVIEW_ERROR_MALLOC,
-	KVIEW_ERROR_LIST
+	KVIEW_ERROR_ALLOC,
+	KVIEW_ERROR_ATTR_NAME,
 } kview_error_e;
 
 

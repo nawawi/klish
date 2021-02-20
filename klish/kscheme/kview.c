@@ -65,8 +65,11 @@ kview_t *kview_new(const iview_t *info, kview_error_e *error)
 
 	view = kview_new_empty();
 	assert(view);
-	if (!view)
+	if (!view) {
+		if (error)
+			*error = KVIEW_ERROR_ALLOC;
 		return NULL;
+	}
 
 	if (!info)
 		return view;
@@ -92,6 +95,47 @@ void kview_free(kview_t *view)
 }
 
 
+const char *kview_strerror(kview_error_e error)
+{
+	const char *str = NULL;
+
+	switch (error) {
+	case KVIEW_ERROR_OK:
+		str = "Ok";
+		break;
+	case KVIEW_ERROR_ALLOC:
+		str = "Memory allocation error";
+		break;
+	case KVIEW_ERROR_ATTR_NAME:
+		str = "Illegal attribute \"name\"";
+		break;
+	default:
+		str = "Unknown error";
+		break;
+	}
+
+	return str;
+}
+
+
+bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
+{
+	view = view;
+	info = info;
+	error = error;
+
+	// Name
+	if (!faux_str_is_empty(info->name))
+		if (!kview_set_name(view, info->name)) {
+			if (error)
+				*error = KVIEW_ERROR_ATTR_NAME;
+			return BOOL_FALSE;
+	}
+
+	return BOOL_TRUE;
+}
+
+
 bool_t kview_add_command(kview_t *view, kcommand_t *command)
 {
 	assert(view);
@@ -103,16 +147,6 @@ bool_t kview_add_command(kview_t *view, kcommand_t *command)
 
 	if (!faux_list_add(view->commands, command))
 		return BOOL_FALSE;
-
-	return BOOL_TRUE;
-}
-
-
-bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
-{
-	view = view;
-	info = info;
-	error = error;
 
 	return BOOL_TRUE;
 }
