@@ -153,8 +153,17 @@ int main(int argc, char **argv)
 	}
 
 	// Load scheme
-	scheme = kscheme_new();
-	kscheme_from_ischeme(scheme, &sch, NULL);
+	{
+//	kscheme_error_e kscheme_error = KSCHEME_ERROR_OK;
+//	scheme = kscheme_new(&kscheme_error);
+//	if (!scheme) {
+//		if (error_stack)
+//			faux_list_add(error_stack,
+//				kscheme_strerror(kscheme_error);
+//		return NULL;
+//	}
+	scheme = kscheme_from_ischeme(&sch, NULL);
+	}
 
 	// Listen socket
 	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);

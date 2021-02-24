@@ -103,6 +103,9 @@ const char *kview_strerror(kview_error_e error)
 	case KVIEW_ERROR_OK:
 		str = "Ok";
 		break;
+	case KVIEW_ERROR_INTERNAL:
+		str = "Internal error";
+		break;
 	case KVIEW_ERROR_ALLOC:
 		str = "Memory allocation error";
 		break;

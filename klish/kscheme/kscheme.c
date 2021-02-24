@@ -32,14 +32,17 @@ static int kscheme_view_kcompare(const void *key, const void *list_item)
 }
 
 
-kscheme_t *kscheme_new(void)
+kscheme_t *kscheme_new(kscheme_error_e *error)
 {
 	kscheme_t *scheme = NULL;
 
 	scheme = faux_zmalloc(sizeof(*scheme));
 	assert(scheme);
-	if (!scheme)
+	if (!scheme) {
+		if (error)
+			*error = KSCHEME_ERROR_ALLOC;
 		return NULL;
+	}
 
 	// Initialize
 	scheme->views = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
@@ -58,6 +61,29 @@ void kscheme_free(kscheme_t *scheme)
 
 	faux_list_free(scheme->views);
 	faux_free(scheme);
+}
+
+
+const char *kscheme_strerror(kscheme_error_e error)
+{
+	const char *str = NULL;
+
+	switch (error) {
+	case KSCHEME_ERROR_OK:
+		str = "Ok";
+		break;
+	case KSCHEME_ERROR_INTERNAL:
+		str = "Internal error";
+		break;
+	case KVIEW_ERROR_ALLOC:
+		str = "Memory allocation error";
+		break;
+	default:
+		str = "Unknown error";
+		break;
+	}
+
+	return str;
 }
 
 

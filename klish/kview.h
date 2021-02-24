@@ -19,6 +19,7 @@ typedef struct iview_s {
 
 typedef enum {
 	KVIEW_ERROR_OK,
+	KVIEW_ERROR_INTERNAL,
 	KVIEW_ERROR_ALLOC,
 	KVIEW_ERROR_ATTR_NAME,
 } kview_error_e;
@@ -29,6 +30,7 @@ C_DECL_BEGIN
 kview_t *kview_new(const iview_t *info, kview_error_e *error);
 void kview_free(kview_t *view);
 bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error);
+const char *kview_strerror(kview_error_e error);
 
 const char *kview_name(const kview_t *view);
 bool_t kview_set_name(kview_t *view, const char *name);
