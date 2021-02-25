@@ -19,9 +19,21 @@
 #define END_VIEW_LIST NULL }
 #define VIEW &(iview_t)
 
+#define PTYPE_LIST .ptypes = &(iptype_t * []) {
+#define END_PTYPE_LIST NULL }
+#define PTYPE &(iptype_t)
+
 #define COMMAND_LIST .commands = &(icommand_t * []) {
 #define END_COMMAND_LIST NULL }
 #define COMMAND &(icommand_t)
+
+#define PARAM_LIST .params = &(iparam_t * []) {
+#define END_PARAM_LIST NULL }
+#define PARAM &(iparam_t)
+
+#define ACTION_LIST .actions = &(iaction_t * []) {
+#define END_ACTION_LIST NULL }
+#define ACTION &(iaction_t)
 
 
 typedef struct kscheme_s kscheme_t;
