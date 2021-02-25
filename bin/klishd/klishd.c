@@ -29,6 +29,7 @@
 #include <faux/conv.h>
 #include <faux/file.h>
 #include <faux/eloop.h>
+#include <faux/error.h>
 
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -49,11 +50,24 @@ ischeme_t sch = {
           .help = "help1",
         },
 
+        COMMAND {
+          .name = "command2",
+          .help = "help1",
+        },
+
+        COMMAND {
+          .name = "command3",
+          .help = "help1",
+        },
+
       END_COMMAND_LIST,
     },
 
     VIEW {
       .name = "view2",
+    },
+
+    VIEW {
     },
 
   END_VIEW_LIST,
@@ -154,15 +168,13 @@ int main(int argc, char **argv)
 
 	// Load scheme
 	{
-//	kscheme_error_e kscheme_error = KSCHEME_ERROR_OK;
-//	scheme = kscheme_new(&kscheme_error);
-//	if (!scheme) {
-//		if (error_stack)
-//			faux_list_add(error_stack,
-//				kscheme_strerror(kscheme_error);
-//		return NULL;
-//	}
-	scheme = kscheme_from_ischeme(&sch, NULL);
+	faux_error_t *error = faux_error_new();
+	scheme = kscheme_from_ischeme(&sch, error);
+	if (faux_error(error)) {
+		fprintf(stderr, "Scheme errors:\n");
+		faux_error_print(error);
+		goto err;
+	}
 	}
 
 	// Listen socket

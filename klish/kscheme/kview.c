@@ -110,7 +110,7 @@ const char *kview_strerror(kview_error_e error)
 		str = "Memory allocation error";
 		break;
 	case KVIEW_ERROR_ATTR_NAME:
-		str = "Illegal attribute \"name\"";
+		str = "Illegal 'name' attribute";
 		break;
 	default:
 		str = "Unknown error";
@@ -123,19 +123,22 @@ const char *kview_strerror(kview_error_e error)
 
 bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
 {
-	view = view;
-	info = info;
-	error = error;
+	bool_t retval = BOOL_TRUE;
 
-	// Name
-	if (!faux_str_is_empty(info->name))
+	// Name [mandatory]
+	if (faux_str_is_empty(info->name)) {
+		if (error)
+			*error = KVIEW_ERROR_ATTR_NAME;
+		retval = BOOL_FALSE;
+	} else {
 		if (!kview_set_name(view, info->name)) {
 			if (error)
 				*error = KVIEW_ERROR_ATTR_NAME;
-			return BOOL_FALSE;
+			retval = BOOL_FALSE;
+		}
 	}
 
-	return BOOL_TRUE;
+	return retval;
 }
 
 

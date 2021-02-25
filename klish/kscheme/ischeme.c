@@ -10,6 +10,70 @@
 #include <klish/kscheme.h>
 
 
+bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
+	faux_error_t *error_stack)
+{
+	if (!kview || !iview) {
+		if (error_stack)
+			faux_error_add(error_stack,
+				kview_strerror(KVIEW_ERROR_INTERNAL));
+		return BOOL_FALSE;
+	}
+
+	// Command list
+	if (iview->commands) {
+		icommand_t **p_icommand = NULL;
+		for (p_icommand = *iview->commands; *p_icommand; p_icommand++) {
+			kcommand_t *kcommand = NULL;
+			icommand_t *icommand = *p_icommand;
+printf("command %s\n", icommand->name);
+//			kcommand = kcommand_from_icommand(icommand, error_stack);
+//			if (!kcommand)
+//				continue;
+kcommand = kcommand;
+		}
+	}
+
+	return BOOL_TRUE;
+}
+
+
+kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
+{
+	kview_t *kview = NULL;
+	kview_error_e kview_error = KVIEW_ERROR_OK;
+	ssize_t error_stack_len = 0;
+
+	kview = kview_new(iview, &kview_error);
+	if (!kview) {
+		if (error_stack) {
+			char *msg = NULL;
+			msg = faux_str_sprintf("VIEW \"%s\": %s",
+				iview->name ? iview->name : "(null)",
+				kview_strerror(kview_error));
+			faux_error_add(error_stack, msg);
+			faux_str_free(msg);
+		}
+		return NULL;
+	}
+	printf("view %s\n", kview_name(kview));
+
+	// Parse nested elements
+	if (error_stack)
+		error_stack_len = faux_error_len(error_stack);
+	kview_nested_from_iview(kview, iview, error_stack);
+	if (error_stack && (faux_error_len(error_stack) > error_stack_len)) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
+			kview_name(kview));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+	}
+
+	return kview;
+}
+
+
 bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 	faux_error_t *error_stack)
 {
@@ -26,17 +90,11 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 		for (p_iview = *ischeme->views; *p_iview; p_iview++) {
 			kview_t *kview = NULL;
 			iview_t *iview = *p_iview;
-			kview_error_e kview_error = KVIEW_ERROR_OK;
 
-			kview = kview_new(iview, &kview_error);
-			if (!kview) {
-				if (error_stack)
-					faux_error_add(error_stack,
-						kview_strerror(kview_error));
+			kview = kview_from_iview(iview, error_stack);
+			if (!kview)
 				continue;
-			}
-//			kview_from_iview
-			printf("view %p %s\n", iview, iview->name);
+			kscheme_add_view(kscheme, kview);
 		}
 	}
 
