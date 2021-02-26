@@ -151,22 +151,22 @@ bool_t kcommand_parse(kcommand_t *command, const icommand_t *info, kcommand_erro
 }
 
 
-/*
-bool_t kcommand_nested_from_iptype(kcommand_t *kptype, iptype_t *iptype,
+bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 	faux_error_t *error_stack)
 {
 	bool_t retval = BOOL_TRUE;
 
-	if (!kptype || !iptype) {
+	if (!kcommand || !icommand) {
 		faux_error_add(error_stack,
-			kcommand_strerror(KPTYPE_ERROR_INTERNAL));
+			kcommand_strerror(KCOMMAND_ERROR_INTERNAL));
 		return BOOL_FALSE;
 	}
 
+/*
 	// ACTION list
-	if (iptype->actions) {
+	if (icommand->actions) {
 		iaction_t **p_iaction = NULL;
-		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
+		for (p_iaction = *icommand->actions; *p_iaction; p_iaction++) {
 			kaction_t *kaction = NULL;
 			iaction_t *iaction = *p_iaction;
 iaction = iaction;
@@ -179,39 +179,38 @@ printf("action\n");
 kaction = kaction;
 		}
 	}
-
+*/
 	return retval;
 }
 
 
-kcommand_t *kcommand_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
+kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error_stack)
 {
-	kcommand_t *kptype = NULL;
-	kcommand_error_e kcommand_error = KPTYPE_ERROR_OK;
+	kcommand_t *kcommand = NULL;
+	kcommand_error_e kcommand_error = KCOMMAND_ERROR_OK;
 
-	kptype = kcommand_new(iptype, &kcommand_error);
-	if (!kptype) {
+	kcommand = kcommand_new(icommand, &kcommand_error);
+	if (!kcommand) {
 		char *msg = NULL;
-		msg = faux_str_sprintf("PTYPE \"%s\": %s",
-			iptype->name ? iptype->name : "(null)",
+		msg = faux_str_sprintf("COMMAND \"%s\": %s",
+			icommand->name ? icommand->name : "(null)",
 			kcommand_strerror(kcommand_error));
 		faux_error_add(error_stack, msg);
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("ptype %s\n", kcommand_name(kptype));
+	printf("command %s\n", kcommand_name(kcommand));
 
 	// Parse nested elements
-	if (!kcommand_nested_from_iptype(kptype, iptype, error_stack)) {
+	if (!kcommand_nested_from_icommand(kcommand, icommand, error_stack)) {
 		char *msg = NULL;
-		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
-			kcommand_name(kptype));
+		msg = faux_str_sprintf("COMMAND \"%s\": Illegal nested elements",
+			kcommand_name(kcommand));
 		faux_error_add(error_stack, msg);
 		faux_str_free(msg);
-		kcommand_free(kptype);
+		kcommand_free(kcommand);
 		return NULL;
 	}
 
-	return kptype;
+	return kcommand;
 }
-*/
