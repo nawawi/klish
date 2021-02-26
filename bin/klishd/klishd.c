@@ -39,6 +39,19 @@
 #include "private.h"
 
 ischeme_t sch = {
+
+  PTYPE_LIST
+
+    PTYPE {
+      .name = "ptype1",
+    },
+
+    PTYPE {
+      .name = "ptype2",
+    },
+
+  END_PTYPE_LIST,
+
   VIEW_LIST
 
     VIEW {

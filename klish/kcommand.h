@@ -18,16 +18,29 @@ typedef struct icommand_s {
 	iaction_t * (*actions)[];
 } icommand_t;
 
+typedef enum {
+	KCOMMAND_ERROR_OK,
+	KCOMMAND_ERROR_INTERNAL,
+	KCOMMAND_ERROR_ALLOC,
+	KCOMMAND_ERROR_ATTR_NAME,
+	KCOMMAND_ERROR_ATTR_HELP,
+} kcommand_error_e;
+
 C_DECL_BEGIN
 
-kcommand_t *kcommand_new(icommand_t info);
-kcommand_t *kcommand_new_static(icommand_t info);
+kcommand_t *kcommand_new(const icommand_t *info, kcommand_error_e *error);
 void kcommand_free(kcommand_t *command);
+const char *kcommand_strerror(kcommand_error_e error);
+bool_t kcommand_parse(kcommand_t *command, const icommand_t *info,
+	kcommand_error_e *error);
 
 const char *kcommand_name(const kcommand_t *command);
+bool_t kcommand_set_name(kcommand_t *command, const char *name);
 const char *kcommand_help(const kcommand_t *command);
+bool_t kcommand_set_help(kcommand_t *command, const char *help);
 
 bool_t kcommand_add_param(kcommand_t *command, kparam_t *param);
+kparam_t *kcommand_find_param(const kcommand_t *command, const char *name);
 
 C_DECL_END
 

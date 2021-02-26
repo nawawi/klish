@@ -5,37 +5,35 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/error.h>
+#include <klish/khelper.h>
 #include <klish/kparam.h>
 #include <klish/kcommand.h>
 
 
 struct kcommand_s {
-	bool_t is_static;
-//	kaction_error_e error;
-	icommand_t info;
+	char *name;
+	char *help;
 	faux_list_t *params;
 };
 
+// Simple attributes
 
-static int kcommand_param_compare(const void *first, const void *second)
-{
-	const kparam_t *f = (const kparam_t *)first;
-	const kparam_t *s = (const kparam_t *)second;
+// Name
+KGET_STR(command, name);
+KSET_STR_ONCE(command, name);
 
-	return strcmp(kparam_name(f), kparam_name(s));
-}
+// Help
+KGET_STR(command, help);
+KSET_STR(command, help);
 
-
-static int kcommand_param_kcompare(const void *key, const void *list_item)
-{
-	const char *f = (const char *)key;
-	const kparam_t *s = (const kparam_t *)list_item;
-
-	return strcmp(f, kparam_name(s));
-}
+// PARAM list
+KCMP_NESTED_BY_KEY(command, param, name);
+KADD_NESTED(command, param);
+KFIND_NESTED(command, param);
 
 
-static kcommand_t *kcommand_new_internal(icommand_t info, bool_t is_static)
+static kcommand_t *kcommand_new_empty(void)
 {
 	kcommand_t *command = NULL;
 
@@ -45,36 +43,39 @@ static kcommand_t *kcommand_new_internal(icommand_t info, bool_t is_static)
 		return NULL;
 
 	// Initialize
-	command->is_static = is_static;
-//	command->error = KACTION_ERROR_OK;
-	command->info = info;
+	command->name = NULL;
+	command->help = NULL;
 
-	// List of parameters
 	command->params = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
-		kcommand_param_compare, kcommand_param_kcompare,
-		(void (*)(void *))kparam_free);
+		NULL, kcommand_param_kcompare,
+		(void (*)(void *))kcommand_free);
 	assert(command->params);
-//	if (!command->params) {
-//		command->error = KACTION_ERROR_LIST;
-//		return NULL;
-//	}
-
-	// Field "exec_on"
-//	if (faux_str_casecmp(command->info.
 
 	return command;
 }
 
 
-kcommand_t *kcommand_new(icommand_t info)
+kcommand_t *kcommand_new(const icommand_t *info, kcommand_error_e *error)
 {
-	return kcommand_new_internal(info, BOOL_FALSE);
-}
+	kcommand_t *command = NULL;
 
+	command = kcommand_new_empty();
+	assert(command);
+	if (!command) {
+		if (error)
+			*error = KCOMMAND_ERROR_ALLOC;
+		return NULL;
+	}
 
-kcommand_t *kcommand_new_static(icommand_t info)
-{
-	return kcommand_new_internal(info, BOOL_TRUE);
+	if (!info)
+		return command;
+
+	if (!kcommand_parse(command, info, error)) {
+		kcommand_free(command);
+		return NULL;
+	}
+
+	return command;
 }
 
 
@@ -83,47 +84,134 @@ void kcommand_free(kcommand_t *command)
 	if (!command)
 		return;
 
-	if (!command->is_static) {
-		faux_str_free(command->info.name);
-		faux_str_free(command->info.help);
-	}
+	faux_str_free(command->name);
+	faux_str_free(command->help);
 	faux_list_free(command->params);
 
 	faux_free(command);
 }
 
 
-const char *kcommand_name(const kcommand_t *command)
+const char *kcommand_strerror(kcommand_error_e error)
 {
-	assert(command);
-	if (!command)
+	const char *str = NULL;
+
+	switch (error) {
+	case KCOMMAND_ERROR_OK:
+		str = "Ok";
+		break;
+	case KCOMMAND_ERROR_INTERNAL:
+		str = "Internal error";
+		break;
+	case KCOMMAND_ERROR_ALLOC:
+		str = "Memory allocation error";
+		break;
+	case KCOMMAND_ERROR_ATTR_NAME:
+		str = "Illegal 'name' attribute";
+		break;
+	case KCOMMAND_ERROR_ATTR_HELP:
+		str = "Illegal 'help' attribute";
+		break;
+	default:
+		str = "Unknown error";
+		break;
+	}
+
+	return str;
+}
+
+
+bool_t kcommand_parse(kcommand_t *command, const icommand_t *info, kcommand_error_e *error)
+{
+	bool_t retval = BOOL_TRUE;
+
+	// Name [mandatory]
+	if (faux_str_is_empty(info->name)) {
+		if (error)
+			*error = KCOMMAND_ERROR_ATTR_NAME;
+		retval = BOOL_FALSE;
+	} else {
+		if (!kcommand_set_name(command, info->name)) {
+			if (error)
+				*error = KCOMMAND_ERROR_ATTR_NAME;
+			retval = BOOL_FALSE;
+		}
+	}
+
+	// Help
+	if (!faux_str_is_empty(info->name)) {
+		if (!kcommand_set_help(command, info->help)) {
+			if (error)
+				*error = KCOMMAND_ERROR_ATTR_HELP;
+			retval = BOOL_FALSE;
+		}
+	}
+
+	return retval;
+}
+
+
+/*
+bool_t kcommand_nested_from_iptype(kcommand_t *kptype, iptype_t *iptype,
+	faux_error_t *error_stack)
+{
+	bool_t retval = BOOL_TRUE;
+
+	if (!kptype || !iptype) {
+		faux_error_add(error_stack,
+			kcommand_strerror(KPTYPE_ERROR_INTERNAL));
+		return BOOL_FALSE;
+	}
+
+	// ACTION list
+	if (iptype->actions) {
+		iaction_t **p_iaction = NULL;
+		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
+			kaction_t *kaction = NULL;
+			iaction_t *iaction = *p_iaction;
+iaction = iaction;
+printf("action\n");
+//			kaction = kaction_from_iaction(iaction, error_stack);
+//			if (!kaction) {
+//				retval = BOOL_FALSE;
+//				continue;
+//			}
+kaction = kaction;
+		}
+	}
+
+	return retval;
+}
+
+
+kcommand_t *kcommand_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
+{
+	kcommand_t *kptype = NULL;
+	kcommand_error_e kcommand_error = KPTYPE_ERROR_OK;
+
+	kptype = kcommand_new(iptype, &kcommand_error);
+	if (!kptype) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": %s",
+			iptype->name ? iptype->name : "(null)",
+			kcommand_strerror(kcommand_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 		return NULL;
+	}
+	printf("ptype %s\n", kcommand_name(kptype));
 
-	return command->info.name;
-}
-
-
-const char *kcommand_help(const kcommand_t *command)
-{
-	assert(command);
-	if (!command)
+	// Parse nested elements
+	if (!kcommand_nested_from_iptype(kptype, iptype, error_stack)) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
+			kcommand_name(kptype));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+		kcommand_free(kptype);
 		return NULL;
+	}
 
-	return command->info.help;
+	return kptype;
 }
-
-
-bool_t kcommand_add_param(kcommand_t *command, kparam_t *param)
-{
-	assert(command);
-	if (!command)
-		return BOOL_FALSE;
-	assert(param);
-	if (!param)
-		return BOOL_FALSE;
-
-	if (!faux_list_add(command->params, param))
-		return BOOL_FALSE;
-
-	return BOOL_TRUE;
-}
+*/
