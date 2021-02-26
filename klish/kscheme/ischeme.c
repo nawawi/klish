@@ -14,9 +14,8 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 	faux_error_t *error_stack)
 {
 	if (!kview || !iview) {
-		if (error_stack)
-			faux_error_add(error_stack,
-				kview_strerror(KVIEW_ERROR_INTERNAL));
+		faux_error_add(error_stack,
+			kview_strerror(KVIEW_ERROR_INTERNAL));
 		return BOOL_FALSE;
 	}
 
@@ -42,27 +41,21 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
 {
 	kview_t *kview = NULL;
 	kview_error_e kview_error = KVIEW_ERROR_OK;
-	ssize_t error_stack_len = 0;
 
 	kview = kview_new(iview, &kview_error);
 	if (!kview) {
-		if (error_stack) {
-			char *msg = NULL;
-			msg = faux_str_sprintf("VIEW \"%s\": %s",
-				iview->name ? iview->name : "(null)",
-				kview_strerror(kview_error));
-			faux_error_add(error_stack, msg);
-			faux_str_free(msg);
-		}
+		char *msg = NULL;
+		msg = faux_str_sprintf("VIEW \"%s\": %s",
+			iview->name ? iview->name : "(null)",
+			kview_strerror(kview_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 		return NULL;
 	}
 	printf("view %s\n", kview_name(kview));
 
 	// Parse nested elements
-	if (error_stack)
-		error_stack_len = faux_error_len(error_stack);
-	kview_nested_from_iview(kview, iview, error_stack);
-	if (error_stack && (faux_error_len(error_stack) > error_stack_len)) {
+	if (!kview_nested_from_iview(kview, iview, error_stack)) {
 		char *msg = NULL;
 		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
 			kview_name(kview));
@@ -78,9 +71,8 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 	faux_error_t *error_stack)
 {
 	if (!kptype || !iptype) {
-		if (error_stack)
-			faux_error_add(error_stack,
-				kptype_strerror(KPTYPE_ERROR_INTERNAL));
+		faux_error_add(error_stack,
+			kptype_strerror(KPTYPE_ERROR_INTERNAL));
 		return BOOL_FALSE;
 	}
 
@@ -107,27 +99,21 @@ kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
 {
 	kptype_t *kptype = NULL;
 	kptype_error_e kptype_error = KPTYPE_ERROR_OK;
-	ssize_t error_stack_len = 0;
 
 	kptype = kptype_new(iptype, &kptype_error);
 	if (!kptype) {
-		if (error_stack) {
-			char *msg = NULL;
-			msg = faux_str_sprintf("PTYPE \"%s\": %s",
-				iptype->name ? iptype->name : "(null)",
-				kptype_strerror(kptype_error));
-			faux_error_add(error_stack, msg);
-			faux_str_free(msg);
-		}
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": %s",
+			iptype->name ? iptype->name : "(null)",
+			kptype_strerror(kptype_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 		return NULL;
 	}
 	printf("ptype %s\n", kptype_name(kptype));
 
 	// Parse nested elements
-	if (error_stack)
-		error_stack_len = faux_error_len(error_stack);
-	kptype_nested_from_iptype(kptype, iptype, error_stack);
-	if (error_stack && (faux_error_len(error_stack) > error_stack_len)) {
+	if (!kptype_nested_from_iptype(kptype, iptype, error_stack)) {
 		char *msg = NULL;
 		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
 			kptype_name(kptype));
@@ -145,9 +131,8 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 	bool_t retval = BOOL_TRUE;
 
 	if (!kscheme || !ischeme) {
-		if (error_stack)
-			faux_error_add(error_stack,
-				kscheme_strerror(KSCHEME_ERROR_INTERNAL));
+		faux_error_add(error_stack,
+			kscheme_strerror(KSCHEME_ERROR_INTERNAL));
 		return BOOL_FALSE;
 	}
 
@@ -164,25 +149,23 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				continue;
 			}
 			if (!kscheme_add_ptype(kscheme, kptype)) {
-				if (error_stack) {
-					char *msg = NULL;
-					// Search for PTYPE duplicates
-					if (kscheme_find_ptype(kscheme,
-						kptype_name(kptype))) {
-						msg = faux_str_sprintf("SCHEME: "
-							"Can't add duplicate PTYPE "
-							"\"%s\"",
-							kptype_name(kptype));
-					} else {
-						msg = faux_str_sprintf("SCHEME: "
-							"Can't add PTYPE \"%s\"",
-							kptype_name(kptype));
-					}
-					faux_error_add(error_stack, msg);
-					faux_str_free(msg);
+				char *msg = NULL;
+				// Search for PTYPE duplicates
+				if (kscheme_find_ptype(kscheme,
+					kptype_name(kptype))) {
+					msg = faux_str_sprintf("SCHEME: "
+						"Can't add duplicate PTYPE "
+						"\"%s\"",
+						kptype_name(kptype));
+				} else {
+					msg = faux_str_sprintf("SCHEME: "
+						"Can't add PTYPE \"%s\"",
+						kptype_name(kptype));
 				}
-				retval = BOOL_FALSE;
+				faux_error_add(error_stack, msg);
+				faux_str_free(msg);
 			}
+			retval = BOOL_FALSE;
 		}
 	}
 
@@ -224,9 +207,9 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kscheme_add_view(kscheme, kview) && error_stack) {
+			if (!kscheme_add_view(kscheme, kview)) {
 				char *msg = faux_str_sprintf("SCHEME: "
-					"Can't add PTYPE \"%s\"",
+					"Can't add VIEW \"%s\"",
 					kview_name(kview));
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
@@ -247,9 +230,8 @@ kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error_stack)
 
 	kscheme = kscheme_new(&kscheme_error);
 	if (!kscheme) {
-		if (error_stack)
-			faux_error_add(error_stack,
-				kscheme_strerror(kscheme_error));
+		faux_error_add(error_stack,
+			kscheme_strerror(kscheme_error));
 		return NULL;
 	}
 

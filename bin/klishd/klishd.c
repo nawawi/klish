@@ -68,6 +68,23 @@ ischeme_t sch = {
     },
 
     VIEW {
+      .name = "view1",
+      COMMAND_LIST
+
+        COMMAND {
+          .name = "command4",
+          .help = "help1",
+        },
+
+        COMMAND {
+          .name = "command5",
+          .help = "help1",
+        },
+
+      END_COMMAND_LIST,
+    },
+
+    VIEW {
     },
 
   END_VIEW_LIST,
