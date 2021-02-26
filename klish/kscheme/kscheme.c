@@ -5,31 +5,30 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <klish/khelper.h>
+#include <klish/kptype.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
 
 
 struct kscheme_s {
+	faux_list_t *ptypes;
 	faux_list_t *views;
 };
 
+// Simple methods
 
-static int kscheme_view_compare(const void *first, const void *second)
-{
-	const kview_t *f = (const kview_t *)first;
-	const kview_t *s = (const kview_t *)second;
+// PTYPE list
+KCMP_NESTED(scheme, ptype, name);
+KCMP_NESTED_BY_KEY(scheme, ptype, name);
+KADD_NESTED(scheme, ptype);
+KFIND_NESTED(scheme, ptype);
 
-	return strcmp(kview_name(f), kview_name(s));
-}
-
-
-static int kscheme_view_kcompare(const void *key, const void *list_item)
-{
-	const char *f = (const char *)key;
-	const kview_t *s = (const kview_t *)list_item;
-
-	return strcmp(f, kview_name(s));
-}
+// VIEW list
+KCMP_NESTED(scheme, view, name);
+KCMP_NESTED_BY_KEY(scheme, view, name);
+KADD_NESTED(scheme, view);
+KFIND_NESTED(scheme, view);
 
 
 kscheme_t *kscheme_new(kscheme_error_e *error)
@@ -44,7 +43,13 @@ kscheme_t *kscheme_new(kscheme_error_e *error)
 		return NULL;
 	}
 
-	// Initialize
+	// PTYPE list
+	scheme->ptypes = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+		kscheme_ptype_compare, kscheme_ptype_kcompare,
+		(void (*)(void *))kptype_free);
+	assert(scheme->ptypes);
+
+	// VIEW list
 	scheme->views = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 		kscheme_view_compare, kscheme_view_kcompare,
 		(void (*)(void *))kview_free);
@@ -59,6 +64,7 @@ void kscheme_free(kscheme_t *scheme)
 	if (!scheme)
 		return;
 
+	faux_list_free(scheme->ptypes);
 	faux_list_free(scheme->views);
 	faux_free(scheme);
 }
@@ -84,33 +90,4 @@ const char *kscheme_strerror(kscheme_error_e error)
 	}
 
 	return str;
-}
-
-
-bool_t kscheme_add_view(kscheme_t *scheme, kview_t *view)
-{
-	assert(scheme);
-	if (!scheme)
-		return BOOL_FALSE;
-	assert(view);
-	if (!view)
-		return BOOL_FALSE;
-
-	if (!faux_list_add(scheme->views, view))
-		return BOOL_FALSE;
-
-	return BOOL_TRUE;
-}
-
-
-kview_t *kscheme_find_view(const kscheme_t *scheme, const char *name)
-{
-	assert(scheme);
-	if (!scheme)
-		return NULL;
-	assert(name);
-	if (!name)
-		return NULL;
-
-	return (kview_t *)faux_list_kfind(scheme->views, name);
 }

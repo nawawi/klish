@@ -56,10 +56,12 @@ C_DECL_BEGIN
 
 kscheme_t *kscheme_new(kscheme_error_e *error);
 void kscheme_free(kscheme_t *scheme);
-
 const char *kscheme_strerror(kscheme_error_e error);
+
 bool_t kscheme_add_view(kscheme_t *scheme, kview_t *view);
 kview_t *kscheme_find_view(const kscheme_t *scheme, const char *name);
+bool_t kscheme_add_ptype(kscheme_t *scheme, kptype_t *ptype);
+kptype_t *kscheme_find_ptype(const kscheme_t *scheme, const char *name);
 
 kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error_stack);
 

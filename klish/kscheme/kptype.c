@@ -5,16 +5,28 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <klish/khelper.h>
 #include <klish/kptype.h>
 
 
 struct kptype_s {
-	bool_t is_static;
-	iptype_t info;
+	char *name;
+	char *help;
 };
 
 
-static kptype_t *kptype_new_internal(iptype_t info, bool_t is_static)
+// Simple attributes
+
+// Name
+KGET_STR(ptype, name);
+KSET_STR_ONCE(ptype, name);
+
+// Help
+KGET_STR(ptype, help);
+KSET_STR(ptype, help);
+
+
+static kptype_t *kptype_new_empty(void)
 {
 	kptype_t *ptype = NULL;
 
@@ -24,22 +36,34 @@ static kptype_t *kptype_new_internal(iptype_t info, bool_t is_static)
 		return NULL;
 
 	// Initialize
-	ptype->is_static = is_static;
-	ptype->info = info;
+	ptype->name = NULL;
+	ptype->help = NULL;
 
 	return ptype;
 }
 
 
-kptype_t *kptype_new(iptype_t info)
+kptype_t *kptype_new(const iptype_t *info, kptype_error_e *error)
 {
-	return kptype_new_internal(info, BOOL_FALSE);
-}
+	kptype_t *ptype = NULL;
 
+	ptype = kptype_new_empty();
+	assert(ptype);
+	if (!ptype) {
+		if (error)
+			*error = KPTYPE_ERROR_ALLOC;
+		return NULL;
+	}
 
-kptype_t *kptype_new_static(iptype_t info)
-{
-	return kptype_new_internal(info, BOOL_TRUE);
+	if (!info)
+		return ptype;
+
+	if (!kptype_parse(ptype, info, error)) {
+		kptype_free(ptype);
+		return NULL;
+	}
+
+	return ptype;
 }
 
 
@@ -48,30 +72,67 @@ void kptype_free(kptype_t *ptype)
 	if (!ptype)
 		return;
 
-	if (!ptype->is_static) {
-		faux_str_free(ptype->info.name);
-		faux_str_free(ptype->info.help);
-	}
+	faux_str_free(ptype->name);
+	faux_str_free(ptype->help);
 
 	faux_free(ptype);
 }
 
 
-const char *kptype_name(const kptype_t *ptype)
+const char *kptype_strerror(kptype_error_e error)
 {
-	assert(ptype);
-	if (!ptype)
-		return NULL;
+	const char *str = NULL;
 
-	return ptype->info.name;
+	switch (error) {
+	case KPTYPE_ERROR_OK:
+		str = "Ok";
+		break;
+	case KPTYPE_ERROR_INTERNAL:
+		str = "Internal error";
+		break;
+	case KPTYPE_ERROR_ALLOC:
+		str = "Memory allocation error";
+		break;
+	case KPTYPE_ERROR_ATTR_NAME:
+		str = "Illegal 'name' attribute";
+		break;
+	case KPTYPE_ERROR_ATTR_HELP:
+		str = "Illegal 'help' attribute";
+		break;
+	default:
+		str = "Unknown error";
+		break;
+	}
+
+	return str;
 }
 
 
-const char *kptype_help(const kptype_t *ptype)
+bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error)
 {
-	assert(ptype);
-	if (!ptype)
-		return NULL;
+	bool_t retval = BOOL_TRUE;
 
-	return ptype->info.help;
+	// Name [mandatory]
+	if (faux_str_is_empty(info->name)) {
+		if (error)
+			*error = KPTYPE_ERROR_ATTR_NAME;
+		retval = BOOL_FALSE;
+	} else {
+		if (!kptype_set_name(ptype, info->name)) {
+			if (error)
+				*error = KPTYPE_ERROR_ATTR_NAME;
+			retval = BOOL_FALSE;
+		}
+	}
+
+	// Help
+	if (!faux_str_is_empty(info->name)) {
+		if (!kptype_set_help(ptype, info->help)) {
+			if (error)
+				*error = KPTYPE_ERROR_ATTR_HELP;
+			retval = BOOL_FALSE;
+		}
+	}
+
+	return retval;
 }

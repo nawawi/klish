@@ -16,8 +16,13 @@ struct kview_s {
 
 
 // Simple attributes
-KGET_STR(kview, name);
-KSET_STR_ONCE(kview, name);
+
+// Name
+KGET_STR(view, name);
+KSET_STR_ONCE(view, name);
+
+// COMMAND's list
+KADD_NESTED(view, command);
 
 
 static int kview_command_compare(const void *first, const void *second)
@@ -139,20 +144,4 @@ bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
 	}
 
 	return retval;
-}
-
-
-bool_t kview_add_command(kview_t *view, kcommand_t *command)
-{
-	assert(view);
-	if (!view)
-		return BOOL_FALSE;
-	assert(command);
-	if (!command)
-		return BOOL_FALSE;
-
-	if (!faux_list_add(view->commands, command))
-		return BOOL_FALSE;
-
-	return BOOL_TRUE;
 }
