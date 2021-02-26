@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 	{
 	faux_error_t *error = faux_error_new();
 	scheme = kscheme_from_ischeme(&sch, error);
-	if (faux_error(error)) {
+	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
 		faux_error_print(error);
 		goto err;

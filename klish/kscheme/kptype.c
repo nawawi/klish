@@ -15,7 +15,7 @@ struct kptype_s {
 };
 
 
-// Simple attributes
+// Simple methods
 
 // Name
 KGET_STR(ptype, name);

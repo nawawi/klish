@@ -61,7 +61,13 @@
 #define KSET_STR_ONCE(obj, name) \
 	_KSET_STR_ONCE(obj, name) { \
 		assert(inst); \
-		assert(!inst->name); \
+		if (inst->name) { \
+			if (NULL == val) \
+				return BOOL_FALSE; \
+			if (strcmp(inst->name, val) == 0) \
+				return BOOL_TRUE; \
+			return BOOL_FALSE; \
+		} \
 		inst->name = faux_str_dup(val); \
 		return BOOL_TRUE; \
 	}

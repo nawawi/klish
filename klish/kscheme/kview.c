@@ -21,26 +21,11 @@ struct kview_s {
 KGET_STR(view, name);
 KSET_STR_ONCE(view, name);
 
-// COMMAND's list
+// COMMAND list
+KCMP_NESTED(view, command, name);
+KCMP_NESTED_BY_KEY(view, command, name);
 KADD_NESTED(view, command);
-
-
-static int kview_command_compare(const void *first, const void *second)
-{
-	const kcommand_t *f = (const kcommand_t *)first;
-	const kcommand_t *s = (const kcommand_t *)second;
-
-	return strcmp(kcommand_name(f), kcommand_name(s));
-}
-
-
-static int kview_command_kcompare(const void *key, const void *list_item)
-{
-	const char *f = (const char *)key;
-	const kcommand_t *s = (const kcommand_t *)list_item;
-
-	return strcmp(f, kcommand_name(s));
-}
+KFIND_NESTED(view, command);
 
 
 static kview_t *kview_new_empty(void)
