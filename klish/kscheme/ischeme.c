@@ -13,6 +13,8 @@
 bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 	faux_error_t *error_stack)
 {
+	bool_t retval = BOOL_TRUE;
+
 	if (!kview || !iview) {
 		faux_error_add(error_stack,
 			kview_strerror(KVIEW_ERROR_INTERNAL));
@@ -27,13 +29,15 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 			icommand_t *icommand = *p_icommand;
 printf("command %s\n", icommand->name);
 //			kcommand = kcommand_from_icommand(icommand, error_stack);
-//			if (!kcommand)
+//			if (!kcommand) {
+//				retval = BOOL_FALSE;
 //				continue;
+//			}
 kcommand = kcommand;
 		}
 	}
 
-	return BOOL_TRUE;
+	return retval;
 }
 
 
@@ -61,6 +65,8 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
 			kview_name(kview));
 		faux_error_add(error_stack, msg);
 		faux_str_free(msg);
+		kview_free(kview);
+		return NULL;
 	}
 
 	return kview;
@@ -70,6 +76,8 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
 bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 	faux_error_t *error_stack)
 {
+	bool_t retval = BOOL_TRUE;
+
 	if (!kptype || !iptype) {
 		faux_error_add(error_stack,
 			kptype_strerror(KPTYPE_ERROR_INTERNAL));
@@ -85,13 +93,15 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 iaction = iaction;
 printf("action\n");
 //			kaction = kaction_from_iaction(iaction, error_stack);
-//			if (!kaction)
+//			if (!kaction) {
+//				retval = BOOL_FALSE;
 //				continue;
+//			}
 kaction = kaction;
 		}
 	}
 
-	return BOOL_TRUE;
+	return retval;
 }
 
 
@@ -119,6 +129,8 @@ kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
 			kptype_name(kptype));
 		faux_error_add(error_stack, msg);
 		faux_str_free(msg);
+		kptype_free(kptype);
+		return NULL;
 	}
 
 	return kptype;
@@ -184,6 +196,8 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 
 			if (view_name)
 				kview = kscheme_find_view(kscheme, view_name);
+
+			// VIEW already exists
 			if (kview) {
 				kview_error_e kview_error = KVIEW_ERROR_OK;
 				if (!kview_parse(kview, iview, &kview_error)) {
@@ -200,9 +214,11 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 					retval = BOOL_FALSE;
 					continue;
 				}
-			} else {
-				kview = kview_from_iview(iview, error_stack);
+				continue;
 			}
+
+			// New VIEW
+			kview = kview_from_iview(iview, error_stack);
 			if (!kview) {
 				retval = BOOL_FALSE;
 				continue;
