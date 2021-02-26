@@ -5,6 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kcommand.h>
 #include <klish/kview.h>
@@ -129,4 +130,67 @@ bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
 	}
 
 	return retval;
+}
+
+
+bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
+	faux_error_t *error_stack)
+{
+	bool_t retval = BOOL_TRUE;
+
+	if (!kview || !iview) {
+		faux_error_add(error_stack,
+			kview_strerror(KVIEW_ERROR_INTERNAL));
+		return BOOL_FALSE;
+	}
+
+	// COMMAND list
+	if (iview->commands) {
+		icommand_t **p_icommand = NULL;
+		for (p_icommand = *iview->commands; *p_icommand; p_icommand++) {
+			kcommand_t *kcommand = NULL;
+			icommand_t *icommand = *p_icommand;
+printf("command %s\n", icommand->name);
+//			kcommand = kcommand_from_icommand(icommand, error_stack);
+//			if (!kcommand) {
+//				retval = BOOL_FALSE;
+//				continue;
+//			}
+kcommand = kcommand;
+		}
+	}
+
+	return retval;
+}
+
+
+kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
+{
+	kview_t *kview = NULL;
+	kview_error_e kview_error = KVIEW_ERROR_OK;
+
+	kview = kview_new(iview, &kview_error);
+	if (!kview) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("VIEW \"%s\": %s",
+			iview->name ? iview->name : "(null)",
+			kview_strerror(kview_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+		return NULL;
+	}
+	printf("view %s\n", kview_name(kview));
+
+	// Parse nested elements
+	if (!kview_nested_from_iview(kview, iview, error_stack)) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
+			kview_name(kview));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+		kview_free(kview);
+		return NULL;
+	}
+
+	return kview;
 }

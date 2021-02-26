@@ -63,6 +63,8 @@ kview_t *kscheme_find_view(const kscheme_t *scheme, const char *name);
 bool_t kscheme_add_ptype(kscheme_t *scheme, kptype_t *ptype);
 kptype_t *kscheme_find_ptype(const kscheme_t *scheme, const char *name);
 
+bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
+	faux_error_t *error_stack);
 kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error_stack);
 
 C_DECL_END

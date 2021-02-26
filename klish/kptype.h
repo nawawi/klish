@@ -6,6 +6,7 @@
 #ifndef _klish_kptype_h
 #define _klish_kptype_h
 
+#include <faux/error.h>
 #include <klish/kaction.h>
 
 typedef struct kptype_s kptype_t;
@@ -37,6 +38,10 @@ const char *kptype_name(const kptype_t *ptype);
 bool_t kptype_set_name(kptype_t *ptype, const char *name);
 const char *kptype_help(const kptype_t *ptype);
 bool_t kptype_set_help(kptype_t *ptype, const char *help);
+
+bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
+	faux_error_t *error_stack);
+kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack);
 
 C_DECL_END
 

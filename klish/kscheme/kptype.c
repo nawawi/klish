@@ -5,6 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kptype.h>
 
@@ -135,4 +136,68 @@ bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error
 	}
 
 	return retval;
+}
+
+
+bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
+	faux_error_t *error_stack)
+{
+	bool_t retval = BOOL_TRUE;
+
+	if (!kptype || !iptype) {
+		faux_error_add(error_stack,
+			kptype_strerror(KPTYPE_ERROR_INTERNAL));
+		return BOOL_FALSE;
+	}
+
+	// ACTION list
+	if (iptype->actions) {
+		iaction_t **p_iaction = NULL;
+		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
+			kaction_t *kaction = NULL;
+			iaction_t *iaction = *p_iaction;
+iaction = iaction;
+printf("action\n");
+//			kaction = kaction_from_iaction(iaction, error_stack);
+//			if (!kaction) {
+//				retval = BOOL_FALSE;
+//				continue;
+//			}
+kaction = kaction;
+		}
+	}
+
+	return retval;
+}
+
+
+kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
+{
+	kptype_t *kptype = NULL;
+	kptype_error_e kptype_error = KPTYPE_ERROR_OK;
+
+	kptype = kptype_new(iptype, &kptype_error);
+	if (!kptype) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": %s",
+			iptype->name ? iptype->name : "(null)",
+			kptype_strerror(kptype_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+		return NULL;
+	}
+	printf("ptype %s\n", kptype_name(kptype));
+
+	// Parse nested elements
+	if (!kptype_nested_from_iptype(kptype, iptype, error_stack)) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
+			kptype_name(kptype));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
+		kptype_free(kptype);
+		return NULL;
+	}
+
+	return kptype;
 }

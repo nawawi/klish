@@ -7,6 +7,7 @@
 #define _klish_kview_h
 
 #include <faux/faux.h>
+#include <faux/error.h>
 #include <klish/kcommand.h>
 
 typedef struct kview_s kview_t;
@@ -36,6 +37,10 @@ const char *kview_name(const kview_t *view);
 bool_t kview_set_name(kview_t *view, const char *name);
 
 bool_t kview_add_command(kview_t *view, kcommand_t *command);
+
+bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
+	faux_error_t *error_stack);
+kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack);
 
 C_DECL_END
 
