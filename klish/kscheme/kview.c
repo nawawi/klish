@@ -149,12 +149,11 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 			kcommand_t *kcommand = NULL;
 			icommand_t *icommand = *p_icommand;
 printf("command %s\n", icommand->name);
-//			kcommand = kcommand_from_icommand(icommand, error_stack);
-//			if (!kcommand) {
-//				retval = BOOL_FALSE;
-//				continue;
-//			}
-kcommand = kcommand;
+			kcommand = kcommand_from_icommand(icommand, error_stack);
+			if (!kcommand) {
+				retval = BOOL_FALSE;
+				continue;
+			}
 		}
 	}
 

@@ -28,7 +28,8 @@ KGET_STR(command, help);
 KSET_STR(command, help);
 
 // PARAM list
-KCMP_NESTED_BY_KEY(command, param, name);
+static KCMP_NESTED(command, param, name);
+static KCMP_NESTED_BY_KEY(command, param, name);
 KADD_NESTED(command, param);
 KFIND_NESTED(command, param);
 
@@ -47,7 +48,7 @@ static kcommand_t *kcommand_new_empty(void)
 	command->help = NULL;
 
 	command->params = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
-		NULL, kcommand_param_kcompare,
+		kcommand_param_compare, kcommand_param_kcompare,
 		(void (*)(void *))kcommand_free);
 	assert(command->params);
 
