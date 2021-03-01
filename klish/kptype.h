@@ -29,6 +29,10 @@ typedef enum {
 
 C_DECL_BEGIN
 
+// iptype_t
+char *iptype_to_text(const iptype_t *iptype, int level);
+
+// kptype_t
 void kptype_free(kptype_t *ptype);
 bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error);
 kptype_t *kptype_new(const iptype_t *info, kptype_error_e *error);

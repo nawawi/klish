@@ -54,6 +54,10 @@ typedef enum {
 
 C_DECL_BEGIN
 
+// ischeme_t
+char *ischeme_to_text(const ischeme_t *ischeme, int level);
+
+// kscheme_t
 kscheme_t *kscheme_new(kscheme_error_e *error);
 void kscheme_free(kscheme_t *scheme);
 const char *kscheme_strerror(kscheme_error_e error);

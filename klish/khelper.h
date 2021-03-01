@@ -8,6 +8,7 @@
 #include <faux/faux.h>
 #include <faux/str.h>
 
+
 // Function to get value from structure by name
 #define _KGET(obj, type, name) \
 	type k##obj##_##name(const k##obj##_t *inst)

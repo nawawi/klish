@@ -198,6 +198,7 @@ int main(int argc, char **argv)
 
 	// Load scheme
 	{
+	char *txt = NULL;
 	faux_error_t *error = faux_error_new();
 	scheme = kscheme_from_ischeme(&sch, error);
 	if (!scheme) {
@@ -205,6 +206,9 @@ int main(int argc, char **argv)
 		faux_error_print(error);
 		goto err;
 	}
+	txt = ischeme_to_text(&sch, 0);
+	printf("%s\n", txt);
+	faux_str_free(txt);
 	}
 
 	// Listen socket
