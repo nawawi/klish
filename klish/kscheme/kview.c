@@ -114,22 +114,20 @@ const char *kview_strerror(kview_error_e error)
 
 bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error)
 {
-	bool_t retval = BOOL_TRUE;
-
 	// Name [mandatory]
 	if (faux_str_is_empty(info->name)) {
 		if (error)
 			*error = KVIEW_ERROR_ATTR_NAME;
-		retval = BOOL_FALSE;
+		return BOOL_FALSE;
 	} else {
 		if (!kview_set_name(view, info->name)) {
 			if (error)
 				*error = KVIEW_ERROR_ATTR_NAME;
-			retval = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
 	}
 
-	return retval;
+	return BOOL_TRUE;
 }
 
 

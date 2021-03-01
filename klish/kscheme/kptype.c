@@ -111,18 +111,16 @@ const char *kptype_strerror(kptype_error_e error)
 
 bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error)
 {
-	bool_t retval = BOOL_TRUE;
-
 	// Name [mandatory]
 	if (faux_str_is_empty(info->name)) {
 		if (error)
 			*error = KPTYPE_ERROR_ATTR_NAME;
-		retval = BOOL_FALSE;
+		return BOOL_FALSE;
 	} else {
 		if (!kptype_set_name(ptype, info->name)) {
 			if (error)
 				*error = KPTYPE_ERROR_ATTR_NAME;
-			retval = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
 	}
 
@@ -131,11 +129,11 @@ bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error
 		if (!kptype_set_help(ptype, info->help)) {
 			if (error)
 				*error = KPTYPE_ERROR_ATTR_HELP;
-			retval = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
 	}
 
-	return retval;
+	return BOOL_TRUE;
 }
 
 

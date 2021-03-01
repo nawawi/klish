@@ -123,18 +123,16 @@ const char *kcommand_strerror(kcommand_error_e error)
 
 bool_t kcommand_parse(kcommand_t *command, const icommand_t *info, kcommand_error_e *error)
 {
-	bool_t retval = BOOL_TRUE;
-
 	// Name [mandatory]
 	if (faux_str_is_empty(info->name)) {
 		if (error)
 			*error = KCOMMAND_ERROR_ATTR_NAME;
-		retval = BOOL_FALSE;
+		return BOOL_FALSE;
 	} else {
 		if (!kcommand_set_name(command, info->name)) {
 			if (error)
 				*error = KCOMMAND_ERROR_ATTR_NAME;
-			retval = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
 	}
 
@@ -143,11 +141,11 @@ bool_t kcommand_parse(kcommand_t *command, const icommand_t *info, kcommand_erro
 		if (!kcommand_set_help(command, info->help)) {
 			if (error)
 				*error = KCOMMAND_ERROR_ATTR_HELP;
-			retval = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
 	}
 
-	return retval;
+	return BOOL_TRUE;
 }
 
 
