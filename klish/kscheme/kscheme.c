@@ -132,8 +132,8 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				}
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				retval = BOOL_FALSE;
 			}
-			retval = BOOL_FALSE;
 		}
 	}
 

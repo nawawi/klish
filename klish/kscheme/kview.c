@@ -148,11 +148,28 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 		for (p_icommand = *iview->commands; *p_icommand; p_icommand++) {
 			kcommand_t *kcommand = NULL;
 			icommand_t *icommand = *p_icommand;
-printf("command %s\n", icommand->name);
 			kcommand = kcommand_from_icommand(icommand, error_stack);
 			if (!kcommand) {
 				retval = BOOL_FALSE;
 				continue;
+			}
+			if (!kview_add_command(kview, kcommand)) {
+				char *msg = NULL;
+				// Search for COMMAND duplicates
+				if (kview_find_command(kview,
+					kcommand_name(kcommand))) {
+					msg = faux_str_sprintf("VIEW: "
+						"Can't add duplicate COMMAND "
+						"\"%s\"",
+						kcommand_name(kcommand));
+				} else {
+					msg = faux_str_sprintf("VIEW: "
+						"Can't add COMMAND \"%s\"",
+						kcommand_name(kcommand));
+				}
+				faux_error_add(error_stack, msg);
+				faux_str_free(msg);
+				retval = BOOL_FALSE;
 			}
 		}
 	}

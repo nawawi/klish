@@ -97,8 +97,8 @@ ischeme_t sch = {
       END_COMMAND_LIST,
     },
 
-    VIEW {
-    },
+//    VIEW {
+//    },
 
   END_VIEW_LIST,
 };

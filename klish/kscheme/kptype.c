@@ -8,11 +8,13 @@
 #include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kptype.h>
+#include <klish/kaction.h>
 
 
 struct kptype_s {
 	char *name;
 	char *help;
+	faux_list_t *actions;
 };
 
 
@@ -25,6 +27,9 @@ KSET_STR_ONCE(ptype, name);
 // Help
 KGET_STR(ptype, help);
 KSET_STR(ptype, help);
+
+// ACTION list
+KADD_NESTED(ptype, action);
 
 
 static kptype_t *kptype_new_empty(void)
@@ -39,6 +44,11 @@ static kptype_t *kptype_new_empty(void)
 	// Initialize
 	ptype->name = NULL;
 	ptype->help = NULL;
+
+	// ACTION list
+	ptype->actions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, (void (*)(void *))kaction_free);
+	assert(ptype->actions);
 
 	return ptype;
 }
@@ -75,6 +85,7 @@ void kptype_free(kptype_t *ptype)
 
 	faux_str_free(ptype->name);
 	faux_str_free(ptype->help);
+	faux_list_free(ptype->actions);
 
 	faux_free(ptype);
 }
@@ -154,14 +165,21 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
 			kaction_t *kaction = NULL;
 			iaction_t *iaction = *p_iaction;
-iaction = iaction;
-printf("action\n");
-//			kaction = kaction_from_iaction(iaction, error_stack);
-//			if (!kaction) {
-//				retval = BOOL_FALSE;
-//				continue;
-//			}
-kaction = kaction;
+
+			kaction = kaction_from_iaction(iaction, error_stack);
+			if (!kaction) {
+				retval = BOOL_FALSE;
+				continue;
+			}
+			if (!kptype_add_action(kptype, kaction)) {
+				char *msg = NULL;
+				msg = faux_str_sprintf("PTYPE: "
+					"Can't add ACTION #%d",
+					faux_list_len(kptype->actions) + 1);
+				faux_error_add(error_stack, msg);
+				faux_str_free(msg);
+				retval = BOOL_FALSE;
+			}
 		}
 	}
 

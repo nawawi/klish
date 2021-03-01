@@ -41,6 +41,7 @@ bool_t kcommand_set_help(kcommand_t *command, const char *help);
 
 bool_t kcommand_add_param(kcommand_t *command, kparam_t *param);
 kparam_t *kcommand_find_param(const kcommand_t *command, const char *name);
+bool_t kcommand_add_action(kcommand_t *command, kaction_t *action);
 
 bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 	faux_error_t *error_stack);

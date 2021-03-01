@@ -190,11 +190,29 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 		for (p_iparam = *iparam->params; *p_iparam; p_iparam++) {
 			kparam_t *nkparam = NULL;
 			iparam_t *niparam = *p_iparam;
-printf("subparam\n");
+
 			nkparam = kparam_from_iparam(niparam, error_stack);
 			if (!nkparam) {
 				retval = BOOL_FALSE;
 				continue;
+			}
+			if (!kparam_add_param(kparam, nkparam)) {
+				char *msg = NULL;
+				// Search for PARAM duplicates
+				if (kparam_find_param(kparam,
+					kparam_name(nkparam))) {
+					msg = faux_str_sprintf("PARAM: "
+						"Can't add duplicate PARAM "
+						"\"%s\"",
+						kparam_name(nkparam));
+				} else {
+					msg = faux_str_sprintf("PARAM: "
+						"Can't add PARAM \"%s\"",
+						kparam_name(nkparam));
+				}
+				faux_error_add(error_stack, msg);
+				faux_str_free(msg);
+				retval = BOOL_FALSE;
 			}
 		}
 	}
