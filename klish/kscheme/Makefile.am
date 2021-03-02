@@ -1,4 +1,5 @@
 libklish_la_SOURCES += \
+	klish/kscheme/khelper.c \
 	klish/kscheme/kptype.c \
 	klish/kscheme/kaction.c \
 	klish/kscheme/kparam.c \
@@ -6,6 +7,7 @@ libklish_la_SOURCES += \
 	klish/kscheme/kview.c \
 	klish/kscheme/kscheme.c \
 	klish/kscheme/ischeme.c \
-	klish/kscheme/iptype.c
+	klish/kscheme/iptype.c \
+	klish/kscheme/iaction.c
 
 

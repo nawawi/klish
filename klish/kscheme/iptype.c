@@ -4,11 +4,11 @@
 #include <assert.h>
 
 #include <faux/str.h>
+#include <faux/conv.h>
 #include <klish/khelper.h>
 #include <klish/kptype.h>
 #include <klish/kaction.h>
 
-#define ISCHEME_TAB " "
 
 char *iptype_to_text(const iptype_t *iptype, int level)
 {
@@ -19,33 +19,33 @@ char *iptype_to_text(const iptype_t *iptype, int level)
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
+	attr2ctext(&str, "name", iptype->name, level + 1);
+	attr2ctext(&str, "help", iptype->help, level + 1);
 
-/*
-	// PTYPE list
-	if (iptype->ptypes) {
-		iptype_t **p_iptype = NULL;
+	// ACTION list
+	if (iptype->actions) {
+		iaction_t **p_iaction = NULL;
 
-		tmp = faux_str_sprintf("\n%*sPTYPE_LIST\n\n", level + 1, ISCHEME_TAB);
+		tmp = faux_str_sprintf("\n%*cACTION_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iptype = *iptype->ptypes; *p_iptype; p_iptype++) {
-			iptype_t *iptype = *p_iptype;
+		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
+			iaction_t *iaction = *p_iaction;
 
-			tmp = iptype_to_text(iptype, level + 2);
+			tmp = iaction_to_text(iaction, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
 
-		tmp = faux_str_sprintf("\n%*sEND_PTYPE_LIST,\n", level + 1, ISCHEME_TAB);
+		tmp = faux_str_sprintf("%*cEND_ACTION_LIST,\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 	}
-*/
+
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
-iptype = iptype;
+
 	return str;
 }
-

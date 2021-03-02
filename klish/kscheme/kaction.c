@@ -17,6 +17,7 @@ struct kaction_s {
 	bool_t interactive;
 	kaction_cond_e exec_on;
 	bool_t update_retcode;
+	char *script;
 	//ksym_t *sym; // Symbol
 };
 
@@ -47,6 +48,10 @@ KSET(action, kaction_cond_e, exec_on);
 KGET_BOOL(action, update_retcode);
 KSET_BOOL(action, update_retcode);
 
+// Script
+KGET_STR(action, script);
+KSET_STR(action, script);
+
 
 static kaction_t *kaction_new_empty(void)
 {
@@ -64,6 +69,7 @@ static kaction_t *kaction_new_empty(void)
 	action->interactive = BOOL_FALSE;
 	action->exec_on = KACTION_COND_SUCCESS;
 	action->update_retcode = BOOL_TRUE;
+	action->script = NULL;
 
 	return action;
 }
@@ -100,6 +106,7 @@ void kaction_free(kaction_t *action)
 
 	faux_str_free(action->sym_ref);
 	faux_str_free(action->lock);
+	faux_str_free(action->script);
 
 	faux_free(action);
 }
@@ -133,6 +140,9 @@ const char *kaction_strerror(kaction_error_e error)
 		break;
 	case KACTION_ERROR_ATTR_UPDATE_RETCODE:
 		str = "Illegal 'update_retcode' attribute";
+		break;
+	case KACTION_ERROR_ATTR_SCRIPT:
+		str = "Illegal script";
 		break;
 	default:
 		str = "Unknown error";
@@ -213,6 +223,15 @@ bool_t kaction_parse(kaction_t *action, const iaction_t *info, kaction_error_e *
 			!kaction_set_update_retcode(action, b)) {
 			if (error)
 				*error = KACTION_ERROR_ATTR_UPDATE_RETCODE;
+			return BOOL_FALSE;
+		}
+	}
+
+	// Script
+	if (!faux_str_is_empty(info->script)) {
+		if (!kaction_set_script(action, info->script)) {
+			if (error)
+				*error = KACTION_ERROR_ATTR_SCRIPT;
 			return BOOL_FALSE;
 		}
 	}

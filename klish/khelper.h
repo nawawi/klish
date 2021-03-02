@@ -127,4 +127,10 @@
 }
 
 
+C_DECL_BEGIN
+
+bool_t attr2ctext(char **dst, const char *field, const char *value, int level);
+
+C_DECL_END
+
 #endif // _khelper_h

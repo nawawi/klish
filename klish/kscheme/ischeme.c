@@ -35,7 +35,7 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 			faux_str_free(tmp);
 		}
 
-		tmp = faux_str_sprintf("\n%*cEND_PTYPE_LIST,\n", level + 1, ' ');
+		tmp = faux_str_sprintf("%*cEND_PTYPE_LIST,\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 	}

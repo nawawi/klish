@@ -40,14 +40,30 @@
 
 ischeme_t sch = {
 
-  PTYPE_LIST
+ PTYPE_LIST
 
-    PTYPE {
-      .name = "ptype1",
+  PTYPE {
+   .name = "ptype1",
+   .help = "help1",
+
+   ACTION_LIST
+
+    ACTION {
+     .sym = "internal",
+     .script = "cat /etc/passwd",
     },
+
+    ACTION {
+     .sym = "internal",
+     .script = "cat /etc/group",
+    },
+
+   END_ACTION_LIST,
+  },
 
     PTYPE {
       .name = "ptype2",
+      .help = "help2",
     },
 
   END_PTYPE_LIST,

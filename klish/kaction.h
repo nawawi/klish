@@ -17,6 +17,7 @@ typedef struct iaction_s {
 	char *interactive;
 	char *exec_on;
 	char *update_retcode;
+	char *script;
 } iaction_t;
 
 
@@ -30,6 +31,7 @@ typedef enum {
 	KACTION_ERROR_ATTR_INTERACTIVE,
 	KACTION_ERROR_ATTR_EXEC_ON,
 	KACTION_ERROR_ATTR_UPDATE_RETCODE,
+	KACTION_ERROR_ATTR_SCRIPT,
 } kaction_error_e;
 
 
@@ -42,6 +44,10 @@ typedef enum {
 
 C_DECL_BEGIN
 
+// iaction_t
+char *iaction_to_text(const iaction_t *iaction, int level);
+
+// kaction_t
 kaction_t *kaction_new(const iaction_t *info, kaction_error_e *error);
 void kaction_free(kaction_t *action);
 const char *kaction_strerror(kaction_error_e error);
@@ -59,6 +65,8 @@ kaction_cond_e kaction_exec_on(const kaction_t *action);
 bool_t kaction_set_exec_on(kaction_t *action, kaction_cond_e exec_on);
 bool_t kaction_update_retcode(const kaction_t *action);
 bool_t kaction_set_update_retcode(kaction_t *action, bool_t update_retcode);
+const char *kaction_script(const kaction_t *action);
+bool_t kaction_set_script(kaction_t *action, const char *script);
 
 kaction_t *kaction_from_iaction(iaction_t *iaction, faux_error_t *error_stack);
 
