@@ -37,7 +37,8 @@ KGET(param, kptype_t *, ptype);
 KSET(param, kptype_t *, ptype);
 
 // PARAM list
-KCMP_NESTED_BY_KEY(param, param, name);
+static KCMP_NESTED(param, param, name);
+static KCMP_NESTED_BY_KEY(param, param, name);
 KADD_NESTED(param, param);
 KFIND_NESTED(param, param);
 
@@ -58,7 +59,7 @@ static kparam_t *kparam_new_empty(void)
 	param->ptype = NULL;
 
 	param->params = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
-		NULL, kparam_param_kcompare,
+		kparam_param_compare, kparam_param_kcompare,
 		(void (*)(void *))kparam_free);
 	assert(param->params);
 
@@ -212,9 +213,19 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 				}
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kparam_free(nkparam);
 				retval = BOOL_FALSE;
+				continue;
 			}
 		}
+	}
+
+	if (!retval) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PARAM \"%s\": Illegal nested elements",
+			kparam_name(kparam));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 	}
 
 	return retval;
@@ -236,15 +247,9 @@ kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error_stack)
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("param %s\n", kparam_name(kparam));
 
 	// Parse nested elements
 	if (!kparam_nested_from_iparam(kparam, iparam, error_stack)) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("PARAM \"%s\": Illegal nested elements",
-			kparam_name(kparam));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		kparam_free(kparam);
 		return NULL;
 	}

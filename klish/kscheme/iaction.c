@@ -14,7 +14,7 @@ char *iaction_to_text(const iaction_t *iaction, int level)
 	char *str = NULL;
 	char *tmp = NULL;
 
-	tmp = faux_str_sprintf("%*cACTION = {\n", level, ' ');
+	tmp = faux_str_sprintf("%*cACTION {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 

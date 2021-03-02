@@ -178,9 +178,19 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 					faux_list_len(kptype->actions) + 1);
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kaction_free(kaction);
 				retval = BOOL_FALSE;
+				continue;
 			}
 		}
+	}
+
+	if (!retval) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
+			kptype_name(kptype));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 	}
 
 	return retval;
@@ -202,15 +212,9 @@ kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("ptype %s\n", kptype_name(kptype));
 
 	// Parse nested elements
 	if (!kptype_nested_from_iptype(kptype, iptype, error_stack)) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("PTYPE \"%s\": Illegal nested elements",
-			kptype_name(kptype));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		kptype_free(kptype);
 		return NULL;
 	}

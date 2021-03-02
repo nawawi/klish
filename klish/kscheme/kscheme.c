@@ -132,6 +132,7 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				}
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kptype_free(kptype);
 				retval = BOOL_FALSE;
 			}
 		}
@@ -185,10 +186,18 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 					kview_name(kview));
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kview_free(kview);
 				retval = BOOL_FALSE;
 				continue;
 			}
 		}
+	}
+
+	if (!retval) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("SCHEME: Illegal nested elements");
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 	}
 
 	return retval;
@@ -202,11 +211,15 @@ kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error_stack)
 
 	kscheme = kscheme_new(&kscheme_error);
 	if (!kscheme) {
-		faux_error_add(error_stack,
+		char *msg = NULL;
+		msg = faux_str_sprintf("SCHEME: %s",
 			kscheme_strerror(kscheme_error));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 		return NULL;
 	}
 
+	// Parse nested elements
 	if (!kscheme_nested_from_ischeme(kscheme, ischeme, error_stack)) {
 		kscheme_free(kscheme);
 		return NULL;

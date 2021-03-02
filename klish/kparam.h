@@ -6,6 +6,8 @@
 #ifndef _klish_kparam_h
 #define _klish_kparam_h
 
+#include <faux/error.h>
+
 typedef struct kparam_s kparam_t;
 
 typedef struct iparam_s iparam_t;
@@ -29,6 +31,10 @@ typedef enum {
 
 C_DECL_BEGIN
 
+// iparam_t
+char *iparam_to_text(const iparam_t *iparam, int level);
+
+// kparam_t
 kparam_t *kparam_new(const iparam_t *info, kparam_error_e *error);
 void kparam_free(kparam_t *param);
 const char *kparam_strerror(kparam_error_e error);

@@ -15,7 +15,7 @@ char *iptype_to_text(const iptype_t *iptype, int level)
 	char *str = NULL;
 	char *tmp = NULL;
 
-	tmp = faux_str_sprintf("%*cPTYPE = {\n", level, ' ');
+	tmp = faux_str_sprintf("%*cPTYPE {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 

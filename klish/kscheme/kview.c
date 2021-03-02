@@ -169,9 +169,19 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 				}
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kcommand_free(kcommand);
 				retval = BOOL_FALSE;
+				continue;
 			}
 		}
+	}
+
+	if (!retval) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
+			kview_name(kview));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 	}
 
 	return retval;
@@ -193,15 +203,9 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("view %s\n", kview_name(kview));
 
 	// Parse nested elements
 	if (!kview_nested_from_iview(kview, iview, error_stack)) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
-			kview_name(kview));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		kview_free(kview);
 		return NULL;
 	}

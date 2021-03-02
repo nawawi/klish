@@ -55,7 +55,7 @@ static kcommand_t *kcommand_new_empty(void)
 	// PARAM list
 	command->params = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
 		kcommand_param_compare, kcommand_param_kcompare,
-		(void (*)(void *))kcommand_free);
+		(void (*)(void *))kparam_free);
 	assert(command->params);
 
 	// ACTION list
@@ -202,7 +202,9 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 				}
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kparam_free(kparam);
 				retval = BOOL_FALSE;
+				continue;
 			}
 		}
 	}
@@ -226,9 +228,19 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 					faux_list_len(kcommand->actions) + 1);
 				faux_error_add(error_stack, msg);
 				faux_str_free(msg);
+				kaction_free(kaction);
 				retval = BOOL_FALSE;
+				continue;
 			}
 		}
+	}
+
+	if (!retval) {
+		char *msg = NULL;
+		msg = faux_str_sprintf("COMMAND \"%s\": Illegal nested elements",
+			kcommand_name(kcommand));
+		faux_error_add(error_stack, msg);
+		faux_str_free(msg);
 	}
 
 	return retval;
@@ -250,15 +262,9 @@ kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error_sta
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("command %s\n", kcommand_name(kcommand));
 
 	// Parse nested elements
 	if (!kcommand_nested_from_icommand(kcommand, icommand, error_stack)) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("COMMAND \"%s\": Illegal nested elements",
-			kcommand_name(kcommand));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		kcommand_free(kcommand);
 		return NULL;
 	}

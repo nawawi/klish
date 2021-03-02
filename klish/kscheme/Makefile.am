@@ -8,6 +8,7 @@ libklish_la_SOURCES += \
 	klish/kscheme/kscheme.c \
 	klish/kscheme/ischeme.c \
 	klish/kscheme/iptype.c \
-	klish/kscheme/iaction.c
-
-
+	klish/kscheme/iaction.c \
+	klish/kscheme/iview.c \
+	klish/kscheme/icommand.c \
+	klish/kscheme/iparam.c

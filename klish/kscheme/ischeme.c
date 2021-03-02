@@ -39,12 +39,12 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 	}
-/*
+
 	// VIEW list
 	if (ischeme->views) {
 		iview_t **p_iview = NULL;
 
-		tmp = faux_str_sprintf("\n%*sVIEW_LIST\n\n", level + 1, ISCHEME_TAB);
+		tmp = faux_str_sprintf("\n%*cVIEW_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
@@ -56,15 +56,14 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 			faux_str_free(tmp);
 		}
 
-		tmp = faux_str_sprintf("\n%*sEND_VIEW_LIST\n", level + 1, ISCHEME_TAB);
+		tmp = faux_str_sprintf("%*cEND_VIEW_LIST\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 	}
-*/
+
 	tmp = faux_str_sprintf("};\n");
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
 	return str;
 }
-

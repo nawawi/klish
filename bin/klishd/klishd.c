@@ -106,8 +106,56 @@ ischeme_t sch = {
         },
 
         COMMAND {
-          .name = "command5",
+          .name = "command4",
           .help = "help1",
+
+   PARAM_LIST
+    PARAM {
+     .name = "param1",
+     .help = "helpparam1",
+     .ptype = "ptype1",
+    },
+    PARAM {
+     .name = "param2",
+     .help = "helpparam2",
+     .ptype = "ptype2",
+   PARAM_LIST
+    PARAM {
+     .name = "param3",
+     .help = "helpparam1",
+     .ptype = "ptype1",
+    },
+    PARAM {
+     .name = "param4",
+     .help = "helpparam2",
+     .ptype = "ptype2",
+
+
+    },
+
+   END_PARAM_LIST,
+
+
+    },
+
+   END_PARAM_LIST,
+
+   ACTION_LIST
+
+    ACTION {
+     .sym = "internal",
+     .script = "cat /etc/passwd",
+    },
+
+    ACTION {
+     .sym = "internal",
+     .script = "cat /etc/group",
+    },
+
+   END_ACTION_LIST,
+
+
+
         },
 
       END_COMMAND_LIST,
@@ -220,11 +268,13 @@ int main(int argc, char **argv)
 	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
 		faux_error_print(error);
+		faux_error_free(error);
 		goto err;
 	}
 	txt = ischeme_to_text(&sch, 0);
 	printf("%s\n", txt);
 	faux_str_free(txt);
+	faux_error_free(error);
 	}
 
 	// Listen socket

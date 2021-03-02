@@ -254,7 +254,6 @@ kaction_t *kaction_from_iaction(iaction_t *iaction, faux_error_t *error_stack)
 		faux_str_free(msg);
 		return NULL;
 	}
-	printf("action\n");
 
 	return kaction;
 }
