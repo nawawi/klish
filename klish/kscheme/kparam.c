@@ -198,21 +198,20 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 				continue;
 			}
 			if (!kparam_add_param(kparam, nkparam)) {
-				char *msg = NULL;
 				// Search for PARAM duplicates
 				if (kparam_find_param(kparam,
 					kparam_name(nkparam))) {
-					msg = faux_str_sprintf("PARAM: "
+					faux_error_sprintf(error_stack,
+						"PARAM: "
 						"Can't add duplicate PARAM "
 						"\"%s\"",
 						kparam_name(nkparam));
 				} else {
-					msg = faux_str_sprintf("PARAM: "
+					faux_error_sprintf(error_stack,
+						"PARAM: "
 						"Can't add PARAM \"%s\"",
 						kparam_name(nkparam));
 				}
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kparam_free(nkparam);
 				retval = BOOL_FALSE;
 				continue;
@@ -220,13 +219,10 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 		}
 	}
 
-	if (!retval) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("PARAM \"%s\": Illegal nested elements",
+	if (!retval)
+		faux_error_sprintf(error_stack,
+			"PARAM \"%s\": Illegal nested elements",
 			kparam_name(kparam));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
-	}
 
 	return retval;
 }
@@ -239,12 +235,9 @@ kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error_stack)
 
 	kparam = kparam_new(iparam, &kparam_error);
 	if (!kparam) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("PARAM \"%s\": %s",
+		faux_error_sprintf(error_stack, "PARAM \"%s\": %s",
 			iparam->name ? iparam->name : "(null)",
 			kparam_strerror(kparam_error));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		return NULL;
 	}
 

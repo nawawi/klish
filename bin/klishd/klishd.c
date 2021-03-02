@@ -38,7 +38,7 @@
 
 #include "private.h"
 
-#include "sch_test.c"
+#include "sch.c"
 
 // Local static functions
 static int create_listen_unix_sock(const char *path);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 	scheme = kscheme_from_ischeme(&sch, error);
 	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
-		faux_error_print(error);
+		faux_error_show(error);
 		faux_error_free(error);
 		goto err;
 	}

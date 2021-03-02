@@ -154,21 +154,20 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 				continue;
 			}
 			if (!kview_add_command(kview, kcommand)) {
-				char *msg = NULL;
 				// Search for COMMAND duplicates
 				if (kview_find_command(kview,
 					kcommand_name(kcommand))) {
-					msg = faux_str_sprintf("VIEW: "
+					faux_error_sprintf(error_stack,
+						"VIEW: "
 						"Can't add duplicate COMMAND "
 						"\"%s\"",
 						kcommand_name(kcommand));
 				} else {
-					msg = faux_str_sprintf("VIEW: "
+					faux_error_sprintf(error_stack,
+						"VIEW: "
 						"Can't add COMMAND \"%s\"",
 						kcommand_name(kcommand));
 				}
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kcommand_free(kcommand);
 				retval = BOOL_FALSE;
 				continue;
@@ -176,13 +175,10 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 		}
 	}
 
-	if (!retval) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("VIEW \"%s\": Illegal nested elements",
+	if (!retval)
+		faux_error_sprintf(error_stack,
+			"VIEW \"%s\": Illegal nested elements",
 			kview_name(kview));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
-	}
 
 	return retval;
 }
@@ -195,12 +191,9 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack)
 
 	kview = kview_new(iview, &kview_error);
 	if (!kview) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("VIEW \"%s\": %s",
+		faux_error_sprintf(error_stack, "VIEW \"%s\": %s",
 			iview->name ? iview->name : "(null)",
 			kview_strerror(kview_error));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		return NULL;
 	}
 

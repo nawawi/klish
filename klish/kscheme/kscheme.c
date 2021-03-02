@@ -117,21 +117,20 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				continue;
 			}
 			if (!kscheme_add_ptype(kscheme, kptype)) {
-				char *msg = NULL;
 				// Search for PTYPE duplicates
 				if (kscheme_find_ptype(kscheme,
 					kptype_name(kptype))) {
-					msg = faux_str_sprintf("SCHEME: "
+					faux_error_sprintf(error_stack,
+						"SCHEME: "
 						"Can't add duplicate PTYPE "
 						"\"%s\"",
 						kptype_name(kptype));
 				} else {
-					msg = faux_str_sprintf("SCHEME: "
+					faux_error_sprintf(error_stack,
+						"SCHEME: "
 						"Can't add PTYPE \"%s\"",
 						kptype_name(kptype));
 				}
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kptype_free(kptype);
 				retval = BOOL_FALSE;
 			}
@@ -158,11 +157,10 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 			if (kview) {
 				kview_error_e kview_error = KVIEW_ERROR_OK;
 				if (!kview_parse(kview, iview, &kview_error)) {
-					char *msg = faux_str_sprintf("VIEW \"%s\": %s",
+					faux_error_sprintf(error_stack,
+						"VIEW \"%s\": %s",
 						iview->name ? iview->name : "(null)",
 						kview_strerror(kview_error));
-					faux_error_add(error_stack, msg);
-					faux_str_free(msg);
 					retval = BOOL_FALSE;
 					continue;
 				}
@@ -181,11 +179,10 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 				continue;
 			}
 			if (!kscheme_add_view(kscheme, kview)) {
-				char *msg = faux_str_sprintf("SCHEME: "
+				faux_error_sprintf(error_stack,
+					"SCHEME: "
 					"Can't add VIEW \"%s\"",
 					kview_name(kview));
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kview_free(kview);
 				retval = BOOL_FALSE;
 				continue;
@@ -193,12 +190,8 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 		}
 	}
 
-	if (!retval) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("SCHEME: Illegal nested elements");
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
-	}
+	if (!retval)
+		faux_error_sprintf(error_stack, "SCHEME: Illegal nested elements");
 
 	return retval;
 }
@@ -211,11 +204,8 @@ kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error_stack)
 
 	kscheme = kscheme_new(&kscheme_error);
 	if (!kscheme) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("SCHEME: %s",
+		faux_error_sprintf(error_stack, "SCHEME: %s",
 			kscheme_strerror(kscheme_error));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		return NULL;
 	}
 

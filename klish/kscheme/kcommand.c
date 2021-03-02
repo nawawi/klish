@@ -187,21 +187,20 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 				continue;
 			}
 			if (!kcommand_add_param(kcommand, kparam)) {
-				char *msg = NULL;
 				// Search for PARAM duplicates
 				if (kcommand_find_param(kcommand,
 					kparam_name(kparam))) {
-					msg = faux_str_sprintf("COMMAND: "
+					faux_error_sprintf(error_stack,
+						"COMMAND: "
 						"Can't add duplicate PARAM "
 						"\"%s\"",
 						kparam_name(kparam));
 				} else {
-					msg = faux_str_sprintf("COMMAND: "
+					faux_error_sprintf(error_stack,
+						"COMMAND: "
 						"Can't add PARAM \"%s\"",
 						kparam_name(kparam));
 				}
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kparam_free(kparam);
 				retval = BOOL_FALSE;
 				continue;
@@ -222,12 +221,9 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 				continue;
 			}
 			if (!kcommand_add_action(kcommand, kaction)) {
-				char *msg = NULL;
-				msg = faux_str_sprintf("COMMAND: "
+				faux_error_sprintf(error_stack, "COMMAND: "
 					"Can't add ACTION #%d",
 					faux_list_len(kcommand->actions) + 1);
-				faux_error_add(error_stack, msg);
-				faux_str_free(msg);
 				kaction_free(kaction);
 				retval = BOOL_FALSE;
 				continue;
@@ -235,13 +231,10 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 		}
 	}
 
-	if (!retval) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("COMMAND \"%s\": Illegal nested elements",
+	if (!retval)
+		faux_error_sprintf(error_stack,
+			"COMMAND \"%s\": Illegal nested elements",
 			kcommand_name(kcommand));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
-	}
 
 	return retval;
 }
@@ -254,12 +247,9 @@ kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error_sta
 
 	kcommand = kcommand_new(icommand, &kcommand_error);
 	if (!kcommand) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("COMMAND \"%s\": %s",
+		faux_error_sprintf(error_stack, "COMMAND \"%s\": %s",
 			icommand->name ? icommand->name : "(null)",
 			kcommand_strerror(kcommand_error));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		return NULL;
 	}
 

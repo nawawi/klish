@@ -247,11 +247,8 @@ kaction_t *kaction_from_iaction(iaction_t *iaction, faux_error_t *error_stack)
 
 	kaction = kaction_new(iaction, &kaction_error);
 	if (!kaction) {
-		char *msg = NULL;
-		msg = faux_str_sprintf("ACTION : %s",
+		faux_error_sprintf(error_stack, "ACTION : %s",
 			kaction_strerror(kaction_error));
-		faux_error_add(error_stack, msg);
-		faux_str_free(msg);
 		return NULL;
 	}
 
