@@ -12,7 +12,10 @@ nobase_include_HEADERS += \
 	klish/kscheme.h \
 	klish/kview.h \
 	klish/kcommand.h \
-	klish/kparam.h
+	klish/kparam.h \
+	klish/kplugin.h \
+	klish/kaction.h \
+	klish/kptype.h
 
 noinst_HEADERS += \
 	klish/khelper.h

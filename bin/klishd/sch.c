@@ -1,5 +1,23 @@
 ischeme_t sch = {
 
+ PLUGIN_LIST
+
+  PLUGIN {
+   .name = "plugin1",
+   .alias = "alias1",
+   .file = "file1",
+   .global = "true",
+  },
+
+  PLUGIN {
+   .name = "plugin2",
+   .alias = "alias2",
+   .file = "file2",
+   .global = "false",
+  },
+
+ END_PLUGIN_LIST,
+
  PTYPE_LIST
 
   PTYPE {

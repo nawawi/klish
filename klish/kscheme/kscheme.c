@@ -6,17 +6,25 @@
 #include <faux/str.h>
 #include <faux/list.h>
 #include <klish/khelper.h>
+#include <klish/kplugin.h>
 #include <klish/kptype.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
 
 
 struct kscheme_s {
+	faux_list_t *plugins;
 	faux_list_t *ptypes;
 	faux_list_t *views;
 };
 
 // Simple methods
+
+// PLUGIN list
+KCMP_NESTED(scheme, plugin, name);
+KCMP_NESTED_BY_KEY(scheme, plugin, name);
+KADD_NESTED(scheme, plugin);
+KFIND_NESTED(scheme, plugin);
 
 // PTYPE list
 KCMP_NESTED(scheme, ptype, name);
@@ -43,6 +51,12 @@ kscheme_t *kscheme_new(kscheme_error_e *error)
 		return NULL;
 	}
 
+	// PLUGIN list
+	scheme->plugins = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+		kscheme_plugin_compare, kscheme_plugin_kcompare,
+		(void (*)(void *))kplugin_free);
+	assert(scheme->plugins);
+
 	// PTYPE list
 	scheme->ptypes = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 		kscheme_ptype_compare, kscheme_ptype_kcompare,
@@ -64,6 +78,7 @@ void kscheme_free(kscheme_t *scheme)
 	if (!scheme)
 		return;
 
+	faux_list_free(scheme->plugins);
 	faux_list_free(scheme->ptypes);
 	faux_list_free(scheme->views);
 	faux_free(scheme);
@@ -102,6 +117,39 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 		faux_error_add(error_stack,
 			kscheme_strerror(KSCHEME_ERROR_INTERNAL));
 		return BOOL_FALSE;
+	}
+
+	// PLUGIN list
+	if (ischeme->plugins) {
+		iplugin_t **p_iplugin = NULL;
+		for (p_iplugin = *ischeme->plugins; *p_iplugin; p_iplugin++) {
+			kplugin_t *kplugin = NULL;
+			iplugin_t *iplugin = *p_iplugin;
+
+			kplugin = kplugin_from_iplugin(iplugin, error_stack);
+			if (!kplugin) {
+				retval = BOOL_FALSE; // Don't stop
+				continue;
+			}
+			if (!kscheme_add_plugin(kscheme, kplugin)) {
+				// Search for PLUGIN duplicates
+				if (kscheme_find_plugin(kscheme,
+					kplugin_name(kplugin))) {
+					faux_error_sprintf(error_stack,
+						"SCHEME: "
+						"Can't add duplicate PLUGIN "
+						"\"%s\"",
+						kplugin_name(kplugin));
+				} else {
+					faux_error_sprintf(error_stack,
+						"SCHEME: "
+						"Can't add PLUGIN \"%s\"",
+						kplugin_name(kplugin));
+				}
+				kplugin_free(kplugin);
+				retval = BOOL_FALSE;
+			}
+		}
 	}
 
 	// PTYPE list

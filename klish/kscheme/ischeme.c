@@ -19,6 +19,27 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
+	// PLUGIN list
+	if (ischeme->plugins) {
+		iplugin_t **p_iplugin = NULL;
+
+		tmp = faux_str_sprintf("\n%*cPLUGIN_LIST\n\n", level, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+
+		for (p_iplugin = *ischeme->plugins; *p_iplugin; p_iplugin++) {
+			iplugin_t *iplugin = *p_iplugin;
+
+			tmp = iplugin_to_text(iplugin, level + 2);
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+		}
+
+		tmp = faux_str_sprintf("%*cEND_PLUGIN_LIST,\n", level + 1, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+	}
+
 	// PTYPE list
 	if (ischeme->ptypes) {
 		iptype_t **p_iptype = NULL;
