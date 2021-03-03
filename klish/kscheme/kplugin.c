@@ -13,7 +13,6 @@
 
 struct kplugin_s {
 	char *name;
-	char *alias;
 	char *file;
 	bool_t global;
 	char *script;
@@ -26,11 +25,7 @@ struct kplugin_s {
 KGET_STR(plugin, name);
 KSET_STR_ONCE(plugin, name);
 
-// Alias
-KGET_STR(plugin, alias);
-KSET_STR(plugin, alias);
-
-// Alias
+// File
 KGET_STR(plugin, file);
 KSET_STR(plugin, file);
 
@@ -54,7 +49,6 @@ static kplugin_t *kplugin_new_empty(void)
 
 	// Initialize
 	plugin->name = NULL;
-	plugin->alias = NULL;
 	plugin->file = NULL;
 	plugin->global = BOOL_FALSE;
 	plugin->script = NULL;
@@ -93,7 +87,6 @@ void kplugin_free(kplugin_t *plugin)
 		return;
 
 	faux_str_free(plugin->name);
-	faux_str_free(plugin->alias);
 	faux_str_free(plugin->file);
 	faux_str_free(plugin->script);
 
@@ -117,9 +110,6 @@ const char *kplugin_strerror(kplugin_error_e error)
 		break;
 	case KPLUGIN_ERROR_ATTR_NAME:
 		str = "Illegal 'name' attribute";
-		break;
-	case KPLUGIN_ERROR_ATTR_ALIAS:
-		str = "Illegal 'alias' attribute";
 		break;
 	case KPLUGIN_ERROR_ATTR_FILE:
 		str = "Illegal 'file' attribute";
@@ -150,15 +140,6 @@ bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *
 		if (!kplugin_set_name(plugin, info->name)) {
 			if (error)
 				*error = KPLUGIN_ERROR_ATTR_NAME;
-			return BOOL_FALSE;
-		}
-	}
-
-	// Alias
-	if (!faux_str_is_empty(info->alias)) {
-		if (!kplugin_set_alias(plugin, info->alias)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_ALIAS;
 			return BOOL_FALSE;
 		}
 	}
