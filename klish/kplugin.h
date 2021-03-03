@@ -12,6 +12,7 @@ typedef struct kplugin_s kplugin_t;
 
 typedef struct iplugin_s {
 	char *name;
+	char *id;
 	char *file;
 	char *global;
 	char *script;
@@ -23,6 +24,7 @@ typedef enum {
 	KPLUGIN_ERROR_INTERNAL,
 	KPLUGIN_ERROR_ALLOC,
 	KPLUGIN_ERROR_ATTR_NAME,
+	KPLUGIN_ERROR_ATTR_ID,
 	KPLUGIN_ERROR_ATTR_FILE,
 	KPLUGIN_ERROR_ATTR_GLOBAL,
 	KPLUGIN_ERROR_SCRIPT,
@@ -42,6 +44,8 @@ const char *kplugin_strerror(kplugin_error_e error);
 
 const char *kplugin_name(const kplugin_t *plugin);
 bool_t kplugin_set_name(kplugin_t *plugin, const char *name);
+const char *kplugin_id(const kplugin_t *plugin);
+bool_t kplugin_set_id(kplugin_t *plugin, const char *id);
 const char *kplugin_file(const kplugin_t *plugin);
 bool_t kplugin_set_file(kplugin_t *plugin, const char *file);
 bool_t kplugin_global(const kplugin_t *plugin);

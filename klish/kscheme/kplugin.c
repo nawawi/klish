@@ -13,6 +13,7 @@
 
 struct kplugin_s {
 	char *name;
+	char *id;
 	char *file;
 	bool_t global;
 	char *script;
@@ -24,6 +25,10 @@ struct kplugin_s {
 // Name
 KGET_STR(plugin, name);
 KSET_STR_ONCE(plugin, name);
+
+// ID
+KGET_STR(plugin, id);
+KSET_STR(plugin, id);
 
 // File
 KGET_STR(plugin, file);
@@ -49,6 +54,7 @@ static kplugin_t *kplugin_new_empty(void)
 
 	// Initialize
 	plugin->name = NULL;
+	plugin->id = NULL;
 	plugin->file = NULL;
 	plugin->global = BOOL_FALSE;
 	plugin->script = NULL;
@@ -87,6 +93,7 @@ void kplugin_free(kplugin_t *plugin)
 		return;
 
 	faux_str_free(plugin->name);
+	faux_str_free(plugin->id);
 	faux_str_free(plugin->file);
 	faux_str_free(plugin->script);
 
@@ -110,6 +117,9 @@ const char *kplugin_strerror(kplugin_error_e error)
 		break;
 	case KPLUGIN_ERROR_ATTR_NAME:
 		str = "Illegal 'name' attribute";
+		break;
+	case KPLUGIN_ERROR_ATTR_ID:
+		str = "Illegal 'id' attribute";
 		break;
 	case KPLUGIN_ERROR_ATTR_FILE:
 		str = "Illegal 'file' attribute";
@@ -140,6 +150,15 @@ bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *
 		if (!kplugin_set_name(plugin, info->name)) {
 			if (error)
 				*error = KPLUGIN_ERROR_ATTR_NAME;
+			return BOOL_FALSE;
+		}
+	}
+
+	// ID
+	if (!faux_str_is_empty(info->id)) {
+		if (!kplugin_set_id(plugin, info->id)) {
+			if (error)
+				*error = KPLUGIN_ERROR_ATTR_ID;
 			return BOOL_FALSE;
 		}
 	}

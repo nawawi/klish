@@ -19,6 +19,7 @@ char *iplugin_to_text(const iplugin_t *iplugin, int level)
 	faux_str_free(tmp);
 
 	attr2ctext(&str, "name", iplugin->name, level + 1);
+	attr2ctext(&str, "id", iplugin->id, level + 1);
 	attr2ctext(&str, "file", iplugin->file, level + 1);
 	attr2ctext(&str, "global", iplugin->global, level + 1);
 
