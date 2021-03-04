@@ -22,6 +22,7 @@ char *iplugin_to_text(const iplugin_t *iplugin, int level)
 	attr2ctext(&str, "id", iplugin->id, level + 1);
 	attr2ctext(&str, "file", iplugin->file, level + 1);
 	attr2ctext(&str, "global", iplugin->global, level + 1);
+	attr2ctext(&str, "conf", iplugin->conf, level + 1);
 
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');
 	faux_str_cat(&str, tmp);
