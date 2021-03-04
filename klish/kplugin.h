@@ -8,6 +8,11 @@
 
 #include <faux/error.h>
 
+// Plugin API version
+#define KPLUGIN_MAJOR 1
+#define KPLUGIN_MINOR 1
+
+
 typedef struct kplugin_s kplugin_t;
 
 typedef struct iplugin_s {

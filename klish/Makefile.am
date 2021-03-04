@@ -7,6 +7,7 @@ libklish_la_LDFLAGS = $(AM_LDFLAGS) $(VERSION_INFO)
 #endif
 
 nobase_include_HEADERS += \
+	klish/khelper.h \
 	klish/ktp.h \
 	klish/ktp_session.h \
 	klish/kscheme.h \
@@ -15,10 +16,11 @@ nobase_include_HEADERS += \
 	klish/kparam.h \
 	klish/kplugin.h \
 	klish/kaction.h \
-	klish/kptype.h
+	klish/kptype.h \
+	klish/ksym.h
 
-noinst_HEADERS += \
-	klish/khelper.h
+#noinst_HEADERS += \
+#	klish/khelper.h
 
 EXTRA_DIST += \
 	klish/ktp/Makefile.am \
