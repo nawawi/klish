@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -9,6 +10,7 @@
 #include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kplugin.h>
+#include <klish/ksym.h>
 
 
 struct kplugin_s {
@@ -16,7 +18,10 @@ struct kplugin_s {
 	char *id;
 	char *file;
 	bool_t global;
-	char *script;
+	char *conf;
+	uint8_t major;
+	uint8_t minor;
+	faux_list_t *syms;
 };
 
 
@@ -38,9 +43,23 @@ KSET_STR(plugin, file);
 KGET_BOOL(plugin, global);
 KSET_BOOL(plugin, global);
 
-// Script
-KGET_STR(plugin, script);
-KSET_STR(plugin, script);
+// Conf
+KGET_STR(plugin, conf);
+KSET_STR(plugin, conf);
+
+// Version major number
+KGET(plugin, uint8_t, major);
+KSET(plugin, uint8_t, major);
+
+// Version minor number
+KGET(plugin, uint8_t, minor);
+KSET(plugin, uint8_t, minor);
+
+// COMMAND list
+static KCMP_NESTED(plugin, sym, name);
+static KCMP_NESTED_BY_KEY(plugin, sym, name);
+KADD_NESTED(plugin, sym);
+KFIND_NESTED(plugin, sym);
 
 
 static kplugin_t *kplugin_new_empty(void)
@@ -57,7 +76,15 @@ static kplugin_t *kplugin_new_empty(void)
 	plugin->id = NULL;
 	plugin->file = NULL;
 	plugin->global = BOOL_FALSE;
-	plugin->script = NULL;
+	plugin->conf = NULL;
+	plugin->major = 0;
+	plugin->minor = 0;
+
+	// SYM list
+	plugin->syms = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+		kplugin_sym_compare, kplugin_sym_kcompare,
+		(void (*)(void *))ksym_free);
+	assert(plugin->syms);
 
 	return plugin;
 }
@@ -95,7 +122,8 @@ void kplugin_free(kplugin_t *plugin)
 	faux_str_free(plugin->name);
 	faux_str_free(plugin->id);
 	faux_str_free(plugin->file);
-	faux_str_free(plugin->script);
+	faux_str_free(plugin->conf);
+	faux_list_free(plugin->syms);
 
 	faux_free(plugin);
 }
@@ -127,8 +155,8 @@ const char *kplugin_strerror(kplugin_error_e error)
 	case KPLUGIN_ERROR_ATTR_GLOBAL:
 		str = "Illegal 'global' attribute";
 		break;
-	case KPLUGIN_ERROR_SCRIPT:
-		str = "Illegal script";
+	case KPLUGIN_ERROR_ATTR_CONF:
+		str = "Illegal conf";
 		break;
 	default:
 		str = "Unknown error";
@@ -183,11 +211,11 @@ bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *
 		}
 	}
 
-	// Script
-	if (!faux_str_is_empty(info->script)) {
-		if (!kplugin_set_script(plugin, info->script)) {
+	// Conf
+	if (!faux_str_is_empty(info->conf)) {
+		if (!kplugin_set_conf(plugin, info->conf)) {
 			if (error)
-				*error = KPLUGIN_ERROR_SCRIPT;
+				*error = KPLUGIN_ERROR_ATTR_CONF;
 			return BOOL_FALSE;
 		}
 	}
