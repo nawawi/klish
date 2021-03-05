@@ -1,4 +1,4 @@
-/** @file action.h
+/** @file kaction.h
  *
  * @brief Klish scheme's "action" entry
  */
@@ -7,18 +7,7 @@
 #define _klish_kaction_h
 
 #include <faux/error.h>
-
-typedef struct kaction_s kaction_t;
-
-typedef struct iaction_s {
-	char *sym;
-	char *lock;
-	char *interrupt;
-	char *interactive;
-	char *exec_on;
-	char *update_retcode;
-	char *script;
-} iaction_t;
+#include <klish/iaction.h>
 
 
 typedef enum {
@@ -44,10 +33,6 @@ typedef enum {
 
 C_DECL_BEGIN
 
-// iaction_t
-char *iaction_to_text(const iaction_t *iaction, int level);
-
-// kaction_t
 kaction_t *kaction_new(const iaction_t *info, kaction_error_e *error);
 void kaction_free(kaction_t *action);
 const char *kaction_strerror(kaction_error_e error);

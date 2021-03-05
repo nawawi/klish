@@ -5,9 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/conv.h>
-#include <klish/khelper.h>
-#include <klish/kptype.h>
-#include <klish/kaction.h>
+#include <klish/iptype.h>
 
 
 char *iptype_to_text(const iptype_t *iptype, int level)

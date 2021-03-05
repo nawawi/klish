@@ -4,10 +4,7 @@
 #include <assert.h>
 
 #include <faux/str.h>
-#include <klish/khelper.h>
-#include <klish/kview.h>
-#include <klish/kptype.h>
-#include <klish/kscheme.h>
+#include <klish/ischeme.h>
 
 
 char *ischeme_to_text(const ischeme_t *ischeme, int level)

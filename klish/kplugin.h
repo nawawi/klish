@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <faux/error.h>
 
+#include <klish/iplugin.h>
 #include <klish/ksym.h>
 
 // Current API version
@@ -32,15 +33,6 @@
 
 typedef struct kplugin_s kplugin_t;
 
-typedef struct iplugin_s {
-	char *name;
-	char *id;
-	char *file;
-	char *global;
-	char *conf;
-} iplugin_t;
-
-
 typedef enum {
 	KPLUGIN_ERROR_OK,
 	KPLUGIN_ERROR_INTERNAL,
@@ -55,10 +47,6 @@ typedef enum {
 
 C_DECL_BEGIN
 
-// iplugin_t
-char *iplugin_to_text(const iplugin_t *iplugin, int level);
-
-// kplugin_t
 void kplugin_free(kplugin_t *plugin);
 bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *error);
 kplugin_t *kplugin_new(const iplugin_t *info, kplugin_error_e *error);

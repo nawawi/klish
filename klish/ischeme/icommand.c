@@ -5,9 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/conv.h>
-#include <klish/khelper.h>
-#include <klish/kcommand.h>
-#include <klish/kaction.h>
+#include <klish/icommand.h>
 
 
 char *icommand_to_text(const icommand_t *icommand, int level)

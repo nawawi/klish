@@ -5,8 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/conv.h>
-#include <klish/khelper.h>
-#include <klish/kparam.h>
+#include <klish/iparam.h>
 
 
 char *iparam_to_text(const iparam_t *iparam, int level)

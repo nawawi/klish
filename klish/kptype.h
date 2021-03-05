@@ -7,16 +7,10 @@
 #define _klish_kptype_h
 
 #include <faux/error.h>
+#include <klish/iptype.h>
 #include <klish/kaction.h>
 
 typedef struct kptype_s kptype_t;
-
-typedef struct iptype_s {
-	char *name;
-	char *help;
-	iaction_t * (*actions)[];
-} iptype_t;
-
 
 typedef enum {
 	KPTYPE_ERROR_OK,
@@ -29,10 +23,6 @@ typedef enum {
 
 C_DECL_BEGIN
 
-// iptype_t
-char *iptype_to_text(const iptype_t *iptype, int level);
-
-// kptype_t
 void kptype_free(kptype_t *ptype);
 bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error);
 kptype_t *kptype_new(const iptype_t *info, kptype_error_e *error);

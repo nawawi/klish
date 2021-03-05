@@ -8,15 +8,10 @@
 
 #include <faux/faux.h>
 #include <faux/error.h>
+#include <klish/iview.h>
 #include <klish/kcommand.h>
 
 typedef struct kview_s kview_t;
-
-typedef struct iview_s {
-	char *name;
-	icommand_t * (*commands)[];
-} iview_t;
-
 
 typedef enum {
 	KVIEW_ERROR_OK,
@@ -27,9 +22,6 @@ typedef enum {
 
 
 C_DECL_BEGIN
-
-// iview_t
-char *iview_to_text(const iview_t *iview, int level);
 
 // kview_t
 kview_t *kview_new(const iview_t *info, kview_error_e *error);

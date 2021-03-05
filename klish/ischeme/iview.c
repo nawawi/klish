@@ -5,9 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/conv.h>
-#include <klish/khelper.h>
-#include <klish/kview.h>
-#include <klish/kcommand.h>
+#include <klish/iview.h>
 
 
 char *iview_to_text(const iview_t *iview, int level)

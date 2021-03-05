@@ -6,6 +6,7 @@
 #ifndef _klish_kcommand_h
 #define _klish_kcommand_h
 
+#include <klish/icommand.h>
 #include <klish/kparam.h>
 #include <klish/kaction.h>
 

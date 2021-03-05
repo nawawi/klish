@@ -1,6 +1,6 @@
 /** @file kustore.h
  *
- * @brief Klish ustore
+ * @brief Klish user data store. List of kudata_t object.
  */
 
 #ifndef _klish_kustore_h

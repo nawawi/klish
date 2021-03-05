@@ -5,8 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/conv.h>
-#include <klish/khelper.h>
-#include <klish/kplugin.h>
+#include <klish/iplugin.h>
 
 
 char *iplugin_to_text(const iplugin_t *iplugin, int level)
