@@ -10,7 +10,7 @@
 
 #include <klish/ischeme.h>
 #include <klish/kplugin.h>
-#include <klish/kaction.h>
+#include <klish/kptype.h>
 #include <klish/kview.h>
 
 typedef struct kscheme_s kscheme_t;

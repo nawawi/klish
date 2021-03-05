@@ -12,13 +12,6 @@
 
 typedef struct kcommand_s kcommand_t;
 
-typedef struct icommand_s {
-	char *name;
-	char *help;
-	iparam_t * (*params)[];
-	iaction_t * (*actions)[];
-} icommand_t;
-
 typedef enum {
 	KCOMMAND_ERROR_OK,
 	KCOMMAND_ERROR_INTERNAL,
@@ -29,10 +22,6 @@ typedef enum {
 
 C_DECL_BEGIN
 
-// icommand_t
-char *icommand_to_text(const icommand_t *icommand, int level);
-
-// kcommand_t
 kcommand_t *kcommand_new(const icommand_t *info, kcommand_error_e *error);
 void kcommand_free(kcommand_t *command);
 const char *kcommand_strerror(kcommand_error_e error);
