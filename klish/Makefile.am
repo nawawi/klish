@@ -6,10 +6,17 @@ libklish_la_LDFLAGS = $(AM_LDFLAGS) $(VERSION_INFO)
 #libklish_la_CFLAGS += -DTESTC
 #endif
 
+# Common
 nobase_include_HEADERS += \
-	klish/khelper.h \
+	klish/khelper.h
+
+# KTP
+nobase_include_HEADERS += \
 	klish/ktp.h \
-	klish/ktp_session.h \
+	klish/ktp_session.h
+
+# Scheme
+nobase_include_HEADERS += \
 	klish/kscheme.h \
 	klish/kview.h \
 	klish/kcommand.h \
@@ -18,6 +25,10 @@ nobase_include_HEADERS += \
 	klish/kaction.h \
 	klish/kptype.h \
 	klish/ksym.h
+
+# Session
+nobase_include_HEADERS += \
+	klish/kudata.h
 
 #noinst_HEADERS += \
 #	klish/khelper.h
