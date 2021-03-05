@@ -28,17 +28,20 @@ nobase_include_HEADERS += \
 
 # Session
 nobase_include_HEADERS += \
-	klish/kudata.h
+	klish/kudata.h \
+	klish/kustore.h
 
 #noinst_HEADERS += \
 #	klish/khelper.h
 
 EXTRA_DIST += \
 	klish/ktp/Makefile.am \
-	klish/kscheme/Makefile.am
+	klish/kscheme/Makefile.am \
+	klish/ksession/Makefile.am
 
 include $(top_srcdir)/klish/ktp/Makefile.am
 include $(top_srcdir)/klish/kscheme/Makefile.am
+include $(top_srcdir)/klish/ksession/Makefile.am
 
 #if TESTC
 #include $(top_srcdir)/klish/testc_module/Makefile.am

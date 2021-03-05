@@ -7,11 +7,12 @@
 
 #include <faux/str.h>
 #include <klish/khelper.h>
+#include <klish/kudata.h>
 
 struct kudata_s {
 	char *name;
 	void *data;
-	kudata_free_fn free_fn;
+	kudata_data_free_fn free_fn;
 };
 
 // Name
@@ -22,8 +23,8 @@ KGET(udata, void *, data);
 KSET(udata, void *, data);
 
 // Data
-KGET(udata, kudata_free_fn, free_fn);
-KSET(udata, kudata_free_fn, free_fn);
+KGET(udata, kudata_data_free_fn, free_fn);
+KSET(udata, kudata_data_free_fn, free_fn);
 
 
 kudata_t *kudata_new(const char *name)
@@ -47,18 +48,14 @@ kudata_t *kudata_new(const char *name)
 }
 
 
-bool_t kudata_free(kudata_t *udata)
+void kudata_free(kudata_t *udata)
 {
-	void *data;
-
 	if (!udata)
-		return BOOL_FALSE;
+		return;
 
 	faux_str_free(udata->name);
 	if (udata->free_fn)
 		udata->free_fn(udata->data);
 
 	faux_free(udata);
-
-	return BOOL_TRUE;
 }

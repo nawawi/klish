@@ -8,7 +8,7 @@
 
 typedef struct kudata_s kudata_t;
 
-typedef bool_t (*kudata_free_fn)(void *data);
+typedef bool_t (*kudata_data_free_fn)(void *data);
 
 C_DECL_BEGIN
 
@@ -19,8 +19,8 @@ void kudata_free(kudata_t *udata);
 const char *kudata_name(const kudata_t *udata);
 void *kudata_data(const kudata_t *udata);
 bool_t kudata_set_data(kudata_t *udata, void *data);
-kudata_free_fn kudata_free_fn(const kudata_t *udata);
-bool_t kudata_set_free_fn(kudata_t *udata, kudata_free_fn free_fn);
+kudata_data_free_fn kudata_free_fn(const kudata_t *udata);
+bool_t kudata_set_free_fn(kudata_t *udata, kudata_data_free_fn free_fn);
 
 C_DECL_END
 
