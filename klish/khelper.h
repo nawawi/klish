@@ -126,6 +126,16 @@
 	return strcmp(f, k##nested##_##field(s)); \
 }
 
+#define _KNESTED_LEN(obj, nested) \
+	ssize_t k##obj##_##nested##s_len(const k##obj##_t *inst)
+#define KNESTED_LEN(obj, nested) \
+	_KNESTED_LEN(obj, nested) { \
+	assert(inst); \
+	if (!inst) \
+		return -1; \
+	return faux_list_len(inst->nested##s); \
+}
+
 
 C_DECL_BEGIN
 

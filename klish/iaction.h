@@ -8,7 +8,6 @@
 
 #include <faux/error.h>
 
-typedef struct kaction_s kaction_t;
 
 typedef struct iaction_s {
 	char *sym;
@@ -19,6 +18,7 @@ typedef struct iaction_s {
 	char *update_retcode;
 	char *script;
 } iaction_t;
+
 
 C_DECL_BEGIN
 

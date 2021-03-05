@@ -4,7 +4,10 @@ libklish_la_SOURCES += \
 	klish/kscheme/kplugin.c \
 	klish/kscheme/kptype.c \
 	klish/kscheme/kaction.c \
+	klish/kscheme/kaction_parse.c \
 	klish/kscheme/kparam.c \
+	klish/kscheme/kparam_parse.c \
 	klish/kscheme/kcommand.c \
+	klish/kscheme/kcommand_parse.c \
 	klish/kscheme/kview.c \
 	klish/kscheme/kscheme.c

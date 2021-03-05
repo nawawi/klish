@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include <faux/str.h>
-#include <faux/conv.h>
+#include <klish/khelper.h>
 #include <klish/iaction.h>
 
 char *iaction_to_text(const iaction_t *iaction, int level)

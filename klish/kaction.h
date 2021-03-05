@@ -10,21 +10,10 @@
 #include <klish/iaction.h>
 
 
-typedef enum {
-	KACTION_ERROR_OK,
-	KACTION_ERROR_INTERNAL,
-	KACTION_ERROR_ALLOC,
-	KACTION_ERROR_ATTR_SYM,
-	KACTION_ERROR_ATTR_LOCK,
-	KACTION_ERROR_ATTR_INTERRUPT,
-	KACTION_ERROR_ATTR_INTERACTIVE,
-	KACTION_ERROR_ATTR_EXEC_ON,
-	KACTION_ERROR_ATTR_UPDATE_RETCODE,
-	KACTION_ERROR_ATTR_SCRIPT,
-} kaction_error_e;
-
+typedef struct kaction_s kaction_t;
 
 typedef enum {
+	KACTION_COND_NONE,
 	KACTION_COND_FAIL,
 	KACTION_COND_SUCCESS,
 	KACTION_COND_ALWAYS
@@ -33,10 +22,8 @@ typedef enum {
 
 C_DECL_BEGIN
 
-kaction_t *kaction_new(const iaction_t *info, kaction_error_e *error);
+kaction_t *kaction_new(void);
 void kaction_free(kaction_t *action);
-const char *kaction_strerror(kaction_error_e error);
-bool_t kaction_parse(kaction_t *action, const iaction_t *info, kaction_error_e *error);
 
 const char *kaction_sym_ref(const kaction_t *action);
 bool_t kaction_set_sym_ref(kaction_t *action, const char *sym_ref);
@@ -53,7 +40,8 @@ bool_t kaction_set_update_retcode(kaction_t *action, bool_t update_retcode);
 const char *kaction_script(const kaction_t *action);
 bool_t kaction_set_script(kaction_t *action, const char *script);
 
-kaction_t *kaction_from_iaction(iaction_t *iaction, faux_error_t *error_stack);
+bool_t kaction_parse(kaction_t *action, const iaction_t *info, faux_error_t *error);
+kaction_t *kaction_from_iaction(iaction_t *iaction, faux_error_t *error);
 
 C_DECL_END
 

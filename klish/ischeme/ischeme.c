@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include <faux/str.h>
+#include <klish/khelper.h>
 #include <klish/ischeme.h>
 
 
