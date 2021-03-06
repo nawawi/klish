@@ -33,27 +33,13 @@
 
 typedef struct kplugin_s kplugin_t;
 
-typedef enum {
-	KPLUGIN_ERROR_OK,
-	KPLUGIN_ERROR_INTERNAL,
-	KPLUGIN_ERROR_ALLOC,
-	KPLUGIN_ERROR_ATTR_NAME,
-	KPLUGIN_ERROR_ATTR_ID,
-	KPLUGIN_ERROR_ATTR_FILE,
-	KPLUGIN_ERROR_ATTR_GLOBAL,
-	KPLUGIN_ERROR_ATTR_CONF,
-} kplugin_error_e;
-
 
 C_DECL_BEGIN
 
+kplugin_t *kplugin_new(const char *name);
 void kplugin_free(kplugin_t *plugin);
-bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *error);
-kplugin_t *kplugin_new(const iplugin_t *info, kplugin_error_e *error);
-const char *kplugin_strerror(kplugin_error_e error);
 
 const char *kplugin_name(const kplugin_t *plugin);
-bool_t kplugin_set_name(kplugin_t *plugin, const char *name);
 const char *kplugin_id(const kplugin_t *plugin);
 bool_t kplugin_set_id(kplugin_t *plugin, const char *id);
 const char *kplugin_file(const kplugin_t *plugin);
@@ -71,8 +57,10 @@ bool_t kplugin_set_udata(kplugin_t *plugin, void *udata);
 
 bool_t kplugin_add_sym(kplugin_t *plugin, ksym_t *sym);
 ksym_t *kplugin_find_sym(const kplugin_t *plugin, const char *name);
+ssize_t kplugin_syms_len(const kplugin_t *plugin);
 
-kplugin_t *kplugin_from_iplugin(iplugin_t *iplugin, faux_error_t *error_stack);
+bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, faux_error_t *error);
+kplugin_t *kplugin_from_iplugin(iplugin_t *iplugin, faux_error_t *error);
 
 C_DECL_END
 

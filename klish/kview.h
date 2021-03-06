@@ -11,32 +11,24 @@
 #include <klish/iview.h>
 #include <klish/kcommand.h>
 
-typedef struct kview_s kview_t;
 
-typedef enum {
-	KVIEW_ERROR_OK,
-	KVIEW_ERROR_INTERNAL,
-	KVIEW_ERROR_ALLOC,
-	KVIEW_ERROR_ATTR_NAME,
-} kview_error_e;
+typedef struct kview_s kview_t;
 
 
 C_DECL_BEGIN
 
-// kview_t
-kview_t *kview_new(const iview_t *info, kview_error_e *error);
+kview_t *kview_new(const char *name);
 void kview_free(kview_t *view);
-bool_t kview_parse(kview_t *view, const iview_t *info, kview_error_e *error);
-const char *kview_strerror(kview_error_e error);
 
 const char *kview_name(const kview_t *view);
-bool_t kview_set_name(kview_t *view, const char *name);
 
 bool_t kview_add_command(kview_t *view, kcommand_t *command);
+kcommand_t *kview_find_command(const kview_t *view, const char *name);
 
+bool_t kview_parse(kview_t *view, const iview_t *info, faux_error_t *error);
 bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
-	faux_error_t *error_stack);
-kview_t *kview_from_iview(iview_t *iview, faux_error_t *error_stack);
+	faux_error_t *error);
+kview_t *kview_from_iview(iview_t *iview, faux_error_t *error);
 
 C_DECL_END
 

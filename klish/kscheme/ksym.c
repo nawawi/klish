@@ -28,9 +28,12 @@ KGET(sym, const void *, fn);
 KSET(sym, const void *, fn);
 
 
-static ksym_t *ksym_new_empty(void)
+ksym_t *ksym_new(const char *name)
 {
 	ksym_t *sym = NULL;
+
+	if (faux_str_is_empty(name))
+		return NULL;
 
 	sym = faux_zmalloc(sizeof(*sym));
 	assert(sym);
@@ -38,24 +41,8 @@ static ksym_t *ksym_new_empty(void)
 		return NULL;
 
 	// Initialize
-	sym->name = NULL;
+	sym->name = faux_str_dup(name);
 	sym->fn = NULL;
-
-	return sym;
-}
-
-
-ksym_t *ksym_new(ksym_error_e *error)
-{
-	ksym_t *sym = NULL;
-
-	sym = ksym_new_empty();
-	assert(sym);
-	if (!sym) {
-		if (error)
-			*error = KSYM_ERROR_ALLOC;
-		return NULL;
-	}
 
 	return sym;
 }
@@ -69,27 +56,4 @@ void ksym_free(ksym_t *sym)
 	faux_str_free(sym->name);
 
 	faux_free(sym);
-}
-
-
-const char *ksym_strerror(ksym_error_e error)
-{
-	const char *str = NULL;
-
-	switch (error) {
-	case KSYM_ERROR_OK:
-		str = "Ok";
-		break;
-	case KSYM_ERROR_INTERNAL:
-		str = "Internal error";
-		break;
-	case KSYM_ERROR_ALLOC:
-		str = "Memory allocation error";
-		break;
-	default:
-		str = "Unknown error";
-		break;
-	}
-
-	return str;
 }

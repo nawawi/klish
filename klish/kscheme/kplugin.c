@@ -34,7 +34,6 @@ struct kplugin_s {
 
 // Name
 KGET_STR(plugin, name);
-KSET_STR_ONCE(plugin, name);
 
 // ID
 KGET_STR(plugin, id);
@@ -69,11 +68,15 @@ static KCMP_NESTED(plugin, sym, name);
 static KCMP_NESTED_BY_KEY(plugin, sym, name);
 KADD_NESTED(plugin, sym);
 KFIND_NESTED(plugin, sym);
+KNESTED_LEN(plugin, sym);
 
 
-static kplugin_t *kplugin_new_empty(void)
+kplugin_t *kplugin_new(const char *name)
 {
 	kplugin_t *plugin = NULL;
+
+	if (faux_str_is_empty(name))
+		return NULL;
 
 	plugin = faux_zmalloc(sizeof(*plugin));
 	assert(plugin);
@@ -81,7 +84,7 @@ static kplugin_t *kplugin_new_empty(void)
 		return NULL;
 
 	// Initialize
-	plugin->name = NULL;
+	plugin->name = faux_str_dup(name);
 	plugin->id = NULL;
 	plugin->file = NULL;
 	plugin->global = BOOL_FALSE;
@@ -103,30 +106,6 @@ static kplugin_t *kplugin_new_empty(void)
 }
 
 
-kplugin_t *kplugin_new(const iplugin_t *info, kplugin_error_e *error)
-{
-	kplugin_t *plugin = NULL;
-
-	plugin = kplugin_new_empty();
-	assert(plugin);
-	if (!plugin) {
-		if (error)
-			*error = KPLUGIN_ERROR_ALLOC;
-		return NULL;
-	}
-
-	if (!info)
-		return plugin;
-
-	if (!kplugin_parse(plugin, info, error)) {
-		kplugin_free(plugin);
-		return NULL;
-	}
-
-	return plugin;
-}
-
-
 void kplugin_free(kplugin_t *plugin)
 {
 	if (!plugin)
@@ -142,118 +121,6 @@ void kplugin_free(kplugin_t *plugin)
 		dlclose(plugin->dlhan);
 
 	faux_free(plugin);
-}
-
-
-const char *kplugin_strerror(kplugin_error_e error)
-{
-	const char *str = NULL;
-
-	switch (error) {
-	case KPLUGIN_ERROR_OK:
-		str = "Ok";
-		break;
-	case KPLUGIN_ERROR_INTERNAL:
-		str = "Internal error";
-		break;
-	case KPLUGIN_ERROR_ALLOC:
-		str = "Memory allocation error";
-		break;
-	case KPLUGIN_ERROR_ATTR_NAME:
-		str = "Illegal 'name' attribute";
-		break;
-	case KPLUGIN_ERROR_ATTR_ID:
-		str = "Illegal 'id' attribute";
-		break;
-	case KPLUGIN_ERROR_ATTR_FILE:
-		str = "Illegal 'file' attribute";
-		break;
-	case KPLUGIN_ERROR_ATTR_GLOBAL:
-		str = "Illegal 'global' attribute";
-		break;
-	case KPLUGIN_ERROR_ATTR_CONF:
-		str = "Illegal conf";
-		break;
-	default:
-		str = "Unknown error";
-		break;
-	}
-
-	return str;
-}
-
-
-bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, kplugin_error_e *error)
-{
-	// Name [mandatory]
-	if (faux_str_is_empty(info->name)) {
-		if (error)
-			*error = KPLUGIN_ERROR_ATTR_NAME;
-		return BOOL_FALSE;
-	} else {
-		if (!kplugin_set_name(plugin, info->name)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_NAME;
-			return BOOL_FALSE;
-		}
-	}
-
-	// ID
-	if (!faux_str_is_empty(info->id)) {
-		if (!kplugin_set_id(plugin, info->id)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_ID;
-			return BOOL_FALSE;
-		}
-	}
-
-	// File
-	if (!faux_str_is_empty(info->file)) {
-		if (!kplugin_set_file(plugin, info->file)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_FILE;
-			return BOOL_FALSE;
-		}
-	}
-
-	// Global
-	if (!faux_str_is_empty(info->global)) {
-		bool_t b = BOOL_FALSE;
-		if (!faux_conv_str2bool(info->global, &b) ||
-			!kplugin_set_global(plugin, b)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_GLOBAL;
-			return BOOL_FALSE;
-		}
-	}
-
-	// Conf
-	if (!faux_str_is_empty(info->conf)) {
-		if (!kplugin_set_conf(plugin, info->conf)) {
-			if (error)
-				*error = KPLUGIN_ERROR_ATTR_CONF;
-			return BOOL_FALSE;
-		}
-	}
-
-	return BOOL_TRUE;
-}
-
-
-kplugin_t *kplugin_from_iplugin(iplugin_t *iplugin, faux_error_t *error_stack)
-{
-	kplugin_t *kplugin = NULL;
-	kplugin_error_e kplugin_error = KPLUGIN_ERROR_OK;
-
-	kplugin = kplugin_new(iplugin, &kplugin_error);
-	if (!kplugin) {
-		faux_error_sprintf(error_stack, "PLUGIN \"%s\": %s",
-			iplugin->name ? iplugin->name : "(null)",
-			kplugin_strerror(kplugin_error));
-		return NULL;
-	}
-
-	return kplugin;
 }
 
 
