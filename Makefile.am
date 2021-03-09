@@ -43,7 +43,7 @@ EXTRA_DIST =
 #	ISSUES
 
 include $(top_srcdir)/klish/Makefile.am
-include $(top_srcdir)/bin/Makefile.am
+#include $(top_srcdir)/bin/Makefile.am
 
 #include $(top_srcdir)/tinyrl/module.am
 #include $(top_srcdir)/konf/module.am

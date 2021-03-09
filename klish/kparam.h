@@ -7,7 +7,6 @@
 #define _klish_kparam_h
 
 #include <faux/error.h>
-#include <klish/iparam.h>
 
 
 typedef struct kparam_s kparam_t;
@@ -26,11 +25,6 @@ bool_t kparam_set_ptype_ref(kparam_t *param, const char *ptype_ref);
 
 bool_t kparam_add_param(kparam_t *param, kparam_t *nested_param);
 kparam_t *kparam_find_param(const kparam_t *param, const char *name);
-
-bool_t kparam_parse(kparam_t *param, const iparam_t *info, faux_error_t *error);
-bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
-	faux_error_t *error);
-kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error);
 
 C_DECL_END
 

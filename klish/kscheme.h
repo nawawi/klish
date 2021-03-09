@@ -8,7 +8,6 @@
 
 #include <faux/error.h>
 
-#include <klish/ischeme.h>
 #include <klish/kplugin.h>
 #include <klish/kptype.h>
 #include <klish/kview.h>
@@ -28,10 +27,6 @@ bool_t kscheme_add_ptype(kscheme_t *scheme, kptype_t *ptype);
 kptype_t *kscheme_find_ptype(const kscheme_t *scheme, const char *name);
 bool_t kscheme_add_plugin(kscheme_t *scheme, kplugin_t *plugin);
 kplugin_t *kscheme_find_plugin(const kscheme_t *scheme, const char *name);
-
-bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
-	faux_error_t *error);
-kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error);
 
 C_DECL_END
 

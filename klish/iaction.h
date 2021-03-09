@@ -22,7 +22,10 @@ typedef struct iaction_s {
 
 C_DECL_BEGIN
 
-char *iaction_to_text(const iaction_t *iaction, int level);
+bool_t iaction_parse(const iaction_t *info, kaction_t *action,
+	faux_error_t *error);
+kaction_t *iaction_load(const iaction_t *iaction, faux_error_t *error);
+char *iaction_deploy(const kaction_t *kaction, int level);
 
 C_DECL_END
 

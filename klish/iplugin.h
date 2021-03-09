@@ -17,7 +17,10 @@ typedef struct iplugin_s {
 
 C_DECL_BEGIN
 
-char *iplugin_to_text(const iplugin_t *iplugin, int level);
+bool_t iplugin_parse(const iplugin_t *info, kplugin_t *plugin,
+	faux_error_t *error);
+kplugin_t *iplugin_load(iplugin_t *iplugin, faux_error_t *error);
+char *iplugin_deploy(const kplugin_t *kplugin, int level);
 
 C_DECL_END
 

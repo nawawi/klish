@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <faux/error.h>
 
-#include <klish/iplugin.h>
 #include <klish/ksym.h>
 
 // Current API version
@@ -58,9 +57,6 @@ bool_t kplugin_set_udata(kplugin_t *plugin, void *udata);
 bool_t kplugin_add_sym(kplugin_t *plugin, ksym_t *sym);
 ksym_t *kplugin_find_sym(const kplugin_t *plugin, const char *name);
 ssize_t kplugin_syms_len(const kplugin_t *plugin);
-
-bool_t kplugin_parse(kplugin_t *plugin, const iplugin_t *info, faux_error_t *error);
-kplugin_t *kplugin_from_iplugin(iplugin_t *iplugin, faux_error_t *error);
 
 C_DECL_END
 

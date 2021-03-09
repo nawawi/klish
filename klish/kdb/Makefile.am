@@ -31,18 +31,22 @@ nobase_include_HEADERS += \
 	klish/kudata.h \
 	klish/kustore.h
 
+# Database
+nobase_include_HEADERS += \
+	klish/kdb.h
+
 #noinst_HEADERS += \
 #	klish/khelper.h
 
 EXTRA_DIST += \
 	klish/ktp/Makefile.am \
-	klish/kscheme/Makefile.am \
 	klish/ischeme/Makefile.am \
+	klish/kscheme/Makefile.am \
 	klish/ksession/Makefile.am
 
 include $(top_srcdir)/klish/ktp/Makefile.am
-include $(top_srcdir)/klish/kscheme/Makefile.am
 include $(top_srcdir)/klish/ischeme/Makefile.am
+include $(top_srcdir)/klish/kscheme/Makefile.am
 include $(top_srcdir)/klish/ksession/Makefile.am
 
 #if TESTC

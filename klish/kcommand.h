@@ -6,7 +6,6 @@
 #ifndef _klish_kcommand_h
 #define _klish_kcommand_h
 
-#include <klish/icommand.h>
 #include <klish/kparam.h>
 #include <klish/kaction.h>
 
@@ -28,12 +27,6 @@ kparam_t *kcommand_find_param(const kcommand_t *command, const char *name);
 ssize_t kcommand_params_len(const kcommand_t *command);
 bool_t kcommand_add_action(kcommand_t *command, kaction_t *action);
 ssize_t kcommand_actions_len(const kcommand_t *command);
-
-bool_t kcommand_parse(kcommand_t *command, const icommand_t *info,
-	faux_error_t *error);
-bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
-	faux_error_t *error);
-kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error);
 
 C_DECL_END
 
