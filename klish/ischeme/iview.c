@@ -9,13 +9,19 @@
 #include <klish/khelper.h>
 #include <klish/kcommand.h>
 #include <klish/kview.h>
+#include <klish/iview.h>
 
 #define TAG "VIEW"
 
 
-bool_t kview_parse(kview_t *view, const iview_t *info, faux_error_t *error)
+bool_t iview_parse(const iview_t *info, kview_t *view, faux_error_t *error)
 {
 	bool_t retcode = BOOL_TRUE;
+
+	if (!info)
+		return BOOL_FALSE;
+	if (!view)
+		return BOOL_FALSE;
 
 	view = view;
 	info = info;
@@ -25,7 +31,7 @@ bool_t kview_parse(kview_t *view, const iview_t *info, faux_error_t *error)
 }
 
 
-bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
+bool_t iview_parse_nested(const iview_t *iview, kview_t *kview,
 	faux_error_t *error)
 {
 	bool_t retval = BOOL_TRUE;
@@ -41,7 +47,7 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 		for (p_icommand = *iview->commands; *p_icommand; p_icommand++) {
 			kcommand_t *kcommand = NULL;
 			icommand_t *icommand = *p_icommand;
-			kcommand = kcommand_from_icommand(icommand, error);
+			kcommand = icommand_load(icommand, error);
 			if (!kcommand) {
 				retval = BOOL_FALSE;
 				continue;
@@ -73,9 +79,12 @@ bool_t kview_nested_from_iview(kview_t *kview, iview_t *iview,
 }
 
 
-kview_t *kview_from_iview(iview_t *iview, faux_error_t *error)
+kview_t *iview_load(const iview_t *iview, faux_error_t *error)
 {
 	kview_t *kview = NULL;
+
+	if (!iview)
+		return NULL;
 
 	// Name [mandatory]
 	if (faux_str_is_empty(iview->name)) {
@@ -90,13 +99,13 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error)
 		return NULL;
 	}
 
-	if (!kview_parse(kview, iview, error)) {
+	if (!iview_parse(iview, kview, error)) {
 		kview_free(kview);
 		return NULL;
 	}
 
 	// Parse nested elements
-	if (!kview_nested_from_iview(kview, iview, error)) {
+	if (!iview_parse_nested(iview, kview, error)) {
 		kview_free(kview);
 		return NULL;
 	}
@@ -105,29 +114,32 @@ kview_t *kview_from_iview(iview_t *iview, faux_error_t *error)
 }
 
 
-char *iview_to_text(const iview_t *iview, int level)
+char *iview_deploy(const kview_t *kview, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	kview_commands_node_t *commands_iter = NULL;
+
+	if (!kview)
+		return NULL;
 
 	tmp = faux_str_sprintf("%*cVIEW {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
-	attr2ctext(&str, "name", iview->name, level + 1);
+	attr2ctext(&str, "name", kview_name(kview), level + 1);
 
 	// COMMAND list
-	if (iview->commands) {
-		icommand_t **p_icommand = NULL;
+	commands_iter = kview_commands_iter(kview);
+	if (commands_iter) {
+		kcommand_t *command = NULL;
 
 		tmp = faux_str_sprintf("\n%*cCOMMAND_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_icommand = *iview->commands; *p_icommand; p_icommand++) {
-			icommand_t *icommand = *p_icommand;
-
-			tmp = icommand_to_text(icommand, level + 2);
+		while ((command = kview_commands_each(&commands_iter))) {
+			tmp = icommand_deploy(command, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}

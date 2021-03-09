@@ -69,6 +69,8 @@ static KCMP_NESTED_BY_KEY(plugin, sym, name);
 KADD_NESTED(plugin, sym);
 KFIND_NESTED(plugin, sym);
 KNESTED_LEN(plugin, sym);
+KNESTED_ITER(plugin, sym);
+KNESTED_EACH(plugin, sym);
 
 
 kplugin_t *kplugin_new(const char *name)

@@ -9,153 +9,39 @@
 #include <klish/khelper.h>
 #include <klish/kptype.h>
 #include <klish/kaction.h>
+#include <klish/iptype.h>
+
+#define TAG "PTYPE"
 
 
-struct kptype_s {
-	char *name;
-	char *help;
-	faux_list_t *actions;
-};
-
-
-// Simple methods
-
-// Name
-KGET_STR(ptype, name);
-KSET_STR_ONCE(ptype, name);
-
-// Help
-KGET_STR(ptype, help);
-KSET_STR(ptype, help);
-
-// ACTION list
-KADD_NESTED(ptype, action);
-
-
-static kptype_t *kptype_new_empty(void)
+bool_t iptype_parse(const iptype_t *info, kptype_t *ptype, faux_error_t *error)
 {
-	kptype_t *ptype = NULL;
-
-	ptype = faux_zmalloc(sizeof(*ptype));
-	assert(ptype);
-	if (!ptype)
-		return NULL;
-
-	// Initialize
-	ptype->name = NULL;
-	ptype->help = NULL;
-
-	// ACTION list
-	ptype->actions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
-		NULL, NULL, (void (*)(void *))kaction_free);
-	assert(ptype->actions);
-
-	return ptype;
-}
-
-
-kptype_t *kptype_new(const iptype_t *info, kptype_error_e *error)
-{
-	kptype_t *ptype = NULL;
-
-	ptype = kptype_new_empty();
-	assert(ptype);
-	if (!ptype) {
-		if (error)
-			*error = KPTYPE_ERROR_ALLOC;
-		return NULL;
-	}
+	bool_t retcode = BOOL_TRUE;
 
 	if (!info)
-		return ptype;
-
-	if (!kptype_parse(ptype, info, error)) {
-		kptype_free(ptype);
-		return NULL;
-	}
-
-	return ptype;
-}
-
-
-void kptype_free(kptype_t *ptype)
-{
-	if (!ptype)
-		return;
-
-	faux_str_free(ptype->name);
-	faux_str_free(ptype->help);
-	faux_list_free(ptype->actions);
-
-	faux_free(ptype);
-}
-
-
-const char *kptype_strerror(kptype_error_e error)
-{
-	const char *str = NULL;
-
-	switch (error) {
-	case KPTYPE_ERROR_OK:
-		str = "Ok";
-		break;
-	case KPTYPE_ERROR_INTERNAL:
-		str = "Internal error";
-		break;
-	case KPTYPE_ERROR_ALLOC:
-		str = "Memory allocation error";
-		break;
-	case KPTYPE_ERROR_ATTR_NAME:
-		str = "Illegal 'name' attribute";
-		break;
-	case KPTYPE_ERROR_ATTR_HELP:
-		str = "Illegal 'help' attribute";
-		break;
-	default:
-		str = "Unknown error";
-		break;
-	}
-
-	return str;
-}
-
-
-bool_t kptype_parse(kptype_t *ptype, const iptype_t *info, kptype_error_e *error)
-{
-	// Name [mandatory]
-	if (faux_str_is_empty(info->name)) {
-		if (error)
-			*error = KPTYPE_ERROR_ATTR_NAME;
 		return BOOL_FALSE;
-	} else {
-		if (!kptype_set_name(ptype, info->name)) {
-			if (error)
-				*error = KPTYPE_ERROR_ATTR_NAME;
-			return BOOL_FALSE;
-		}
-	}
+	if (!ptype)
+		return BOOL_FALSE;
 
 	// Help
 	if (!faux_str_is_empty(info->name)) {
 		if (!kptype_set_help(ptype, info->help)) {
-			if (error)
-				*error = KPTYPE_ERROR_ATTR_HELP;
-			return BOOL_FALSE;
+			faux_error_add(error, TAG": Illegal 'help' attribute");
+			retcode = BOOL_FALSE;
 		}
 	}
 
-	return BOOL_TRUE;
+	return retcode;
 }
 
 
-bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
-	faux_error_t *error_stack)
+bool_t iptype_parse_nested(const iptype_t *iptype, kptype_t *kptype,
+	faux_error_t *error)
 {
 	bool_t retval = BOOL_TRUE;
 
 	if (!kptype || !iptype) {
-		faux_error_add(error_stack,
-			kptype_strerror(KPTYPE_ERROR_INTERNAL));
+		faux_error_add(error, TAG": Internal error");
 		return BOOL_FALSE;
 	}
 
@@ -166,15 +52,15 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 			kaction_t *kaction = NULL;
 			iaction_t *iaction = *p_iaction;
 
-			kaction = kaction_from_iaction(iaction, error_stack);
+			kaction = iaction_load(iaction, error);
 			if (!kaction) {
 				retval = BOOL_FALSE;
 				continue;
 			}
 			if (!kptype_add_action(kptype, kaction)) {
-				faux_error_sprintf(error_stack, "PTYPE: "
-					"Can't add ACTION #%d",
-					faux_list_len(kptype->actions) + 1);
+				faux_error_sprintf(error,
+					TAG": Can't add ACTION #%d",
+					kptype_actions_len(kptype) + 1);
 				kaction_free(kaction);
 				retval = BOOL_FALSE;
 				continue;
@@ -183,7 +69,7 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 	}
 
 	if (!retval)
-		faux_error_sprintf(error_stack,
+		faux_error_sprintf(error,
 			"PTYPE \"%s\": Illegal nested elements",
 			kptype_name(kptype));
 
@@ -191,21 +77,33 @@ bool_t kptype_nested_from_iptype(kptype_t *kptype, iptype_t *iptype,
 }
 
 
-kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
+kptype_t *iptype_load(const iptype_t *iptype, faux_error_t *error)
 {
 	kptype_t *kptype = NULL;
-	kptype_error_e kptype_error = KPTYPE_ERROR_OK;
 
-	kptype = kptype_new(iptype, &kptype_error);
+	if (!iptype)
+		return NULL;
+
+	// Name [mandatory]
+	if (faux_str_is_empty(iptype->name)) {
+		faux_error_add(error, TAG": Empty 'name' attribute");
+		return NULL;
+	}
+
+	kptype = kptype_new(iptype->name);
 	if (!kptype) {
-		faux_error_sprintf(error_stack, "PTYPE \"%s\": %s",
-			iptype->name ? iptype->name : "(null)",
-			kptype_strerror(kptype_error));
+		faux_error_sprintf(error, TAG" \"%s\": Can't create object",
+			iptype->name);
+		return NULL;
+	}
+
+	if (!iptype_parse(iptype, kptype, error)) {
+		kptype_free(kptype);
 		return NULL;
 	}
 
 	// Parse nested elements
-	if (!kptype_nested_from_iptype(kptype, iptype, error_stack)) {
+	if (!iptype_parse_nested(iptype, kptype, error)) {
 		kptype_free(kptype);
 		return NULL;
 	}
@@ -214,41 +112,30 @@ kptype_t *kptype_from_iptype(iptype_t *iptype, faux_error_t *error_stack)
 }
 
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
-#include <faux/str.h>
-#include <klish/khelper.h>
-#include <klish/iptype.h>
-
-
-char *iptype_to_text(const iptype_t *iptype, int level)
+char *iptype_deploy(const kptype_t *kptype, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	kptype_actions_node_t *actions_iter = NULL;
 
 	tmp = faux_str_sprintf("%*cPTYPE {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
-	attr2ctext(&str, "name", iptype->name, level + 1);
-	attr2ctext(&str, "help", iptype->help, level + 1);
+	attr2ctext(&str, "name", kptype_name(kptype), level + 1);
+	attr2ctext(&str, "help", kptype_help(kptype), level + 1);
 
 	// ACTION list
-	if (iptype->actions) {
-		iaction_t **p_iaction = NULL;
+	actions_iter = kptype_actions_iter(kptype);
+	if (actions_iter) {
+		kaction_t *action = NULL;
 
 		tmp = faux_str_sprintf("\n%*cACTION_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iaction = *iptype->actions; *p_iaction; p_iaction++) {
-			iaction_t *iaction = *p_iaction;
-
-			tmp = iaction_to_text(iaction, level + 2);
+		while ((action = kptype_actions_each(&actions_iter))) {
+			tmp = iaction_deploy(action, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}

@@ -7,7 +7,7 @@
 #define _klish_iaction_h
 
 #include <faux/error.h>
-
+#include <klish/kaction.h>
 
 typedef struct iaction_s {
 	char *sym;

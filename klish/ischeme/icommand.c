@@ -7,6 +7,8 @@
 #include <faux/list.h>
 #include <faux/error.h>
 #include <klish/khelper.h>
+#include <klish/iparam.h>
+#include <klish/iaction.h>
 #include <klish/icommand.h>
 #include <klish/kparam.h>
 #include <klish/kaction.h>
@@ -14,10 +16,15 @@
 
 #define TAG "COMMAND"
 
-bool_t kcommand_parse(kcommand_t *command, const icommand_t *info,
+bool_t icommand_parse(const icommand_t *info, kcommand_t *command,
 	faux_error_t *error)
 {
 	bool_t retcode = BOOL_TRUE;
+
+	if (!info)
+		return BOOL_FALSE;
+	if (!command)
+		return BOOL_FALSE;
 
 	// Help
 	if (!faux_str_is_empty(info->help)) {
@@ -31,7 +38,7 @@ bool_t kcommand_parse(kcommand_t *command, const icommand_t *info,
 }
 
 
-bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
+bool_t icommand_parse_nested(const icommand_t *icommand, kcommand_t *kcommand,
 	faux_error_t *error)
 {
 	bool_t retval = BOOL_TRUE;
@@ -49,7 +56,7 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 			kparam_t *kparam = NULL;
 			iparam_t *iparam = *p_iparam;
 
-			kparam = kparam_from_iparam(iparam, error);
+			kparam = iparam_load(iparam, error);
 			if (!kparam) {
 				retval = BOOL_FALSE;
 				continue;
@@ -80,7 +87,7 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 			kaction_t *kaction = NULL;
 			iaction_t *iaction = *p_iaction;
 
-			kaction = kaction_from_iaction(iaction, error);
+			kaction = iaction_load(iaction, error);
 			if (!kaction) {
 				retval = BOOL_FALSE;
 				continue;
@@ -104,7 +111,7 @@ bool_t kcommand_nested_from_icommand(kcommand_t *kcommand, icommand_t *icommand,
 }
 
 
-kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error)
+kcommand_t *icommand_load(icommand_t *icommand, faux_error_t *error)
 {
 	kcommand_t *kcommand = NULL;
 
@@ -121,13 +128,13 @@ kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error)
 		return NULL;
 	}
 
-	if (!kcommand_parse(kcommand, icommand, error)) {
+	if (!icommand_parse(icommand, kcommand, error)) {
 		kcommand_free(kcommand);
 		return NULL;
 	}
 
 	// Parse nested elements
-	if (!kcommand_nested_from_icommand(kcommand, icommand, error)) {
+	if (!icommand_parse_nested(icommand, kcommand, error)) {
 		kcommand_free(kcommand);
 		return NULL;
 	}
@@ -136,30 +143,34 @@ kcommand_t *kcommand_from_icommand(icommand_t *icommand, faux_error_t *error)
 }
 
 
-char *icommand_to_text(const icommand_t *icommand, int level)
+char *icommand_deploy(const kcommand_t *kcommand, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	kcommand_params_node_t *params_iter = NULL;
+	kcommand_actions_node_t *actions_iter = NULL;
+
+	if (!kcommand)
+		return NULL;
 
 	tmp = faux_str_sprintf("%*cCOMMAND {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
-	attr2ctext(&str, "name", icommand->name, level + 1);
-	attr2ctext(&str, "help", icommand->help, level + 1);
+	attr2ctext(&str, "name", kcommand_name(kcommand), level + 1);
+	attr2ctext(&str, "help", kcommand_help(kcommand), level + 1);
 
 	// PARAM list
-	if (icommand->params) {
-		iparam_t **p_iparam = NULL;
+	params_iter = kcommand_params_iter(kcommand);
+	if (params_iter) {
+		kparam_t *param = NULL;
 
 		tmp = faux_str_sprintf("\n%*cPARAM_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iparam = *icommand->params; *p_iparam; p_iparam++) {
-			iparam_t *iparam = *p_iparam;
-
-			tmp = iparam_to_text(iparam, level + 2);
+		while ((param = kcommand_params_each(&params_iter))) {
+			tmp = iparam_deploy(param, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
@@ -170,17 +181,16 @@ char *icommand_to_text(const icommand_t *icommand, int level)
 	}
 
 	// ACTION list
-	if (icommand->actions) {
-		iaction_t **p_iaction = NULL;
+	actions_iter = kcommand_actions_iter(kcommand);
+	if (actions_iter) {
+		kaction_t *action = NULL;
 
 		tmp = faux_str_sprintf("\n%*cACTION_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iaction = *icommand->actions; *p_iaction; p_iaction++) {
-			iaction_t *iaction = *p_iaction;
-
-			tmp = iaction_to_text(iaction, level + 2);
+		while ((action = kcommand_actions_each(&actions_iter))) {
+			tmp = iaction_deploy(action, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}

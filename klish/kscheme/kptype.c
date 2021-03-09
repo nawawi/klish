@@ -29,6 +29,9 @@ KSET_STR(ptype, help);
 
 // ACTION list
 KADD_NESTED(ptype, action);
+KNESTED_LEN(ptype, action);
+KNESTED_ITER(ptype, action);
+KNESTED_EACH(ptype, action);
 
 
 kptype_t *kptype_new(const char *name)

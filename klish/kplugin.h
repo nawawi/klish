@@ -7,8 +7,8 @@
 #define _klish_kplugin_h
 
 #include <stdint.h>
-#include <faux/error.h>
 
+#include <faux/list.h>
 #include <klish/ksym.h>
 
 // Current API version
@@ -32,6 +32,8 @@
 
 typedef struct kplugin_s kplugin_t;
 
+typedef faux_list_node_t kplugin_syms_node_t;
+
 
 C_DECL_BEGIN
 
@@ -54,9 +56,12 @@ bool_t kplugin_set_minor(kplugin_t *plugin, uint8_t minor);
 void *kplugin_udata(const kplugin_t *plugin);
 bool_t kplugin_set_udata(kplugin_t *plugin, void *udata);
 
+// syms
 bool_t kplugin_add_sym(kplugin_t *plugin, ksym_t *sym);
 ksym_t *kplugin_find_sym(const kplugin_t *plugin, const char *name);
 ssize_t kplugin_syms_len(const kplugin_t *plugin);
+kplugin_syms_node_t *kplugin_syms_iter(const kplugin_t *plugin);
+ksym_t *kplugin_syms_each(kplugin_syms_node_t **iter);
 
 C_DECL_END
 

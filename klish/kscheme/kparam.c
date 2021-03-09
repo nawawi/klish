@@ -40,6 +40,8 @@ static KCMP_NESTED(param, param, name);
 static KCMP_NESTED_BY_KEY(param, param, name);
 KADD_NESTED(param, param);
 KFIND_NESTED(param, param);
+KNESTED_ITER(param, param);
+KNESTED_EACH(param, param);
 
 
 kparam_t *kparam_new(const char *name)

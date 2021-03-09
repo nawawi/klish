@@ -6,6 +6,7 @@
 #ifndef _klish_iptype_h
 #define _klish_iptype_h
 
+#include <faux/error.h>
 #include <klish/iaction.h>
 
 typedef struct iptype_s {
@@ -16,7 +17,11 @@ typedef struct iptype_s {
 
 C_DECL_BEGIN
 
-char *iptype_to_text(const iptype_t *iptype, int level);
+bool_t iptype_parse(const iptype_t *info, kptype_t *ptype, faux_error_t *error);
+bool_t iptype_parse_nested(const iptype_t *iptype, kptype_t *kptype,
+	faux_error_t *error_stack);
+kptype_t *iptype_load(const iptype_t *iptype, faux_error_t *error_stack);
+char *iptype_deploy(const kptype_t *kptype, int level);
 
 C_DECL_END
 

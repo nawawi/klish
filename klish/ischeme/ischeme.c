@@ -6,16 +6,17 @@
 #include <faux/str.h>
 #include <faux/list.h>
 #include <klish/khelper.h>
-#include <klish/ischeme.h>
 #include <klish/kplugin.h>
 #include <klish/kptype.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
+#include <klish/iview.h>
+#include <klish/ischeme.h>
 
 #define TAG "SCHEME"
 
 
-bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
+bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 	faux_error_t *error)
 {
 	bool_t retval = BOOL_TRUE;
@@ -32,7 +33,7 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 			kplugin_t *kplugin = NULL;
 			iplugin_t *iplugin = *p_iplugin;
 
-			kplugin = kplugin_from_iplugin(iplugin, error);
+			kplugin = iplugin_load(iplugin, error);
 			if (!kplugin) {
 				retval = BOOL_FALSE; // Don't stop
 				continue;
@@ -62,7 +63,7 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 			kptype_t *kptype = NULL;
 			iptype_t *iptype = *p_iptype;
 
-			kptype = kptype_from_iptype(iptype, error);
+			kptype = iptype_load(iptype, error);
 			if (!kptype) {
 				retval = BOOL_FALSE; // Don't stop
 				continue;
@@ -103,11 +104,11 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 
 			// VIEW already exists
 			if (kview) {
-				if (!kview_parse(kview, iview, error)) {
+				if (!iview_parse(iview, kview, error)) {
 					retval = BOOL_FALSE;
 					continue;
 				}
-				if (!kview_nested_from_iview(kview, iview,
+				if (!iview_parse_nested(iview, kview,
 					error)) {
 					retval = BOOL_FALSE;
 					continue;
@@ -116,7 +117,7 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 			}
 
 			// New VIEW
-			kview = kview_from_iview(iview, error);
+			kview = iview_load(iview, error);
 			if (!kview) {
 				retval = BOOL_FALSE;
 				continue;
@@ -139,7 +140,7 @@ bool_t kscheme_nested_from_ischeme(kscheme_t *kscheme, ischeme_t *ischeme,
 }
 
 
-kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error)
+kscheme_t *ischeme_load(const ischeme_t *ischeme, faux_error_t *error)
 {
 	kscheme_t *kscheme = NULL;
 
@@ -150,7 +151,7 @@ kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error)
 	}
 
 	// Parse nested elements
-	if (!kscheme_nested_from_ischeme(kscheme, ischeme, error)) {
+	if (!ischeme_parse_nested(ischeme, kscheme, error)) {
 		kscheme_free(kscheme);
 		return NULL;
 	}
@@ -159,27 +160,29 @@ kscheme_t *kscheme_from_ischeme(ischeme_t *ischeme, faux_error_t *error)
 }
 
 
-char *ischeme_to_text(const ischeme_t *ischeme, int level)
+char *ischeme_deploy(const kscheme_t *scheme, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	kscheme_plugins_node_t *plugins_iter = NULL;
+	kscheme_ptypes_node_t *ptypes_iter = NULL;
+	kscheme_views_node_t *views_iter = NULL;
 
 	tmp = faux_str_sprintf("ischeme_t sch = {\n");
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
 	// PLUGIN list
-	if (ischeme->plugins) {
-		iplugin_t **p_iplugin = NULL;
+	plugins_iter = kscheme_plugins_iter(scheme);
+	if (plugins_iter) {
+		kplugin_t *plugin = NULL;
 
 		tmp = faux_str_sprintf("\n%*cPLUGIN_LIST\n\n", level, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iplugin = *ischeme->plugins; *p_iplugin; p_iplugin++) {
-			iplugin_t *iplugin = *p_iplugin;
-
-			tmp = iplugin_to_text(iplugin, level + 2);
+		while ((plugin = kscheme_plugins_each(&plugins_iter))) {
+			tmp = iplugin_deploy(plugin, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
@@ -190,17 +193,16 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 	}
 
 	// PTYPE list
-	if (ischeme->ptypes) {
-		iptype_t **p_iptype = NULL;
+	ptypes_iter = kscheme_ptypes_iter(scheme);
+	if (ptypes_iter) {
+		kptype_t *ptype = NULL;
 
 		tmp = faux_str_sprintf("\n%*cPTYPE_LIST\n\n", level, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iptype = *ischeme->ptypes; *p_iptype; p_iptype++) {
-			iptype_t *iptype = *p_iptype;
-
-			tmp = iptype_to_text(iptype, level + 2);
+		while ((ptype = kscheme_ptypes_each(&ptypes_iter))) {
+			tmp = iptype_deploy(ptype, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
@@ -211,17 +213,16 @@ char *ischeme_to_text(const ischeme_t *ischeme, int level)
 	}
 
 	// VIEW list
-	if (ischeme->views) {
-		iview_t **p_iview = NULL;
+	views_iter = kscheme_views_iter(scheme);
+	if (views_iter) {
+		kview_t *view = NULL;
 
 		tmp = faux_str_sprintf("\n%*cVIEW_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iview = *ischeme->views; *p_iview; p_iview++) {
-			iview_t *iview = *p_iview;
-
-			tmp = iview_to_text(iview, level + 2);
+		while ((view = kscheme_views_each(&views_iter))) {
+			tmp = iview_deploy(view, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}

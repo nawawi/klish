@@ -6,6 +6,7 @@
 #ifndef _klish_ischeme_h
 #define _klish_ischeme_h
 
+#include <faux/error.h>
 #include <klish/iptype.h>
 #include <klish/iplugin.h>
 #include <klish/iview.h>
@@ -45,7 +46,10 @@ typedef struct ischeme_s {
 
 C_DECL_BEGIN
 
-char *ischeme_to_text(const ischeme_t *ischeme, int level);
+bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
+	faux_error_t *error);
+kscheme_t *ischeme_load(const ischeme_t *ischeme, faux_error_t *error);
+char *ischeme_deploy(const kscheme_t *scheme, int level);
 
 C_DECL_END
 

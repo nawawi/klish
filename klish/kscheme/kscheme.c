@@ -25,18 +25,27 @@ KCMP_NESTED(scheme, plugin, name);
 KCMP_NESTED_BY_KEY(scheme, plugin, name);
 KADD_NESTED(scheme, plugin);
 KFIND_NESTED(scheme, plugin);
+KNESTED_LEN(scheme, plugin);
+KNESTED_ITER(scheme, plugin);
+KNESTED_EACH(scheme, plugin);
 
 // PTYPE list
 KCMP_NESTED(scheme, ptype, name);
 KCMP_NESTED_BY_KEY(scheme, ptype, name);
 KADD_NESTED(scheme, ptype);
 KFIND_NESTED(scheme, ptype);
+KNESTED_LEN(scheme, ptype);
+KNESTED_ITER(scheme, ptype);
+KNESTED_EACH(scheme, ptype);
 
 // VIEW list
 KCMP_NESTED(scheme, view, name);
 KCMP_NESTED_BY_KEY(scheme, view, name);
 KADD_NESTED(scheme, view);
 KFIND_NESTED(scheme, view);
+KNESTED_LEN(scheme, view);
+KNESTED_ITER(scheme, view);
+KNESTED_EACH(scheme, view);
 
 
 kscheme_t *kscheme_new(void)

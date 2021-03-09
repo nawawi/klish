@@ -136,6 +136,23 @@
 	return faux_list_len(inst->nested##s); \
 }
 
+#define _KNESTED_ITER(obj, nested) \
+	k##obj##_##nested##s_node_t *k##obj##_##nested##s_iter(const k##obj##_t *inst)
+#define KNESTED_ITER(obj, nested) \
+	_KNESTED_ITER(obj, nested) { \
+	assert(inst); \
+	if (!inst) \
+		return NULL; \
+	return (k##obj##_##nested##s_node_t *)faux_list_head(inst->nested##s); \
+}
+
+#define _KNESTED_EACH(obj, nested) \
+	k##nested##_t *k##obj##_##nested##s_each(k##obj##_##nested##s_node_t **iter)
+#define KNESTED_EACH(obj, nested) \
+	_KNESTED_EACH(obj, nested) { \
+	return (k##nested##_t *)faux_list_each((faux_list_node_t **)iter); \
+}
+
 
 C_DECL_BEGIN
 

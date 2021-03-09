@@ -33,10 +33,14 @@ static KCMP_NESTED_BY_KEY(command, param, name);
 KADD_NESTED(command, param);
 KFIND_NESTED(command, param);
 KNESTED_LEN(command, param);
+KNESTED_ITER(command, param);
+KNESTED_EACH(command, param);
 
 // ACTION list
 KADD_NESTED(command, action);
 KNESTED_LEN(command, action);
+KNESTED_ITER(command, action);
+KNESTED_EACH(command, action);
 
 
 kcommand_t *kcommand_new(const char *name)

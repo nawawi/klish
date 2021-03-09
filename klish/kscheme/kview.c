@@ -26,6 +26,9 @@ KCMP_NESTED(view, command, name);
 KCMP_NESTED_BY_KEY(view, command, name);
 KADD_NESTED(view, command);
 KFIND_NESTED(view, command);
+KNESTED_LEN(view, command);
+KNESTED_ITER(view, command);
+KNESTED_EACH(view, command);
 
 
 kview_t *kview_new(const char *name)

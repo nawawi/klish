@@ -12,9 +12,14 @@
 
 #define TAG "PARAM"
 
-bool_t kparam_parse(kparam_t *param, const iparam_t *info, faux_error_t *error)
+bool_t iparam_parse(const iparam_t *info, kparam_t *param, faux_error_t *error)
 {
 	bool_t retcode = BOOL_TRUE;
+
+	if (!info)
+		return BOOL_FALSE;
+	if (!param)
+		return BOOL_FALSE;
 
 	// Help
 	if (!faux_str_is_empty(info->help)) {
@@ -36,7 +41,7 @@ bool_t kparam_parse(kparam_t *param, const iparam_t *info, faux_error_t *error)
 }
 
 
-bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
+bool_t iparam_parse_nested(const iparam_t *iparam, kparam_t *kparam,
 	faux_error_t *error)
 {
 	bool_t retval = BOOL_TRUE;
@@ -53,7 +58,7 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 			kparam_t *nkparam = NULL;
 			iparam_t *niparam = *p_iparam;
 
-			nkparam = kparam_from_iparam(niparam, error);
+			nkparam = iparam_load(niparam, error);
 			if (!nkparam) {
 				retval = BOOL_FALSE;
 				continue;
@@ -85,9 +90,12 @@ bool_t kparam_nested_from_iparam(kparam_t *kparam, iparam_t *iparam,
 }
 
 
-kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error)
+kparam_t *iparam_load(const iparam_t *iparam, faux_error_t *error)
 {
 	kparam_t *kparam = NULL;
+
+	if (!iparam)
+		return NULL;
 
 	// Name [mandatory]
 	if (faux_str_is_empty(iparam->name)) {
@@ -102,13 +110,13 @@ kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error)
 		return NULL;
 	}
 
-	if (!kparam_parse(kparam, iparam, error)) {
+	if (!iparam_parse(iparam, kparam, error)) {
 		kparam_free(kparam);
 		return NULL;
 	}
 
 	// Parse nested elements
-	if (!kparam_nested_from_iparam(kparam, iparam, error)) {
+	if (!iparam_parse_nested(iparam, kparam, error)) {
 		kparam_free(kparam);
 		return NULL;
 	}
@@ -117,31 +125,31 @@ kparam_t *kparam_from_iparam(iparam_t *iparam, faux_error_t *error)
 }
 
 
-char *iparam_to_text(const iparam_t *iparam, int level)
+char *iparam_deploy(const kparam_t *kparam, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	kparam_params_node_t *params_iter = NULL;
 
 	tmp = faux_str_sprintf("%*cPARAM {\n", level, ' ');
 	faux_str_cat(&str, tmp);
 	faux_str_free(tmp);
 
-	attr2ctext(&str, "name", iparam->name, level + 1);
-	attr2ctext(&str, "help", iparam->help, level + 1);
-	attr2ctext(&str, "ptype", iparam->ptype, level + 1);
+	attr2ctext(&str, "name", kparam_name(kparam), level + 1);
+	attr2ctext(&str, "help", kparam_help(kparam), level + 1);
+	attr2ctext(&str, "ptype", kparam_ptype_ref(kparam), level + 1);
 
 	// PARAM list
-	if (iparam->params) {
-		iparam_t **p_iparam = NULL;
+	params_iter = kparam_params_iter(kparam);
+	if (params_iter) {
+		kparam_t *nparam = NULL;
 
 		tmp = faux_str_sprintf("\n%*cPARAM_LIST\n\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 
-		for (p_iparam = *iparam->params; *p_iparam; p_iparam++) {
-			iparam_t *niparam = *p_iparam;
-
-			tmp = iparam_to_text(niparam, level + 2);
+		while ((nparam = kparam_params_each(&params_iter))) {
+			tmp = iparam_deploy(nparam, level + 2);
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
