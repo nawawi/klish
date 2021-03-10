@@ -35,6 +35,7 @@
 #include <klish/ktp_session.h>
 
 #include <klish/kscheme.h>
+#include <klish/ischeme.h>
 
 #include "private.h"
 
@@ -136,14 +137,14 @@ int main(int argc, char **argv)
 	{
 	char *txt = NULL;
 	faux_error_t *error = faux_error_new();
-	scheme = kscheme_from_ischeme(&sch, error);
+	scheme = ischeme_load(&sch, error);
 	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
 		faux_error_show(error);
 		faux_error_free(error);
 		goto err;
 	}
-	txt = ischeme_to_text(&sch, 0);
+	txt = ischeme_deploy(scheme, 0);
 	printf("%s\n", txt);
 	faux_str_free(txt);
 	faux_error_free(error);

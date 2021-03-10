@@ -43,15 +43,7 @@ EXTRA_DIST =
 #	ISSUES
 
 include $(top_srcdir)/klish/Makefile.am
-#include $(top_srcdir)/bin/Makefile.am
-
-#include $(top_srcdir)/tinyrl/module.am
-#include $(top_srcdir)/konf/module.am
-#include $(top_srcdir)/clish/module.am
-#include $(top_srcdir)/bin/module.am
-#include $(top_srcdir)/plugins/module.am
-#include $(top_srcdir)/libc/module.am
-#include $(top_srcdir)/doc/module.am
+include $(top_srcdir)/bin/Makefile.am
 
 define CONTROL
 PACKAGE: klish
