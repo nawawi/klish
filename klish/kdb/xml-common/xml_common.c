@@ -1,17 +1,10 @@
-/*
- * ------------------------------------------------------
- * shell_xml.c
+/** @file xml_common.c
+ * @brief Common part for XML parsing.
  *
- * This file implements the means to read an XML encoded file and populate the
- * CLI tree based on the contents.
- * ------------------------------------------------------
+ * Different XML parsing engines can provide a functions in a form of
+ * standardized API. This code uses this API and parses XML to kscheme.
  */
-#include "private.h"
-#include "xmlapi.h"
-#include "lub/string.h"
-#include "lub/ctype.h"
-#include "lub/system.h"
-#include "lub/conv.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -19,19 +12,17 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-typedef int (PROCESS_FN) (clish_shell_t *instance,
-	clish_xmlnode_t *element, void *parent);
+#include <faux/faux.h>
+#include <faux/str.h>
+#include <faux/error.h>
+#include <klish/kscheme.h>
+#include <klish/kxml.h>
 
-/* Define a control block for handling the decode of an XML file */
-typedef struct clish_xml_cb_s clish_xml_cb_t;
-struct clish_xml_cb_s {
-	const char *element;
-	PROCESS_FN *handler;
-};
 
-/* forward declare the handler functions */
-static PROCESS_FN
-	process_clish_module,
+typedef bool_t (kxml_process_f)(kxml_node_t *element, void *parent);
+
+static kxml_process_fn
+	process_scheme,
 	process_startup,
 	process_view,
 	process_command,
@@ -48,8 +39,15 @@ static PROCESS_FN
 	process_plugin,
 	process_hook;
 
-static clish_xml_cb_t xml_elements[] = {
-	{"CLISH_MODULE", process_clish_module},
+
+typedef struct kxml_cb_s kxml_cb_t;
+struct kxml_cb_s {
+	const char *element;
+	kxml_process_fn *handler;
+};
+
+static kxml_cb_t xml_elements[] = {
+	{"KLISH", process_scheme},
 	{"STARTUP", process_startup},
 	{"VIEW", process_view},
 	{"COMMAND", process_command},
@@ -68,45 +66,26 @@ static clish_xml_cb_t xml_elements[] = {
 	{NULL, NULL}
 };
 
-/*
- * if CLISH_PATH is unset in the environment then this is the value used. 
- */
-const char *default_path = "/etc/clish;~/.clish";
-#ifdef WIN32
-const char *path_separators = ";";
-#else
-const char *path_separators = ":;";
-#endif
 
-static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
+/** @brief Default path to get XML files from.
+ */
+const char *default_path = "/etc/klish;~/.klish";
+const char *path_separators = ":;";
+
+
+static bool_t process_node(kxml_node_t *node,
 	void *parent);
 
-/*-------------------------------------------------------- */
-int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const char *xslt_path)
+
+bool_t kxml_load_scheme(clish_shell_t *this, const char *xml_path, const char *xslt_path)
 {
 	const char *path = xml_path;
 	char *buffer;
 	char *dirname;
 	char *saveptr = NULL;
 	int res = -1;
-	clish_xmldoc_t *doc = NULL;
+	kxml_doc_t *doc = NULL;
 	DIR *dir;
-
-#ifdef HAVE_LIB_LIBXSLT
-	clish_xslt_t *xslt = NULL;
-
-	/* Load global XSLT stylesheet */
-	if (xslt_path) {
-		xslt = clish_xslt_read(xslt_path);
-		if (!clish_xslt_is_valid(xslt)) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"Can't load XSLT file %s\n",
-				xslt_path);
-			return -1;
-		}
-	}
-#else
-	xslt_path = xslt_path; /* Happy compiler */
-#endif
 
 	/* Use the default path */
 	if (!path)
@@ -121,17 +100,12 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 		/* Search this directory for any XML files */
 		dir = opendir(dirname);
 		if (NULL == dir) {
-#ifdef DEBUG
-			tinyrl_printf(this->tinyrl,
-				"*** Failed to open '%s' directory\n",
-				dirname);
-#endif
 			continue;
 		}
 		for (entry = readdir(dir); entry; entry = readdir(dir)) {
 			const char *extension = strrchr(entry->d_name, '.');
 			char *filename = NULL;
-			clish_xmlnode_t *root;
+			kxml_node_t *root;
 			int r;
 
 			/* Check the filename */
@@ -143,51 +117,28 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 			lub_string_cat(&filename, "/");
 			lub_string_cat(&filename, entry->d_name);
 
-#ifdef DEBUG
-			fprintf(stderr, "Parse XML-file: %s\n", filename);
-#endif
 			/* Load current XML file */
-			doc = clish_xmldoc_read(filename);
-			if (!clish_xmldoc_is_valid(doc)) {
-				int errcaps = clish_xmldoc_error_caps(doc);
+			doc = kxml_doc_read(filename);
+			if (!kxml_doc_is_valid(doc)) {
+				int errcaps = kxml_doc_error_caps(doc);
 				printf("Unable to open file '%s'", filename);
-				if ((errcaps & CLISH_XMLERR_LINE) == CLISH_XMLERR_LINE)
-					printf(", at line %d", clish_xmldoc_get_err_line(doc));
-				if ((errcaps & CLISH_XMLERR_COL) == CLISH_XMLERR_COL)
-					printf(", at column %d", clish_xmldoc_get_err_col(doc));
-				if ((errcaps & CLISH_XMLERR_DESC) == CLISH_XMLERR_DESC)
-					printf(", message is %s", clish_xmldoc_get_err_msg(doc));
+				if ((errcaps & kxml_ERR_LINE) == kxml_ERR_LINE)
+					printf(", at line %d", kxml_doc_get_err_line(doc));
+				if ((errcaps & kxml_ERR_COL) == kxml_ERR_COL)
+					printf(", at column %d", kxml_doc_get_err_col(doc));
+				if ((errcaps & kxml_ERR_DESC) == kxml_ERR_DESC)
+					printf(", message is %s", kxml_doc_get_err_msg(doc));
 				printf("\n");
 				goto error;
 			}
-#ifdef HAVE_LIB_LIBXSLT
-			/* Use embedded stylesheet if stylesheet
-			 * filename is not specified.
-			 */
-			if (!xslt_path)
-				xslt = clish_xslt_read_embedded(doc);
 
-			if (clish_xslt_is_valid(xslt)) {
-				clish_xmldoc_t *tmp = NULL;
-				tmp = clish_xslt_apply(doc, xslt);
-				if (!clish_xmldoc_is_valid(tmp)) {
-					fprintf(stderr, CLISH_XML_ERROR_STR"Can't load XSLT file %s\n", xslt_path);
-					goto error;
-				}
-				clish_xmldoc_release(doc);
-				doc = tmp;
-			}
-
-			if (!xslt_path && clish_xslt_is_valid(xslt))
-				clish_xslt_release(xslt);
-#endif
-			root = clish_xmldoc_get_root(doc);
+			root = kxml_doc_get_root(doc);
 			r = process_node(this, root, NULL);
-			clish_xmldoc_release(doc);
+			kxml_doc_release(doc);
 
 			/* Error message */
 			if (r) {
-				fprintf(stderr, CLISH_XML_ERROR_STR"File %s\n",
+				fprintf(stderr, kxml__ERROR_STR"File %s\n",
 					filename);
 				lub_string_free(filename);
 				goto error;
@@ -198,10 +149,6 @@ int clish_shell_load_scheme(clish_shell_t *this, const char *xml_path, const cha
 	}
 
 /* To don't free memory twice on cleanup */
-#ifdef HAVE_LIB_LIBXSLT
-	if (!xslt_path)
-		xslt = NULL;
-#endif
 	doc = NULL;
 	dir = NULL;
 	res = 0; /* Success */
@@ -209,37 +156,31 @@ error:
 	lub_string_free(buffer);
 	if (dir)
 		closedir(dir);
-	if (clish_xmldoc_is_valid(doc))
-		clish_xmldoc_release(doc);
-#ifdef HAVE_LIB_LIBXSLT
-	if (clish_xslt_is_valid(xslt))
-		clish_xslt_release(xslt);
-#endif
+	if (kxml_doc_is_valid(doc))
+		kxml_doc_release(doc);
 
 	return res;
 }
 
-/*
- * ------------------------------------------------------
- * This function reads an element from the XML stream and processes it.
- * ------------------------------------------------------
+
+/** @brief Reads an element from the XML stream and processes it.
  */
-static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
+static bool_t process_node(kxml_node_t *node,
 	void *parent)
 {
 	int res = 0;
 
-	switch (clish_xmlnode_get_type(node)) {
-	case CLISH_XMLNODE_ELM: {
-			clish_xml_cb_t * cb;
+	switch (kxml_node_get_type(node)) {
+	case kxml_NODE_ELM: {
+			kxml__cb_t * cb;
 			char name[128];
 			unsigned int namelen = sizeof(name);
-			if (clish_xmlnode_get_name(node, name, &namelen) == 0) {
+			if (kxml_node_get_name(node, name, &namelen) == 0) {
 				for (cb = &xml_elements[0]; cb->element; cb++) {
 					if (0 == strcmp(name, cb->element)) {
 #ifdef DEBUG
 						fprintf(stderr, "NODE:");
-						clish_xmlnode_print(node, stderr);
+						kxml_node_print(node, stderr);
 						fprintf(stderr, "\n");
 #endif
 						/* process the elements at this level */
@@ -247,11 +188,11 @@ static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
 
 						/* Error message */
 						if (res) {
-							char *ename = clish_xmlnode_fetch_attr(node, "name");
-							char *eref = clish_xmlnode_fetch_attr(node, "ref");
-							char *ekey = clish_xmlnode_fetch_attr(node, "key");
-							char *efile = clish_xmlnode_fetch_attr(node, "file");
-							fprintf(stderr, CLISH_XML_ERROR_STR"Node %s", name);
+							char *ename = kxml_node_attr(node, "name");
+							char *eref = kxml_node_attr(node, "ref");
+							char *ekey = kxml_node_attr(node, "key");
+							char *efile = kxml_node_attr(node, "file");
+							fprintf(stderr, kxml__ERROR_STR"Node %s", name);
 							if (ename)
 								fprintf(stderr, ", name=\"%s\"", ename);
 							if (eref)
@@ -261,10 +202,10 @@ static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
 							if (efile)
 								fprintf(stderr, ", file=\"%s\"", efile);
 							fprintf(stderr, "\n");
-							clish_xml_release(ename);
-							clish_xml_release(eref);
-							clish_xml_release(ekey);
-							clish_xml_release(efile);
+							kxml_node_attr_free(ename);
+							kxml_node_attr_free(eref);
+							kxml_node_attr_free(ekey);
+							kxml_node_attr_free(efile);
 						}
 						break;
 					}
@@ -272,13 +213,13 @@ static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
 			}
 			break;
 		}
-	case CLISH_XMLNODE_DOC:
-	case CLISH_XMLNODE_TEXT:
-	case CLISH_XMLNODE_ATTR:
-	case CLISH_XMLNODE_PI:
-	case CLISH_XMLNODE_COMMENT:
-	case CLISH_XMLNODE_DECL:
-	case CLISH_XMLNODE_UNKNOWN:
+	case kxml_NODE_DOC:
+	case kxml_NODE_TEXT:
+	case kxml_NODE_ATTR:
+	case kxml_NODE_PI:
+	case kxml_NODE_COMMENT:
+	case kxml_NODE_DECL:
+	case kxml_NODE_UNKNOWN:
 	default:
 		break;
 	}
@@ -286,26 +227,25 @@ static int process_node(clish_shell_t *shell, clish_xmlnode_t *node,
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_children(clish_shell_t *shell,
-	clish_xmlnode_t *element, void *parent)
-{
-	clish_xmlnode_t *node = NULL;
-	int res;
 
-	while ((node = clish_xmlnode_next_child(element, node)) != NULL) {
-		/* Now deal with all the contained elements */
-		res = process_node(shell, node, parent);
-		if (res)
+/** @brief Iterate through element's children.
+ */
+static bool_t process_children(kxml_node_t *element, void *parent)
+{
+	kxml_node_t *node = NULL;
+
+	while ((node = kxml_node_next_child(element, node)) != NULL) {
+		bool_t res = BOOL_FALSE;
+		res = process_node(node, parent);
+		if (!res)
 			return res;
 	}
 
-	return 0;
+	return BOOL_TRUE;
 }
 
-/* ------------------------------------------------------ */
-static int process_clish_module(clish_shell_t *shell, clish_xmlnode_t *element,
-	void *parent)
+
+static int process_scheme(kxml_node_t *element, void *parent)
 {
 	/* Create the global view */
 	if (!shell->global)
@@ -316,23 +256,23 @@ static int process_clish_module(clish_shell_t *shell, clish_xmlnode_t *element,
 	return process_children(shell, element, shell->global);
 }
 
-/* ------------------------------------------------------ */
-static int process_view(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_view(kxml_node_t *element,
 	void *parent)
 {
 	clish_view_t *view = NULL;
 	clish_view_restore_e restore_e = CLISH_RESTORE_NONE;
 	int res = -1;
 
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *prompt = clish_xmlnode_fetch_attr(element, "prompt");
-	char *depth = clish_xmlnode_fetch_attr(element, "depth");
-	char *restore = clish_xmlnode_fetch_attr(element, "restore");
-	char *access = clish_xmlnode_fetch_attr(element, "access");
+	char *name = kxml_node_attr(element, "name");
+	char *prompt = kxml_node_attr(element, "prompt");
+	char *depth = kxml_node_attr(element, "depth");
+	char *restore = kxml_node_attr(element, "restore");
+	char *access = kxml_node_attr(element, "access");
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 
@@ -359,19 +299,19 @@ static int process_view(clish_shell_t *shell, clish_xmlnode_t *element,
 //process_view_end:
 	res = process_children(shell, element, view);
 error:
-	clish_xml_release(name);
-	clish_xml_release(prompt);
-	clish_xml_release(depth);
-	clish_xml_release(restore);
-	clish_xml_release(access);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(prompt);
+	kxml_node_attr_free(depth);
+	kxml_node_attr_free(restore);
+	kxml_node_attr_free(access);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_ptype(kxml_node_t *element,
 	void *parent)
 {
 	clish_ptype_method_e method;
@@ -379,26 +319,26 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 	int res = -1;
 	clish_ptype_t *ptype;
 
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *help = clish_xmlnode_fetch_attr(element, "help");
-	char *pattern = clish_xmlnode_fetch_attr(element, "pattern");
-	char *method_name = clish_xmlnode_fetch_attr(element, "method");
-	char *preprocess_name =	clish_xmlnode_fetch_attr(element, "preprocess");
-	char *completion = clish_xmlnode_fetch_attr(element, "completion");
+	char *name = kxml_node_attr(element, "name");
+	char *help = kxml_node_attr(element, "help");
+	char *pattern = kxml_node_attr(element, "pattern");
+	char *method_name = kxml_node_attr(element, "method");
+	char *preprocess_name =	kxml_node_attr(element, "preprocess");
+	char *completion = kxml_node_attr(element, "completion");
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 
 	method = clish_ptype_method_resolve(method_name);
 	if (CLISH_PTYPE_METHOD_MAX == method) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("method"));
+		fprintf(stderr, kxml__ERROR_ATTR("method"));
 		goto error;
 	}
 	if ((method != CLISH_PTYPE_METHOD_CODE) && !pattern) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("pattern"));
+		fprintf(stderr, kxml__ERROR_ATTR("pattern"));
 		goto error;
 	}
 
@@ -411,20 +351,20 @@ static int process_ptype(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = process_children(shell, element, ptype);
 error:
-	clish_xml_release(name);
-	clish_xml_release(help);
-	clish_xml_release(pattern);
-	clish_xml_release(method_name);
-	clish_xml_release(preprocess_name);
-	clish_xml_release(completion);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(help);
+	kxml_node_attr_free(pattern);
+	kxml_node_attr_free(method_name);
+	kxml_node_attr_free(preprocess_name);
+	kxml_node_attr_free(completion);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_overview(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_overview(kxml_node_t *element,
 	void *parent)
 {
 	char *content = NULL;
@@ -446,7 +386,7 @@ static int process_overview(clish_shell_t *shell, clish_xmlnode_t *element,
 			return -1;
 		}
 		content = new;
-		result = clish_xmlnode_get_content(element, content,
+		result = kxml_node_get_content(element, content,
 			&content_len);
 	} while (result == -E2BIG);
 
@@ -465,8 +405,8 @@ static int process_overview(clish_shell_t *shell, clish_xmlnode_t *element,
 	return 0;
 }
 
-/* ------------------------------------------------------ */
-static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_command(kxml_node_t *element,
 	void *parent)
 {
 	clish_view_t *v = (clish_view_t *) parent;
@@ -474,35 +414,30 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	clish_command_t *old;
 	int res = -1;
 
-	char *access = clish_xmlnode_fetch_attr(element, "access");
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *help = clish_xmlnode_fetch_attr(element, "help");
-	char *view = clish_xmlnode_fetch_attr(element, "view");
-	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
-	char *escape_chars = clish_xmlnode_fetch_attr(element, "escape_chars");
-	char *args_name = clish_xmlnode_fetch_attr(element, "args");
-	char *args_help = clish_xmlnode_fetch_attr(element, "args_help");
-	char *ref = clish_xmlnode_fetch_attr(element, "ref");
-#ifdef LEGACY
-	char *lock = clish_xmlnode_fetch_attr(element, "lock");
-	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
-	clish_action_t *action;
-#endif
+	char *access = kxml_node_attr(element, "access");
+	char *name = kxml_node_attr(element, "name");
+	char *help = kxml_node_attr(element, "help");
+	char *view = kxml_node_attr(element, "view");
+	char *viewid = kxml_node_attr(element, "viewid");
+	char *escape_chars = kxml_node_attr(element, "escape_chars");
+	char *args_name = kxml_node_attr(element, "args");
+	char *args_help = kxml_node_attr(element, "args_help");
+	char *ref = kxml_node_attr(element, "ref");
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 	if (!help) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
+		fprintf(stderr, kxml__ERROR_ATTR("help"));
 		goto error;
 	}
 
 	/* check this command doesn't already exist */
 	old = clish_view_find_command(v, name, BOOL_FALSE);
 	if (old) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate COMMAND name=\"%s\".\n", name);
+		fprintf(stderr, kxml__ERROR_STR"Duplicate COMMAND name=\"%s\".\n", name);
 		goto error;
 	}
 
@@ -520,7 +455,7 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 
 		cmdn = strtok_r(str, delim, &saveptr);
 		if (!cmdn) {
-			fprintf(stderr, CLISH_XML_ERROR_STR"Invalid \"ref\" attribute value.\n");
+			fprintf(stderr, kxml__ERROR_STR"Invalid \"ref\" attribute value.\n");
 			lub_string_free(str);
 			goto error;
 		}
@@ -540,7 +475,7 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 
 		/* Check syntax */
 		if (!args_help) {
-			fprintf(stderr, CLISH_XML_ERROR_ATTR("args_help"));
+			fprintf(stderr, kxml__ERROR_ATTR("args_help"));
 			goto error;
 		}
 		param = clish_param_new(args_name, args_help, "__ptype_ARGS");
@@ -557,79 +492,49 @@ static int process_command(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (viewid)
 		clish_command__set_viewid(cmd, viewid);
 
-#ifdef LEGACY
-	action = clish_command__get_action(cmd);
-
-	/* lock */
-	if (lock) { // Don't change anything if lock is not specified
-		if (lub_string_nocasecmp(lock, "false") == 0)
-			clish_action__set_lock(action, BOOL_FALSE);
-		else
-			clish_action__set_lock(action, BOOL_TRUE);
-	}
-
-	/* interrupt */
-	if (interrupt) { // Don't change anything if lock is not specified
-		if (lub_string_nocasecmp(interrupt, "true") == 0)
-			clish_action__set_interrupt(action, BOOL_TRUE);
-		else
-			clish_action__set_interrupt(action, BOOL_FALSE);
-	}
-#endif
-
 	if (access)
 		clish_command__set_access(cmd, access);
 
 //process_command_end:
 	res = process_children(shell, element, cmd);
 error:
-	clish_xml_release(access);
-	clish_xml_release(name);
-	clish_xml_release(help);
-	clish_xml_release(view);
-	clish_xml_release(viewid);
-	clish_xml_release(escape_chars);
-	clish_xml_release(args_name);
-	clish_xml_release(args_help);
-	clish_xml_release(ref);
-#ifdef LEGACY
-	clish_xml_release(lock);
-	clish_xml_release(interrupt);
-#endif
+	kxml_node_attr_free(access);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(help);
+	kxml_node_attr_free(view);
+	kxml_node_attr_free(viewid);
+	kxml_node_attr_free(escape_chars);
+	kxml_node_attr_free(args_name);
+	kxml_node_attr_free(args_help);
+	kxml_node_attr_free(ref);
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_startup(kxml_node_t *element,
 	void *parent)
 {
 	clish_command_t *cmd = NULL;
 	int res = -1;
 
-	char *view = clish_xmlnode_fetch_attr(element, "view");
-	char *viewid = clish_xmlnode_fetch_attr(element, "viewid");
-	char *timeout = clish_xmlnode_fetch_attr(element, "timeout");
-	char *default_plugin = clish_xmlnode_fetch_attr(element,
+	char *view = kxml_node_attr(element, "view");
+	char *viewid = kxml_node_attr(element, "viewid");
+	char *timeout = kxml_node_attr(element, "timeout");
+	char *default_plugin = kxml_node_attr(element,
 		"default_plugin");
-	char *default_shebang = clish_xmlnode_fetch_attr(element,
+	char *default_shebang = kxml_node_attr(element,
 		"default_shebang");
-	char *default_expand = clish_xmlnode_fetch_attr(element,
+	char *default_expand = kxml_node_attr(element,
 		"default_expand");
-#ifdef LEGACY
-	char *lock = clish_xmlnode_fetch_attr(element, "lock");
-	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
-	clish_action_t *action;
-#endif
-
 
 	/* Check syntax */
 	if (!view) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("view"));
+		fprintf(stderr, kxml__ERROR_ATTR("view"));
 		goto error;
 	}
 	if (shell->startup) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP tag duplication.\n");
+		fprintf(stderr, kxml__ERROR_STR"STARTUP tag duplication.\n");
 		goto error;
 	}
 
@@ -657,26 +562,6 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 		clish_shell__set_idle_timeout(shell, to);
 	}
 
-#ifdef LEGACY
-	action = clish_command__get_action(cmd);
-
-	/* lock */
-	if (lock) { // Don't change anything if lock is not specified
-		if (lub_string_nocasecmp(lock, "false") == 0)
-			clish_action__set_lock(action, BOOL_FALSE);
-		else
-			clish_action__set_lock(action, BOOL_TRUE);
-	}
-
-	/* interrupt */
-	if (interrupt) { // Don't change anything if lock is not specified
-		if (lub_string_nocasecmp(interrupt, "true") == 0)
-			clish_action__set_interrupt(action, BOOL_TRUE);
-		else
-			clish_action__set_interrupt(action, BOOL_FALSE);
-	}
-#endif
-
 	/* If we need the default plugin */
 	if (default_plugin && (0 == strcmp(default_plugin, "false")))
 		shell->default_plugin = BOOL_FALSE;
@@ -686,50 +571,46 @@ static int process_startup(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = process_children(shell, element, cmd);
 error:
-	clish_xml_release(view);
-	clish_xml_release(viewid);
-	clish_xml_release(default_plugin);
-	clish_xml_release(default_shebang);
-	clish_xml_release(default_expand);
-	clish_xml_release(timeout);
-#ifdef LEGACY
-	clish_xml_release(lock);
-	clish_xml_release(interrupt);
-#endif
+	kxml_node_attr_free(view);
+	kxml_node_attr_free(viewid);
+	kxml_node_attr_free(default_plugin);
+	kxml_node_attr_free(default_shebang);
+	kxml_node_attr_free(default_expand);
+	kxml_node_attr_free(timeout);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_param(kxml_node_t *element,
 	void *parent)
 {
 	clish_command_t *cmd = NULL;
 	clish_param_t *p_param = NULL;
-	clish_xmlnode_t *pelement;
+	kxml_node_t *pelement;
 	clish_param_t *param;
 	char *pname;
 	int res = -1;
 
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *help = clish_xmlnode_fetch_attr(element, "help");
-	char *ptype = clish_xmlnode_fetch_attr(element, "ptype");
-	char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
-	char *defval = clish_xmlnode_fetch_attr(element, "default");
-	char *mode = clish_xmlnode_fetch_attr(element, "mode");
-	char *optional = clish_xmlnode_fetch_attr(element, "optional");
-	char *order = clish_xmlnode_fetch_attr(element, "order");
-	char *value = clish_xmlnode_fetch_attr(element, "value");
-	char *hidden = clish_xmlnode_fetch_attr(element, "hidden");
-	char *test = clish_xmlnode_fetch_attr(element, "test");
-	char *completion = clish_xmlnode_fetch_attr(element, "completion");
-	char *access = clish_xmlnode_fetch_attr(element, "access");
+	char *name = kxml_node_attr(element, "name");
+	char *help = kxml_node_attr(element, "help");
+	char *ptype = kxml_node_attr(element, "ptype");
+	char *prefix = kxml_node_attr(element, "prefix");
+	char *defval = kxml_node_attr(element, "default");
+	char *mode = kxml_node_attr(element, "mode");
+	char *optional = kxml_node_attr(element, "optional");
+	char *order = kxml_node_attr(element, "order");
+	char *value = kxml_node_attr(element, "value");
+	char *hidden = kxml_node_attr(element, "hidden");
+	char *test = kxml_node_attr(element, "test");
+	char *completion = kxml_node_attr(element, "completion");
+	char *access = kxml_node_attr(element, "access");
 
 	/* The PARAM can be child of COMMAND or another PARAM */
-	pelement = clish_xmlnode_parent(element);
-	pname = clish_xmlnode_get_all_name(pelement);
+	pelement = kxml_node_parent(element);
+	pname = kxml_node_get_all_name(pelement);
 	if (pname && lub_string_nocasecmp(pname, "PARAM") == 0)
 		p_param = (clish_param_t *)parent;
 	else
@@ -741,19 +622,19 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	/* Check syntax */
 	if (cmd && (cmd == shell->startup)) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"STARTUP can't contain PARAMs.\n");
+		fprintf(stderr, kxml__ERROR_STR"STARTUP can't contain PARAMs.\n");
 		goto error;
 	}
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 	if (!help) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("help"));
+		fprintf(stderr, kxml__ERROR_ATTR("help"));
 		goto error;
 	}
 	if (!ptype) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("ptype"));
+		fprintf(stderr, kxml__ERROR_ATTR("ptype"));
 		goto error;
 	}
 
@@ -860,38 +741,38 @@ static int process_param(clish_shell_t *shell, clish_xmlnode_t *element,
 	res = process_children(shell, element, param);
 
 error:
-	clish_xml_release(name);
-	clish_xml_release(help);
-	clish_xml_release(ptype);
-	clish_xml_release(prefix);
-	clish_xml_release(defval);
-	clish_xml_release(mode);
-	clish_xml_release(optional);
-	clish_xml_release(order);
-	clish_xml_release(value);
-	clish_xml_release(hidden);
-	clish_xml_release(test);
-	clish_xml_release(completion);
-	clish_xml_release(access);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(help);
+	kxml_node_attr_free(ptype);
+	kxml_node_attr_free(prefix);
+	kxml_node_attr_free(defval);
+	kxml_node_attr_free(mode);
+	kxml_node_attr_free(optional);
+	kxml_node_attr_free(order);
+	kxml_node_attr_free(value);
+	kxml_node_attr_free(hidden);
+	kxml_node_attr_free(test);
+	kxml_node_attr_free(completion);
+	kxml_node_attr_free(access);
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_action(kxml_node_t *element,
 	void *parent)
 {
 	clish_action_t *action = NULL;
 
-	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
-	char *shebang = clish_xmlnode_fetch_attr(element, "shebang");
-	char *lock = clish_xmlnode_fetch_attr(element, "lock");
-	char *interrupt = clish_xmlnode_fetch_attr(element, "interrupt");
-	char *interactive = clish_xmlnode_fetch_attr(element, "interactive");
-	char *expand = clish_xmlnode_fetch_attr(element, "expand");
+	char *builtin = kxml_node_attr(element, "builtin");
+	char *shebang = kxml_node_attr(element, "shebang");
+	char *lock = kxml_node_attr(element, "lock");
+	char *interrupt = kxml_node_attr(element, "interrupt");
+	char *interactive = kxml_node_attr(element, "interactive");
+	char *expand = kxml_node_attr(element, "expand");
 
-	clish_xmlnode_t *pelement = clish_xmlnode_parent(element);
-	char *pname = clish_xmlnode_get_all_name(pelement);
+	kxml_node_t *pelement = kxml_node_parent(element);
+	char *pname = kxml_node_get_all_name(pelement);
 	char *text;
 	clish_sym_t *sym = NULL;
 
@@ -905,7 +786,7 @@ static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (pname)
 		free(pname);
 
-	text = clish_xmlnode_get_all_content(element);
+	text = kxml_node_get_all_content(element);
 
 	if (text && *text) {
 		/* store the action */
@@ -940,24 +821,24 @@ static int process_action(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (expand)
 		clish_action__set_expand(action, lub_tri_from_string(expand));
 
-	clish_xml_release(builtin);
-	clish_xml_release(shebang);
-	clish_xml_release(lock);
-	clish_xml_release(interrupt);
-	clish_xml_release(interactive);
-	clish_xml_release(expand);
+	kxml_node_attr_free(builtin);
+	kxml_node_attr_free(shebang);
+	kxml_node_attr_free(lock);
+	kxml_node_attr_free(interrupt);
+	kxml_node_attr_free(interactive);
+	kxml_node_attr_free(expand);
 
 	return 0;
 }
 
-/* ------------------------------------------------------ */
-static int process_detail(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_detail(kxml_node_t *element,
 	void *parent)
 {
 	clish_command_t *cmd = (clish_command_t *) parent;
 
 	/* read the following text element */
-	char *text = clish_xmlnode_get_all_content(element);
+	char *text = kxml_node_get_all_content(element);
 
 	if (text && *text) {
 		/* store the action */
@@ -972,26 +853,26 @@ static int process_detail(clish_shell_t *shell, clish_xmlnode_t *element,
 	return 0;
 }
 
-/* ------------------------------------------------------ */
-static int process_namespace(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_namespace(kxml_node_t *element,
 	void *parent)
 {
 	clish_view_t *v = (clish_view_t *)parent;
 	clish_nspace_t *nspace = NULL;
 	int res = -1;
 
-	char *view = clish_xmlnode_fetch_attr(element, "ref");
-	char *prefix = clish_xmlnode_fetch_attr(element, "prefix");
-	char *prefix_help = clish_xmlnode_fetch_attr(element, "prefix_help");
-	char *help = clish_xmlnode_fetch_attr(element, "help");
-	char *completion = clish_xmlnode_fetch_attr(element, "completion");
-	char *context_help = clish_xmlnode_fetch_attr(element, "context_help");
-	char *inherit = clish_xmlnode_fetch_attr(element, "inherit");
-	char *access = clish_xmlnode_fetch_attr(element, "access");
+	char *view = kxml_node_attr(element, "ref");
+	char *prefix = kxml_node_attr(element, "prefix");
+	char *prefix_help = kxml_node_attr(element, "prefix_help");
+	char *help = kxml_node_attr(element, "help");
+	char *completion = kxml_node_attr(element, "completion");
+	char *context_help = kxml_node_attr(element, "context_help");
+	char *inherit = kxml_node_attr(element, "inherit");
+	char *access = kxml_node_attr(element, "access");
 
 	/* Check syntax */
 	if (!view) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("ref"));
+		fprintf(stderr, kxml__ERROR_ATTR("ref"));
 		goto error;
 	}
 
@@ -1042,20 +923,20 @@ static int process_namespace(clish_shell_t *shell, clish_xmlnode_t *element,
 process_namespace_end:
 	res = 0;
 error:
-	clish_xml_release(view);
-	clish_xml_release(prefix);
-	clish_xml_release(prefix_help);
-	clish_xml_release(help);
-	clish_xml_release(completion);
-	clish_xml_release(context_help);
-	clish_xml_release(inherit);
-	clish_xml_release(access);
+	kxml_node_attr_free(view);
+	kxml_node_attr_free(prefix);
+	kxml_node_attr_free(prefix_help);
+	kxml_node_attr_free(help);
+	kxml_node_attr_free(completion);
+	kxml_node_attr_free(context_help);
+	kxml_node_attr_free(inherit);
+	kxml_node_attr_free(access);
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_config(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_config(kxml_node_t *element,
 	void *parent)
 {
 	clish_command_t *cmd = (clish_command_t *)parent;
@@ -1066,14 +947,14 @@ static int process_config(clish_shell_t *shell, clish_xmlnode_t *element,
 	config = clish_command__get_config(cmd);
 
 	/* read the following text element */
-	char *operation = clish_xmlnode_fetch_attr(element, "operation");
-	char *priority = clish_xmlnode_fetch_attr(element, "priority");
-	char *pattern = clish_xmlnode_fetch_attr(element, "pattern");
-	char *file = clish_xmlnode_fetch_attr(element, "file");
-	char *splitter = clish_xmlnode_fetch_attr(element, "splitter");
-	char *seq = clish_xmlnode_fetch_attr(element, "sequence");
-	char *unique = clish_xmlnode_fetch_attr(element, "unique");
-	char *depth = clish_xmlnode_fetch_attr(element, "depth");
+	char *operation = kxml_node_attr(element, "operation");
+	char *priority = kxml_node_attr(element, "priority");
+	char *pattern = kxml_node_attr(element, "pattern");
+	char *file = kxml_node_attr(element, "file");
+	char *splitter = kxml_node_attr(element, "splitter");
+	char *seq = kxml_node_attr(element, "sequence");
+	char *unique = kxml_node_attr(element, "unique");
+	char *depth = kxml_node_attr(element, "depth");
 
 	if (operation && !lub_string_nocasecmp(operation, "unset"))
 		clish_config__set_op(config, CLISH_CONFIG_UNSET);
@@ -1120,40 +1001,40 @@ static int process_config(clish_shell_t *shell, clish_xmlnode_t *element,
 	if (depth)
 		clish_config__set_depth(config, depth);
 
-	clish_xml_release(operation);
-	clish_xml_release(priority);
-	clish_xml_release(pattern);
-	clish_xml_release(file);
-	clish_xml_release(splitter);
-	clish_xml_release(seq);
-	clish_xml_release(unique);
-	clish_xml_release(depth);
+	kxml_node_attr_free(operation);
+	kxml_node_attr_free(priority);
+	kxml_node_attr_free(pattern);
+	kxml_node_attr_free(file);
+	kxml_node_attr_free(splitter);
+	kxml_node_attr_free(seq);
+	kxml_node_attr_free(unique);
+	kxml_node_attr_free(depth);
 
 	shell = shell; /* Happy compiler */
 
 	return 0;
 }
 
-/* ------------------------------------------------------ */
-static int process_var(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_var(kxml_node_t *element,
 	void *parent)
 {
 	clish_var_t *var = NULL;
 	int res = -1;
 
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *dynamic = clish_xmlnode_fetch_attr(element, "dynamic");
-	char *value = clish_xmlnode_fetch_attr(element, "value");
+	char *name = kxml_node_attr(element, "name");
+	char *dynamic = kxml_node_attr(element, "dynamic");
+	char *value = kxml_node_attr(element, "value");
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 	/* Check if this var doesn't already exist */
 	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
 	if (var) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"Duplicate VAR name=\"%s\".\n", name);
+		fprintf(stderr, kxml__ERROR_STR"Duplicate VAR name=\"%s\".\n", name);
 		goto error;
 	}
 
@@ -1169,34 +1050,30 @@ static int process_var(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = process_children(shell, element, var);
 error:
-	clish_xml_release(name);
-	clish_xml_release(dynamic);
-	clish_xml_release(value);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(dynamic);
+	kxml_node_attr_free(value);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
+
 static int process_wdog(clish_shell_t *shell,
-	clish_xmlnode_t *element, void *parent)
+	kxml_node_t *element, void *parent)
 {
 	clish_command_t *cmd = NULL;
 	int res = -1;
 
 	/* Check syntax */
 	if (shell->wdog) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"WATCHDOG tag duplication.\n");
+		fprintf(stderr, kxml__ERROR_STR"WATCHDOG tag duplication.\n");
 		goto error;
 	}
 
 	/* Create a command with NULL help */
 	cmd = clish_command_new("watchdog", NULL);
-#ifdef LEGACY
-	// Legacy watchdog has lockless ACTION
-	clish_action__set_lock(clish_command__get_action(cmd), BOOL_FALSE);
-#endif
 
 	/* Remember this command */
 	shell->wdog = cmd;
@@ -1208,23 +1085,23 @@ error:
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_hotkey(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_hotkey(kxml_node_t *element,
 	void *parent)
 {
 	clish_view_t *v = (clish_view_t *)parent;
 	int res = -1;
 
-	char *key = clish_xmlnode_fetch_attr(element, "key");
-	char *cmd = clish_xmlnode_fetch_attr(element, "cmd");
+	char *key = kxml_node_attr(element, "key");
+	char *cmd = kxml_node_attr(element, "cmd");
 
 	/* Check syntax */
 	if (!key) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("key"));
+		fprintf(stderr, kxml__ERROR_ATTR("key"));
 		goto error;
 	}
 	if (!cmd) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("cmd"));
+		fprintf(stderr, kxml__ERROR_ATTR("cmd"));
 		goto error;
 	}
 
@@ -1232,36 +1109,36 @@ static int process_hotkey(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = 0;
 error:
-	clish_xml_release(key);
-	clish_xml_release(cmd);
+	kxml_node_attr_free(key);
+	kxml_node_attr_free(cmd);
 
 	shell = shell; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_plugin(kxml_node_t *element,
 	void *parent)
 {
 	clish_plugin_t *plugin;
-	char *file = clish_xmlnode_fetch_attr(element, "file");
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *alias = clish_xmlnode_fetch_attr(element, "alias");
-	char *rtld_global = clish_xmlnode_fetch_attr(element, "rtld_global");
+	char *file = kxml_node_attr(element, "file");
+	char *name = kxml_node_attr(element, "name");
+	char *alias = kxml_node_attr(element, "alias");
+	char *rtld_global = kxml_node_attr(element, "rtld_global");
 	int res = -1;
 	char *text;
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 
 	plugin = clish_shell_find_plugin(shell, name);
 	if (plugin) {
 		fprintf(stderr,
-			CLISH_XML_ERROR_STR"PLUGIN %s duplication.\n", name);
+			kxml__ERROR_STR"PLUGIN %s duplication.\n", name);
 		goto error;
 	}
 	plugin = clish_shell_create_plugin(shell, name);
@@ -1276,7 +1153,7 @@ static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
 		clish_plugin__set_rtld_global(plugin, BOOL_TRUE);
 
 	/* Get PLUGIN body content */
-	text = clish_xmlnode_get_all_content(element);
+	text = kxml_node_get_all_content(element);
 	if (text && *text)
 		clish_plugin__set_conf(plugin, text);
 	if (text)
@@ -1284,28 +1161,28 @@ static int process_plugin(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = 0;
 error:
-	clish_xml_release(file);
-	clish_xml_release(name);
-	clish_xml_release(alias);
-	clish_xml_release(rtld_global);
+	kxml_node_attr_free(file);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(alias);
+	kxml_node_attr_free(rtld_global);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
 
-/* ------------------------------------------------------ */
-static int process_hook(clish_shell_t *shell, clish_xmlnode_t *element,
+
+static int process_hook(kxml_node_t *element,
 	void *parent)
 {
-	char *name = clish_xmlnode_fetch_attr(element, "name");
-	char *builtin = clish_xmlnode_fetch_attr(element, "builtin");
+	char *name = kxml_node_attr(element, "name");
+	char *builtin = kxml_node_attr(element, "builtin");
 	int res = -1;
 	int type = CLISH_SYM_TYPE_NONE;
 
 	/* Check syntax */
 	if (!name) {
-		fprintf(stderr, CLISH_XML_ERROR_ATTR("name"));
+		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
 	}
 	/* Find out HOOK type */
@@ -1318,14 +1195,14 @@ static int process_hook(clish_shell_t *shell, clish_xmlnode_t *element,
 	else if (!strcmp(name, "log"))
 		type = CLISH_SYM_TYPE_LOG;
 	if (CLISH_SYM_TYPE_NONE == type) {
-		fprintf(stderr, CLISH_XML_ERROR_STR"Unknown HOOK name %s.\n", name);
+		fprintf(stderr, kxml__ERROR_STR"Unknown HOOK name %s.\n", name);
 		goto error;
 	}
 
 	/* Check duplicate HOOK tag */
 	if (shell->hooks_use[type]) {
 		fprintf(stderr,
-			CLISH_XML_ERROR_STR"HOOK %s duplication.\n", name);
+			kxml__ERROR_STR"HOOK %s duplication.\n", name);
 		goto error;
 	}
 	shell->hooks_use[type] = BOOL_TRUE;
@@ -1333,12 +1210,10 @@ static int process_hook(clish_shell_t *shell, clish_xmlnode_t *element,
 
 	res = 0;
 error:
-	clish_xml_release(name);
-	clish_xml_release(builtin);
+	kxml_node_attr_free(name);
+	kxml_node_attr_free(builtin);
 
 	parent = parent; /* Happy compiler */
 
 	return res;
 }
-
-/* ------------------------------------------------------ */
