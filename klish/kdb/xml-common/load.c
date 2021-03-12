@@ -1,4 +1,4 @@
-/** @file xml_common.c
+/** @file load.c
  * @brief Common part for XML parsing.
  *
  * Different XML parsing engines can provide a functions in a form of
@@ -18,6 +18,7 @@
 #include <klish/kscheme.h>
 #include <klish/kxml.h>
 
+#define TAG "XML"
 
 typedef bool_t (kxml_process_f)(kxml_node_t *element, void *parent);
 
@@ -70,173 +71,157 @@ static kxml_cb_t xml_elements[] = {
 /** @brief Default path to get XML files from.
  */
 const char *default_path = "/etc/klish;~/.klish";
-const char *path_separators = ":;";
+static const char *path_separators = ":;";
 
 
-static bool_t process_node(kxml_node_t *node,
-	void *parent);
+static bool_t process_node(kxml_node_t *node, void *parent, faux_error_t *error);
 
 
-bool_t kxml_load_scheme(clish_shell_t *this, const char *xml_path, const char *xslt_path)
+static bool_t kxml_load_file(kscheme_t *scheme, const char *filename, faux_error_t *error)
 {
-	const char *path = xml_path;
-	char *buffer;
-	char *dirname;
-	char *saveptr = NULL;
 	int res = -1;
 	kxml_doc_t *doc = NULL;
-	DIR *dir;
+	kxml_node_t *root = NULL;
+	bool_t r = BOOL_FALSE;
 
-	/* Use the default path */
+	if (!scheme)
+		return BOOL_FALSE;
+	if (!filename)
+		return BOOL_FALSE;
+
+	doc = kxml_doc_read(filename);
+	if (!kxml_doc_is_valid(doc)) {
+		int errcaps = kxml_doc_error_caps(doc);
+/*		printf("Unable to open file '%s'", filename);
+		if ((errcaps & kxml_ERR_LINE) == kxml_ERR_LINE)
+			printf(", at line %d", kxml_doc_get_err_line(doc));
+		if ((errcaps & kxml_ERR_COL) == kxml_ERR_COL)
+			printf(", at column %d", kxml_doc_get_err_col(doc));
+		if ((errcaps & kxml_ERR_DESC) == kxml_ERR_DESC)
+			printf(", message is %s", kxml_doc_get_err_msg(doc));
+		printf("\n");
+*/		kxml_doc_release(doc);
+		return BOOL_FALSE;
+	}
+	root = kxml_doc_get_root(doc);
+	r = process_node(root, scheme, error);
+	kxml_doc_release(doc);
+	if (!r) {
+		faux_error_sprintf(error, TAG": Illegal file %s", filename);
+		return BOOL_FALSE;
+	}
+
+	return BOOL_TRUE;
+}
+
+
+kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error)
+{
+	kscheme_t *scheme = NULL;
+	const char *path = xml_path;
+	char *realpath = NULL;
+	char *fn = NULL;
+	char *saveptr = NULL;
+	bool_t ret = BOOL_TRUE;
+
+	// New kscheme instance
+	scheme = kscheme_new();
+	if (!scheme)
+		return NULL;
+
+	// Use the default path if not specified
 	if (!path)
 		path = default_path;
-	buffer = lub_system_tilde_expand(path);
+	realpath = faux_expand_tilde(path);
 
-	/* Loop though each directory */
-	for (dirname = strtok_r(buffer, path_separators, &saveptr);
-		dirname; dirname = strtok_r(NULL, path_separators, &saveptr)) {
-		struct dirent *entry;
+	// Loop through each directory
+	for (fn = strtok_r(realpath, path_separators, &saveptr);
+		fn; fn = strtok_r(NULL, path_separators, &saveptr)) {
+		DIR *dir = NULL;
+		struct dirent *entry = NULL;
 
-		/* Search this directory for any XML files */
-		dir = opendir(dirname);
-		if (NULL == dir) {
-			continue;
+		// Regular file
+		if (faux_isfile(fn)) {
+			if (!kxml_load_file(scheme, fn, error)) {
+				ret = BOOL_FALSE;
+				continue;
+			}
 		}
+
+		// Search this directory for any XML files
+		dir = opendir(fn);
+		if (!dir)
+			continue;
 		for (entry = readdir(dir); entry; entry = readdir(dir)) {
 			const char *extension = strrchr(entry->d_name, '.');
 			char *filename = NULL;
-			kxml_node_t *root;
-			int r;
 
-			/* Check the filename */
+			// Check the filename
 			if (!extension || strcmp(".xml", extension))
 				continue;
-
-			/* Build the filename */
-			lub_string_cat(&filename, dirname);
-			lub_string_cat(&filename, "/");
-			lub_string_cat(&filename, entry->d_name);
-
-			/* Load current XML file */
-			doc = kxml_doc_read(filename);
-			if (!kxml_doc_is_valid(doc)) {
-				int errcaps = kxml_doc_error_caps(doc);
-				printf("Unable to open file '%s'", filename);
-				if ((errcaps & kxml_ERR_LINE) == kxml_ERR_LINE)
-					printf(", at line %d", kxml_doc_get_err_line(doc));
-				if ((errcaps & kxml_ERR_COL) == kxml_ERR_COL)
-					printf(", at column %d", kxml_doc_get_err_col(doc));
-				if ((errcaps & kxml_ERR_DESC) == kxml_ERR_DESC)
-					printf(", message is %s", kxml_doc_get_err_msg(doc));
-				printf("\n");
-				goto error;
+			filename = faux_str_sprintf("%s/%s", fn, entry->d_name);
+			if (!kxml_load_file(scheme, filename, error)) {
+				ret = BOOL_FALSE;
+				continue;
 			}
-
-			root = kxml_doc_get_root(doc);
-			r = process_node(this, root, NULL);
-			kxml_doc_release(doc);
-
-			/* Error message */
-			if (r) {
-				fprintf(stderr, kxml__ERROR_STR"File %s\n",
-					filename);
-				lub_string_free(filename);
-				goto error;
-			}
-			lub_string_free(filename);
+			faux_str_free(filename);
 		}
 		closedir(dir);
 	}
 
-/* To don't free memory twice on cleanup */
-	doc = NULL;
-	dir = NULL;
-	res = 0; /* Success */
-error:
-	lub_string_free(buffer);
-	if (dir)
-		closedir(dir);
-	if (kxml_doc_is_valid(doc))
-		kxml_doc_release(doc);
+	faux_str_free(realpath);
+	if (!ret) { // Some errors while XML parsing
+		kscheme_free(scheme);
+		return NULL;
+	}
 
-	return res;
+	return scheme;
 }
 
 
 /** @brief Reads an element from the XML stream and processes it.
  */
-static bool_t process_node(kxml_node_t *node,
-	void *parent)
+static bool_t process_node(kxml_node_t *node, void *parent, faux_error_t *error)
 {
-	int res = 0;
+	kxml_cb_t *cb = NULL;
+	char *name = NULL;
+	kxml_process_fn *handler = NULL;
 
-	switch (kxml_node_get_type(node)) {
-	case kxml_NODE_ELM: {
-			kxml__cb_t * cb;
-			char name[128];
-			unsigned int namelen = sizeof(name);
-			if (kxml_node_get_name(node, name, &namelen) == 0) {
-				for (cb = &xml_elements[0]; cb->element; cb++) {
-					if (0 == strcmp(name, cb->element)) {
-#ifdef DEBUG
-						fprintf(stderr, "NODE:");
-						kxml_node_print(node, stderr);
-						fprintf(stderr, "\n");
-#endif
-						/* process the elements at this level */
-						res = cb->handler(shell, node, parent);
+	if (!node)
+		return BOOL_FALSE;
+	if (!parent)
+		return BOOL_FALSE;
 
-						/* Error message */
-						if (res) {
-							char *ename = kxml_node_attr(node, "name");
-							char *eref = kxml_node_attr(node, "ref");
-							char *ekey = kxml_node_attr(node, "key");
-							char *efile = kxml_node_attr(node, "file");
-							fprintf(stderr, kxml__ERROR_STR"Node %s", name);
-							if (ename)
-								fprintf(stderr, ", name=\"%s\"", ename);
-							if (eref)
-								fprintf(stderr, ", ref=\"%s\"", eref);
-							if (ekey)
-								fprintf(stderr, ", key=\"%s\"", ekey);
-							if (efile)
-								fprintf(stderr, ", file=\"%s\"", efile);
-							fprintf(stderr, "\n");
-							kxml_node_attr_free(ename);
-							kxml_node_attr_free(eref);
-							kxml_node_attr_free(ekey);
-							kxml_node_attr_free(efile);
-						}
-						break;
-					}
-				}
-			}
+	if (kxml_node_type(node) != KXML_NODE_ELM)
+		return BOOL_TRUE;
+
+	name = kxml_node_name(node);
+	if (!name)
+		return BOOL_TRUE; // Strange case
+	// Find element handler
+	for (cb = &xml_elements[0]; cb->element; cb++) {
+		if (faux_str_casecmp(name, cb->element)) {
+			handler = cb->handler;
 			break;
 		}
-	case kxml_NODE_DOC:
-	case kxml_NODE_TEXT:
-	case kxml_NODE_ATTR:
-	case kxml_NODE_PI:
-	case kxml_NODE_COMMENT:
-	case kxml_NODE_DECL:
-	case kxml_NODE_UNKNOWN:
-	default:
-		break;
 	}
+	kxml_node_name_free(name);
+	if (!handler)
+		return BOOL_TRUE; // Unknown element
 
-	return res;
+	return handler(node, parent, error);
 }
 
 
 /** @brief Iterate through element's children.
  */
-static bool_t process_children(kxml_node_t *element, void *parent)
+static bool_t process_children(kxml_node_t *element, void *parent, faux_error_t *error)
 {
 	kxml_node_t *node = NULL;
 
 	while ((node = kxml_node_next_child(element, node)) != NULL) {
 		bool_t res = BOOL_FALSE;
-		res = process_node(node, parent);
+		res = process_node(node, parent, error);
 		if (!res)
 			return res;
 	}
@@ -245,65 +230,31 @@ static bool_t process_children(kxml_node_t *element, void *parent)
 }
 
 
-static int process_scheme(kxml_node_t *element, void *parent)
+static bool_t process_scheme(kxml_node_t *element, void *parent, faux_error_t *error)
 {
-	/* Create the global view */
-	if (!shell->global)
-		shell->global = clish_shell_find_create_view(shell, "__view_global");
+	parent = parent; // Happy compiler
 
-	parent = parent; /* Happy compiler */
-
-	return process_children(shell, element, shell->global);
+	return process_children(element, parent, error);
 }
 
 
-static int process_view(kxml_node_t *element,
-	void *parent)
+static bool_t process_view(kxml_node_t *element, void *parent, faux_error_t *error)
 {
+	iview_t iview = {};
 	clish_view_t *view = NULL;
-	clish_view_restore_e restore_e = CLISH_RESTORE_NONE;
-	int res = -1;
+	bool_t res = BOOL_FALSE;
 
-	char *name = kxml_node_attr(element, "name");
-	char *prompt = kxml_node_attr(element, "prompt");
-	char *depth = kxml_node_attr(element, "depth");
-	char *restore = kxml_node_attr(element, "restore");
-	char *access = kxml_node_attr(element, "access");
+	iview.name = kxml_node_attr(element, "name");
 
-	/* Check syntax */
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
+	view = iview_load(iview, error);
+	if (!view)
+		goto err;
+	if (!process_children(shell, element, view))
+		goto err;
 
-	/* re-use a view if it already exists */
-	view = clish_shell_find_create_view(shell, name);
-
-	if (prompt)
-		clish_view__set_prompt(view, prompt);
-
-	if (depth && (lub_ctype_isdigit(*depth))) {
-		unsigned int res = 0;
-		lub_conv_atoui(depth, &res, 0);
-		clish_view__set_depth(view, res);
-	}
-
-	if (restore) {
-		restore_e = clish_view_restore_resolve(restore);
-		clish_view__set_restore(view, restore_e);
-	}
-
-	if (access)
-		clish_view__set_access(view, access);
-
-//process_view_end:
-	res = process_children(shell, element, view);
-error:
+	res = BOOL_TRUE;
+err:
 	kxml_node_attr_free(name);
-	kxml_node_attr_free(prompt);
-	kxml_node_attr_free(depth);
-	kxml_node_attr_free(restore);
-	kxml_node_attr_free(access);
 
 	parent = parent; /* Happy compiler */
 
