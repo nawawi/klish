@@ -38,12 +38,14 @@ EXTRA_DIST += \
 	klish/ktp/Makefile.am \
 	klish/kscheme/Makefile.am \
 	klish/ischeme/Makefile.am \
-	klish/ksession/Makefile.am
+	klish/ksession/Makefile.am \
+	klish/kdb/Makefile.am
 
 include $(top_srcdir)/klish/ktp/Makefile.am
 include $(top_srcdir)/klish/kscheme/Makefile.am
 include $(top_srcdir)/klish/ischeme/Makefile.am
 include $(top_srcdir)/klish/ksession/Makefile.am
+include $(top_srcdir)/klish/kdb/Makefile.am
 
 #if TESTC
 #include $(top_srcdir)/klish/testc_module/Makefile.am

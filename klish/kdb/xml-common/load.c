@@ -16,20 +16,24 @@
 #include <faux/str.h>
 #include <faux/error.h>
 #include <klish/kscheme.h>
+#include <klish/ischeme.h>
 #include <klish/kxml.h>
 
 #define TAG "XML"
 
-typedef bool_t (kxml_process_f)(kxml_node_t *element, void *parent);
+typedef bool_t (kxml_process_fn)(const kxml_node_t *element,
+	void *parent, faux_error_t *error);
 
 static kxml_process_fn
-	process_scheme,
-	process_startup,
-	process_view,
-	process_command,
-	process_param,
 	process_action,
+	process_param,
+	process_command,
+	process_view,
 	process_ptype,
+	process_plugin,
+	process_klish;
+
+/*	process_startup,
 	process_overview,
 	process_detail,
 	process_namespace,
@@ -37,49 +41,93 @@ static kxml_process_fn
 	process_var,
 	process_wdog,
 	process_hotkey,
-	process_plugin,
 	process_hook;
+*/
 
+// Different TAGs types
+typedef enum {
+	KTAG_NONE,
+	KTAG_ACTION,
+	KTAG_PARAM,
+	KTAG_COMMAND,
+	KTAG_VIEW,
+	KTAG_PTYPE,
+	KTAG_PLUGIN,
+	KTAG_KLISH,
+	KTAG_MAX
+} ktags_e;
 
-typedef struct kxml_cb_s kxml_cb_t;
-struct kxml_cb_s {
-	const char *element;
-	kxml_process_fn *handler;
+static const char *kxml_tags[] = {
+	NULL,
+	"ACTION",
+	"PARAM",
+	"COMMAND",
+	"VIEW",
+	"PTYPE",
+	"PLUGIN",
+	"KLISH"
 };
 
-static kxml_cb_t xml_elements[] = {
-	{"KLISH", process_scheme},
-	{"STARTUP", process_startup},
-	{"VIEW", process_view},
-	{"COMMAND", process_command},
-	{"PARAM", process_param},
-	{"ACTION", process_action},
-	{"PTYPE", process_ptype},
-	{"OVERVIEW", process_overview},
-	{"DETAIL", process_detail},
-	{"NAMESPACE", process_namespace},
-	{"CONFIG", process_config},
-	{"VAR", process_var},
-	{"WATCHDOG", process_wdog},
-	{"HOTKEY", process_hotkey},
-	{"PLUGIN", process_plugin},
-	{"HOOK", process_hook},
-	{NULL, NULL}
+static kxml_process_fn *kxml_handlers[] = {
+	NULL,
+	process_action,
+	process_param,
+	process_command,
+	process_view,
+	process_ptype,
+	process_plugin,
+	process_klish
 };
 
 
-/** @brief Default path to get XML files from.
- */
-const char *default_path = "/etc/klish;~/.klish";
-static const char *path_separators = ":;";
-
-
-static bool_t process_node(kxml_node_t *node, void *parent, faux_error_t *error);
-
-
-static bool_t kxml_load_file(kscheme_t *scheme, const char *filename, faux_error_t *error)
+static ktags_e kxml_node_tag(const kxml_node_t *node)
 {
-	int res = -1;
+	ktags_e tag = KTAG_NONE;
+	char *name = NULL;
+
+	if (!node)
+		return KTAG_NONE;
+
+	if (kxml_node_type(node) != KXML_NODE_ELM)
+		return KTAG_NONE;
+	name = kxml_node_name(node);
+	if (!name)
+		return KTAG_NONE; // Strange case
+	for (tag = KTAG_NONE; tag < KTAG_MAX; tag++) {
+		if (faux_str_casecmp(name, kxml_tags[tag]))
+			break;
+	}
+	kxml_node_name_free(name);
+	if (tag >= KTAG_MAX)
+		return KTAG_NONE;
+
+	return tag;
+}
+
+
+static kxml_process_fn *kxml_node_handler(const kxml_node_t *node)
+{
+	return kxml_handlers[kxml_node_tag(node)];
+}
+
+
+/** @brief Reads an element from the XML stream and processes it.
+ */
+static bool_t process_node(const kxml_node_t *node, void *parent, faux_error_t *error)
+{
+	kxml_process_fn *handler = kxml_node_handler(node);
+
+	if (!handler)
+		return BOOL_TRUE; // Unknown element
+
+	return handler(node, parent, error);
+}
+
+
+
+static bool_t kxml_load_file(kscheme_t *scheme, const char *filename,
+	faux_error_t *error)
+{
 	kxml_doc_t *doc = NULL;
 	kxml_node_t *root = NULL;
 	bool_t r = BOOL_FALSE;
@@ -91,19 +139,19 @@ static bool_t kxml_load_file(kscheme_t *scheme, const char *filename, faux_error
 
 	doc = kxml_doc_read(filename);
 	if (!kxml_doc_is_valid(doc)) {
-		int errcaps = kxml_doc_error_caps(doc);
-/*		printf("Unable to open file '%s'", filename);
+/*		int errcaps = kxml_doc_error_caps(doc);
+		printf("Unable to open file '%s'", filename);
 		if ((errcaps & kxml_ERR_LINE) == kxml_ERR_LINE)
-			printf(", at line %d", kxml_doc_get_err_line(doc));
+			printf(", at line %d", kxml_doc_err_line(doc));
 		if ((errcaps & kxml_ERR_COL) == kxml_ERR_COL)
-			printf(", at column %d", kxml_doc_get_err_col(doc));
+			printf(", at column %d", kxml_doc_err_col(doc));
 		if ((errcaps & kxml_ERR_DESC) == kxml_ERR_DESC)
-			printf(", message is %s", kxml_doc_get_err_msg(doc));
+			printf(", message is %s", kxml_doc_err_msg(doc));
 		printf("\n");
 */		kxml_doc_release(doc);
 		return BOOL_FALSE;
 	}
-	root = kxml_doc_get_root(doc);
+	root = kxml_doc_root(doc);
 	r = process_node(root, scheme, error);
 	kxml_doc_release(doc);
 	if (!r) {
@@ -113,6 +161,12 @@ static bool_t kxml_load_file(kscheme_t *scheme, const char *filename, faux_error
 
 	return BOOL_TRUE;
 }
+
+
+/** @brief Default path to get XML files from.
+ */
+const char *default_path = "/etc/klish;~/.klish";
+static const char *path_separators = ":;";
 
 
 kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error)
@@ -179,45 +233,13 @@ kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error)
 }
 
 
-/** @brief Reads an element from the XML stream and processes it.
- */
-static bool_t process_node(kxml_node_t *node, void *parent, faux_error_t *error)
-{
-	kxml_cb_t *cb = NULL;
-	char *name = NULL;
-	kxml_process_fn *handler = NULL;
-
-	if (!node)
-		return BOOL_FALSE;
-	if (!parent)
-		return BOOL_FALSE;
-
-	if (kxml_node_type(node) != KXML_NODE_ELM)
-		return BOOL_TRUE;
-
-	name = kxml_node_name(node);
-	if (!name)
-		return BOOL_TRUE; // Strange case
-	// Find element handler
-	for (cb = &xml_elements[0]; cb->element; cb++) {
-		if (faux_str_casecmp(name, cb->element)) {
-			handler = cb->handler;
-			break;
-		}
-	}
-	kxml_node_name_free(name);
-	if (!handler)
-		return BOOL_TRUE; // Unknown element
-
-	return handler(node, parent, error);
-}
-
 
 /** @brief Iterate through element's children.
  */
-static bool_t process_children(kxml_node_t *element, void *parent, faux_error_t *error)
+static bool_t process_children(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
 {
-	kxml_node_t *node = NULL;
+	const kxml_node_t *node = NULL;
 
 	while ((node = kxml_node_next_child(element, node)) != NULL) {
 		bool_t res = BOOL_FALSE;
@@ -230,38 +252,51 @@ static bool_t process_children(kxml_node_t *element, void *parent, faux_error_t 
 }
 
 
-static bool_t process_scheme(kxml_node_t *element, void *parent, faux_error_t *error)
+static bool_t process_klish(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
 {
-	parent = parent; // Happy compiler
-
 	return process_children(element, parent, error);
 }
 
 
-static bool_t process_view(kxml_node_t *element, void *parent, faux_error_t *error)
+static bool_t process_view(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
 {
 	iview_t iview = {};
-	clish_view_t *view = NULL;
+	kview_t *view = NULL;
 	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	if (parent_tag != KTAG_KLISH) {
+		faux_error_add(error, TAG": Only KLISH tag can contain VIEW tag");
+		return BOOL_FALSE;
+	}
 
 	iview.name = kxml_node_attr(element, "name");
 
-	view = iview_load(iview, error);
+	view = iview_load(&iview, error);
 	if (!view)
 		goto err;
-	if (!process_children(shell, element, view))
+
+	if (!kscheme_add_view((kscheme_t *)parent, view)) {
+		faux_error_sprintf(error, TAG": Can't add VIEW \"%s\"",
+			kview_name(view));
+		kview_free(view);
+		goto err;
+	}
+
+	if (!process_children(element, view, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(name);
-
-	parent = parent; /* Happy compiler */
+	kxml_node_attr_free(iview.name);
 
 	return res;
 }
 
 
+/*
 static int process_ptype(kxml_node_t *element,
 	void *parent)
 {
@@ -277,7 +312,7 @@ static int process_ptype(kxml_node_t *element,
 	char *preprocess_name =	kxml_node_attr(element, "preprocess");
 	char *completion = kxml_node_attr(element, "completion");
 
-	/* Check syntax */
+	// Check syntax
 	if (!name) {
 		fprintf(stderr, kxml__ERROR_ATTR("name"));
 		goto error;
@@ -309,12 +344,12 @@ error:
 	kxml_node_attr_free(preprocess_name);
 	kxml_node_attr_free(completion);
 
-	parent = parent; /* Happy compiler */
+	parent = parent; // Happy compiler
 
 	return res;
 }
-
-
+*/
+#if 0
 static int process_overview(kxml_node_t *element,
 	void *parent)
 {
@@ -337,7 +372,7 @@ static int process_overview(kxml_node_t *element,
 			return -1;
 		}
 		content = new;
-		result = kxml_node_get_content(element, content,
+		result = kxml_node_content(element, content,
 			&content_len);
 	} while (result == -E2BIG);
 
@@ -561,7 +596,7 @@ static int process_param(kxml_node_t *element,
 
 	/* The PARAM can be child of COMMAND or another PARAM */
 	pelement = kxml_node_parent(element);
-	pname = kxml_node_get_all_name(pelement);
+	pname = kxml_node_all_name(pelement);
 	if (pname && lub_string_nocasecmp(pname, "PARAM") == 0)
 		p_param = (clish_param_t *)parent;
 	else
@@ -723,21 +758,21 @@ static int process_action(kxml_node_t *element,
 	char *expand = kxml_node_attr(element, "expand");
 
 	kxml_node_t *pelement = kxml_node_parent(element);
-	char *pname = kxml_node_get_all_name(pelement);
+	char *pname = kxml_node_all_name(pelement);
 	char *text;
 	clish_sym_t *sym = NULL;
 
 	if (pname && lub_string_nocasecmp(pname, "VAR") == 0)
-		action = clish_var__get_action((clish_var_t *)parent);
+		action = clish_var__action((clish_var_t *)parent);
 	else if (pname && lub_string_nocasecmp(pname, "PTYPE") == 0)
-		action = clish_ptype__get_action((clish_ptype_t *)parent);
+		action = clish_ptype__action((clish_ptype_t *)parent);
 	else
-		action = clish_command__get_action((clish_command_t *)parent);
+		action = clish_command__action((clish_command_t *)parent);
 
 	if (pname)
 		free(pname);
 
-	text = kxml_node_get_all_content(element);
+	text = kxml_node_all_content(element);
 
 	if (text && *text) {
 		/* store the action */
@@ -789,7 +824,7 @@ static int process_detail(kxml_node_t *element,
 	clish_command_t *cmd = (clish_command_t *) parent;
 
 	/* read the following text element */
-	char *text = kxml_node_get_all_content(element);
+	char *text = kxml_node_all_content(element);
 
 	if (text && *text) {
 		/* store the action */
@@ -895,7 +930,7 @@ static int process_config(kxml_node_t *element,
 
 	if (!cmd)
 		return 0;
-	config = clish_command__get_config(cmd);
+	config = clish_command__config(cmd);
 
 	/* read the following text element */
 	char *operation = kxml_node_attr(element, "operation");
@@ -1104,7 +1139,7 @@ static int process_plugin(kxml_node_t *element,
 		clish_plugin__set_rtld_global(plugin, BOOL_TRUE);
 
 	/* Get PLUGIN body content */
-	text = kxml_node_get_all_content(element);
+	text = kxml_node_all_content(element);
 	if (text && *text)
 		clish_plugin__set_conf(plugin, text);
 	if (text)
@@ -1168,3 +1203,4 @@ error:
 
 	return res;
 }
+#endif
