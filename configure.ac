@@ -114,26 +114,6 @@ AC_SEARCH_LIBS([faux_zmalloc], [faux],
 	)
 
 
-################################
-# Check for Lua support
-################################
-AC_ARG_WITH(lua,
-            [AS_HELP_STRING([--with-lua=DIR],
-                            [Build Lua ACTION plugin [default=no]])],
-            [use_lua=$withval],
-            [use_lua=no])
-AM_CONDITIONAL(WITH_LUA,test x$use_lua != xno)
-
-if test x$use_lua != xno; then
-    if test x$use_lua != xyes; then
-        CPPFLAGS="${CPPFLAGS} -I$use_lua/include"
-	LDFLAGS="${LDFLAGS} -L$use_lua/lib"
-    fi
-    LUA_VERSION="5.1"
-    AX_LUA_HEADERS()
-    AX_LUA_LIBS()
-fi
-
 
 ################################
 # Check for the roxml library
@@ -155,53 +135,6 @@ AC_ARG_WITH(libxml2,
                             [Use libxml2 as the XML parser implementation [default=no]])],
             [use_libxml2=$withval],
             [use_libxml2=no])
-
-# select the default xml backend
-sel_xml_backends=""
-xml_backend=""
-found_xml_backend=""
-count_xml_backends=0
-if test "x$use_libxml2" != "xno"; then
-    sel_xml_backends="$sel_xml_backends libxml2"
-    xml_backend="libxml2"
-    count_xml_backends=$((count_xml_backends + 1))
-fi
-
-if test "x$use_roxml" != "xno"; then
-    sel_xml_backends="$sel_xml_backends roxml"
-    xml_backend="roxml"
-    count_xml_backends=$((count_xml_backends + 1))
-fi
-
-if test "x$use_expat" != "xno"; then
-    sel_xml_backends="$sel_xml_backends expat"
-    xml_backend="expat"
-    count_xml_backends=$((count_xml_backends + 1))
-fi
-
-if test $count_xml_backends -gt 1; then
-    AC_MSG_WARN([Multiple XML backend has been selected ($sel_xml_backends). I choose $xml_backend])
-fi
-
-if test "x$xml_backend" = "x"; then
-    xml_backend="auto"
-    AC_MSG_WARN([No XML backend has been selected: auto check])
-fi
-
-case x$xml_backend in
-    xroxml)
-        use_libxml2="no"
-        use_expat="no"
-        ;;
-    xlibxml2)
-        use_roxml="no"
-        use_expat="no"
-        ;;
-    xexpat)
-        use_libxml2="no"
-        use_roxml="no"
-        ;;
-esac
 
 XML_LDFLAGS=""
 XML_CFLAGS=""
@@ -427,131 +360,66 @@ else
     AC_MSG_RESULT([no])
 fi
 
-if test "$xml_backend" = "libxml2" -o "$xml_backend" = "auto"; then
-    if test "$xml_backend" = "auto"; then
-        # on auto select, we try to detect the library
-        use_libxml2="yes"
-    fi
-    case x$use_libxml2 in
-      xyes)
-        # I would love to avoid using pkg-config (which may not be available on
-        # some compilation environment) but doing so really add a lot of
-        # complexity to the system, as the headers don't lie in a standard
-        # directory (they lie in a subdirectory of a standard include directory;
-        # not the same thing for configure scripts).
-        XML_CFLAGS="`pkg-config libxml-2.0 --cflags`"
-        XML_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
-        XML_LIBS="`pkg-config libxml-2.0 --libs-only-l`"
-        AC_CHECK_LIB([xml2],
-                     [xmlNewDoc],
-                     [libxml2_lib_found=yes],
-                     [libxml2_lib_found=no],
-                     [])
-        if test "x$libxml2_lib_found" != "xyes"; then
-            if test "$xml_backend" = "auto"; then
-                AC_MSG_WARN([cannot find libxml2 library])
-            else
-                AC_MSG_ERROR([cannot find libxml2 library])
-            fi
-        fi
 
-        # the header file is installed in a subdirectory of one of the standard
-        # include directory. This might prove to be a problem if the cross-
-        # compile environment is not complete enough (i.e. if it misses
-        # pkg-config, or if pkg-config returns wrong values). In most cases, the
-        # environment is likely to be OK so we will never hit any issue.
-        xml2_CFLAGS="$CFLAGS"
-        CFLAGS="$CFLAGS $XML_CFLAGS"
-        AC_CHECK_HEADER([libxml/tree.h],
-                        [libxml2_h_found=yes],
-                        [libxml2_h_found=no],
-                        [/* force include check */])
-        CFLAGS="$xml2_CFLAGS"
-        if test "x$libxml2_h_found" != "xyes"; then
-            if test "$xml_backend" = "auto"; then
-                AC_MSG_WARN([cannot find libxml2 headers])
-            else
-                AC_MSG_ERROR([cannot find libxml2 headers])
-            fi
-        fi
 
-        AC_DEFINE([HAVE_LIB_LIBXML2],
-                  [],
-                  [libxml2-based XML backend])
-        xml_backend="found"
-        found_xml_backend="libxml2"
-        ;;
-      *)
-        # this is probably broken. We consider that the user supplied path is
-        # a non-standard path. But we're not going to check anything.
-        AC_MSG_WARN([--with-libxml2=DIR is probably broken, just trying])
-        XML_LDFLAGS="-L${use_libxml2}/lib"
-        XML_CFLAGS="-I${use_libxml2}/include/libxml2"
-        XML_LIBS="-lxml2"
-        AC_MSG_CHECKING([for libxml2 support])
-        AC_MSG_RESULT([yes])
-        AC_MSG_NOTICE([headers for libxml2 hopefully in ${use_libxml2}/include/libxml2])
-        AC_MSG_NOTICE([library libxml2 hopefully in ${use_libxml2}/lib])
-        AC_DEFINE([HAVE_LIB_LIBXML2],
-                  [],
-                  [libxml2-based XML backend])
-        xml_backend="found"
-        found_xml_backend="libxml2"
-        ;;
-    esac
-else
-    # not selected? We print a small message
-    AC_MSG_CHECKING([for libxml2 support])
-    AC_MSG_RESULT([no])
-fi
+case x$use_libxml2 in
 
-if test "$xml_backend" != "found"; then
-    AC_MSG_ERROR([Failed to find a suitable XML backend])
-fi
+	xno)
+	/bin/true
+	;;
 
-if test $count_xml_backends -eq 0; then
-    AC_MSG_NOTICE([I found a suitable XML backend: $found_xml_backend])
-fi
+	xyes)
+	# I would love to avoid using pkg-config (which may not be available on
+	# some compilation environment) but doing so really add a lot of
+	# complexity to the system, as the headers don't lie in a standard
+	# directory (they lie in a subdirectory of a standard include directory;
+	# not the same thing for configure scripts).
+	LIBXML2_CFLAGS="`pkg-config libxml-2.0 --cflags`"
+	LIBXML2_LDFLAGS="`pkg-config libxml-2.0 --libs-only-L`"
+	LIBXML2_LIBS="`pkg-config libxml-2.0 --libs-only-l`"
+	AC_CHECK_LIB([xml2],
+		[xmlNewDoc],
+		[],
+		[AC_MSG_ERROR([cannot find libxml2 headers])],
+		[])
+	# the header file is installed in a subdirectory of one of the standard
+	# include directory. This might prove to be a problem if the cross-
+	# compile environment is not complete enough (i.e. if it misses
+	# pkg-config, or if pkg-config returns wrong values). In most cases, the
+	# environment is likely to be OK so we will never hit any issue.
+	saved_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $LIBXML2_CFLAGS"
+	AC_CHECK_HEADER([libxml/tree.h],
+		[],
+		[AC_MSG_ERROR([cannot find libxml2 headers])],
+		[])
+	CFLAGS="$saved_CFLAGS"
+	AC_DEFINE([HAVE_LIB_LIBXML2],
+		[],
+		[libxml2-based XML backend])
+	;;
 
-# LIBXSLT
-AC_ARG_WITH(libxslt,
-            [AS_HELP_STRING([--with-libxslt=DIR],
-                            [Use libxslt as the XSLT transform engine [default=no]. Depend on libxml2 library.])],
-            [use_libxslt=$withval],
-            [use_libxslt=no])
+	*)
+	# this is probably broken. We consider that the user supplied path is
+	# a non-standard path. But we're not going to check anything.
+	AC_MSG_WARN([--with-libxml2=DIR is probably broken, just trying])
+	LIBXML2_LDFLAGS="-L${use_libxml2}/lib"
+	LIBXML2_CFLAGS="-I${use_libxml2}/include/libxml2"
+	LIBXML2_LIBS="-lxml2"
+	AC_MSG_CHECKING([for libxml2 support])
+	AC_MSG_RESULT([yes])
+	AC_MSG_NOTICE([headers for libxml2 hopefully in ${use_libxml2}/include/libxml2])
+	AC_MSG_NOTICE([library libxml2 hopefully in ${use_libxml2}/lib])
+	AC_DEFINE([HAVE_LIB_LIBXML2],
+		[],
+		[libxml2-based XML backend])
+	;;
+esac
 
-if test "x$use_libxslt" != "xno" -a "$found_xml_backend" != "libxml2"; then
-    AC_MSG_ERROR([The libxml2 is necessary for libxslt])
-fi
+AC_SUBST(LIBXML2_LIBS)
+AC_SUBST(LIBXML2_LDFLAGS)
+AC_SUBST(LIBXML2_CFLAGS)
 
-################################
-# Check for the libxslt transform engine
-################################
-
-if test x$use_libxslt != xno; then
-	AC_CHECK_LIB([xslt], [xsltApplyStylesheet], [libxslt_lib_found=yes], [libxslt_lib_found=no])
-	if test "x$libxslt_lib_found" != "xyes"; then
-		AC_MSG_ERROR([Can't find an XSLT library])
-	fi
-	XSLT_CFLAGS="`pkg-config libxslt --cflags 2>/dev/null`"
-	XSLT_LDFLAGS="`pkg-config libxslt --libs-only-L 2>/dev/null`"
-	XSLT_LIBS="`pkg-config libxslt --libs-only-l 2>/dev/null`"
-	if test "x${XSLT_LIBS}" = "x"; then
-		XSLT_LIBS="-lxslt"
-	fi
-	XML_CFLAGS="${XML_CFLAGS} ${XSLT_CFLAGS}"
-	XML_LDFLAGS="${XML_LDFLAGS} ${XSLT_LDFLAGS}"
-	XML_LIBS="${XML_LIBS} ${XSLT_LIBS}"
-        AC_DEFINE([HAVE_LIB_LIBXSLT], [], [libxslt XML transform engine])
-fi
-
-################################
-# Common XML related subst
-################################
-
-AC_SUBST(XML_LIBS)
-AC_SUBST(XML_LDFLAGS)
-AC_SUBST(XML_CFLAGS)
 
 ################################
 # Search for network functions (like connect())
@@ -658,6 +526,30 @@ AC_SUBST([CLISH_PLUGIN_BUILTIN_LIST])
 AC_SUBST([CLISH_PLUGIN_BUILTIN_DEFS])
 AC_SUBST([CLISH_PLUGIN_BUILTIN_LIBS])
 #AC_CONFIG_FILES([clish/plugin_builtin.c])
+
+
+################################
+# Check for Lua support
+################################
+AC_ARG_WITH(lua,
+            [AS_HELP_STRING([--with-lua=DIR],
+                            [Build Lua ACTION plugin [default=no]])],
+            [use_lua=$withval],
+            [use_lua=no])
+AM_CONDITIONAL(WITH_LUA,test x$use_lua != xno)
+
+if test x$use_lua != xno; then
+    if test x$use_lua != xyes; then
+        CPPFLAGS="${CPPFLAGS} -I$use_lua/include"
+	LDFLAGS="${LDFLAGS} -L$use_lua/lib"
+    fi
+    LUA_VERSION="5.1"
+    AX_LUA_HEADERS()
+    AX_LUA_LIBS()
+fi
+
+
+
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

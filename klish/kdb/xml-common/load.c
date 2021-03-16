@@ -33,17 +33,6 @@ static kxml_process_fn
 	process_plugin,
 	process_klish;
 
-/*	process_startup,
-	process_overview,
-	process_detail,
-	process_namespace,
-	process_config,
-	process_var,
-	process_wdog,
-	process_hotkey,
-	process_hook;
-*/
-
 // Different TAGs types
 typedef enum {
 	KTAG_NONE,
@@ -122,7 +111,6 @@ static bool_t process_node(const kxml_node_t *node, void *parent, faux_error_t *
 
 	return handler(node, parent, error);
 }
-
 
 
 static bool_t kxml_load_file(kscheme_t *scheme, const char *filename,

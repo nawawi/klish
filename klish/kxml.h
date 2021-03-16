@@ -45,12 +45,12 @@ void kxml_doc_release(kxml_doc_t *doc);
  *
  * Checks if a doc is valid (i.e. it loaded successfully).
  */
-int kxml_doc_is_valid(kxml_doc_t *doc);
+int kxml_doc_is_valid(const kxml_doc_t *doc);
 
 
 /** @brief Gets the document root.
  */
-kxml_node_t *kxml_doc_root(kxml_doc_t *doc);
+kxml_node_t *kxml_doc_root(const kxml_doc_t *doc);
 
 
 /** @brief Gets error description, when available.
@@ -76,7 +76,7 @@ typedef enum {
 
 /** @brief Gets the node type.
  */
-int kxml_node_type(const kxml_node_t *node);
+kxml_nodetype_e kxml_node_type(const kxml_node_t *node);
 
 
 /** @brief Gets the next child or NULL.
