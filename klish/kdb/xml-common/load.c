@@ -267,16 +267,16 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
-	if (parent_tag != KTAG_KLISH) {
-		faux_error_add(error, TAG": Only KLISH tag can contain VIEW tag");
-		return BOOL_FALSE;
-	}
-
 	iview.name = kxml_node_attr(element, "name");
 
 	view = iview_load(&iview, error);
 	if (!view)
 		goto err;
+
+	if (parent_tag != KTAG_KLISH) {
+		faux_error_add(error, TAG": Only KLISH tag can contain VIEW tag");
+		return BOOL_FALSE;
+	}
 
 	if (!kscheme_add_view((kscheme_t *)parent, view)) {
 		faux_error_sprintf(error, TAG": Can't add VIEW \"%s\"",
@@ -296,911 +296,228 @@ err:
 }
 
 
-/*
-static int process_ptype(kxml_node_t *element,
-	void *parent)
+static bool_t process_ptype(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
 {
-	clish_ptype_method_e method;
-	clish_ptype_preprocess_e preprocess;
-	int res = -1;
-	clish_ptype_t *ptype;
+	iptype_t iptype = {};
+	kptype_t *ptype = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
-	char *name = kxml_node_attr(element, "name");
-	char *help = kxml_node_attr(element, "help");
-	char *pattern = kxml_node_attr(element, "pattern");
-	char *method_name = kxml_node_attr(element, "method");
-	char *preprocess_name =	kxml_node_attr(element, "preprocess");
-	char *completion = kxml_node_attr(element, "completion");
+	iptype.name = kxml_node_attr(element, "name");
+	iptype.help = kxml_node_attr(element, "help");
 
-	// Check syntax
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
+	ptype = iptype_load(&iptype, error);
+	if (!ptype)
+		goto err;
+
+	if (parent_tag != KTAG_KLISH) {
+		faux_error_add(error, TAG": Only KLISH tag can contain PTYPE tag");
+		return BOOL_FALSE;
 	}
 
-	method = clish_ptype_method_resolve(method_name);
-	if (CLISH_PTYPE_METHOD_MAX == method) {
-		fprintf(stderr, kxml__ERROR_ATTR("method"));
-		goto error;
-	}
-	if ((method != CLISH_PTYPE_METHOD_CODE) && !pattern) {
-		fprintf(stderr, kxml__ERROR_ATTR("pattern"));
-		goto error;
+	if (!kscheme_add_ptype((kscheme_t *)parent, ptype)) {
+		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\"",
+			kptype_name(ptype));
+		kptype_free(ptype);
+		goto err;
 	}
 
-	preprocess = clish_ptype_preprocess_resolve(preprocess_name);
-	ptype = clish_shell_find_create_ptype(shell,
-		name, help, pattern, method, preprocess);
+	if (!process_children(element, ptype, error))
+		goto err;
 
-	if (completion)
-		clish_ptype__set_completion(ptype, completion);
-
-	res = process_children(shell, element, ptype);
-error:
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(help);
-	kxml_node_attr_free(pattern);
-	kxml_node_attr_free(method_name);
-	kxml_node_attr_free(preprocess_name);
-	kxml_node_attr_free(completion);
-
-	parent = parent; // Happy compiler
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(iptype.name);
+	kxml_node_attr_free(iptype.help);
 
 	return res;
 }
-*/
-#if 0
-static int process_overview(kxml_node_t *element,
-	void *parent)
-{
-	char *content = NULL;
-	unsigned int content_len = 2048;
-	int result;
 
-	/*
-	 * the code below faithfully assume that we'll be able fully store
-	 * the content of the node. If it's really, really big, we may have
-	 * an issue (but then, if it's that big, how the hell does it
-	 * already fits in allocated memory?)
-	 * Ergo, it -should- be safe.
-	 */
-	do {
-		char *new = (char*)realloc(content, content_len);
-		if (!new) {
-			if (content)
-				free(content);
-			return -1;
+
+static bool_t process_plugin(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	iplugin_t iplugin = {};
+	kplugin_t *plugin = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	iplugin.name = kxml_node_attr(element, "name");
+	iplugin.id = kxml_node_attr(element, "id");
+	iplugin.file = kxml_node_attr(element, "file");
+	iplugin.global = kxml_node_attr(element, "global");
+	iplugin.conf = kxml_node_content(element);
+
+	plugin = iplugin_load(&iplugin, error);
+	if (!plugin)
+		goto err;
+
+	if (parent_tag != KTAG_KLISH) {
+		faux_error_add(error, TAG": Only KLISH tag can contain PLUGIN tag");
+		return BOOL_FALSE;
+	}
+
+	if (!kscheme_add_plugin((kscheme_t *)parent, plugin)) {
+		faux_error_sprintf(error, TAG": Can't add PLUGIN \"%s\"",
+			kplugin_name(plugin));
+		kplugin_free(plugin);
+		goto err;
+	}
+
+	if (!process_children(element, plugin, error))
+		goto err;
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(iplugin.name);
+	kxml_node_attr_free(iplugin.id);
+	kxml_node_attr_free(iplugin.file);
+	kxml_node_attr_free(iplugin.global);
+	kxml_node_content_free(iplugin.conf);
+
+	return res;
+}
+
+
+static bool_t process_param(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	iparam_t iparam = {};
+	kparam_t *param = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	iparam.name = kxml_node_attr(element, "name");
+	iparam.help = kxml_node_attr(element, "help");
+	iparam.ptype = kxml_node_attr(element, "ptype");
+
+	param = iparam_load(&iparam, error);
+	if (!param)
+		goto err;
+
+	if (parent_tag != KTAG_COMMAND) {
+		faux_error_add(error, TAG": Only COMMAND tag can contain PARAM tag");
+		return BOOL_FALSE;
+	}
+
+	if (!kcommand_add_param((kcommand_t *)parent, param)) {
+		faux_error_sprintf(error, TAG": Can't add PARAM \"%s\"",
+			kparam_name(param));
+		kparam_free(param);
+		goto err;
+	}
+
+	if (!process_children(element, param, error))
+		goto err;
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(iparam.name);
+	kxml_node_attr_free(iparam.help);
+	kxml_node_attr_free(iparam.ptype);
+
+	return res;
+}
+
+
+static bool_t process_command(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	icommand_t icommand = {};
+	kcommand_t *command = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	icommand.name = kxml_node_attr(element, "name");
+	icommand.help = kxml_node_attr(element, "help");
+
+	command = icommand_load(&icommand, error);
+	if (!command)
+		goto err;
+
+	if (parent_tag != KTAG_VIEW) {
+		faux_error_add(error, TAG": Only VIEW tag can contain COMMAND tag");
+		return BOOL_FALSE;
+	}
+
+	if (!kview_add_command((kview_t *)parent, command)) {
+		faux_error_sprintf(error, TAG": Can't add COMMAND \"%s\"",
+			kcommand_name(command));
+		kcommand_free(command);
+		goto err;
+	}
+
+	if (!process_children(element, command, error))
+		goto err;
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(icommand.name);
+	kxml_node_attr_free(icommand.help);
+
+	return res;
+}
+
+
+static bool_t process_action(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	iaction_t iaction = {};
+	kaction_t *action = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	iaction.sym = kxml_node_attr(element, "sym");
+	iaction.lock = kxml_node_attr(element, "lock");
+	iaction.interrupt = kxml_node_attr(element, "interrupt");
+	iaction.interactive = kxml_node_attr(element, "interactive");
+	iaction.exec_on = kxml_node_attr(element, "exec_on");
+	iaction.update_retcode = kxml_node_attr(element, "update_retcode");
+	iaction.script = kxml_node_content(element);
+
+	action = iaction_load(&iaction, error);
+	if (!action)
+		goto err;
+
+	if (KTAG_COMMAND == parent_tag) {
+		kcommand_t *command = (kcommand_t *)parent;
+		if (!kcommand_add_action(command, action)) {
+			faux_error_sprintf(error,
+				TAG": Can't add ACTION #%d to COMMAND \"%s\"",
+				kcommand_actions_len(command) + 1,
+				kcommand_name(command));
+			kaction_free(action);
+			goto err;
 		}
-		content = new;
-		result = kxml_node_content(element, content,
-			&content_len);
-	} while (result == -E2BIG);
-
-	if (result == 0 && content) {
-		/* set the overview text for this view */
-		assert(NULL == shell->overview);
-		/* store the overview */
-		shell->overview = lub_string_dup(content);
-	}
-
-	if (content)
-		free(content);
-
-	parent = parent; /* Happy compiler */
-
-	return 0;
-}
-
-
-static int process_command(kxml_node_t *element,
-	void *parent)
-{
-	clish_view_t *v = (clish_view_t *) parent;
-	clish_command_t *cmd = NULL;
-	clish_command_t *old;
-	int res = -1;
-
-	char *access = kxml_node_attr(element, "access");
-	char *name = kxml_node_attr(element, "name");
-	char *help = kxml_node_attr(element, "help");
-	char *view = kxml_node_attr(element, "view");
-	char *viewid = kxml_node_attr(element, "viewid");
-	char *escape_chars = kxml_node_attr(element, "escape_chars");
-	char *args_name = kxml_node_attr(element, "args");
-	char *args_help = kxml_node_attr(element, "args_help");
-	char *ref = kxml_node_attr(element, "ref");
-
-	/* Check syntax */
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
-	if (!help) {
-		fprintf(stderr, kxml__ERROR_ATTR("help"));
-		goto error;
-	}
-
-	/* check this command doesn't already exist */
-	old = clish_view_find_command(v, name, BOOL_FALSE);
-	if (old) {
-		fprintf(stderr, kxml__ERROR_STR"Duplicate COMMAND name=\"%s\".\n", name);
-		goto error;
-	}
-
-	/* create a command */
-	cmd = clish_view_new_command(v, name, help);
-	clish_command__set_pview(cmd, v);
-
-	/* Reference 'ref' field */
-	if (ref) {
-		char *saveptr = NULL;
-		const char *delim = "@";
-		char *view_name = NULL;
-		char *cmdn = NULL;
-		char *str = lub_string_dup(ref);
-
-		cmdn = strtok_r(str, delim, &saveptr);
-		if (!cmdn) {
-			fprintf(stderr, kxml__ERROR_STR"Invalid \"ref\" attribute value.\n");
-			lub_string_free(str);
-			goto error;
+	} else if (KTAG_PTYPE == parent_tag) {
+		kptype_t *ptype = (kptype_t *)parent;
+		if (!kptype_add_action(ptype, action)) {
+			faux_error_sprintf(error,
+				TAG": Can't add ACTION #%d to PTYPE \"%s\"",
+				kptype_actions_len(ptype) + 1,
+				kptype_name(ptype));
+			kaction_free(action);
+			goto err;
 		}
-		clish_command__set_alias(cmd, cmdn); /* alias name */
-		view_name = strtok_r(NULL, delim, &saveptr);
-		clish_command__set_alias_view(cmd, view_name);
-		lub_string_free(str);
+	} else {
+		faux_error_add(error,
+			TAG": Only COMMAND, PTYPE tags can contain ACTION tag");
+		return BOOL_FALSE;
 	}
 
-	/* define some specialist escape characters */
-	if (escape_chars)
-		clish_command__set_escape_chars(cmd, escape_chars);
+	if (!process_children(element, action, error))
+		goto err;
 
-	if (args_name) {
-		/* define a "rest of line" argument */
-		clish_param_t *param;
-
-		/* Check syntax */
-		if (!args_help) {
-			fprintf(stderr, kxml__ERROR_ATTR("args_help"));
-			goto error;
-		}
-		param = clish_param_new(args_name, args_help, "__ptype_ARGS");
-		clish_command__set_args(cmd, param);
-	}
-
-	/* define the view which this command changes to */
-	if (view) {
-		/* reference the next view */
-		clish_command__set_viewname(cmd, view);
-	}
-
-	/* define the view id which this command changes to */
-	if (viewid)
-		clish_command__set_viewid(cmd, viewid);
-
-	if (access)
-		clish_command__set_access(cmd, access);
-
-//process_command_end:
-	res = process_children(shell, element, cmd);
-error:
-	kxml_node_attr_free(access);
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(help);
-	kxml_node_attr_free(view);
-	kxml_node_attr_free(viewid);
-	kxml_node_attr_free(escape_chars);
-	kxml_node_attr_free(args_name);
-	kxml_node_attr_free(args_help);
-	kxml_node_attr_free(ref);
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(iaction.sym);
+	kxml_node_attr_free(iaction.lock);
+	kxml_node_attr_free(iaction.interrupt);
+	kxml_node_attr_free(iaction.interactive);
+	kxml_node_attr_free(iaction.exec_on);
+	kxml_node_attr_free(iaction.update_retcode);
+	kxml_node_content_free(iaction.script);
 
 	return res;
 }
-
-
-static int process_startup(kxml_node_t *element,
-	void *parent)
-{
-	clish_command_t *cmd = NULL;
-	int res = -1;
-
-	char *view = kxml_node_attr(element, "view");
-	char *viewid = kxml_node_attr(element, "viewid");
-	char *timeout = kxml_node_attr(element, "timeout");
-	char *default_plugin = kxml_node_attr(element,
-		"default_plugin");
-	char *default_shebang = kxml_node_attr(element,
-		"default_shebang");
-	char *default_expand = kxml_node_attr(element,
-		"default_expand");
-
-	/* Check syntax */
-	if (!view) {
-		fprintf(stderr, kxml__ERROR_ATTR("view"));
-		goto error;
-	}
-	if (shell->startup) {
-		fprintf(stderr, kxml__ERROR_STR"STARTUP tag duplication.\n");
-		goto error;
-	}
-
-	/* create a command with NULL help */
-	cmd = clish_command_new("startup", NULL);
-	clish_command__set_internal(cmd, BOOL_TRUE);
-
-	/* reference the next view */
-	clish_command__set_viewname(cmd, view);
-
-	/* define the view id which this command changes to */
-	if (viewid)
-		clish_command__set_viewid(cmd, viewid);
-
-	if (default_shebang)
-		clish_shell__set_default_shebang(shell, default_shebang);
-
-	if (default_expand)
-		clish_shell__set_default_expand(shell,
-			(lub_string_nocasecmp(default_expand, "true") == 0));
-
-	if (timeout) {
-		unsigned int to = 0;
-		lub_conv_atoui(timeout, &to, 0);
-		clish_shell__set_idle_timeout(shell, to);
-	}
-
-	/* If we need the default plugin */
-	if (default_plugin && (0 == strcmp(default_plugin, "false")))
-		shell->default_plugin = BOOL_FALSE;
-
-	/* remember this command */
-	shell->startup = cmd;
-
-	res = process_children(shell, element, cmd);
-error:
-	kxml_node_attr_free(view);
-	kxml_node_attr_free(viewid);
-	kxml_node_attr_free(default_plugin);
-	kxml_node_attr_free(default_shebang);
-	kxml_node_attr_free(default_expand);
-	kxml_node_attr_free(timeout);
-
-	parent = parent; /* Happy compiler */
-
-	return res;
-}
-
-
-static int process_param(kxml_node_t *element,
-	void *parent)
-{
-	clish_command_t *cmd = NULL;
-	clish_param_t *p_param = NULL;
-	kxml_node_t *pelement;
-	clish_param_t *param;
-	char *pname;
-	int res = -1;
-
-	char *name = kxml_node_attr(element, "name");
-	char *help = kxml_node_attr(element, "help");
-	char *ptype = kxml_node_attr(element, "ptype");
-	char *prefix = kxml_node_attr(element, "prefix");
-	char *defval = kxml_node_attr(element, "default");
-	char *mode = kxml_node_attr(element, "mode");
-	char *optional = kxml_node_attr(element, "optional");
-	char *order = kxml_node_attr(element, "order");
-	char *value = kxml_node_attr(element, "value");
-	char *hidden = kxml_node_attr(element, "hidden");
-	char *test = kxml_node_attr(element, "test");
-	char *completion = kxml_node_attr(element, "completion");
-	char *access = kxml_node_attr(element, "access");
-
-	/* The PARAM can be child of COMMAND or another PARAM */
-	pelement = kxml_node_parent(element);
-	pname = kxml_node_all_name(pelement);
-	if (pname && lub_string_nocasecmp(pname, "PARAM") == 0)
-		p_param = (clish_param_t *)parent;
-	else
-		cmd = (clish_command_t *)parent;
-	if (pname)
-		free(pname);
-	if (!cmd && !p_param)
-		goto error;
-
-	/* Check syntax */
-	if (cmd && (cmd == shell->startup)) {
-		fprintf(stderr, kxml__ERROR_STR"STARTUP can't contain PARAMs.\n");
-		goto error;
-	}
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
-	if (!help) {
-		fprintf(stderr, kxml__ERROR_ATTR("help"));
-		goto error;
-	}
-	if (!ptype) {
-		fprintf(stderr, kxml__ERROR_ATTR("ptype"));
-		goto error;
-	}
-
-	param = clish_param_new(name, help, ptype);
-
-	/* If prefix is set clish will emulate old optional
-	 * command syntax over newer optional command mechanism.
-	 * It will create nested PARAM.
-	 */
-	if (prefix) {
-		const char *ptype_name = "__ptype_SUBCOMMAND";
-		clish_param_t *opt_param = NULL;
-		char *str = NULL;
-		clish_ptype_t *tmp;
-
-		/* Create a ptype for prefix-named subcommand that
-		 * will contain the nested optional parameter. The
-		 * name of ptype is hardcoded. It's not good but
-		 * it's only the service ptype.
-		 */
-		tmp = clish_shell_find_create_ptype(shell,
-			ptype_name, "Option", "[^\\\\]+",
-			CLISH_PTYPE_METHOD_REGEXP, CLISH_PTYPE_PRE_NONE);
-		assert(tmp);
-		lub_string_cat(&str, "_prefix_");
-		lub_string_cat(&str, name);
-		opt_param = clish_param_new(str, help, ptype_name);
-		lub_string_free(str);
-		clish_param__set_mode(opt_param,
-			CLISH_PARAM_SUBCOMMAND);
-		clish_param__set_value(opt_param, prefix);
-		clish_param__set_optional(opt_param, BOOL_TRUE);
-
-		if (test)
-			clish_param__set_test(opt_param, test);
-
-		/* Add the parameter to the command */
-		if (cmd)
-			clish_command_insert_param(cmd, opt_param);
-		/* Add the parameter to the param */
-		if (p_param)
-			clish_param_insert_param(p_param, opt_param);
-		/* Unset cmd and set parent param to opt_param */
-		cmd = NULL;
-		p_param = opt_param;
-	}
-
-	if (defval)
-		clish_param__set_defval(param, defval);
-
-	if (hidden && lub_string_nocasecmp(hidden, "true") == 0)
-		clish_param__set_hidden(param, BOOL_TRUE);
-	else
-		clish_param__set_hidden(param, BOOL_FALSE);
-
-	if (mode) {
-		if (lub_string_nocasecmp(mode, "switch") == 0) {
-			clish_param__set_mode(param,
-				CLISH_PARAM_SWITCH);
-			/* Force hidden attribute */
-			clish_param__set_hidden(param, BOOL_TRUE);
-		} else if (lub_string_nocasecmp(mode, "subcommand") == 0)
-			clish_param__set_mode(param,
-				CLISH_PARAM_SUBCOMMAND);
-		else
-			clish_param__set_mode(param,
-				CLISH_PARAM_COMMON);
-	}
-
-	if (optional && lub_string_nocasecmp(optional, "true") == 0)
-		clish_param__set_optional(param, BOOL_TRUE);
-	else
-		clish_param__set_optional(param, BOOL_FALSE);
-
-	if (order && lub_string_nocasecmp(order, "true") == 0)
-		clish_param__set_order(param, BOOL_TRUE);
-	else
-		clish_param__set_order(param, BOOL_FALSE);
-
-	if (value) {
-		clish_param__set_value(param, value);
-		/* Force mode to subcommand */
-		clish_param__set_mode(param,
-			CLISH_PARAM_SUBCOMMAND);
-	}
-
-	if (test && !prefix)
-		clish_param__set_test(param, test);
-
-	if (completion)
-		clish_param__set_completion(param, completion);
-
-	if (access)
-		clish_param__set_access(param, access);
-
-	/* Add the parameter to the command */
-	if (cmd)
-		clish_command_insert_param(cmd, param);
-
-	/* Add the parameter to the param */
-	if (p_param)
-		clish_param_insert_param(p_param, param);
-
-	res = process_children(shell, element, param);
-
-error:
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(help);
-	kxml_node_attr_free(ptype);
-	kxml_node_attr_free(prefix);
-	kxml_node_attr_free(defval);
-	kxml_node_attr_free(mode);
-	kxml_node_attr_free(optional);
-	kxml_node_attr_free(order);
-	kxml_node_attr_free(value);
-	kxml_node_attr_free(hidden);
-	kxml_node_attr_free(test);
-	kxml_node_attr_free(completion);
-	kxml_node_attr_free(access);
-
-	return res;
-}
-
-
-static int process_action(kxml_node_t *element,
-	void *parent)
-{
-	clish_action_t *action = NULL;
-
-	char *builtin = kxml_node_attr(element, "builtin");
-	char *shebang = kxml_node_attr(element, "shebang");
-	char *lock = kxml_node_attr(element, "lock");
-	char *interrupt = kxml_node_attr(element, "interrupt");
-	char *interactive = kxml_node_attr(element, "interactive");
-	char *expand = kxml_node_attr(element, "expand");
-
-	kxml_node_t *pelement = kxml_node_parent(element);
-	char *pname = kxml_node_all_name(pelement);
-	char *text;
-	clish_sym_t *sym = NULL;
-
-	if (pname && lub_string_nocasecmp(pname, "VAR") == 0)
-		action = clish_var__action((clish_var_t *)parent);
-	else if (pname && lub_string_nocasecmp(pname, "PTYPE") == 0)
-		action = clish_ptype__action((clish_ptype_t *)parent);
-	else
-		action = clish_command__action((clish_command_t *)parent);
-
-	if (pname)
-		free(pname);
-
-	text = kxml_node_all_content(element);
-
-	if (text && *text) {
-		/* store the action */
-		clish_action__set_script(action, text);
-	}
-	if (text)
-		free(text);
-
-	if (builtin)
-		sym = clish_shell_add_unresolved_sym(shell, builtin,
-			CLISH_SYM_TYPE_ACTION);
-	else
-		sym = shell->hooks[CLISH_SYM_TYPE_ACTION];
-
-	clish_action__set_builtin(action, sym);
-	if (shebang)
-		clish_action__set_shebang(action, shebang);
-
-	/* lock */
-	if (lock && lub_string_nocasecmp(lock, "false") == 0)
-		clish_action__set_lock(action, BOOL_FALSE);
-
-	/* interactive */
-	if (interactive && lub_string_nocasecmp(interactive, "true") == 0)
-		clish_action__set_interactive(action, BOOL_TRUE);
-
-	/* interrupt */
-	if (interrupt && lub_string_nocasecmp(interrupt, "true") == 0)
-		clish_action__set_interrupt(action, BOOL_TRUE);
-
-	/* expand */
-	if (expand)
-		clish_action__set_expand(action, lub_tri_from_string(expand));
-
-	kxml_node_attr_free(builtin);
-	kxml_node_attr_free(shebang);
-	kxml_node_attr_free(lock);
-	kxml_node_attr_free(interrupt);
-	kxml_node_attr_free(interactive);
-	kxml_node_attr_free(expand);
-
-	return 0;
-}
-
-
-static int process_detail(kxml_node_t *element,
-	void *parent)
-{
-	clish_command_t *cmd = (clish_command_t *) parent;
-
-	/* read the following text element */
-	char *text = kxml_node_all_content(element);
-
-	if (text && *text) {
-		/* store the action */
-		clish_command__set_detail(cmd, text);
-	}
-
-	if (text)
-		free(text);
-
-	shell = shell; /* Happy compiler */
-
-	return 0;
-}
-
-
-static int process_namespace(kxml_node_t *element,
-	void *parent)
-{
-	clish_view_t *v = (clish_view_t *)parent;
-	clish_nspace_t *nspace = NULL;
-	int res = -1;
-
-	char *view = kxml_node_attr(element, "ref");
-	char *prefix = kxml_node_attr(element, "prefix");
-	char *prefix_help = kxml_node_attr(element, "prefix_help");
-	char *help = kxml_node_attr(element, "help");
-	char *completion = kxml_node_attr(element, "completion");
-	char *context_help = kxml_node_attr(element, "context_help");
-	char *inherit = kxml_node_attr(element, "inherit");
-	char *access = kxml_node_attr(element, "access");
-
-	/* Check syntax */
-	if (!view) {
-		fprintf(stderr, kxml__ERROR_ATTR("ref"));
-		goto error;
-	}
-
-	clish_view_t *ref_view = clish_shell_find_view(shell, view);
-
-	/* Don't include itself without prefix */
-	if ((ref_view == v) && !prefix)
-		goto process_namespace_end;
-
-	nspace = clish_nspace_new(view);
-	clish_view_insert_nspace(v, nspace);
-
-	if (prefix) {
-		clish_nspace__set_prefix(nspace, prefix);
-		if (prefix_help)
-			clish_nspace_create_prefix_cmd(nspace,
-				"prefix",
-				prefix_help);
-		else
-			clish_nspace_create_prefix_cmd(nspace,
-				"prefix",
-				"Prefix for imported commands.");
-	}
-
-	if (help && lub_string_nocasecmp(help, "true") == 0)
-		clish_nspace__set_help(nspace, BOOL_TRUE);
-	else
-		clish_nspace__set_help(nspace, BOOL_FALSE);
-
-	if (completion && lub_string_nocasecmp(completion, "false") == 0)
-		clish_nspace__set_completion(nspace, BOOL_FALSE);
-	else
-		clish_nspace__set_completion(nspace, BOOL_TRUE);
-
-	if (context_help && lub_string_nocasecmp(context_help, "true") == 0)
-		clish_nspace__set_context_help(nspace, BOOL_TRUE);
-	else
-		clish_nspace__set_context_help(nspace, BOOL_FALSE);
-
-	if (inherit && lub_string_nocasecmp(inherit, "false") == 0)
-		clish_nspace__set_inherit(nspace, BOOL_FALSE);
-	else
-		clish_nspace__set_inherit(nspace, BOOL_TRUE);
-
-	if (access)
-		clish_nspace__set_access(nspace, access);
-
-process_namespace_end:
-	res = 0;
-error:
-	kxml_node_attr_free(view);
-	kxml_node_attr_free(prefix);
-	kxml_node_attr_free(prefix_help);
-	kxml_node_attr_free(help);
-	kxml_node_attr_free(completion);
-	kxml_node_attr_free(context_help);
-	kxml_node_attr_free(inherit);
-	kxml_node_attr_free(access);
-
-	return res;
-}
-
-
-static int process_config(kxml_node_t *element,
-	void *parent)
-{
-	clish_command_t *cmd = (clish_command_t *)parent;
-	clish_config_t *config;
-
-	if (!cmd)
-		return 0;
-	config = clish_command__config(cmd);
-
-	/* read the following text element */
-	char *operation = kxml_node_attr(element, "operation");
-	char *priority = kxml_node_attr(element, "priority");
-	char *pattern = kxml_node_attr(element, "pattern");
-	char *file = kxml_node_attr(element, "file");
-	char *splitter = kxml_node_attr(element, "splitter");
-	char *seq = kxml_node_attr(element, "sequence");
-	char *unique = kxml_node_attr(element, "unique");
-	char *depth = kxml_node_attr(element, "depth");
-
-	if (operation && !lub_string_nocasecmp(operation, "unset"))
-		clish_config__set_op(config, CLISH_CONFIG_UNSET);
-	else if (operation && !lub_string_nocasecmp(operation, "none"))
-		clish_config__set_op(config, CLISH_CONFIG_NONE);
-	else if (operation && !lub_string_nocasecmp(operation, "dump"))
-		clish_config__set_op(config, CLISH_CONFIG_DUMP);
-	else {
-		clish_config__set_op(config, CLISH_CONFIG_SET);
-		/* The priority if no clearly specified */
-		clish_config__set_priority(config, 0x7f00);
-	}
-
-	if (priority) {
-		unsigned short pri = 0;
-		lub_conv_atous(priority, &pri, 0);
-		clish_config__set_priority(config, pri);
-	}
-
-	if (pattern)
-		clish_config__set_pattern(config, pattern);
-	else
-		clish_config__set_pattern(config, "^${__cmd}");
-
-	if (file)
-		clish_config__set_file(config, file);
-
-	if (splitter && lub_string_nocasecmp(splitter, "false") == 0)
-		clish_config__set_splitter(config, BOOL_FALSE);
-	else
-		clish_config__set_splitter(config, BOOL_TRUE);
-
-	if (unique && lub_string_nocasecmp(unique, "false") == 0)
-		clish_config__set_unique(config, BOOL_FALSE);
-	else
-		clish_config__set_unique(config, BOOL_TRUE);
-
-	if (seq)
-		clish_config__set_seq(config, seq);
-	else
-		/* The entries without sequence cannot be non-unique */
-		clish_config__set_unique(config, BOOL_TRUE);
-
-	if (depth)
-		clish_config__set_depth(config, depth);
-
-	kxml_node_attr_free(operation);
-	kxml_node_attr_free(priority);
-	kxml_node_attr_free(pattern);
-	kxml_node_attr_free(file);
-	kxml_node_attr_free(splitter);
-	kxml_node_attr_free(seq);
-	kxml_node_attr_free(unique);
-	kxml_node_attr_free(depth);
-
-	shell = shell; /* Happy compiler */
-
-	return 0;
-}
-
-
-static int process_var(kxml_node_t *element,
-	void *parent)
-{
-	clish_var_t *var = NULL;
-	int res = -1;
-
-	char *name = kxml_node_attr(element, "name");
-	char *dynamic = kxml_node_attr(element, "dynamic");
-	char *value = kxml_node_attr(element, "value");
-
-	/* Check syntax */
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
-	/* Check if this var doesn't already exist */
-	var = (clish_var_t *)lub_bintree_find(&shell->var_tree, name);
-	if (var) {
-		fprintf(stderr, kxml__ERROR_STR"Duplicate VAR name=\"%s\".\n", name);
-		goto error;
-	}
-
-	/* Create var instance */
-	var = clish_var_new(name);
-	lub_bintree_insert(&shell->var_tree, var);
-
-	if (dynamic && lub_string_nocasecmp(dynamic, "true") == 0)
-		clish_var__set_dynamic(var, BOOL_TRUE);
-
-	if (value)
-		clish_var__set_value(var, value);
-
-	res = process_children(shell, element, var);
-error:
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(dynamic);
-	kxml_node_attr_free(value);
-
-	parent = parent; /* Happy compiler */
-
-	return res;
-}
-
-
-static int process_wdog(clish_shell_t *shell,
-	kxml_node_t *element, void *parent)
-{
-	clish_command_t *cmd = NULL;
-	int res = -1;
-
-	/* Check syntax */
-	if (shell->wdog) {
-		fprintf(stderr, kxml__ERROR_STR"WATCHDOG tag duplication.\n");
-		goto error;
-	}
-
-	/* Create a command with NULL help */
-	cmd = clish_command_new("watchdog", NULL);
-
-	/* Remember this command */
-	shell->wdog = cmd;
-
-	res = process_children(shell, element, cmd);
-error:
-	parent = parent; /* Happy compiler */
-
-	return res;
-}
-
-
-static int process_hotkey(kxml_node_t *element,
-	void *parent)
-{
-	clish_view_t *v = (clish_view_t *)parent;
-	int res = -1;
-
-	char *key = kxml_node_attr(element, "key");
-	char *cmd = kxml_node_attr(element, "cmd");
-
-	/* Check syntax */
-	if (!key) {
-		fprintf(stderr, kxml__ERROR_ATTR("key"));
-		goto error;
-	}
-	if (!cmd) {
-		fprintf(stderr, kxml__ERROR_ATTR("cmd"));
-		goto error;
-	}
-
-	clish_view_insert_hotkey(v, key, cmd);
-
-	res = 0;
-error:
-	kxml_node_attr_free(key);
-	kxml_node_attr_free(cmd);
-
-	shell = shell; /* Happy compiler */
-
-	return res;
-}
-
-
-static int process_plugin(kxml_node_t *element,
-	void *parent)
-{
-	clish_plugin_t *plugin;
-	char *file = kxml_node_attr(element, "file");
-	char *name = kxml_node_attr(element, "name");
-	char *alias = kxml_node_attr(element, "alias");
-	char *rtld_global = kxml_node_attr(element, "rtld_global");
-	int res = -1;
-	char *text;
-
-	/* Check syntax */
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
-
-	plugin = clish_shell_find_plugin(shell, name);
-	if (plugin) {
-		fprintf(stderr,
-			kxml__ERROR_STR"PLUGIN %s duplication.\n", name);
-		goto error;
-	}
-	plugin = clish_shell_create_plugin(shell, name);
-
-	if (alias && *alias)
-		clish_plugin__set_alias(plugin, alias);
-
-	if (file && *file)
-		clish_plugin__set_file(plugin, file);
-
-	if (rtld_global && lub_string_nocasecmp(rtld_global, "true") == 0)
-		clish_plugin__set_rtld_global(plugin, BOOL_TRUE);
-
-	/* Get PLUGIN body content */
-	text = kxml_node_all_content(element);
-	if (text && *text)
-		clish_plugin__set_conf(plugin, text);
-	if (text)
-		free(text);
-
-	res = 0;
-error:
-	kxml_node_attr_free(file);
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(alias);
-	kxml_node_attr_free(rtld_global);
-
-	parent = parent; /* Happy compiler */
-
-	return res;
-}
-
-
-static int process_hook(kxml_node_t *element,
-	void *parent)
-{
-	char *name = kxml_node_attr(element, "name");
-	char *builtin = kxml_node_attr(element, "builtin");
-	int res = -1;
-	int type = CLISH_SYM_TYPE_NONE;
-
-	/* Check syntax */
-	if (!name) {
-		fprintf(stderr, kxml__ERROR_ATTR("name"));
-		goto error;
-	}
-	/* Find out HOOK type */
-	if (!strcmp(name, "action"))
-		type = CLISH_SYM_TYPE_ACTION;
-	else if (!strcmp(name, "access"))
-		type = CLISH_SYM_TYPE_ACCESS;
-	else if (!strcmp(name, "config"))
-		type = CLISH_SYM_TYPE_CONFIG;
-	else if (!strcmp(name, "log"))
-		type = CLISH_SYM_TYPE_LOG;
-	if (CLISH_SYM_TYPE_NONE == type) {
-		fprintf(stderr, kxml__ERROR_STR"Unknown HOOK name %s.\n", name);
-		goto error;
-	}
-
-	/* Check duplicate HOOK tag */
-	if (shell->hooks_use[type]) {
-		fprintf(stderr,
-			kxml__ERROR_STR"HOOK %s duplication.\n", name);
-		goto error;
-	}
-	shell->hooks_use[type] = BOOL_TRUE;
-	clish_sym__set_name(shell->hooks[type], builtin);
-
-	res = 0;
-error:
-	kxml_node_attr_free(name);
-	kxml_node_attr_free(builtin);
-
-	parent = parent; /* Happy compiler */
-
-	return res;
-}
-#endif

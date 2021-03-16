@@ -331,7 +331,7 @@
 *	value means that ACTION will be always executed and chain return
 *	code will be ignored. Default is "success".
 *
-* [upadate_retcode="true/false"] - The chain return value can be updated
+* [update_retcode="true/false"] - The chain return value can be updated
 *	by current ACTION's return code or ACTION's return code can be ignored.
 *	Default is "true".
 *
