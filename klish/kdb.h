@@ -16,7 +16,7 @@
 // instead "%s". Consider db ID as an "internal native name". The "name"
 // field can differ from ID and it's just used within scheme to refer db.
 // Consider it as alias of ID.
-#define KDB_SONAME_FMT "kdb_%s.so"
+#define KDB_SONAME_FMT "libkdb_%s.so"
 
 // db's API version symbols
 #define KDB_MAJOR_FMT "kdb_%s_major"
