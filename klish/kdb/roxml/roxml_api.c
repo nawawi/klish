@@ -4,129 +4,111 @@
  *
  * This file implements the means to read an XML encoded file 
  * and populate the CLI tree based on the contents. It implements
- * the clish_xml API using roxml
+ * the kxml_ API using roxml
  * ------------------------------------------------------
  */
 
 #include <errno.h>
 #include <roxml.h>
-#include "xmlapi.h"
+#include <string.h>
 
-/* dummy stuff ; really a node_t */
-struct clish_xmldoc_s {
-	int dummy;
-};
+#include <faux/faux.h>
+#include <faux/str.h>
+#include <klish/kxml.h>
 
-/* dummy stuff ; really a node_t */
-struct clish_xmlnode_s {
-	int dummy;
-};
 
-static inline node_t *xmldoc_to_node(clish_xmldoc_t *doc)
+int kxml_doc_start(void)
 {
-	return (node_t*)doc;
+	return 0;
 }
 
-static inline node_t *xmlnode_to_node(clish_xmlnode_t *node)
+
+int kxml_doc_stop(void)
 {
-	return (node_t*)node;
+	return 0;
 }
 
-static inline clish_xmldoc_t *node_to_xmldoc(node_t *node)
+
+kxml_doc_t *kxml_doc_read(const char *filename)
 {
-	return (clish_xmldoc_t*)node;
+	node_t *doc = roxml_load_doc((char *)filename);
+
+	return (kxml_doc_t *)doc;
 }
 
-static inline clish_xmlnode_t *node_to_xmlnode(node_t *node)
+
+void kxml_doc_release(kxml_doc_t *doc)
 {
-	return (clish_xmlnode_t*)node;
+	if (!doc)
+		return;
+
+	roxml_release(RELEASE_ALL);
+	roxml_close((node_t *)doc);
+}
+
+
+int kxml_doc_is_valid(const kxml_doc_t *doc)
+{
+	return (doc != NULL);
 }
 
 /*
- * public interface
- */
-
-int clish_xmldoc_start(void)
+int kxml_doc_error_caps(kxml_doc_t *doc)
 {
-	return 0;
+	return kxml_ERR_NOCAPS;
 }
 
-int clish_xmldoc_stop(void)
-{
-	return 0;
-}
-
-clish_xmldoc_t *clish_xmldoc_read(const char *filename)
-{
-	node_t *doc = roxml_load_doc((char*)filename);
-	return node_to_xmldoc(doc);
-}
-
-void clish_xmldoc_release(clish_xmldoc_t *doc)
-{
-	if (doc) {
-		node_t *node = xmldoc_to_node(doc);
-		roxml_release(RELEASE_ALL);
-		roxml_close(node);
-	}
-}
-
-int clish_xmldoc_is_valid(clish_xmldoc_t *doc)
-{
-	return doc != NULL;
-}
-
-int clish_xmldoc_error_caps(clish_xmldoc_t *doc)
-{
-	return CLISH_XMLERR_NOCAPS;
-}
-
-int clish_xmldoc_get_err_line(clish_xmldoc_t *doc)
+int kxml_doc_get_err_line(kxml_doc_t *doc)
 {
 	return -1;
 }
 
-int clish_xmldoc_get_err_col(clish_xmldoc_t *doc)
+int kxml_doc_get_err_col(kxml_doc_t *doc)
 {
 	return -1;
 }
 
-const char *clish_xmldoc_get_err_msg(clish_xmldoc_t *doc)
+const char *kxml_doc_get_err_msg(kxml_doc_t *doc)
 {
 	return "";
 }
+*/
 
-int clish_xmlnode_get_type(clish_xmlnode_t *node)
+kxml_nodetype_e kxml_node_get_type(const kxml_node_t *node)
 {
-	if (node) {
-		int type = roxml_get_type(xmlnode_to_node(node));
-		switch (type) {
-		case ROXML_ELM_NODE: 
-			return CLISH_XMLNODE_ELM;
-		case ROXML_TXT_NODE: 
-			return CLISH_XMLNODE_TEXT;
-		case ROXML_CMT_NODE: 
-			return CLISH_XMLNODE_COMMENT;
-		case ROXML_PI_NODE: 
-			return CLISH_XMLNODE_PI;
-		case ROXML_ATTR_NODE: 
-			return CLISH_XMLNODE_ATTR;
-		default:
-			break;
-		}
+	int type = 0;
+
+	if (!node)
+		return KXML_NODE_UNKNOWN;
+
+	type = roxml_get_type((node_t *)node);
+	switch (type) {
+	case ROXML_ELM_NODE:
+		return KXML_NODE_ELM;
+	case ROXML_TXT_NODE:
+		return KXML_NODE_TEXT;
+	case ROXML_CMT_NODE:
+		return KXML_NODE_COMMENT;
+	case ROXML_PI_NODE:
+		return KXML_NODE_PI;
+	case ROXML_ATTR_NODE:
+		return KXML_NODE_ATTR;
+	default:
+		break;
 	}
 
-	return CLISH_XMLNODE_UNKNOWN;
+	return KXML_NODE_UNKNOWN;
 }
 
-clish_xmlnode_t *clish_xmldoc_get_root(clish_xmldoc_t *doc)
+
+kxml_node_t *kxml_doc_root(const kxml_doc_t *doc)
 {
-	node_t *root;
+	node_t *root = NULL;
 	char *name = NULL;
 
 	if (!doc)
 		return NULL;
-	root = roxml_get_root(xmldoc_to_node(doc));
+	root = roxml_get_root((node_t *)doc);
 	if (!root)
 		return NULL;
 	/* The root node is always documentRoot since libroxml-2.2.2. */
@@ -136,46 +118,49 @@ clish_xmlnode_t *clish_xmldoc_get_root(clish_xmldoc_t *doc)
 		root = roxml_get_chld(root, NULL, 0);
 	roxml_release(name);
 
-	return node_to_xmlnode(root);
+	return (kxml_node_t *)root;
 }
 
-clish_xmlnode_t *clish_xmlnode_parent(clish_xmlnode_t *node)
+
+kxml_node_t *kxml_node_parent(const kxml_node_t *node)
 {
-	if (node) {
-		node_t *roxn = xmlnode_to_node(node);
-		node_t *root = roxml_get_root(roxn);
-		if (roxn != root)
-			return node_to_xmlnode(roxml_get_parent(roxn));
-	}
+	node_t *roxn = (node_t *)node;
+	node_t *root = NULL;
+
+	if (!node)
+		return NULL;
+
+	root = roxml_get_root(roxn);
+	if (roxn != root)
+		return (kxml_node_t *)roxml_get_parent(roxn);
+
 	return NULL;
 }
 
-clish_xmlnode_t *clish_xmlnode_next_child(clish_xmlnode_t *parent, 
-					  clish_xmlnode_t *curchild)
+
+const kxml_node_t *kxml_node_next_child(const kxml_node_t *parent,
+	const kxml_node_t *curchild)
 {
-	node_t *roxc;
+	node_t *roxc = (node_t *)curchild;
+	node_t *roxp = (node_t *)parent;
+	node_t *child = NULL;
+	int count = 0;
 
 	if (!parent)
 		return NULL;
 
-	roxc = xmlnode_to_node(curchild);
+	if (roxc)
+		return (kxml_node_t *)
+			roxml_get_next_sibling(roxc);
 
-	if (roxc) {
-		return node_to_xmlnode(roxml_get_next_sibling(roxc));
-	} else {
-		node_t *roxp = xmlnode_to_node(parent);
-		node_t *child = NULL;
-		int count;
 
-		count = roxml_get_chld_nb(roxp);
-		if (count)
-			child = roxml_get_chld(roxp, NULL, 0);
+	count = roxml_get_chld_nb(roxp);
+	if (count)
+		child = roxml_get_chld(roxp, NULL, 0);
 
-		return node_to_xmlnode(child);
-	}
-
-	return NULL;
+	return (kxml_node_t *)child;
 }
+
 
 static int i_is_needle(char *src, const char *needle)
 {
@@ -188,6 +173,7 @@ static int i_is_needle(char *src, const char *needle)
 	}
 	return 0;
 }
+
 
 /* warning: dst == src is valid */
 static void i_decode_and_copy(char *dst, char *src)
@@ -213,139 +199,69 @@ static void i_decode_and_copy(char *dst, char *src)
 	*dst++ = 0;
 }
 
-char *clish_xmlnode_fetch_attr(clish_xmlnode_t *node,
-			       const char *attrname)
+
+char *kxml_node_attr(const kxml_node_t *node,
+	const char *attrname)
 {
-	node_t *roxn;
-	node_t *attr;
-	char *content;
+	node_t *roxn = (node_t *)node;
+	node_t *attr = NULL;
+	char *content = NULL;
 
 	if (!node || !attrname)
 		return NULL;
 
-	roxn = xmlnode_to_node(node);
-	attr = roxml_get_attr(roxn, (char*)attrname, 0);
-
+	attr = roxml_get_attr(roxn, (char *)attrname, 0);
 	content = roxml_get_content(attr, NULL, 0, NULL);
-	if (content) {
+	if (content)
 		i_decode_and_copy(content, content);
-	}
+
 	return content;
 }
 
-static int i_get_content(node_t *n, char *v, unsigned int *vl)
-{
-	char *c;
-	int len;
 
-	c = roxml_get_content(n, NULL, 0, NULL);
-	if (c) {
-		len = strlen(c) + 1;
-		if (len <= *vl) {
-			i_decode_and_copy(v, c);
-			roxml_release(c);
-			return 0;
-		} else {
-			*vl = len;
-			roxml_release(c);
-			return -E2BIG;
-		}
-	}
-	*vl = (unsigned int)-1;
-	return -ENOMEM;
+void kxml_node_attr_free(char *str)
+{
+	if (!str)
+		return;
+	roxml_release(str);
 }
 
-int clish_xmlnode_get_content(clish_xmlnode_t *node, char *content, 
-			      unsigned int *contentlen)
+
+char *kxml_node_content(const kxml_node_t *node)
 {
-	if (content && contentlen && *contentlen)
-		*content = 0;
+	char *content = NULL;
 
-	if (!node || !content || !contentlen)
-		return -EINVAL;
+	if (!node)
+		return NULL;
 
-	if (*contentlen <= 1)
-		return -EINVAL;
+	content = roxml_get_content((node_t *)node, NULL, 0, NULL);
+	if (content)
+		i_decode_and_copy(content, content);
 
-	*content = 0;
-
-	return i_get_content(xmlnode_to_node(node), content, contentlen);
+	return content;
 }
 
-static int i_get_name(node_t *n, char *v, unsigned int *vl)
-{
-	char *c;
-	int len;
 
-	c = roxml_get_name(n, NULL, 0);
-	if (c) {
-		len = strlen(c) + 1;
-		if (len <= *vl) {
-			snprintf(v, *vl, "%s", c);
-			v[*vl - 1] = '\0';
-			roxml_release(c);
-			return 0;
-		} else {
-			*vl = len;
-			roxml_release(c);
-			return -E2BIG;
-		}
-	}
-	*vl = (unsigned int)-1;
-	return -ENOMEM;
+void kxml_node_content_free(char *str)
+{
+	if (!str)
+		return;
+	roxml_release(str);
 }
 
-int clish_xmlnode_get_name(clish_xmlnode_t *node, char *name, 
-			    unsigned int *namelen)
+
+char *kxml_node_get_name(const kxml_node_t *node)
 {
-	if (name && namelen && *namelen)
-		*name = 0;
+	if (!node)
+		return NULL;
 
-	if (!node || !name || !namelen)
-		return -EINVAL;
-
-	if (*namelen <= 1)
-		return -EINVAL;
-
-	*name = 0;
-
-	return i_get_name(xmlnode_to_node(node), name, namelen);
+	return roxml_get_name((node_t *)node, NULL, 0);
 }
 
-void clish_xmlnode_print(clish_xmlnode_t *node, FILE *out)
+
+void kxml_node_name_free(char *str)
 {
-	node_t *roxn;
-	char *name;
-
-	roxn = xmlnode_to_node(node);
-	name = roxml_get_name(roxn, NULL, 0);
-	if (name) {
-		fprintf(out, "<%s", name);
-		roxml_release(name);
-		if (roxml_get_attr_nb(roxn)) {
-			int attr_count = roxml_get_attr_nb(roxn);
-			int attr_pos;
-			for (attr_pos = 0; attr_pos < attr_count; ++attr_pos) {
-				node_t *attr = roxml_get_attr(roxn, NULL, attr_pos);
-				char *n = roxml_get_name(attr, NULL, 0);
-				char *v = roxml_get_content(attr, NULL, 0, NULL);
-				if (n && v) {
-					fprintf(out, " %s='%s'", n, v);
-				}
-				if (v) 
-					roxml_release(v);
-				if (n) 
-					roxml_release(n);
-			}
-		}
-		fprintf(out, ">");
-	}
+	if (!str)
+		return;
+	roxml_release(str);
 }
-
-void clish_xml_release(void *p)
-{
-	if (p) {
-		roxml_release(p);
-	}
-}
-
