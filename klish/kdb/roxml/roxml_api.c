@@ -8,11 +8,6 @@
  * ------------------------------------------------------
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#if defined(HAVE_LIB_ROXML)
 #include <errno.h>
 #include <roxml.h>
 #include "xmlapi.h"
@@ -353,6 +348,4 @@ void clish_xml_release(void *p)
 		roxml_release(p);
 	}
 }
-
-#endif /* HAVE_LIB_ROXML */
 

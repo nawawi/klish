@@ -21,11 +21,6 @@
  * ------------------------------------------------------
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#if defined(HAVE_LIB_EXPAT)
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -534,6 +529,4 @@ void clish_xml_release(void *p)
 	p = p; /* Happy compiler */
 	/* nothing to release */
 }
-
-#endif /* HAVE_LIB_EXPAT */
 

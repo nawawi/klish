@@ -240,6 +240,8 @@ AC_ARG_WITH(libxml2,
 	[use_libxml2=$withval],
 	[use_libxml2=no])
 
+AM_CONDITIONAL(WITH_LIBXML2,test x$use_libxml2 != xno)
+
 case x$use_libxml2 in
 xno)
 	/bin/true
@@ -304,6 +306,8 @@ AC_ARG_WITH(roxml,
 		[Use roxml as the XML parser implementation [default=no]])],
 	[use_roxml=$withval],
 	[use_roxml=no])
+
+AM_CONDITIONAL(WITH_ROXML,test x$use_roxml != xno)
 
 case x$use_roxml in
 xno)
@@ -411,6 +415,8 @@ AC_ARG_WITH(expat,
                             [Use expat as the XML parser implementation [default=no]])],
             [use_expat=$withval],
             [use_expat=no])
+
+AM_CONDITIONAL(WITH_EXPAT,test x$use_expat != xno)
 
 case x$use_expat in
 xno)
