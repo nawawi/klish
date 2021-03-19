@@ -1,3 +1,6 @@
+dbdir = ${pkglibdir}/db
+db_LTLIBRARIES =
+
 EXTRA_DIST += \
 	klish/kdb/libxml2/Makefile.am \
 	klish/kdb/roxml/Makefile.am \
