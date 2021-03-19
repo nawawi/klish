@@ -1,3 +1,8 @@
+lib_LTLIBRARIES += libklish-helper-xml.la
+libklish_helper_xml_la_SOURCES = \
+	klish/kdb/xml-common/load.c
+libklish_helper_xml_la_LDFLAGS = -static
+
 dbdir = ${pkglibdir}/db
 db_LTLIBRARIES =
 
