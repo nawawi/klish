@@ -46,7 +46,7 @@ typedef enum {
 	KTAG_MAX
 } ktags_e;
 
-static const char *kxml_tags[] = {
+static const char * const kxml_tags[] = {
 	NULL,
 	"ACTION",
 	"PARAM",
