@@ -15,7 +15,7 @@ TESTC_CFLAGS = -DTESTC
 endif
 
 AM_CFLAGS = -Wall $(DEBUG_CFLAGS) $(TESTC_CFLAGS)
-AM_LDFLAGS = -z relro -z now
+AM_LDFLAGS = -z relro -z now -z defs
 
 bin_PROGRAMS =
 lib_LTLIBRARIES =
