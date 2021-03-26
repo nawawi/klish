@@ -24,11 +24,11 @@ noinst_HEADERS =
 
 EXTRA_DIST =
 	klish/Makefile.am \
-	db/Makefile.am \
+	dbs/Makefile.am \
 	bin/Makefile.am
 
 include $(top_srcdir)/klish/Makefile.am
-include $(top_srcdir)/db/Makefile.am
+include $(top_srcdir)/dbs/Makefile.am
 include $(top_srcdir)/bin/Makefile.am
 
 define CONTROL
