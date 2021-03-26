@@ -34,6 +34,10 @@ typedef struct kplugin_s kplugin_t;
 
 typedef faux_list_node_t kplugin_syms_node_t;
 
+// Callback function prototype
+typedef struct kcontext_s kcontext_t;
+typedef int (*kplugin_sym_f)(kcontext_t *context);
+
 
 C_DECL_BEGIN
 
@@ -45,8 +49,6 @@ const char *kplugin_id(const kplugin_t *plugin);
 bool_t kplugin_set_id(kplugin_t *plugin, const char *id);
 const char *kplugin_file(const kplugin_t *plugin);
 bool_t kplugin_set_file(kplugin_t *plugin, const char *file);
-bool_t kplugin_global(const kplugin_t *plugin);
-bool_t kplugin_set_global(kplugin_t *plugin, bool_t global);
 const char *kplugin_conf(const kplugin_t *plugin);
 bool_t kplugin_set_conf(kplugin_t *plugin, const char *conf);
 uint8_t kplugin_major(const kplugin_t *plugin);

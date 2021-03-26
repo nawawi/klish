@@ -6,14 +6,12 @@ ischeme_t sch = {
    .name = "plugin1",
    .id = "id1",
    .file = "file1",
-   .global = "true",
   },
 
   PLUGIN {
    .name = "plugin2",
    .id = "id2",
    .file = "file2",
-   .global = "false",
   },
 
  END_PLUGIN_LIST,

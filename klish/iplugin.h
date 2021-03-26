@@ -10,7 +10,6 @@ typedef struct iplugin_s {
 	char *name;
 	char *id;
 	char *file;
-	char *global;
 	char *conf;
 } iplugin_t;
 
