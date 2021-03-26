@@ -8,6 +8,7 @@
 #ifndef _klish_kxml_h
 #define _klish_kxml_h
 
+#include <klish/kscheme.h>
 
 /** @brief XML document (opaque type).
  *
@@ -112,6 +113,11 @@ void kxml_node_content_free(char *str);
  */
 char *kxml_node_attr(const kxml_node_t *node, const char *attrname);
 void kxml_node_attr_free(char *str);
+
+
+/** @brief XML-helper
+ */
+kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error);
 
 
 #endif // _klish_kxml_h

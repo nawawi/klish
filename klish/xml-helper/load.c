@@ -153,7 +153,7 @@ static bool_t kxml_load_file(kscheme_t *scheme, const char *filename,
 
 /** @brief Default path to get XML files from.
  */
-const char *default_path = "/etc/klish;~/.klish";
+static const char *default_path = "/etc/klish;~/.klish";
 static const char *path_separators = ":;";
 
 

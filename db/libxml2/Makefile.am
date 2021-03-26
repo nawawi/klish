@@ -6,5 +6,5 @@ kdb_libxml2_la_CFLAGS = $(AM_LDFLAGS) $(LIBXML2_CFLAGS)
 kdb_libxml2_la_LIBADD = libklish-helper-xml.la
 
 kdb_libxml2_la_SOURCES += \
-	klish/kdb/libxml2/libxml2_api.c \
-	klish/kdb/libxml2/libxml2_plugin.c
+	db/libxml2/libxml2_api.c \
+	db/libxml2/libxml2_plugin.c

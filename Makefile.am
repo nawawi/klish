@@ -24,25 +24,11 @@ noinst_HEADERS =
 
 EXTRA_DIST =
 	klish/Makefile.am \
+	db/Makefile.am \
 	bin/Makefile.am
 
-#	bin/module.am \
-#	clish/module.am \
-#	tinyrl/module.am \
-#	konf/module.am \
-#	plugins/module.am \
-#	libc/module.am \
-#	doc/module.am \
-#	contrib \
-#	xml-examples \
-#	debian \
-#	clish.xsd \
-#	LICENCE \
-#	README \
-#	CHANGES \
-#	ISSUES
-
 include $(top_srcdir)/klish/Makefile.am
+include $(top_srcdir)/db/Makefile.am
 include $(top_srcdir)/bin/Makefile.am
 
 define CONTROL
