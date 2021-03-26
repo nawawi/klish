@@ -334,7 +334,6 @@ static bool_t process_plugin(const kxml_node_t *element, void *parent,
 	iplugin.name = kxml_node_attr(element, "name");
 	iplugin.id = kxml_node_attr(element, "id");
 	iplugin.file = kxml_node_attr(element, "file");
-	iplugin.global = kxml_node_attr(element, "global");
 	iplugin.conf = kxml_node_content(element);
 
 	plugin = iplugin_load(&iplugin, error);
@@ -361,7 +360,6 @@ err:
 	kxml_node_attr_free(iplugin.name);
 	kxml_node_attr_free(iplugin.id);
 	kxml_node_attr_free(iplugin.file);
-	kxml_node_attr_free(iplugin.global);
 	kxml_node_content_free(iplugin.conf);
 
 	return res;

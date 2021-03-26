@@ -18,7 +18,6 @@ struct kplugin_s {
 	char *name;
 	char *id;
 	char *file;
-	bool_t global;
 	char *conf;
 	uint8_t major;
 	uint8_t minor;
@@ -42,10 +41,6 @@ KSET_STR(plugin, id);
 // File
 KGET_STR(plugin, file);
 KSET_STR(plugin, file);
-
-// Global
-KGET_BOOL(plugin, global);
-KSET_BOOL(plugin, global);
 
 // Conf
 KGET_STR(plugin, conf);
@@ -89,7 +84,6 @@ kplugin_t *kplugin_new(const char *name)
 	plugin->name = faux_str_dup(name);
 	plugin->id = NULL;
 	plugin->file = NULL;
-	plugin->global = BOOL_FALSE;
 	plugin->conf = NULL;
 	plugin->major = 0;
 	plugin->minor = 0;
@@ -133,7 +127,7 @@ bool_t kplugin_load(kplugin_t *plugin)
 	char *fini_name = NULL;
 	char *major_name = NULL;
 	char *minor_name = NULL;
-	int flag = RTLD_NOW;
+	int flag = RTLD_NOW | RTLD_LOCAL;
 	const char *id = NULL;
 	bool_t retcode = BOOL_FALSE;
 	uint8_t *ver = NULL;
@@ -158,12 +152,6 @@ bool_t kplugin_load(kplugin_t *plugin)
 	minor_name = faux_str_sprintf(KPLUGIN_MINOR_FMT, id);
 	init_name = faux_str_sprintf(KPLUGIN_INIT_FMT, id);
 	fini_name = faux_str_sprintf(KPLUGIN_FINI_FMT, id);
-
-	// SO flags
-	if (kplugin_global(plugin))
-		flag |= RTLD_GLOBAL;
-	else
-		flag |= RTLD_LOCAL;
 
 	// Open shared object
 	plugin->dlhan = dlopen(file_name, flag);

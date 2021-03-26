@@ -43,16 +43,6 @@ bool_t iplugin_parse(const iplugin_t *info, kplugin_t *plugin,
 		}
 	}
 
-	// Global
-	if (!faux_str_is_empty(info->global)) {
-		bool_t b = BOOL_FALSE;
-		if (!faux_conv_str2bool(info->global, &b) ||
-			!kplugin_set_global(plugin, b)) {
-			faux_error_add(error, TAG": Illegal 'global' attribute");
-			retcode = BOOL_FALSE;
-		}
-	}
-
 	// Conf
 	if (!faux_str_is_empty(info->conf)) {
 		if (!kplugin_set_conf(plugin, info->conf)) {
@@ -107,7 +97,6 @@ char *iplugin_deploy(const kplugin_t *kplugin, int level)
 	attr2ctext(&str, "name", kplugin_name(kplugin), level + 1);
 	attr2ctext(&str, "id", kplugin_id(kplugin), level + 1);
 	attr2ctext(&str, "file", kplugin_file(kplugin), level + 1);
-	attr2ctext(&str, "global", faux_conv_bool2str(kplugin_global(kplugin)), level + 1);
 	attr2ctext(&str, "conf", kplugin_conf(kplugin), level + 1);
 
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');
