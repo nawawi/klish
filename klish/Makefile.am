@@ -29,7 +29,8 @@ nobase_include_HEADERS += \
 # Session
 nobase_include_HEADERS += \
 	klish/kudata.h \
-	klish/kustore.h
+	klish/kustore.h \
+	klish/kcontext.h
 
 #noinst_HEADERS += \
 #	klish/khelper.h
