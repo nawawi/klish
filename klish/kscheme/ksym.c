@@ -28,7 +28,7 @@ KGET(sym, const ksym_fn *, function);
 KSET(sym, const ksym_fn *, function);
 
 
-ksym_t *ksym_new(const char *name)
+ksym_t *ksym_new(const char *name, const ksym_fn *function)
 {
 	ksym_t *sym = NULL;
 
@@ -42,7 +42,7 @@ ksym_t *ksym_new(const char *name)
 
 	// Initialize
 	sym->name = faux_str_dup(name);
-	sym->function = NULL;
+	sym->function = function;
 
 	return sym;
 }

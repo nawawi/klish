@@ -182,7 +182,6 @@ bool_t kplugin_load(kplugin_t *plugin)
 	// Get plugin fini function
 	plugin->fini_fn = dlsym(plugin->dlhan, fini_name);
 
-
 	retcode = BOOL_TRUE;
 err:
 	faux_str_free(file_name);

@@ -17,7 +17,7 @@ typedef int (*ksym_fn)(kcontext_t *context);
 C_DECL_BEGIN
 
 // ksym_t
-ksym_t *ksym_new(const char *name);
+ksym_t *ksym_new(const char *name, const ksym_fn *function);
 void ksym_free(ksym_t *sym);
 
 const char *ksym_name(const ksym_t *sym);
