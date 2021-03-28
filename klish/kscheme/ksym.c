@@ -13,7 +13,7 @@
 
 struct ksym_s {
 	char *name;
-	const void *fn;
+	const ksym_fn *function;
 };
 
 
@@ -23,9 +23,9 @@ struct ksym_s {
 KGET_STR(sym, name);
 KSET_STR_ONCE(sym, name);
 
-// Fn (function)
-KGET(sym, const void *, fn);
-KSET(sym, const void *, fn);
+// Function
+KGET(sym, const ksym_fn *, function);
+KSET(sym, const ksym_fn *, function);
 
 
 ksym_t *ksym_new(const char *name)
@@ -42,7 +42,7 @@ ksym_t *ksym_new(const char *name)
 
 	// Initialize
 	sym->name = faux_str_dup(name);
-	sym->fn = NULL;
+	sym->function = NULL;
 
 	return sym;
 }

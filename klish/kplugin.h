@@ -34,10 +34,6 @@ typedef struct kplugin_s kplugin_t;
 
 typedef faux_list_node_t kplugin_syms_node_t;
 
-// Callback function prototype
-typedef struct kcontext_s kcontext_t;
-typedef int (*kplugin_sym_fn)(kcontext_t *context);
-
 
 C_DECL_BEGIN
 
