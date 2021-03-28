@@ -12,7 +12,7 @@ typedef struct ktpd_session_s ktpd_session_t;
 typedef struct ktp_session_s ktp_session_t;
 typedef struct ktpd_clients_s ktpd_clients_t;
 
-typedef bool_t (*faux_session_stall_cb_f)(ktpd_session_t *session,
+typedef bool_t (*faux_session_stall_cb_fn)(ktpd_session_t *session,
 	void *user_data);
 
 C_DECL_BEGIN
@@ -31,7 +31,7 @@ int ktpd_session_fd(const ktpd_session_t *session);
 bool_t ktpd_session_async_in(ktpd_session_t *session);
 bool_t ktpd_session_async_out(ktpd_session_t *session);
 void ktpd_session_set_stall_cb(ktpd_session_t *session,
-	faux_session_stall_cb_f stall_cb, void *user_data);
+	faux_session_stall_cb_fn stall_cb, void *user_data);
 
 // Server's KTP clients database
 ktpd_clients_t *ktpd_clients_new(void);
