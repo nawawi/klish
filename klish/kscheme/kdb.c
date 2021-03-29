@@ -7,11 +7,9 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
-#include <faux/conv.h>
-#include <faux/error.h>
 #include <klish/khelper.h>
+#include <klish/kscheme.h>
 #include <klish/kdb.h>
-#include <klish/ksym.h>
 
 
 struct kdb_s {

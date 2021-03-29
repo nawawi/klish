@@ -8,6 +8,7 @@
 #ifndef _klish_kxml_h
 #define _klish_kxml_h
 
+#include <faux/faux.h>
 #include <klish/kscheme.h>
 
 /** @brief XML document (opaque type).
@@ -28,8 +29,8 @@ typedef struct kxml_node_s kxml_node_t;
  *
  * Some parsers need a global cleanup at the end of the programm.
  */
-int kxml_doc_start(void);
-int kxml_doc_stop(void);
+bool_t kxml_doc_start(void);
+bool_t kxml_doc_stop(void);
 
 
 /** @brief Read an XML document.
@@ -46,7 +47,7 @@ void kxml_doc_release(kxml_doc_t *doc);
  *
  * Checks if a doc is valid (i.e. it loaded successfully).
  */
-int kxml_doc_is_valid(const kxml_doc_t *doc);
+bool_t kxml_doc_is_valid(const kxml_doc_t *doc);
 
 
 /** @brief Gets the document root.

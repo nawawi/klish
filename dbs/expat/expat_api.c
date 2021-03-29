@@ -320,15 +320,15 @@ static void kexpat_free_node(kxml_node_t *cur)
  * Public interface
  */
 
-int kxml_doc_start(void)
+bool_t kxml_doc_start(void)
 {
-	return 0;
+	return BOOL_TRUE;
 }
 
 
-int kxml_doc_stop(void)
+bool_t kxml_doc_stop(void)
 {
-	return 0;
+	return BOOL_TRUE;
 }
 
 
@@ -405,9 +405,9 @@ void kxml_doc_release(kxml_doc_t *doc)
 }
 
 
-int kxml_doc_is_valid(const kxml_doc_t *doc)
+bool_t kxml_doc_is_valid(const kxml_doc_t *doc)
 {
-	return (doc && doc->root);
+	return (bool_t)(doc && doc->root);
 }
 
 /*

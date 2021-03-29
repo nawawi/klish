@@ -27,8 +27,11 @@
 #define KDB_FINI_FMT "kdb_%s_fini"
 
 // db's load and deploy functions
-#define KDB_INIT_FMT "kdb_%s_load_scheme"
-#define KDB_FINI_FMT "kdb_%s_deploy_scheme"
+#define KDB_LOAD_FMT "kdb_%s_load_scheme"
+#define KDB_DEPLOY_FMT "kdb_%s_deploy_scheme"
+
+
+typedef int (*kdb_init_fn)(kcontext_t *context);
 
 
 typedef struct kdb_s kdb_t;
