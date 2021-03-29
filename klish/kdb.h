@@ -31,10 +31,13 @@
 #define KDB_DEPLOY_FMT "kdb_%s_deploy_scheme"
 
 
-typedef int (*kdb_init_fn)(kcontext_t *context);
-
-
 typedef struct kdb_s kdb_t;
+
+typedef bool_t (*kdb_init_fn)(void **p_udata);
+typedef bool_t (*kdb_fini_fn)(void *udata);
+typedef kscheme_t *(*kdb_load_fn)(void *udata, const char *opts);
+typedef bool_t (*kdb_deploy_fn)(const kscheme_t *scheme, void *udata,
+	const char *opts);
 
 
 C_DECL_BEGIN
@@ -44,8 +47,6 @@ void kdb_free(kdb_t *db);
 
 const char *kdb_name(const kdb_t *db);
 const char *kdb_sofile(const kdb_t *db);
-const char *kdb_options(const kdb_t *db);
-bool_t kdb_set_options(kdb_t *db, const char *options);
 
 C_DECL_END
 
