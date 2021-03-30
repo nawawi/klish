@@ -1,4 +1,4 @@
-dbdir = ${pkglibdir}/db
+dbdir = ${pkglibdir}/@DBS_SUBDIR@
 db_LTLIBRARIES =
 
 EXTRA_DIST += \
