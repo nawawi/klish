@@ -12,6 +12,7 @@
 #include <klish/ksym.h>
 
 // Current API version
+// Major and minor version numbers is uint8_t
 #define KPLUGIN_MAJOR 1
 #define KPLUGIN_MINOR 0
 
