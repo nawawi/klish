@@ -31,6 +31,8 @@
 #define KPLUGIN_FINI_FMT "kplugin_%s_fini"
 
 
+typedef struct kcontext_s kcontext_t;
+
 typedef struct kplugin_s kplugin_t;
 
 typedef faux_list_node_t kplugin_syms_node_t;
@@ -54,6 +56,9 @@ uint8_t kplugin_minor(const kplugin_t *plugin);
 bool_t kplugin_set_minor(kplugin_t *plugin, uint8_t minor);
 void *kplugin_udata(const kplugin_t *plugin);
 bool_t kplugin_set_udata(kplugin_t *plugin, void *udata);
+bool_t kplugin_load(kplugin_t *plugin);
+int kplugin_init(kplugin_t *plugin, kcontext_t *context);
+int kplugin_fini(kplugin_t *plugin, kcontext_t *context);
 
 // syms
 bool_t kplugin_add_sym(kplugin_t *plugin, ksym_t *sym);

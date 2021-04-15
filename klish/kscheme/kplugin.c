@@ -22,8 +22,8 @@ struct kplugin_s {
 	uint8_t major;
 	uint8_t minor;
 	void *dlhan; // dlopen() handler
-	void *init_fn;
-	void *fini_fn;
+	ksym_fn init_fn;
+	ksym_fn fini_fn;
 	void *udata; // User data
 	faux_list_t *syms;
 };
@@ -194,4 +194,36 @@ err:
 		dlclose(plugin->dlhan);
 
 	return retcode;
+}
+
+
+int kplugin_init(kplugin_t *plugin, kcontext_t *context)
+{
+	assert(plugin);
+	if (!plugin)
+		return -1;
+	assert(context);
+	if (!context)
+		return -1;
+
+	if (!plugin->init_fn)
+		return -1;
+
+	return plugin->init_fn(context);
+}
+
+
+int kplugin_fini(kplugin_t *plugin, kcontext_t *context)
+{
+	assert(plugin);
+	if (!plugin)
+		return -1;
+	assert(context);
+	if (!context)
+		return -1;
+
+	if (!plugin->fini_fn)
+		return 0; // Fini function is not mandatory so it's ok
+
+	return plugin->fini_fn(context);
 }
