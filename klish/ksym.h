@@ -6,11 +6,11 @@
 #ifndef _klish_ksym_h
 #define _klish_ksym_h
 
+#include <klish/kcontext_base.h>
 
 typedef struct ksym_s ksym_t;
 
 // Callback function prototype
-typedef struct kcontext_s kcontext_t; // Redeclaration to don't include kcontext.h
 typedef int (*ksym_fn)(kcontext_t *context);
 
 

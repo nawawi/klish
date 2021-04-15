@@ -5,6 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kplugin.h>
 #include <klish/kptype.h>
@@ -90,6 +91,78 @@ void kscheme_free(kscheme_t *scheme)
 	faux_free(scheme);
 }
 
+#define TAG "PLUGIN"
+
+bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error)
+{
+	bool_t retcode = BOOL_TRUE;
+	kscheme_plugins_node_t *iter = NULL;
+	kplugin_t *plugin = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->plugins);
+
+	iter = kscheme_plugins_iter(scheme);
+	while ((plugin = kscheme_plugins_each(&iter))) {
+		int init_retcode = 0;
+		if (!kplugin_load(plugin)) {
+			faux_error_sprintf(error,
+				TAG ": Can't load plugin \"%s\"",
+				kplugin_name(plugin));
+			retcode = BOOL_FALSE;
+			continue; // Try to load all plugins
+		}
+		if ((init_retcode = kplugin_init(plugin, context)) < 0) {
+			faux_error_sprintf(error,
+				TAG ": Can't init plugin \"%s\" (%d)",
+				kplugin_name(plugin), init_retcode);
+			retcode = BOOL_FALSE;
+			continue;
+		}
+	}
+
+	return retcode;
+}
+
+
+bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error)
+{
+	bool_t retcode = BOOL_TRUE;
+	kscheme_plugins_node_t *iter = NULL;
+	kplugin_t *plugin = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->plugins);
+
+	iter = kscheme_plugins_iter(scheme);
+	while ((plugin = kscheme_plugins_each(&iter))) {
+		int init_retcode = 0;
+		if (!kplugin_load(plugin)) {
+			faux_error_sprintf(error,
+				TAG ": Can't load plugin \"%s\"",
+				kplugin_name(plugin));
+			retcode = BOOL_FALSE;
+			continue; // Try to load all plugins
+		}
+		if ((init_retcode = kplugin_init(plugin, context)) < 0) {
+			faux_error_sprintf(error,
+				TAG ": Can't init plugin \"%s\" (%d)",
+				kplugin_name(plugin), init_retcode);
+			retcode = BOOL_FALSE;
+			continue;
+		}
+	}
+
+	return retcode;
+}
+
+
 #if 0
 /** @brief Prepares schema for execution.
  *
@@ -97,7 +170,7 @@ void kscheme_free(kscheme_t *scheme)
  * objects and link them to each other, check access
  * permissions. Without this function the schema is not fully functional.
  */
-int kscheme_prepare(kscheme_t *scheme)
+int kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 {
 	clish_command_t *cmd;
 	clish_view_t *view;

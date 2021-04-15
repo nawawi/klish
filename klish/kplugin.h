@@ -10,6 +10,7 @@
 
 #include <faux/list.h>
 #include <klish/ksym.h>
+#include <klish/kcontext_base.h>
 
 // Current API version
 // Major and minor version numbers is uint8_t
@@ -30,8 +31,6 @@
 #define KPLUGIN_INIT_FMT "kplugin_%s_init"
 #define KPLUGIN_FINI_FMT "kplugin_%s_fini"
 
-
-typedef struct kcontext_s kcontext_t;
 
 typedef struct kplugin_s kplugin_t;
 
