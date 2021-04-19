@@ -45,6 +45,7 @@ kscheme_plugins_node_t *kscheme_plugins_iter(const kscheme_t *scheme);
 kplugin_t *kscheme_plugins_each(kscheme_plugins_node_t **iter);
 
 bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
+bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
 
 
 C_DECL_END

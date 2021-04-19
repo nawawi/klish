@@ -157,6 +157,21 @@ bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
 }
 
 
+bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
+{
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	if (!context)
+		return BOOL_FALSE;
+
+	if (!kscheme_fini_plugins(scheme, context, error))
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
 
 /** @brief Prepares schema for execution.
  *
@@ -173,10 +188,8 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 	if (!context)
 		return BOOL_FALSE;
 
-	if (!kscheme_load_plugins(scheme, context, error)) {
-		kscheme_fini_plugins(scheme, context, error);
+	if (!kscheme_load_plugins(scheme, context, error))
 		return BOOL_FALSE;
-	}
 
 #if 0
 	clish_command_t *cmd;

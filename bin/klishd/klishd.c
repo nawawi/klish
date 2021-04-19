@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	int listen_unix_sock = -1;
 	ktpd_clients_t *clients = NULL;
 	kscheme_t *scheme = NULL;
+	faux_error_t *error = faux_error_new();
 
 	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -134,29 +135,29 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Load scheme
+	// Scheme
 	{
 	char *txt = NULL;
-	faux_error_t *error = faux_error_new();
-	kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_INIT);
+	kcontext_t *context = NULL;
+	bool_t prepare_retcode = BOOL_FALSE;
+
+	// Load scheme
 	scheme = ischeme_load(&sch, error);
 	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
-		faux_error_show(error);
-		faux_error_free(error);
 		goto err;
 	}
 	// Prepare scheme
-	if (!kscheme_prepare(scheme, context, error)) {
+	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
+	prepare_retcode = kscheme_prepare(scheme, context, error);
+	kcontext_free(context);
+	if (!prepare_retcode) {
 		fprintf(stderr, "Scheme preparing errors:\n");
-		faux_error_show(error);
-		faux_error_free(error);
 		goto err;
 	}
 	txt = ischeme_deploy(scheme, 0);
 	printf("%s\n", txt);
 	faux_str_free(txt);
-	faux_error_free(error);
 	}
 
 	// Listen socket
@@ -215,11 +216,20 @@ err:
 	}
 
 	// Free scheme
+	{
+	kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_FINI);
+	kscheme_fini(scheme, context, error);
+	kcontext_free(context);
 	kscheme_free(scheme);
+	}
 
 	// Free command line options
 	opts_free(opts);
 	syslog(LOG_INFO, "Stop daemon.\n");
+
+	if (faux_error_len(error) > 0)
+		faux_error_show(error);
+	faux_error_free(error);
 
 	return retval;
 }

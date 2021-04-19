@@ -43,7 +43,7 @@ int kplugin_klish_init(kcontext_t *context)
 	clish_plugin_add_psym(plugin, clish_print_script, "clish_print_script");
 	clish_plugin_add_psym(plugin, clish_print_var, "clish_print_var");
 */
-	//fprintf(stderr, "Plugin 'klish' init\n");
+//	fprintf(stderr, "Plugin 'klish' init\n");
 	context = context; // Happy compiler
 
 	return 0;
@@ -52,7 +52,7 @@ int kplugin_klish_init(kcontext_t *context)
 
 int kplugin_klish_fini(kcontext_t *context)
 {
-	//fprintf(stderr, "Plugin 'klish' fini\n");
+//	fprintf(stderr, "Plugin 'klish' fini\n");
 	context = context;
 
 	return 0;
