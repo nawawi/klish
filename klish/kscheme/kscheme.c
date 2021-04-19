@@ -181,6 +181,8 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
  */
 bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 {
+	kscheme_views_node_t *views_iter = NULL;
+	kview_t *view = NULL;
 
 	assert(scheme);
 	if (!scheme)
@@ -190,6 +192,24 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 
 	if (!kscheme_load_plugins(scheme, context, error))
 		return BOOL_FALSE;
+
+	// Iterate VIEWs
+	views_iter = kscheme_views_iter(scheme);
+	while ((view = kscheme_views_each(&views_iter))) {
+		kview_commands_node_t *commands_iter = NULL;
+		kcommand_t *command = NULL;
+
+		printf("VIEW: %s\n", kview_name(view));
+
+		// Iterate COMMANDs
+		commands_iter = kview_commands_iter(view);
+		while ((command = kview_commands_each(&commands_iter))) {
+//			kview_commands_node_t *commands_iter = NULL;
+//			kcommand_t *command = NULL;
+
+			printf("COMMAND: %s\n", kcommand_name(command));
+		}
+	}
 
 #if 0
 	clish_command_t *cmd;
@@ -202,44 +222,6 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 	clish_hook_access_fn_t *access_fn = NULL;
 	clish_paramv_t *paramv;
 	int i = 0;
-
-	/* Add statically linked plugins */
-	while (clish_plugin_builtin_list[i].name) {
-		clish_plugin_t *plugin;
-		plugin = clish_shell_find_create_plugin(this,
-			clish_plugin_builtin_list[i].name);
-		clish_plugin__set_init(plugin,
-			clish_plugin_builtin_list[i].init);
-		clish_plugin__set_builtin_flag(plugin, BOOL_TRUE);
-		i++;
-	}
-
-	/* Add default plugin to the list of plugins */
-	if (this->default_plugin) {
-		clish_shell_find_create_plugin(this, "clish");
-		/* Default hooks */
-		for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
-			if (this->hooks_use[i])
-				continue;
-			if (!clish_plugin_default_hook[i])
-				continue;
-			clish_sym__set_name(this->hooks[i],
-				clish_plugin_default_hook[i]);
-		}
-	}
-	/* Add default syms to unresolved table */
-	for (i = 0; i < CLISH_SYM_TYPE_MAX; i++) {
-		if (clish_sym__get_name(this->hooks[i]))
-			lub_list_add(this->syms, this->hooks[i]);
-	}
-
-	/* Load plugins and link symbols */
-	if (clish_shell_load_plugins(this) < 0)
-		return -1;
-	if (clish_shell_link_plugins(this) < 0)
-		return -1;
-
-	access_fn = clish_sym__get_func(clish_shell_get_hook(this, CLISH_SYM_TYPE_ACCESS));
 
 	/* Iterate the VIEWs */
 	view_tree = this->view_tree;
