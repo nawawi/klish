@@ -3,15 +3,13 @@ ischeme_t sch = {
  PLUGIN_LIST
 
   PLUGIN {
-   .name = "plugin1",
-   .id = "id1",
-   .file = "file1",
+   .name = "klish",
   },
 
   PLUGIN {
-   .name = "plugin2",
-   .id = "id2",
-   .file = "file2",
+   .name = "base",
+   .id = "klish",
+   .file = "kplugin_klish.so",
   },
 
  END_PLUGIN_LIST,

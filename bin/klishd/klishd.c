@@ -36,6 +36,7 @@
 
 #include <klish/kscheme.h>
 #include <klish/ischeme.h>
+#include <klish/kcontext.h>
 
 #include "private.h"
 
@@ -137,9 +138,17 @@ int main(int argc, char **argv)
 	{
 	char *txt = NULL;
 	faux_error_t *error = faux_error_new();
+	kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_INIT);
 	scheme = ischeme_load(&sch, error);
 	if (!scheme) {
 		fprintf(stderr, "Scheme errors:\n");
+		faux_error_show(error);
+		faux_error_free(error);
+		goto err;
+	}
+	// Prepare scheme
+	if (!kscheme_prepare(scheme, context, error)) {
+		fprintf(stderr, "Scheme preparing errors:\n");
 		faux_error_show(error);
 		faux_error_free(error);
 		goto err;

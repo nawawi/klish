@@ -104,6 +104,8 @@ bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
 	if (!scheme)
 		return BOOL_FALSE;
 	assert(scheme->plugins);
+	if (!context)
+		return BOOL_FALSE;
 
 	iter = kscheme_plugins_iter(scheme);
 	while ((plugin = kscheme_plugins_each(&iter))) {
@@ -131,7 +133,6 @@ bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
 bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
 	faux_error_t *error)
 {
-	bool_t retcode = BOOL_TRUE;
 	kscheme_plugins_node_t *iter = NULL;
 	kplugin_t *plugin = NULL;
 
@@ -139,39 +140,45 @@ bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
 	if (!scheme)
 		return BOOL_FALSE;
 	assert(scheme->plugins);
+	if (!context)
+		return BOOL_FALSE;
 
 	iter = kscheme_plugins_iter(scheme);
 	while ((plugin = kscheme_plugins_each(&iter))) {
-		int init_retcode = 0;
-		if (!kplugin_load(plugin)) {
+		int fini_retcode = -1;
+		if ((fini_retcode = kplugin_fini(plugin, context)) < 0) {
 			faux_error_sprintf(error,
-				TAG ": Can't load plugin \"%s\"",
-				kplugin_name(plugin));
-			retcode = BOOL_FALSE;
-			continue; // Try to load all plugins
-		}
-		if ((init_retcode = kplugin_init(plugin, context)) < 0) {
-			faux_error_sprintf(error,
-				TAG ": Can't init plugin \"%s\" (%d)",
-				kplugin_name(plugin), init_retcode);
-			retcode = BOOL_FALSE;
-			continue;
+				TAG ": Can't fini plugin \"%s\" (%d)",
+				kplugin_name(plugin), fini_retcode);
 		}
 	}
 
-	return retcode;
+	return BOOL_TRUE;
 }
 
 
-#if 0
+
 /** @brief Prepares schema for execution.
  *
  * It loads plugins, link unresolved symbols, then iterates all the
  * objects and link them to each other, check access
  * permissions. Without this function the schema is not fully functional.
  */
-int kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
+bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 {
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	if (!context)
+		return BOOL_FALSE;
+
+	if (!kscheme_load_plugins(scheme, context, error)) {
+		kscheme_fini_plugins(scheme, context, error);
+		return BOOL_FALSE;
+	}
+
+#if 0
 	clish_command_t *cmd;
 	clish_view_t *view;
 	clish_nspace_t *nspace;
@@ -364,7 +371,8 @@ int kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 			}
 		}
 	}
-
-	return 0;
-}
 #endif
+
+	return BOOL_TRUE;
+}
+

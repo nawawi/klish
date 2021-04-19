@@ -44,6 +44,9 @@ ssize_t kscheme_plugins_len(const kscheme_t *scheme);
 kscheme_plugins_node_t *kscheme_plugins_iter(const kscheme_t *scheme);
 kplugin_t *kscheme_plugins_each(kscheme_plugins_node_t **iter);
 
+bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
+
+
 C_DECL_END
 
 #endif // _klish_kscheme_h
