@@ -176,6 +176,47 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 }
 
 
+ksym_t *kscheme_resolve_sym(const kscheme_t *scheme, const char *name)
+{
+	scheme = scheme;
+	name = name;
+	return NULL;
+}
+
+
+bool_t kscheme_prepare_action_list(kscheme_t *scheme, faux_list_t *action_list,
+	faux_error_t *error) {
+	faux_list_node_t *iter = NULL;
+	kaction_t *action = NULL;
+	bool_t retcode = BOOL_TRUE;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(action_list);
+	if (!action_list)
+		return BOOL_FALSE;
+	if (faux_list_is_empty(action_list))
+		return BOOL_TRUE;
+
+	iter = faux_list_head(action_list);
+	while ((action = (kaction_t *)faux_list_each(&iter))) {
+		ksym_t *sym = NULL;
+		const char *sym_ref = kaction_sym_ref(action);
+		sym = kscheme_resolve_sym(scheme, sym_ref);
+		if (!sym) {
+			faux_error_sprintf(error, "Can't resolve symbol \"%s\"",
+				sym_ref);
+			retcode = BOOL_FALSE;
+			continue;
+		}
+		kaction_set_sym(action, sym);
+	}
+
+	return retcode;
+}
+
+
 /** @brief Prepares schema for execution.
  *
  * It loads plugins, link unresolved symbols, then iterates all the
@@ -211,6 +252,9 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 //			kcommand_t *command = NULL;
 
 			printf("COMMAND: %s\n", kcommand_name(command));
+			if (!kscheme_prepare_action_list(scheme,
+				kcommand_actions(command), error))
+				return BOOL_FALSE;
 		}
 	}
 

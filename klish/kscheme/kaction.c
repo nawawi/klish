@@ -13,13 +13,13 @@
 
 struct kaction_s {
 	char *sym_ref; // Text reference to symbol
+	ksym_t *sym; // Symbol itself
 	char *lock; // Named lock
 	bool_t interrupt;
 	bool_t interactive;
 	kaction_cond_e exec_on;
 	bool_t update_retcode;
 	char *script;
-	ksym_t *sym; // Symbol
 };
 
 

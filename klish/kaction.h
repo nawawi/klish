@@ -7,6 +7,7 @@
 #define _klish_kaction_h
 
 #include <faux/error.h>
+#include <klish/ksym.h>
 
 
 typedef struct kaction_s kaction_t;
@@ -38,6 +39,8 @@ bool_t kaction_update_retcode(const kaction_t *action);
 bool_t kaction_set_update_retcode(kaction_t *action, bool_t update_retcode);
 const char *kaction_script(const kaction_t *action);
 bool_t kaction_set_script(kaction_t *action, const char *script);
+ksym_t *kaction_sym(const kaction_t *action);
+bool_t kaction_set_sym(kaction_t *action, ksym_t *sym);
 
 C_DECL_END
 
