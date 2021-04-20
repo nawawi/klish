@@ -59,7 +59,8 @@ KSET(plugin, uint8_t, minor);
 KGET(plugin, void *, udata);
 KSET(plugin, void *, udata);
 
-// COMMAND list
+// SYMs list
+KGET(plugin, faux_list_t *, syms);
 static KCMP_NESTED(plugin, sym, name);
 static KCMP_NESTED_BY_KEY(plugin, sym, name);
 KADD_NESTED(plugin, sym);

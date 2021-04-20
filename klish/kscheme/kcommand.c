@@ -28,6 +28,7 @@ KGET_STR(command, help);
 KSET_STR(command, help);
 
 // PARAM list
+KGET(command, faux_list_t *, params);
 static KCMP_NESTED(command, param, name);
 static KCMP_NESTED_BY_KEY(command, param, name);
 KADD_NESTED(command, param);
@@ -37,6 +38,7 @@ KNESTED_ITER(command, param);
 KNESTED_EACH(command, param);
 
 // ACTION list
+KGET(command, faux_list_t *, actions);
 KADD_NESTED(command, action);
 KNESTED_LEN(command, action);
 KNESTED_ITER(command, action);

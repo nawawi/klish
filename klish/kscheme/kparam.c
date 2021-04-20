@@ -36,6 +36,7 @@ KGET(param, kptype_t *, ptype);
 KSET(param, kptype_t *, ptype);
 
 // PARAM list
+KGET(param, faux_list_t *, params);
 static KCMP_NESTED(param, param, name);
 static KCMP_NESTED_BY_KEY(param, param, name);
 KADD_NESTED(param, param);

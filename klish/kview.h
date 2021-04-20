@@ -23,7 +23,8 @@ void kview_free(kview_t *view);
 
 const char *kview_name(const kview_t *view);
 
-// commands
+// COMMANDs
+faux_list_t *kview_commands(const kview_t *view);
 bool_t kview_add_command(kview_t *view, kcommand_t *command);
 kcommand_t *kview_find_command(const kview_t *view, const char *name);
 ssize_t kview_commands_len(const kview_t *view);

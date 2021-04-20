@@ -59,7 +59,8 @@ bool_t kplugin_load(kplugin_t *plugin);
 int kplugin_init(kplugin_t *plugin, kcontext_t *context);
 int kplugin_fini(kplugin_t *plugin, kcontext_t *context);
 
-// syms
+// SYMs
+faux_list_t *kplugin_syms(const kplugin_t *plugin);
 bool_t kplugin_add_sym(kplugin_t *plugin, ksym_t *sym);
 ksym_t *kplugin_find_sym(const kplugin_t *plugin, const char *name);
 ssize_t kplugin_syms_len(const kplugin_t *plugin);

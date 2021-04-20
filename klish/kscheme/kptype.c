@@ -28,6 +28,7 @@ KGET_STR(ptype, help);
 KSET_STR(ptype, help);
 
 // ACTION list
+KGET(ptype, faux_list_t *, actions);
 KADD_NESTED(ptype, action);
 KNESTED_LEN(ptype, action);
 KNESTED_ITER(ptype, action);

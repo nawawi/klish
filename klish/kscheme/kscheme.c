@@ -22,6 +22,7 @@ struct kscheme_s {
 // Simple methods
 
 // PLUGIN list
+KGET(scheme, faux_list_t *, plugins);
 KCMP_NESTED(scheme, plugin, name);
 KCMP_NESTED_BY_KEY(scheme, plugin, name);
 KADD_NESTED(scheme, plugin);
@@ -31,6 +32,7 @@ KNESTED_ITER(scheme, plugin);
 KNESTED_EACH(scheme, plugin);
 
 // PTYPE list
+KGET(scheme, faux_list_t *, ptypes);
 KCMP_NESTED(scheme, ptype, name);
 KCMP_NESTED_BY_KEY(scheme, ptype, name);
 KADD_NESTED(scheme, ptype);
@@ -40,6 +42,7 @@ KNESTED_ITER(scheme, ptype);
 KNESTED_EACH(scheme, ptype);
 
 // VIEW list
+KGET(scheme, faux_list_t *, views);
 KCMP_NESTED(scheme, view, name);
 KCMP_NESTED_BY_KEY(scheme, view, name);
 KADD_NESTED(scheme, view);

@@ -22,6 +22,7 @@ struct kview_s {
 KGET_STR(view, name);
 
 // COMMAND list
+KGET(view, faux_list_t *, commands);
 KCMP_NESTED(view, command, name);
 KCMP_NESTED_BY_KEY(view, command, name);
 KADD_NESTED(view, command);

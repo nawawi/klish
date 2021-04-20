@@ -56,7 +56,8 @@ KSET(db, uint8_t, minor);
 KGET(db, void *, udata);
 KSET(db, void *, udata);
 
-// COMMAND list
+// SYM list
+/*
 static KCMP_NESTED(db, sym, name);
 static KCMP_NESTED_BY_KEY(db, sym, name);
 KADD_NESTED(db, sym);
@@ -64,7 +65,7 @@ KFIND_NESTED(db, sym);
 KNESTED_LEN(db, sym);
 KNESTED_ITER(db, sym);
 KNESTED_EACH(db, sym);
-
+*/
 
 kdb_t *kdb_new(const char *name)
 {

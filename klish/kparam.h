@@ -25,9 +25,11 @@ bool_t kparam_set_help(kparam_t *param, const char *help);
 const char *kparam_ptype_ref(const kparam_t *param);
 bool_t kparam_set_ptype_ref(kparam_t *param, const char *ptype_ref);
 
-// params
+// PARAMs
+faux_list_t *kparam_params(const kparam_t *param);
 bool_t kparam_add_param(kparam_t *param, kparam_t *nested_param);
 kparam_t *kparam_find_param(const kparam_t *param, const char *name);
+ssize_t kparam_params_len(const kparam_t *param);
 kparam_params_node_t *kparam_params_iter(const kparam_t *param);
 kparam_t *kparam_params_each(kparam_params_node_t **iter);
 

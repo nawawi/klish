@@ -25,19 +25,24 @@ C_DECL_BEGIN
 kscheme_t *kscheme_new(void);
 void kscheme_free(kscheme_t *scheme);
 
-// views
+// VIEWs
+faux_list_t *kscheme_views(const kscheme_t *scheme);
 bool_t kscheme_add_view(kscheme_t *scheme, kview_t *view);
 kview_t *kscheme_find_view(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_views_len(const kscheme_t *scheme);
 kscheme_views_node_t *kscheme_views_iter(const kscheme_t *scheme);
 kview_t *kscheme_views_each(kscheme_views_node_t **iter);
-// ptypes
+
+// PTYPEs
+faux_list_t *kscheme_ptypes(const kscheme_t *scheme);
 bool_t kscheme_add_ptype(kscheme_t *scheme, kptype_t *ptype);
 kptype_t *kscheme_find_ptype(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_ptypes_len(const kscheme_t *scheme);
 kscheme_ptypes_node_t *kscheme_ptypes_iter(const kscheme_t *scheme);
 kptype_t *kscheme_ptypes_each(kscheme_ptypes_node_t **iter);
-// plugins
+
+// PLUGINs
+faux_list_t *kscheme_plugins(const kscheme_t *scheme);
 bool_t kscheme_add_plugin(kscheme_t *scheme, kplugin_t *plugin);
 kplugin_t *kscheme_find_plugin(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_plugins_len(const kscheme_t *scheme);
