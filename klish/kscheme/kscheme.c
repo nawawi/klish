@@ -178,9 +178,50 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 
 ksym_t *kscheme_resolve_sym(const kscheme_t *scheme, const char *name)
 {
-	scheme = scheme;
-	name = name;
-	return NULL;
+	char *saveptr = NULL;
+	const char *delim = "@";
+	char *plugin_name = NULL;
+	char *cmd_name = NULL;
+	char *full_name = NULL;
+	ksym_t *sym = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return NULL;
+	assert(name);
+	if (!name)
+		return NULL;
+
+	// Parse full name to get sym name and optional plugin name
+	full_name = faux_str_dup(name);
+	cmd_name = strtok_r(full_name, delim, &saveptr);
+	if (!cmd_name) {
+		faux_str_free(full_name);
+		return NULL;
+	}
+	plugin_name = strtok_r(NULL, delim, &saveptr);
+
+	// Search for symbol within specified PLUGIN only
+	if (plugin_name) {
+		kplugin_t *plugin = NULL;
+		plugin = kscheme_find_plugin(scheme, plugin_name);
+		if (!plugin)
+			return NULL;
+		sym = kplugin_find_sym(plugin, cmd_name);
+
+	// Search for symbol within all PLUGINs
+	} else {
+		kscheme_plugins_node_t *iter = NULL;
+		kplugin_t *plugin = NULL;
+		iter = kscheme_plugins_iter(scheme);
+		while ((plugin = kscheme_plugins_each(&iter))) {
+			sym = kplugin_find_sym(plugin, cmd_name);
+			if (sym)
+				break;
+		}
+	}
+
+	return sym;
 }
 
 
