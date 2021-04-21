@@ -7,7 +7,7 @@
 #define _klish_kparam_h
 
 #include <faux/list.h>
-#include <klish/ksym.h>
+#include <klish/kptype.h>
 
 typedef struct kparam_s kparam_t;
 
@@ -24,6 +24,8 @@ const char *kparam_help(const kparam_t *param);
 bool_t kparam_set_help(kparam_t *param, const char *help);
 const char *kparam_ptype_ref(const kparam_t *param);
 bool_t kparam_set_ptype_ref(kparam_t *param, const char *ptype_ref);
+kptype_t *kparam_ptype(const kparam_t *param);
+bool_t kparam_set_ptype(kparam_t *param, kptype_t *ptype);
 
 // PARAMs
 faux_list_t *kparam_params(const kparam_t *param);

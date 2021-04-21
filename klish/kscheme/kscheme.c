@@ -181,7 +181,7 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 }
 
 
-ksym_t *kscheme_resolve_sym(const kscheme_t *scheme, const char *name)
+ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 {
 	char *saveptr = NULL;
 	const char *delim = "@";
@@ -249,14 +249,51 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, faux_list_t *action_list,
 	while ((action = (kaction_t *)faux_list_each(&iter))) {
 		ksym_t *sym = NULL;
 		const char *sym_ref = kaction_sym_ref(action);
-		sym = kscheme_resolve_sym(scheme, sym_ref);
+		sym = kscheme_find_sym(scheme, sym_ref);
 		if (!sym) {
-			faux_error_sprintf(error, "Can't resolve symbol \"%s\"",
+			faux_error_sprintf(error, "Can't find symbol \"%s\"",
 				sym_ref);
 			retcode = BOOL_FALSE;
 			continue;
 		}
 		kaction_set_sym(action, sym);
+	}
+
+	return retcode;
+}
+
+
+bool_t kscheme_prepare_param_list(kscheme_t *scheme, faux_list_t *param_list,
+	faux_error_t *error) {
+	faux_list_node_t *iter = NULL;
+	kparam_t *param = NULL;
+	bool_t retcode = BOOL_TRUE;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(param_list);
+	if (!param_list)
+		return BOOL_FALSE;
+	if (faux_list_is_empty(param_list))
+		return BOOL_TRUE;
+
+	iter = faux_list_head(param_list);
+	while ((param = (kparam_t *)faux_list_each(&iter))) {
+		kptype_t *ptype = NULL;
+		const char *ptype_ref = kparam_ptype_ref(param);
+		ptype = kscheme_find_ptype(scheme, ptype_ref);
+		if (!ptype) {
+			faux_error_sprintf(error, "Can't find ptype \"%s\"",
+				ptype_ref);
+			retcode = BOOL_FALSE;
+			continue;
+		}
+		kparam_set_ptype(param, ptype);
+		// Nested PARAMs
+		if (!kscheme_prepare_param_list(scheme, kparam_params(param),
+			error))
+			retcode = BOOL_FALSE;
 	}
 
 	return retcode;
@@ -298,8 +335,13 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 //			kcommand_t *command = NULL;
 
 			printf("COMMAND: %s\n", kcommand_name(command));
+			// ACTIONs
 			if (!kscheme_prepare_action_list(scheme,
 				kcommand_actions(command), error))
+				return BOOL_FALSE;
+			// PARAMs
+			if (!kscheme_prepare_param_list(scheme,
+				kcommand_params(command), error))
 				return BOOL_FALSE;
 		}
 	}
