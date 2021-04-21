@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 
+#include <faux/ini.h>
+#include <klish/kscheme.h>
+
 // Current API version
 #define KDB_MAJOR 1
 #define KDB_MINOR 0
@@ -33,20 +36,33 @@
 
 typedef struct kdb_s kdb_t;
 
-typedef bool_t (*kdb_init_fn)(void **p_udata);
-typedef bool_t (*kdb_fini_fn)(void *udata);
-typedef kscheme_t *(*kdb_load_fn)(void *udata, const char *opts);
-typedef bool_t (*kdb_deploy_fn)(const kscheme_t *scheme, void *udata,
-	const char *opts);
+// DB plugin's entry points
+typedef bool_t (*kdb_init_fn)(kdb_t *db);
+typedef bool_t (*kdb_fini_fn)(kdb_t *db);
+typedef kscheme_t *(*kdb_load_fn)(kdb_t *db);
+typedef bool_t (*kdb_deploy_fn)(kdb_t *db, const kscheme_t *scheme);
 
 
 C_DECL_BEGIN
 
-kdb_t *kdb_new(const char *name, const char *sofile);
+kdb_t *kdb_new(const char *name, const char *file);
 void kdb_free(kdb_t *db);
 
 const char *kdb_name(const kdb_t *db);
-const char *kdb_sofile(const kdb_t *db);
+const char *kdb_file(const kdb_t *db);
+faux_ini_t *kdb_ini(const kdb_t *db);
+bool_t kdb_set_ini(kdb_t *db, faux_ini_t *ini);
+uint8_t kdb_major(const kdb_t *db);
+bool_t kdb_set_major(kdb_t *db, uint8_t major);
+uint8_t kdb_minor(const kdb_t *db);
+bool_t kdb_set_minor(kdb_t *db, uint8_t minor);
+void *kdb_udata(const kdb_t *db);
+bool_t kdb_set_udata(kdb_t *db, void *udata);
+bool_t kdb_load(kdb_t *db);
+int kdb_init(kdb_t *db);
+int kdb_fini(kdb_t *db);
+kscheme_t *kdb_load_scheme(kdb_t *db);
+bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme);
 
 C_DECL_END
 

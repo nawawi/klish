@@ -6,23 +6,23 @@
 #include <dlfcn.h>
 
 #include <faux/str.h>
-#include <faux/list.h>
+#include <faux/ini.h>
 #include <klish/khelper.h>
 #include <klish/kscheme.h>
 #include <klish/kdb.h>
 
 
 struct kdb_s {
-	char *name;
-	char *sofile;
-	char *options;
+	char *name; // Arbitrary name (can be used to generate SO file name)
+	char *file; // SO file name
+	faux_ini_t *ini;
 	uint8_t major;
 	uint8_t minor;
 	void *dlhan; // dlopen() handler
-	void *init_fn;
-	void *fini_fn;
-	void *load_fn;
-	void *deploy_fn;
+	kdb_init_fn init_fn;
+	kdb_fini_fn fini_fn;
+	kdb_load_fn load_fn;
+	kdb_load_fn deploy_fn;
 	void *udata; // User data
 };
 
@@ -32,17 +32,12 @@ struct kdb_s {
 // Name
 KGET_STR(db, name);
 
-// ID
-KGET_STR(db, id);
-KSET_STR(db, id);
-
-// File
+// Shared object file
 KGET_STR(db, file);
-KSET_STR(db, file);
 
-// Conf
-KGET_STR(db, conf);
-KSET_STR(db, conf);
+// INI
+KGET(db, faux_ini_t *, ini);
+KSET(db, faux_ini_t *, ini);
 
 // Version major number
 KGET(db, uint8_t, major);
@@ -56,18 +51,8 @@ KSET(db, uint8_t, minor);
 KGET(db, void *, udata);
 KSET(db, void *, udata);
 
-// SYM list
-/*
-static KCMP_NESTED(db, sym, name);
-static KCMP_NESTED_BY_KEY(db, sym, name);
-KADD_NESTED(db, sym);
-KFIND_NESTED(db, sym);
-KNESTED_LEN(db, sym);
-KNESTED_ITER(db, sym);
-KNESTED_EACH(db, sym);
-*/
 
-kdb_t *kdb_new(const char *name)
+kdb_t *kdb_new(const char *name, const char *file)
 {
 	kdb_t *db = NULL;
 
@@ -81,21 +66,16 @@ kdb_t *kdb_new(const char *name)
 
 	// Initialize
 	db->name = faux_str_dup(name);
-	db->id = NULL;
-	db->file = NULL;
-	db->conf = NULL;
+	db->file = faux_str_dup(file);
+	db->ini = NULL;
 	db->major = 0;
 	db->minor = 0;
 	db->dlhan = NULL;
 	db->init_fn = NULL;
 	db->fini_fn = NULL;
+	db->load_fn = NULL;
+	db->deploy_fn = NULL;
 	db->udata = NULL;
-
-	// SYM list
-	db->syms = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
-		kdb_sym_compare, kdb_sym_kcompare,
-		(void (*)(void *))ksym_free);
-	assert(db->syms);
 
 	return db;
 }
@@ -107,10 +87,8 @@ void kdb_free(kdb_t *db)
 		return;
 
 	faux_str_free(db->name);
-	faux_str_free(db->id);
 	faux_str_free(db->file);
-	faux_str_free(db->conf);
-	faux_list_free(db->syms);
+	faux_ini_free(db->ini);
 
 	if (db->dlhan)
 		dlclose(db->dlhan);
@@ -121,13 +99,15 @@ void kdb_free(kdb_t *db)
 
 bool_t kdb_load(kdb_t *db)
 {
+	const char *name = NULL;
 	char *file_name = NULL;
 	char *init_name = NULL;
 	char *fini_name = NULL;
+	char *load_name = NULL;
+	char *deploy_name = NULL;
 	char *major_name = NULL;
 	char *minor_name = NULL;
 	int flag = RTLD_NOW | RTLD_LOCAL;
-	const char *id = NULL;
 	bool_t retcode = BOOL_FALSE;
 	uint8_t *ver = NULL;
 
@@ -135,22 +115,20 @@ bool_t kdb_load(kdb_t *db)
 	if (!db)
 		return BOOL_FALSE;
 
-	if (kdb_id(db))
-		id = kdb_id(db);
-	else
-		id = kdb_name(db);
-
 	// Shared object file name
+	name = kdb_name(db);
 	if (kdb_file(db))
 		file_name = faux_str_dup(kdb_file(db));
 	else
-		file_name = faux_str_sprintf(Kdb_SONAME_FMT, id);
+		file_name = faux_str_sprintf(KDB_SONAME_FMT, name);
 
 	// Symbol names
-	major_name = faux_str_sprintf(Kdb_MAJOR_FMT, id);
-	minor_name = faux_str_sprintf(Kdb_MINOR_FMT, id);
-	init_name = faux_str_sprintf(Kdb_INIT_FMT, id);
-	fini_name = faux_str_sprintf(Kdb_FINI_FMT, id);
+	major_name = faux_str_sprintf(KDB_MAJOR_FMT, name);
+	minor_name = faux_str_sprintf(KDB_MINOR_FMT, name);
+	init_name = faux_str_sprintf(KDB_INIT_FMT, name);
+	fini_name = faux_str_sprintf(KDB_FINI_FMT, name);
+	load_name = faux_str_sprintf(KDB_LOAD_FMT, name);
+	deploy_name = faux_str_sprintf(KDB_DEPLOY_FMT, name);
 
 	// Open shared object
 	db->dlhan = dlopen(file_name, flag);
@@ -172,14 +150,14 @@ bool_t kdb_load(kdb_t *db)
 
 	// Get db init function
 	db->init_fn = dlsym(db->dlhan, init_name);
-	if (!db->init_fn) {
-//		fprintf(stderr, "Error: Can't get db \"%s\" init function: %s\n",
-//			this->name, dlerror());
+	db->fini_fn = dlsym(db->dlhan, fini_name);
+	db->load_fn = dlsym(db->dlhan, load_name);
+	db->deploy_fn = dlsym(db->dlhan, deploy_name);
+	if (!db->load_fn && !db->deploy_fn) { // Strange DB plugin
+//		fprintf(stderr, "Error: DB plugin \"%s\" has no deploy and load functions\n",
+//			this->name);
 		goto err;
 	}
-
-	// Get db fini function
-	db->fini_fn = dlsym(db->dlhan, fini_name);
 
 	retcode = BOOL_TRUE;
 err:
@@ -188,6 +166,8 @@ err:
 	faux_str_free(minor_name);
 	faux_str_free(init_name);
 	faux_str_free(fini_name);
+	faux_str_free(load_name);
+	faux_str_free(deploy_name);
 
 	if (!retcode && db->dlhan)
 		dlclose(db->dlhan);
