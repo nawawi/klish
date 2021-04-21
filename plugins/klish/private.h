@@ -1,27 +1,19 @@
 /*
- * builtin private.h
+ * private.h
  */
 
-#include "clish/plugin.h"
-#include "clish/shell.h"
+#ifndef _plugins_klish_h
+#define _plugins_klish_h
 
-/* Hooks */
-CLISH_HOOK_ACCESS(clish_hook_access);
-CLISH_HOOK_CONFIG(clish_hook_config);
-CLISH_HOOK_LOG(clish_hook_log);
+#include <faux/faux.h>
+#include <klish/kcontext_base.h>
 
-/* Navy, etc. syms */
-CLISH_PLUGIN_SYM(clish_close);
-CLISH_PLUGIN_SYM(clish_source);
-CLISH_PLUGIN_SYM(clish_source_nostop);
-CLISH_PLUGIN_SYM(clish_overview);
-CLISH_PLUGIN_SYM(clish_history);
-CLISH_PLUGIN_SYM(clish_nested_up);
-CLISH_PLUGIN_SYM(clish_nop);
-CLISH_PLUGIN_SYM(clish_wdog);
-CLISH_PLUGIN_OSYM(clish_script);
-CLISH_PLUGIN_SYM(clish_macros);
-CLISH_PLUGIN_SYM(clish_machine_interface);
-CLISH_PLUGIN_SYM(clish_human_interface);
-CLISH_PLUGIN_SYM(clish_print_script);
-CLISH_PLUGIN_SYM(clish_print_var);
+
+C_DECL_BEGIN
+
+int klish_nop(kcontext_t *context);
+
+C_DECL_END
+
+
+#endif

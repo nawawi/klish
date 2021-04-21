@@ -23,12 +23,12 @@ ischeme_t sch = {
    ACTION_LIST
 
     ACTION {
-     .sym = "internal",
+     .sym = "nop",
      .script = "cat /etc/passwd",
     },
 
     ACTION {
-     .sym = "internal",
+     .sym = "nop@base",
      .script = "cat /etc/group",
     },
 
@@ -120,12 +120,12 @@ ischeme_t sch = {
      ACTION_LIST
 
       ACTION {
-       .sym = "internal",
+       .sym = "nop@klish",
        .script = "cat /etc/passwd",
       },
 
       ACTION {
-       .sym = "internal",
+       .sym = "nop",
        .script = "cat /etc/group",
       },
 

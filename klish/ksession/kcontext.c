@@ -14,10 +14,10 @@
 struct kcontext_s {
 	kcontext_type_e type;
 	int retcode;
-	const kplugin_t *plugin;
-	const ksym_t *sym;
-	const kaction_t *action;
-	const kcommand_t *command;
+	kplugin_t *plugin;
+	ksym_t *sym;
+	kaction_t *action;
+	kcommand_t *command;
 };
 
 
@@ -32,20 +32,20 @@ KGET(context, int, retcode);
 KSET(context, int, retcode);
 
 // Plugin
-KGET(context, const kplugin_t *, plugin);
-KSET(context, const kplugin_t *, plugin);
+KGET(context, kplugin_t *, plugin);
+KSET(context, kplugin_t *, plugin);
 
 // Sym
-KGET(context, const ksym_t *, sym);
-KSET(context, const ksym_t *, sym);
+KGET(context, ksym_t *, sym);
+KSET(context, ksym_t *, sym);
 
 // Action
-KGET(context, const kaction_t *, action);
-KSET(context, const kaction_t *, action);
+KGET(context, kaction_t *, action);
+KSET(context, kaction_t *, action);
 
 // Command
-KGET(context, const kcommand_t *, command);
-KSET(context, const kcommand_t *, command);
+KGET(context, kcommand_t *, command);
+KSET(context, kcommand_t *, command);
 
 
 kcontext_t *kcontext_new(kcontext_type_e type)

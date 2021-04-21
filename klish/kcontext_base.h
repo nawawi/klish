@@ -6,6 +6,9 @@
 #ifndef _klish_kcontext_base_h
 #define _klish_kcontext_base_h
 
+#include <faux/faux.h>
+
+
 typedef struct kcontext_s kcontext_t;
 
 typedef enum {
