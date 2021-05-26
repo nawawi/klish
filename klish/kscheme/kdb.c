@@ -41,11 +41,11 @@ KSET(db, faux_ini_t *, ini);
 
 // Version major number
 KGET(db, uint8_t, major);
-KSET(db, uint8_t, major);
+static KSET(db, uint8_t, major);
 
 // Version minor number
 KGET(db, uint8_t, minor);
-KSET(db, uint8_t, minor);
+static KSET(db, uint8_t, minor);
 
 // User data
 KGET(db, void *, udata);
