@@ -22,7 +22,7 @@ struct kdb_s {
 	kdb_init_fn init_fn;
 	kdb_fini_fn fini_fn;
 	kdb_load_fn load_fn;
-	kdb_load_fn deploy_fn;
+	kdb_deploy_fn deploy_fn;
 	void *udata; // User data
 };
 
@@ -197,4 +197,28 @@ bool_t kdb_fini(kdb_t *db)
 		return BOOL_TRUE; // Fini fn absence is not error
 
 	return db->fini_fn(db);
+}
+
+
+kscheme_t *kdb_load_scheme(kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return NULL;
+	if (!db->load_fn)
+		return NULL;
+
+	return db->load_fn(db);
+}
+
+
+bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+	if (!db->deploy_fn)
+		return BOOL_FALSE;
+
+	return db->deploy_fn(db, scheme);
 }
