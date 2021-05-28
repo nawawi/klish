@@ -58,9 +58,9 @@ uint8_t kdb_minor(const kdb_t *db);
 // static bool_t kdb_set_minor(kdb_t *db, uint8_t minor);
 void *kdb_udata(const kdb_t *db);
 bool_t kdb_set_udata(kdb_t *db, void *udata);
-bool_t kdb_load(kdb_t *db);
-int kdb_init(kdb_t *db);
-int kdb_fini(kdb_t *db);
+bool_t kdb_load_plugin(kdb_t *db);
+bool_t kdb_init(kdb_t *db);
+bool_t kdb_fini(kdb_t *db);
 kscheme_t *kdb_load_scheme(kdb_t *db);
 bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme);
 

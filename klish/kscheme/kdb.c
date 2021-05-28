@@ -97,7 +97,7 @@ void kdb_free(kdb_t *db)
 }
 
 
-bool_t kdb_load(kdb_t *db)
+bool_t kdb_load_plugin(kdb_t *db)
 {
 	const char *name = NULL;
 	char *file_name = NULL;
@@ -173,4 +173,28 @@ err:
 		dlclose(db->dlhan);
 
 	return retcode;
+}
+
+
+bool_t kdb_init(kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+	if (!db->init_fn)
+		return BOOL_TRUE; // Init fn absence is not error
+
+	return db->init_fn(db);
+}
+
+
+bool_t kdb_fini(kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+	if (!db->fini_fn)
+		return BOOL_TRUE; // Fini fn absence is not error
+
+	return db->fini_fn(db);
 }
