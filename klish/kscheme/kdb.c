@@ -206,15 +206,18 @@ bool_t kdb_fini(kdb_t *db)
 }
 
 
-kscheme_t *kdb_load_scheme(kdb_t *db)
+bool_t kdb_load_scheme(kdb_t *db, kscheme_t *scheme)
 {
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
 	assert(db);
 	if (!db)
-		return NULL;
+		return BOOL_FALSE;
 	if (!db->load_fn)
-		return NULL;
+		return BOOL_FALSE;
 
-	return db->load_fn(db);
+	return db->load_fn(db, scheme);
 }
 
 

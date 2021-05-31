@@ -157,19 +157,18 @@ static const char *default_path = "/etc/klish;~/.klish";
 static const char *path_separators = ":;";
 
 
-kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error)
+bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
+	faux_error_t *error)
 {
-	kscheme_t *scheme = NULL;
 	const char *path = xml_path;
 	char *realpath = NULL;
 	char *fn = NULL;
 	char *saveptr = NULL;
 	bool_t ret = BOOL_TRUE;
 
-	// New kscheme instance
-	scheme = kscheme_new();
+	assert(scheme);
 	if (!scheme)
-		return NULL;
+		return BOOL_FALSE;
 
 	// Use the default path if not specified
 	if (!path)
@@ -212,14 +211,9 @@ kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error)
 	}
 
 	faux_str_free(realpath);
-	if (!ret) { // Some errors while XML parsing
-		kscheme_free(scheme);
-		return NULL;
-	}
 
-	return scheme;
+	return ret;
 }
-
 
 
 /** @brief Iterate through element's children.

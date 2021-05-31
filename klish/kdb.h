@@ -43,7 +43,7 @@ typedef struct kdb_s kdb_t;
 // DB plugin's entry points
 typedef bool_t (*kdb_init_fn)(kdb_t *db);
 typedef bool_t (*kdb_fini_fn)(kdb_t *db);
-typedef kscheme_t *(*kdb_load_fn)(kdb_t *db);
+typedef bool_t (*kdb_load_fn)(kdb_t *db, kscheme_t *scheme);
 typedef bool_t (*kdb_deploy_fn)(kdb_t *db, const kscheme_t *scheme);
 
 
@@ -66,7 +66,7 @@ faux_error_t *kdb_error(const kdb_t *db);
 bool_t kdb_load_plugin(kdb_t *db);
 bool_t kdb_init(kdb_t *db);
 bool_t kdb_fini(kdb_t *db);
-kscheme_t *kdb_load_scheme(kdb_t *db);
+bool_t kdb_load_scheme(kdb_t *db, kscheme_t *scheme);
 bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme);
 bool_t kdb_has_init_fn(const kdb_t *db);
 bool_t kdb_has_fini_fn(const kdb_t *db);

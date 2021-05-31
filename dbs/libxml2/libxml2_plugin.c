@@ -17,7 +17,7 @@ uint8_t kdb_libxml2_major = KDB_MAJOR;
 uint8_t kdb_libxml2_minor = KDB_MINOR;
 
 
-kscheme_t *kdb_libxml2_load_scheme(kdb_t *db)
+bool_t kdb_libxml2_load_scheme(kdb_t *db, kscheme_t *scheme)
 {
 	faux_ini_t *ini = NULL;
 	faux_error_t *error = NULL;
@@ -33,5 +33,5 @@ kscheme_t *kdb_libxml2_load_scheme(kdb_t *db)
 		xml_path = faux_ini_find(ini, "XMLPath");
 	error = kdb_error(db);
 
-	return kxml_load_scheme(xml_path, error);
+	return kxml_load_scheme(scheme, xml_path, error);
 }

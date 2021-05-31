@@ -118,7 +118,8 @@ void kxml_node_attr_free(char *str);
 
 /** @brief XML-helper
  */
-kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error);
+bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
+	faux_error_t *error);
 
 
 #endif // _klish_kxml_h
