@@ -139,8 +139,8 @@ bool_t kdb_load_plugin(kdb_t *db)
 	// Open shared object
 	db->dlhan = dlopen(file_name, flag);
 	if (!db->dlhan) {
-		faux_error_sprintf(db->error, "DB \"%s\": Can't open db \"%s\": %s",
-			db->name, file_name, dlerror());
+		faux_error_sprintf(db->error, "DB \"%s\": %s",
+			db->name, dlerror());
 		goto err;
 	}
 
