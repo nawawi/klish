@@ -20,6 +20,7 @@
 
 #include <faux/faux.h>
 #include <faux/str.h>
+#include <faux/argv.h>
 #include <faux/ini.h>
 #include <faux/log.h>
 #include <faux/sched.h>
@@ -37,6 +38,7 @@
 #include <klish/kscheme.h>
 #include <klish/ischeme.h>
 #include <klish/kcontext.h>
+#include <klish/kdb.h>
 
 #include "private.h"
 
@@ -44,6 +46,8 @@
 
 // Local static functions
 static int create_listen_unix_sock(const char *path);
+static bool_t load_all_dbs(kscheme_t *scheme, const char *dbs,
+	faux_ini_t *global_config, faux_error_t *error);
 
 
 // Main loop events
@@ -144,10 +148,15 @@ int main(int argc, char **argv)
 	bool_t prepare_retcode = BOOL_FALSE;
 
 	// Load scheme
-	if (!ischeme_load(&sch, scheme, error)) {
+	if (!load_all_dbs(scheme, opts->dbs, config, error)) {
 		fprintf(stderr, "Scheme errors:\n");
 		goto err;
 	}
+//	if (!ischeme_load(&sch, scheme, error)) {
+//		fprintf(stderr, "Scheme errors:\n");
+//		goto err;
+//	}
+
 	// Prepare scheme
 	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
 	prepare_retcode = kscheme_prepare(scheme, context, error);
@@ -236,6 +245,126 @@ err:
 	faux_error_free(error);
 
 	return retval;
+}
+
+
+static bool_t load_db(kscheme_t *scheme, const char *db_name,
+	faux_ini_t *config, faux_error_t *error)
+{
+	kdb_t *db = NULL;
+	const char *sofile = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(db_name);
+	if (!db_name)
+		return BOOL_FALSE;
+
+	// DB.libxml2.so = <so filename>
+	if (config)
+		sofile = faux_ini_find(config, "so");
+
+	db = kdb_new(db_name, sofile);
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+	kdb_set_ini(db, config);
+	kdb_set_error(db, error);
+
+	// Load DB plugin
+	if (!kdb_load_plugin(db)) {
+		faux_error_sprintf(error,
+			"DB \"%s\": Can't load DB plugin", db_name);
+		kdb_free(db);
+		return BOOL_FALSE;
+	}
+
+	// Check plugin API version
+	if ((kdb_major(db) != KDB_MAJOR) ||
+		(kdb_minor(db) != KDB_MINOR)) {
+		faux_error_sprintf(error,
+			"DB \"%s\": Plugin's API version is %u.%u, need %u.%u",
+			db_name,
+			kdb_major(db), kdb_minor(db),
+			KDB_MAJOR, KDB_MINOR);
+		kdb_free(db);
+		return BOOL_FALSE;
+	}
+
+	// Init plugin
+	if (kdb_has_init_fn(db) && !kdb_init(db)) {
+		faux_error_sprintf(error,
+			"DB \"%s\": Can't init DB plugin", db_name);
+		kdb_free(db);
+		return BOOL_FALSE;
+	}
+
+	// Load scheme
+	if (!kdb_has_load_fn(db) || !kdb_load_scheme(db, scheme)) {
+		faux_error_sprintf(error,
+			"DB \"%s\": Can't load scheme from DB plugin", db_name);
+		kdb_fini(db);
+		kdb_free(db);
+		return BOOL_FALSE;
+	}
+
+	// Fini plugin
+	if (kdb_has_fini_fn(db) && !kdb_fini(db)) {
+		faux_error_sprintf(error,
+			"DB \"%s\": Can't fini DB plugin", db_name);
+		kdb_free(db);
+		return BOOL_FALSE;
+	}
+
+	kdb_free(db);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t load_all_dbs(kscheme_t *scheme, const char *dbs,
+	faux_ini_t *global_config, faux_error_t *error)
+{
+	faux_argv_t *dbs_argv = NULL;
+	faux_argv_node_t *iter = NULL;
+	const char *db_name = NULL;
+	bool_t retcode = BOOL_TRUE;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(dbs);
+	if (!dbs)
+		return BOOL_FALSE;
+
+	dbs_argv = faux_argv_new();
+	assert(dbs_argv);
+	if (!dbs_argv)
+		return BOOL_FALSE;
+	if (faux_argv_parse(dbs_argv, dbs) <= 0) {
+		faux_argv_free(dbs_argv);
+		return BOOL_FALSE;
+	}
+
+	// For each DB
+	iter = faux_argv_iter(dbs_argv);
+	while ((db_name = faux_argv_each(&iter))) {
+		faux_ini_t *config = NULL; // Sub-config for current DB
+		char *prefix = NULL;
+
+		prefix = faux_str_mcat(&prefix, "DB.", db_name, ".", NULL);
+		if (config)
+			config = faux_ini_extract_subini(global_config, prefix);
+		if (!load_db(scheme, db_name, config, error))
+			retcode = BOOL_FALSE;
+		faux_ini_free(config);
+		faux_str_free(prefix);
+	}
+
+	faux_argv_free(dbs_argv);
+
+	return retcode;
 }
 
 
