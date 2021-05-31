@@ -7,6 +7,7 @@
 #define LOG_NAME "klishd"
 #define DEFAULT_PIDFILE "/var/run/klishd.pid"
 #define DEFAULT_CFGFILE "/etc/klish/klishd.conf"
+#define DEFAULT_DBS "libxml2"
 
 
 /** @brief Command line and config file options
@@ -15,6 +16,7 @@ struct options {
 	char *pidfile;
 	char *cfgfile;
 	char *unix_socket_path;
+	char *dbs;
 	bool_t cfgfile_userdefined;
 	bool_t foreground; // Don't daemonize
 	bool_t verbose;

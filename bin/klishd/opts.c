@@ -41,6 +41,7 @@ struct options *opts_init(void)
 	opts->foreground = BOOL_FALSE; // Daemonize by default
 	opts->verbose = BOOL_FALSE;
 	opts->log_facility = LOG_DAEMON;
+	opts->dbs = faux_str_dup(DEFAULT_DBS);
 
 	return opts;
 }
@@ -53,6 +54,7 @@ void opts_free(struct options *opts)
 	faux_str_free(opts->pidfile);
 	faux_str_free(opts->cfgfile);
 	faux_str_free(opts->unix_socket_path);
+	faux_str_free(opts->dbs);
 	faux_free(opts);
 }
 
@@ -173,9 +175,16 @@ faux_ini_t *config_parse(const char *cfgfile, struct options *opts)
 		return NULL;
 	}
 
+	// UnixSocketPath
 	if ((tmp = faux_ini_find(ini, "UnixSocketPath"))) {
 		faux_str_free(opts->unix_socket_path);
 		opts->unix_socket_path = faux_str_dup(tmp);
+	}
+
+	// DBs
+	if ((tmp = faux_ini_find(ini, "DBs"))) {
+		faux_str_free(opts->dbs);
+		opts->dbs = faux_str_dup(tmp);
 	}
 
 	return ini;
@@ -196,6 +205,7 @@ int opts_show(struct options *opts)
 	syslog(LOG_DEBUG, "opts: PIDPath = %s\n", opts->pidfile);
 	syslog(LOG_DEBUG, "opts: ConfigPath = %s\n", opts->cfgfile);
 	syslog(LOG_DEBUG, "opts: UnixSocketPath = %s\n", opts->unix_socket_path);
+	syslog(LOG_DEBUG, "opts: DBs = %s\n", opts->dbs);
 
 	return 0;
 }
