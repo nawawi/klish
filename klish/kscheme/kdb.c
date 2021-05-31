@@ -55,6 +55,7 @@ KSET(db, void *, udata);
 
 // faux_error_t object (list of errors)
 KGET(db, faux_error_t *, error);
+KSET(db, faux_error_t *, error);
 
 
 kdb_t *kdb_new(const char *name, const char *file)
@@ -81,7 +82,7 @@ kdb_t *kdb_new(const char *name, const char *file)
 	db->load_fn = NULL;
 	db->deploy_fn = NULL;
 	db->udata = NULL;
-	db->error = faux_error_new();
+	db->error = NULL;
 
 	return db;
 }
@@ -97,7 +98,6 @@ void kdb_free(kdb_t *db)
 	faux_ini_free(db->ini);
 	if (db->dlhan)
 		dlclose(db->dlhan);
-	faux_error_free(db->error);
 
 	faux_free(db);
 }

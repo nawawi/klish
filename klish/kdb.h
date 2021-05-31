@@ -63,6 +63,7 @@ uint8_t kdb_minor(const kdb_t *db);
 void *kdb_udata(const kdb_t *db);
 bool_t kdb_set_udata(kdb_t *db, void *udata);
 faux_error_t *kdb_error(const kdb_t *db);
+bool_t kdb_set_error(kdb_t *db, faux_error_t *error);
 bool_t kdb_load_plugin(kdb_t *db);
 bool_t kdb_init(kdb_t *db);
 bool_t kdb_fini(kdb_t *db);
