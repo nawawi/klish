@@ -182,7 +182,7 @@ bool_t kdb_init(kdb_t *db)
 	if (!db)
 		return BOOL_FALSE;
 	if (!db->init_fn)
-		return BOOL_TRUE; // Init fn absence is not error
+		return BOOL_FALSE;
 
 	return db->init_fn(db);
 }
@@ -194,7 +194,7 @@ bool_t kdb_fini(kdb_t *db)
 	if (!db)
 		return BOOL_FALSE;
 	if (!db->fini_fn)
-		return BOOL_TRUE; // Fini fn absence is not error
+		return BOOL_FALSE;
 
 	return db->fini_fn(db);
 }
@@ -221,4 +221,56 @@ bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme)
 		return BOOL_FALSE;
 
 	return db->deploy_fn(db, scheme);
+}
+
+
+bool_t kdb_has_init_fn(const kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+
+	if (db->init_fn)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE;
+}
+
+
+bool_t kdb_has_fini_fn(const kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+
+	if (db->fini_fn)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE;
+}
+
+
+bool_t kdb_has_load_fn(const kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+
+	if (db->load_fn)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE;
+}
+
+
+bool_t kdb_has_deploy_fn(const kdb_t *db)
+{
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+
+	if (db->deploy_fn)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE;
 }

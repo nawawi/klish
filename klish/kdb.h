@@ -63,6 +63,10 @@ bool_t kdb_init(kdb_t *db);
 bool_t kdb_fini(kdb_t *db);
 kscheme_t *kdb_load_scheme(kdb_t *db);
 bool_t kdb_deploy_scheme(kdb_t *db, const kscheme_t *scheme);
+bool_t kdb_has_init_fn(const kdb_t *db);
+bool_t kdb_has_fini_fn(const kdb_t *db);
+bool_t kdb_has_load_fn(const kdb_t *db);
+bool_t kdb_has_deploy_fn(const kdb_t *db);
 
 C_DECL_END
 
