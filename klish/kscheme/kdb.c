@@ -139,8 +139,8 @@ bool_t kdb_load_plugin(kdb_t *db)
 	// Open shared object
 	db->dlhan = dlopen(file_name, flag);
 	if (!db->dlhan) {
-//		fprintf(stderr, "Error: Can't open db \"%s\": %s\n",
-//			this->name, dlerror());
+		faux_error_sprintf(db->error, "DB \"%s\": Can't open db \"%s\": %s",
+			db->name, file_name, dlerror());
 		goto err;
 	}
 
@@ -160,8 +160,8 @@ bool_t kdb_load_plugin(kdb_t *db)
 	db->load_fn = dlsym(db->dlhan, load_name);
 	db->deploy_fn = dlsym(db->dlhan, deploy_name);
 	if (!db->load_fn && !db->deploy_fn) { // Strange DB plugin
-//		fprintf(stderr, "Error: DB plugin \"%s\" has no deploy and load functions\n",
-//			this->name);
+		faux_error_sprintf(db->error, "DB \"%s\": Plugin has no deploy and load functions",
+			db->name);
 		goto err;
 	}
 
