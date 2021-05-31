@@ -7,6 +7,7 @@
 
 #include <faux/str.h>
 #include <faux/ini.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kscheme.h>
 #include <klish/kdb.h>
@@ -24,6 +25,7 @@ struct kdb_s {
 	kdb_load_fn load_fn;
 	kdb_deploy_fn deploy_fn;
 	void *udata; // User data
+	faux_error_t *error;
 };
 
 
@@ -51,6 +53,9 @@ static KSET(db, uint8_t, minor);
 KGET(db, void *, udata);
 KSET(db, void *, udata);
 
+// faux_error_t object (list of errors)
+KGET(db, faux_error_t *, error);
+
 
 kdb_t *kdb_new(const char *name, const char *file)
 {
@@ -76,6 +81,7 @@ kdb_t *kdb_new(const char *name, const char *file)
 	db->load_fn = NULL;
 	db->deploy_fn = NULL;
 	db->udata = NULL;
+	db->error = faux_error_new();
 
 	return db;
 }
@@ -89,9 +95,9 @@ void kdb_free(kdb_t *db)
 	faux_str_free(db->name);
 	faux_str_free(db->file);
 	faux_ini_free(db->ini);
-
 	if (db->dlhan)
 		dlclose(db->dlhan);
+	faux_error_free(db->error);
 
 	faux_free(db);
 }

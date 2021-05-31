@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include <faux/ini.h>
+#include <faux/error.h>
 #include <klish/kscheme.h>
 
 // Current API version
@@ -22,14 +23,17 @@
 #define KDB_SONAME_FMT "kdb_%s.so"
 
 // db's API version symbols
+// One byte (uint8_t) for major and one byte for minor numbers
 #define KDB_MAJOR_FMT "kdb_%s_major"
 #define KDB_MINOR_FMT "kdb_%s_minor"
 
 // db's init and fini functions
+// Init and fini functions can be not defined
 #define KDB_INIT_FMT "kdb_%s_init"
 #define KDB_FINI_FMT "kdb_%s_fini"
 
 // db's load and deploy functions
+// One of these function must be non-NULL else plugin has no usefull functions
 #define KDB_LOAD_FMT "kdb_%s_load_scheme"
 #define KDB_DEPLOY_FMT "kdb_%s_deploy_scheme"
 
@@ -58,6 +62,7 @@ uint8_t kdb_minor(const kdb_t *db);
 // static bool_t kdb_set_minor(kdb_t *db, uint8_t minor);
 void *kdb_udata(const kdb_t *db);
 bool_t kdb_set_udata(kdb_t *db, void *udata);
+faux_error_t *kdb_error(const kdb_t *db);
 bool_t kdb_load_plugin(kdb_t *db);
 bool_t kdb_init(kdb_t *db);
 bool_t kdb_fini(kdb_t *db);

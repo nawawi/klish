@@ -1,22 +1,37 @@
+#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
+#include <faux/error.h>
 #include <klish/kxml.h>
 #include <klish/kscheme.h>
+#include <klish/kdb.h>
 
 
-kscheme_t *kxml_load_scheme(const char *xml_path, faux_error_t *error);
+uint8_t kdb_libxml2_major = KDB_MAJOR;
+uint8_t kdb_libxml2_minor = KDB_MINOR;
 
 
-bool_t kdb_libxml2_init(void)
+kscheme_t *kdb_libxml2_load_scheme(kdb_t *db)
 {
-	kscheme_t *scheme = NULL;
+	faux_ini_t *ini = NULL;
+	faux_error_t *error = NULL;
+	const char *xml_path = NULL;
 
-	scheme = kxml_load_scheme(NULL, NULL);
-scheme = scheme;
-	return BOOL_TRUE;
+	assert(db);
+	if (!db)
+		return BOOL_FALSE;
+
+	// Get configuration info from kdb object
+	ini = kdb_ini(db);
+	if (ini)
+		xml_path = faux_ini_find(ini, "XMLPath");
+	error = kdb_error(db);
+
+	return kxml_load_scheme(xml_path, error);
 }
