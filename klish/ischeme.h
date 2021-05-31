@@ -48,7 +48,8 @@ C_DECL_BEGIN
 
 bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 	faux_error_t *error);
-kscheme_t *ischeme_load(const ischeme_t *ischeme, faux_error_t *error);
+bool_t ischeme_load(const ischeme_t *ischeme, kscheme_t *kscheme,
+	faux_error_t *error);
 char *ischeme_deploy(const kscheme_t *scheme, int level);
 
 C_DECL_END

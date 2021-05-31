@@ -140,23 +140,17 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 }
 
 
-kscheme_t *ischeme_load(const ischeme_t *ischeme, faux_error_t *error)
+bool_t ischeme_load(const ischeme_t *ischeme, kscheme_t *kscheme,
+	faux_error_t *error)
 {
-	kscheme_t *kscheme = NULL;
-
-	kscheme = kscheme_new();
+	assert(kscheme);
 	if (!kscheme) {
-		faux_error_sprintf(error, TAG": Can't create object");
-		return NULL;
+		faux_error_sprintf(error, TAG": Internal error");
+		return BOOL_FALSE;
 	}
 
 	// Parse nested elements
-	if (!ischeme_parse_nested(ischeme, kscheme, error)) {
-		kscheme_free(kscheme);
-		return NULL;
-	}
-
-	return kscheme;
+	return ischeme_parse_nested(ischeme, kscheme, error);
 }
 
 

@@ -136,14 +136,14 @@ int main(int argc, char **argv)
 	}
 
 	// Scheme
+	scheme = kscheme_new();
 	{
 	char *txt = NULL;
 	kcontext_t *context = NULL;
 	bool_t prepare_retcode = BOOL_FALSE;
 
 	// Load scheme
-	scheme = ischeme_load(&sch, error);
-	if (!scheme) {
+	if (!ischeme_load(&sch, scheme, error)) {
 		fprintf(stderr, "Scheme errors:\n");
 		goto err;
 	}
