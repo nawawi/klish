@@ -2,6 +2,8 @@
 #define VERSION "1.0.0"
 #endif
 
+#include <faux/ini.h>
+
 #define LOG_NAME "klishd"
 #define DEFAULT_PIDFILE "/var/run/klishd.pid"
 #define DEFAULT_CFGFILE "/etc/klish/klishd.conf"
@@ -25,4 +27,4 @@ struct options *opts_init(void);
 void opts_free(struct options *opts);
 int opts_parse(int argc, char *argv[], struct options *opts);
 int opts_show(struct options *opts);
-int config_parse(const char *cfgfile, struct options *opts);
+faux_ini_t *config_parse(const char *cfgfile, struct options *opts);

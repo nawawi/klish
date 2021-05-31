@@ -152,8 +152,13 @@ void help(int status, const char *argv0)
 
 
 /** @brief Parse config file
+ *
+ * It parses known options and put them to opts arg. But also it returns
+ * parsed config file. The parts of config file can be unknown to klish
+ * itself but can be known to third party plugins. For example DBs
+ * subsystem get settings from config file.
  */
-int config_parse(const char *cfgfile, struct options *opts)
+faux_ini_t *config_parse(const char *cfgfile, struct options *opts)
 {
 	faux_ini_t *ini = NULL;
 	const char *tmp = NULL;
@@ -161,11 +166,11 @@ int config_parse(const char *cfgfile, struct options *opts)
 	ini = faux_ini_new();
 	assert(ini);
 	if (!ini)
-		return -1;
+		NULL;
 	if (!faux_ini_parse_file(ini, cfgfile)) {
 		syslog(LOG_ERR, "Can't parse config file: %s\n", cfgfile);
 		faux_ini_free(ini);
-		return -1;
+		return NULL;
 	}
 
 	if ((tmp = faux_ini_find(ini, "UnixSocketPath"))) {
@@ -173,8 +178,7 @@ int config_parse(const char *cfgfile, struct options *opts)
 		opts->unix_socket_path = faux_str_dup(tmp);
 	}
 
-	faux_ini_free(ini);
-	return 0;
+	return ini;
 }
 
 

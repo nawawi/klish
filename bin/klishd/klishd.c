@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 	ktpd_clients_t *clients = NULL;
 	kscheme_t *scheme = NULL;
 	faux_error_t *error = faux_error_new();
+	faux_ini_t *config = NULL;
 
 	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
 	// Parse config file
 	syslog(LOG_DEBUG, "Parse config file: %s\n", opts->cfgfile);
 	if (!access(opts->cfgfile, R_OK)) {
-		if (config_parse(opts->cfgfile, opts))
+		if (!(config = config_parse(opts->cfgfile, opts)))
 			goto err;
 	} else if (opts->cfgfile_userdefined) {
 		// User defined config must be found
@@ -226,6 +227,8 @@ err:
 
 	// Free command line options
 	opts_free(opts);
+	faux_ini_free(config);
+
 	syslog(LOG_INFO, "Stop daemon.\n");
 
 	if (faux_error_len(error) > 0)
@@ -306,19 +309,24 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 
 /** @brief Re-read config file.
+ *
+ * This function can refresh klishd options but plugins (dbs for example) are
+ * already inited and there is no way to re-init them on-the-fly.
  */
 static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	struct options *opts = (struct options *)user_data;
+	faux_ini_t *ini = NULL;
 
 	if (access(opts->cfgfile, R_OK) == 0) {
 		syslog(LOG_DEBUG, "Re-reading config file \"%s\"\n", opts->cfgfile);
-		if (config_parse(opts->cfgfile, opts) < 0)
+		if (!(ini = config_parse(opts->cfgfile, opts)))
 			syslog(LOG_ERR, "Error while config file parsing.\n");
 	} else if (opts->cfgfile_userdefined) {
 		syslog(LOG_ERR, "Can't find config file \"%s\"\n", opts->cfgfile);
 	}
+	faux_ini_free(ini); // No way to use it later
 
 	// Happy compiler
 	eloop = eloop;
