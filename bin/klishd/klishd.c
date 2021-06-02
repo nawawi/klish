@@ -227,11 +227,11 @@ err:
 	}
 
 	// Free scheme
-	{
-	kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_FINI);
-	kscheme_fini(scheme, context, error);
-	kcontext_free(context);
-	kscheme_free(scheme);
+	if (scheme) {
+		kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_FINI);
+		kscheme_fini(scheme, context, error);
+		kcontext_free(context);
+		kscheme_free(scheme);
 	}
 
 	// Free command line options

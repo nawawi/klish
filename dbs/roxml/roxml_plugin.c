@@ -11,11 +11,11 @@
 #include <klish/kdb.h>
 
 
-uint8_t kdb_libxml2_major = KDB_MAJOR;
-uint8_t kdb_libxml2_minor = KDB_MINOR;
+uint8_t kdb_roxml_major = KDB_MAJOR;
+uint8_t kdb_roxml_minor = KDB_MINOR;
 
 
-bool_t kdb_libxml2_load_scheme(kdb_t *db, kscheme_t *scheme)
+bool_t kdb_roxml_load_scheme(kdb_t *db, kscheme_t *scheme)
 {
 	faux_ini_t *ini = NULL;
 	faux_error_t *error = NULL;

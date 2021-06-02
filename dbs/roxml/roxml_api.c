@@ -74,7 +74,7 @@ const char *kxml_doc_get_err_msg(kxml_doc_t *doc)
 }
 */
 
-kxml_nodetype_e kxml_node_get_type(const kxml_node_t *node)
+kxml_nodetype_e kxml_node_type(const kxml_node_t *node)
 {
 	int type = 0;
 
@@ -250,7 +250,7 @@ void kxml_node_content_free(char *str)
 }
 
 
-char *kxml_node_get_name(const kxml_node_t *node)
+char *kxml_node_name(const kxml_node_t *node)
 {
 	if (!node)
 		return NULL;

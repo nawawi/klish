@@ -6,4 +6,5 @@ kdb_roxml_la_CFLAGS = $(AM_LDFLAGS) $(ROXML_CFLAGS)
 kdb_roxml_la_LIBADD = libklish-helper-xml.la
 
 kdb_roxml_la_SOURCES += \
-	dbs/roxml/roxml_api.c
+	dbs/roxml/roxml_api.c \
+	dbs/roxml/roxml_plugin.c
