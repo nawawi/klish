@@ -434,18 +434,29 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	if (!param)
 		goto err;
 
-	if (parent_tag != KTAG_COMMAND) {
+	if (KTAG_COMMAND == parent_tag) {
+		kcommand_t *command = (kcommand_t *)parent;
+		if (!kcommand_add_param(command, param)) {
+			faux_error_sprintf(error,
+				TAG": Can't add PARAM \"%s\" to COMMAND \"%s\"",
+				kparam_name(param), kcommand_name(command));
+			kparam_free(param);
+			goto err;
+		}
+	} else if (KTAG_PARAM == parent_tag) {
+		kparam_t *parent_param = (kparam_t *)parent;
+		if (!kparam_add_param(parent_param, param)) {
+			faux_error_sprintf(error,
+				TAG": Can't add PARAM \"%s\" to PARAM \"%s\"",
+				kparam_name(param), kparam_name(parent_param));
+			kparam_free(param);
+			goto err;
+		}
+	} else {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PARAM tag",
 			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
-	}
-
-	if (!kcommand_add_param((kcommand_t *)parent, param)) {
-		faux_error_sprintf(error, TAG": Can't add PARAM \"%s\"",
-			kparam_name(param));
-		kparam_free(param);
-		goto err;
 	}
 
 	if (!process_children(element, param, error))
