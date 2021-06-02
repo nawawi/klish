@@ -308,7 +308,9 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 		goto err;
 
 	if (parent_tag != KTAG_KLISH) {
-		faux_error_add(error, TAG": Only KLISH tag can contain VIEW tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain VIEW tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
@@ -346,7 +348,9 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 		goto err;
 
 	if (parent_tag != KTAG_KLISH) {
-		faux_error_add(error, TAG": Only KLISH tag can contain PTYPE tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain PTYPE tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
@@ -387,7 +391,9 @@ static bool_t process_plugin(const kxml_node_t *element, void *parent,
 		goto err;
 
 	if (parent_tag != KTAG_KLISH) {
-		faux_error_add(error, TAG": Only KLISH tag can contain PLUGIN tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain PLUGIN tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
@@ -429,7 +435,9 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		goto err;
 
 	if (parent_tag != KTAG_COMMAND) {
-		faux_error_add(error, TAG": Only COMMAND tag can contain PARAM tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain PARAM tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
@@ -469,7 +477,9 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		goto err;
 
 	if (parent_tag != KTAG_VIEW) {
-		faux_error_add(error, TAG": Only VIEW tag can contain COMMAND tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain COMMAND tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
