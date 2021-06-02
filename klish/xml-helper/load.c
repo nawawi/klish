@@ -300,25 +300,45 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	kview_t *view = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kscheme_t *scheme = (kscheme_t *)parent;
 
 	iview.name = kxml_node_attr(element, "name");
 
-	view = iview_load(&iview, error);
-	if (!view)
+	// Mandatory VIEW name
+	if (!iview.name) {
+		faux_error_sprintf(error, TAG": VIEW without name");
 		goto err;
+	}
 
+	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
+		goto err;
+	}
+	if (!scheme) {
+		faux_error_sprintf(error,
+			TAG": Broken parent object for VIEW \"%s\"",
+			iview.name);
+		goto err;
 	}
 
-	if (!kscheme_add_view((kscheme_t *)parent, view)) {
-		faux_error_sprintf(error, TAG": Can't add VIEW \"%s\"",
-			kview_name(view));
-		kview_free(view);
-		goto err;
+	// Does VIEW already exist
+	view = kscheme_find_view(scheme, iview.name);
+	if (view) {
+		if (!iview_parse(&iview, view, error))
+			goto err;
+	} else { // New VIEW object
+		view = iview_load(&iview, error);
+		if (!view)
+			goto err;
+		if (!kscheme_add_view(scheme, view)) {
+			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\"",
+				kview_name(view));
+			kview_free(view);
+			goto err;
+		}
 	}
 
 	if (!process_children(element, view, error))
