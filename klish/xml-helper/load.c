@@ -74,6 +74,15 @@ static kxml_process_fn *kxml_handlers[] = {
 };
 
 
+static const char *kxml_tag_name(ktags_e tag)
+{
+	if ((KTAG_NONE == tag) || (tag >= KTAG_MAX))
+		return "NONE";
+
+	return kxml_tags[tag];
+}
+
+
 static ktags_e kxml_node_tag(const kxml_node_t *node)
 {
 	ktags_e tag = KTAG_NONE;
@@ -87,8 +96,8 @@ static ktags_e kxml_node_tag(const kxml_node_t *node)
 	name = kxml_node_name(node);
 	if (!name)
 		return KTAG_NONE; // Strange case
-	for (tag = KTAG_NONE; tag < KTAG_MAX; tag++) {
-		if (faux_str_casecmp(name, kxml_tags[tag]))
+	for (tag = (KTAG_NONE + 1); tag < KTAG_MAX; tag++) {
+		if (faux_str_casecmp(name, kxml_tags[tag]) == 0)
 			break;
 	}
 	kxml_node_name_free(name);
@@ -109,10 +118,30 @@ static kxml_process_fn *kxml_node_handler(const kxml_node_t *node)
  */
 static bool_t process_node(const kxml_node_t *node, void *parent, faux_error_t *error)
 {
-	kxml_process_fn *handler = kxml_node_handler(node);
+	kxml_process_fn *handler = NULL;
 
-	if (!handler)
-		return BOOL_TRUE; // Unknown element
+	// Process only KXML_NODE_ELM. Don't process other types like:
+	// KXML_NODE_DOC,
+	// KXML_NODE_TEXT,
+	// KXML_NODE_ATTR,
+	// KXML_NODE_COMMENT,
+	// KXML_NODE_PI,
+	// KXML_NODE_DECL,
+	// KXML_NODE_UNKNOWN,
+	if (kxml_node_type(node) != KXML_NODE_ELM)
+		return BOOL_TRUE;
+
+	handler = kxml_node_handler(node);
+
+	if (!handler) { // Unknown element
+		faux_error_sprintf(error,
+			TAG": Unknown tag \"%s\"", kxml_node_name(node));
+		return BOOL_FALSE;
+	}
+
+#ifdef KXML_DEBUG
+	printf("kxml: Tag \"%s\"\n", kxml_node_name(node));
+#endif
 
 	return handler(node, parent, error);
 }
@@ -504,8 +533,9 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 			goto err;
 		}
 	} else {
-		faux_error_add(error,
-			TAG": Only COMMAND, PTYPE tags can contain ACTION tag");
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain ACTION tag",
+			kxml_tag_name(parent_tag));
 		return BOOL_FALSE;
 	}
 
