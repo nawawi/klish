@@ -6,7 +6,7 @@
  * and populate the CLI tree based on the contents. It implements
  * the kxml_ API using the expat XML parser
  *
- * expat is not your typicall XML parser. It does not work
+ * expat is not your typical XML parser. It does not work
  * by creating a full in-memory XML tree, but by calling specific
  * callbacks (element handlers) regularly while parsing. It's up
  * to the user to create the corresponding XML tree if needed
