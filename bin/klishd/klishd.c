@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 		goto err;
 	}
 	txt = ischeme_deploy(scheme, 0);
-//	printf("%s\n", txt);
+	printf("%s\n", txt);
 	faux_str_free(txt);
 goto err; // Test purposes
 	}

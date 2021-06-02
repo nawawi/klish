@@ -21,6 +21,11 @@
 
 #define TAG "XML"
 
+#ifdef DEBUG
+#define KXML_DEBUG DEBUG
+#endif
+
+
 typedef bool_t (kxml_process_fn)(const kxml_node_t *element,
 	void *parent, faux_error_t *error);
 
@@ -125,6 +130,10 @@ static bool_t kxml_load_file(kscheme_t *scheme, const char *filename,
 	if (!filename)
 		return BOOL_FALSE;
 
+#ifdef KXML_DEBUG
+	printf("kxml: Processing XML file \"%s\"\n", filename);
+#endif
+
 	doc = kxml_doc_read(filename);
 	if (!kxml_doc_is_valid(doc)) {
 /*		int errcaps = kxml_doc_error_caps(doc);
@@ -160,8 +169,7 @@ static const char *path_separators = ":;";
 bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
 	faux_error_t *error)
 {
-	const char *path = xml_path;
-	char *realpath = NULL;
+	char *path = NULL;
 	char *fn = NULL;
 	char *saveptr = NULL;
 	bool_t ret = BOOL_TRUE;
@@ -170,29 +178,45 @@ bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
 	if (!scheme)
 		return BOOL_FALSE;
 
-	// Use the default path if not specified
-	if (!path)
-		path = default_path;
-	realpath = faux_expand_tilde(path);
+	// Use the default path if xml path is not specified.
+	// Dup is needed because sring will be tokenized but
+	// the xml_path is must be const.
+	if (!xml_path)
+		path = faux_str_dup(default_path);
+	else
+		path = faux_str_dup(xml_path);
+
+#ifdef KXML_DEBUG
+	printf("kxml: Loading scheme \"%s\"\n", path);
+#endif
 
 	// Loop through each directory
-	for (fn = strtok_r(realpath, path_separators, &saveptr);
+	for (fn = strtok_r(path, path_separators, &saveptr);
 		fn; fn = strtok_r(NULL, path_separators, &saveptr)) {
 		DIR *dir = NULL;
 		struct dirent *entry = NULL;
+		char *realpath = NULL;
+
+		// Expand tilde. Tilde must be the first symbol.
+		realpath = faux_expand_tilde(fn);
 
 		// Regular file
-		if (faux_isfile(fn)) {
-			if (!kxml_load_file(scheme, fn, error)) {
+		if (faux_isfile(realpath)) {
+			if (!kxml_load_file(scheme, realpath, error))
 				ret = BOOL_FALSE;
-				continue;
-			}
+			faux_str_free(realpath);
+			continue;
 		}
 
 		// Search this directory for any XML files
-		dir = opendir(fn);
-		if (!dir)
+#ifdef KXML_DEBUG
+		printf("kxml: Processing XML dir \"%s\"\n", realpath);
+#endif
+		dir = opendir(realpath);
+		if (!dir) {
+			faux_str_free(realpath);
 			continue;
+		}
 		for (entry = readdir(dir); entry; entry = readdir(dir)) {
 			const char *extension = strrchr(entry->d_name, '.');
 			char *filename = NULL;
@@ -200,17 +224,16 @@ bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
 			// Check the filename
 			if (!extension || strcmp(".xml", extension))
 				continue;
-			filename = faux_str_sprintf("%s/%s", fn, entry->d_name);
-			if (!kxml_load_file(scheme, filename, error)) {
+			filename = faux_str_sprintf("%s/%s", realpath, entry->d_name);
+			if (!kxml_load_file(scheme, filename, error))
 				ret = BOOL_FALSE;
-				continue;
-			}
 			faux_str_free(filename);
 		}
 		closedir(dir);
+		faux_str_free(realpath);
 	}
 
-	faux_str_free(realpath);
+	faux_str_free(path);
 
 	return ret;
 }
