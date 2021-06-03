@@ -152,10 +152,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Scheme errors:\n");
 		goto err;
 	}
-//	if (!ischeme_load(&sch, scheme, error)) {
-//		fprintf(stderr, "Scheme errors:\n");
-//		goto err;
-//	}
 
 	// Prepare scheme
 	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
