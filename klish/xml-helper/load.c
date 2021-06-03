@@ -302,26 +302,25 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 	kscheme_t *scheme = (kscheme_t *)parent;
 
-	iview.name = kxml_node_attr(element, "name");
-
-	// Mandatory VIEW name
-	if (!iview.name) {
-		faux_error_sprintf(error, TAG": VIEW without name");
-		goto err;
-	}
-
 	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
 			kxml_tag_name(parent_tag));
-		goto err;
+		return BOOL_FALSE;
 	}
 	if (!scheme) {
 		faux_error_sprintf(error,
 			TAG": Broken parent object for VIEW \"%s\"",
 			iview.name);
-		goto err;
+		return BOOL_FALSE;
+	}
+
+	// Mandatory VIEW name
+	iview.name = kxml_node_attr(element, "name");
+	if (!iview.name) {
+		faux_error_sprintf(error, TAG": VIEW without name");
+		return BOOL_FALSE;
 	}
 
 	// Does VIEW already exist
@@ -334,7 +333,8 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 		if (!view)
 			goto err;
 		if (!kscheme_add_view(scheme, view)) {
-			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\"",
+			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\". "
+				"Probably duplication",
 				kview_name(view));
 			kview_free(view);
 			goto err;
@@ -360,13 +360,6 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
-	iptype.name = kxml_node_attr(element, "name");
-	iptype.help = kxml_node_attr(element, "help");
-
-	ptype = iptype_load(&iptype, error);
-	if (!ptype)
-		goto err;
-
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PTYPE tag",
@@ -374,8 +367,16 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 		return BOOL_FALSE;
 	}
 
+	iptype.name = kxml_node_attr(element, "name");
+	iptype.help = kxml_node_attr(element, "help");
+
+	ptype = iptype_load(&iptype, error);
+	if (!ptype)
+		goto err;
+
 	if (!kscheme_add_ptype((kscheme_t *)parent, ptype)) {
-		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\"",
+		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\". "
+			"Probably duplication",
 			kptype_name(ptype));
 		kptype_free(ptype);
 		goto err;
@@ -401,6 +402,13 @@ static bool_t process_plugin(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
+	if (parent_tag != KTAG_KLISH) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain PLUGIN tag",
+			kxml_tag_name(parent_tag));
+		return BOOL_FALSE;
+	}
+
 	iplugin.name = kxml_node_attr(element, "name");
 	iplugin.id = kxml_node_attr(element, "id");
 	iplugin.file = kxml_node_attr(element, "file");
@@ -410,15 +418,9 @@ static bool_t process_plugin(const kxml_node_t *element, void *parent,
 	if (!plugin)
 		goto err;
 
-	if (parent_tag != KTAG_KLISH) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain PLUGIN tag",
-			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
-	}
-
 	if (!kscheme_add_plugin((kscheme_t *)parent, plugin)) {
-		faux_error_sprintf(error, TAG": Can't add PLUGIN \"%s\"",
+		faux_error_sprintf(error, TAG": Can't add PLUGIN \"%s\". "
+			"Probably duplication",
 			kplugin_name(plugin));
 		kplugin_free(plugin);
 		goto err;
@@ -458,7 +460,8 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		kcommand_t *command = (kcommand_t *)parent;
 		if (!kcommand_add_param(command, param)) {
 			faux_error_sprintf(error,
-				TAG": Can't add PARAM \"%s\" to COMMAND \"%s\"",
+				TAG": Can't add PARAM \"%s\" to COMMAND \"%s\". "
+				"Probably duplication",
 				kparam_name(param), kcommand_name(command));
 			kparam_free(param);
 			goto err;
@@ -467,7 +470,8 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		kparam_t *parent_param = (kparam_t *)parent;
 		if (!kparam_add_param(parent_param, param)) {
 			faux_error_sprintf(error,
-				TAG": Can't add PARAM \"%s\" to PARAM \"%s\"",
+				TAG": Can't add PARAM \"%s\" to PARAM \"%s\". "
+				"Probably duplication",
 				kparam_name(param), kparam_name(parent_param));
 			kparam_free(param);
 			goto err;
@@ -476,7 +480,8 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PARAM tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
+		kparam_free(param);
+		goto err;
 	}
 
 	if (!process_children(element, param, error))
@@ -500,13 +505,6 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
-	icommand.name = kxml_node_attr(element, "name");
-	icommand.help = kxml_node_attr(element, "help");
-
-	command = icommand_load(&icommand, error);
-	if (!command)
-		goto err;
-
 	if (parent_tag != KTAG_VIEW) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain COMMAND tag",
@@ -514,8 +512,16 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		return BOOL_FALSE;
 	}
 
+	icommand.name = kxml_node_attr(element, "name");
+	icommand.help = kxml_node_attr(element, "help");
+
+	command = icommand_load(&icommand, error);
+	if (!command)
+		goto err;
+
 	if (!kview_add_command((kview_t *)parent, command)) {
-		faux_error_sprintf(error, TAG": Can't add COMMAND \"%s\"",
+		faux_error_sprintf(error, TAG": Can't add COMMAND \"%s\". "
+			"Probably duplication",
 			kcommand_name(command));
 		kcommand_free(command);
 		goto err;
@@ -557,7 +563,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		kcommand_t *command = (kcommand_t *)parent;
 		if (!kcommand_add_action(command, action)) {
 			faux_error_sprintf(error,
-				TAG": Can't add ACTION #%d to COMMAND \"%s\"",
+				TAG": Can't add ACTION #%d to COMMAND \"%s\". "
+				"Probably duplication",
 				kcommand_actions_len(command) + 1,
 				kcommand_name(command));
 			kaction_free(action);
@@ -567,7 +574,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		kptype_t *ptype = (kptype_t *)parent;
 		if (!kptype_add_action(ptype, action)) {
 			faux_error_sprintf(error,
-				TAG": Can't add ACTION #%d to PTYPE \"%s\"",
+				TAG": Can't add ACTION #%d to PTYPE \"%s\". "
+				"Probably duplication",
 				kptype_actions_len(ptype) + 1,
 				kptype_name(ptype));
 			kaction_free(action);
@@ -577,7 +585,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
+		kaction_free(action);
+		goto err;
 	}
 
 	if (!process_children(element, action, error))
