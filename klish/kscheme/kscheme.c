@@ -210,8 +210,10 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 	if (plugin_name) {
 		kplugin_t *plugin = NULL;
 		plugin = kscheme_find_plugin(scheme, plugin_name);
-		if (!plugin)
+		if (!plugin) {
+			faux_str_free(full_name);
 			return NULL;
+		}
 		sym = kplugin_find_sym(plugin, cmd_name);
 
 	// Search for symbol within all PLUGINs
@@ -225,6 +227,8 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 				break;
 		}
 	}
+
+	faux_str_free(full_name);
 
 	return sym;
 }
