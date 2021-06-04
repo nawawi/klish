@@ -15,21 +15,18 @@ uint8_t kdb_libxml2_major = KDB_MAJOR;
 uint8_t kdb_libxml2_minor = KDB_MINOR;
 
 
+bool_t kdb_libxml2_init(kdb_t *db)
+{
+	return kxml_plugin_init(db);
+}
+
+bool_t kdb_libxml2_fini(kdb_t *db)
+{
+	return kxml_plugin_fini(db);
+}
+
+
 bool_t kdb_libxml2_load_scheme(kdb_t *db, kscheme_t *scheme)
 {
-	faux_ini_t *ini = NULL;
-	faux_error_t *error = NULL;
-	const char *xml_path = NULL;
-
-	assert(db);
-	if (!db)
-		return BOOL_FALSE;
-
-	// Get configuration info from kdb object
-	ini = kdb_ini(db);
-	if (ini)
-		xml_path = faux_ini_find(ini, "XMLPath");
-	error = kdb_error(db);
-
-	return kxml_load_scheme(scheme, xml_path, error);
+	return kxml_plugin_load_scheme(db, scheme);
 }

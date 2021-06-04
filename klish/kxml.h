@@ -10,6 +10,7 @@
 
 #include <faux/faux.h>
 #include <klish/kscheme.h>
+#include <klish/kdb.h>
 
 /** @brief XML document (opaque type).
  *
@@ -120,6 +121,13 @@ void kxml_node_attr_free(char *str);
  */
 bool_t kxml_load_scheme(kscheme_t *scheme, const char *xml_path,
 	faux_error_t *error);
+
+
+/** @brief Typical XML parser functions
+ */
+bool_t kxml_plugin_init(kdb_t *db);
+bool_t kxml_plugin_fini(kdb_t *db);
+bool_t kxml_plugin_load_scheme(kdb_t *db, kscheme_t *scheme);
 
 
 #endif // _klish_kxml_h
