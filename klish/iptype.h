@@ -8,6 +8,7 @@
 
 #include <faux/error.h>
 #include <klish/iaction.h>
+#include <klish/kptype.h>
 
 typedef struct iptype_s {
 	char *name;

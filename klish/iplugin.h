@@ -6,6 +6,8 @@
 #ifndef _klish_iplugin_h
 #define _klish_iplugin_h
 
+#include <klish/kplugin.h>
+
 typedef struct iplugin_s {
 	char *name;
 	char *id;

@@ -10,7 +10,7 @@
 #include <klish/iptype.h>
 #include <klish/iplugin.h>
 #include <klish/iview.h>
-
+#include <klish/kscheme.h>
 
 #define VIEW_LIST .views = &(iview_t * []) {
 #define END_VIEW_LIST NULL }

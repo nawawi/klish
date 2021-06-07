@@ -143,9 +143,9 @@ int main(int argc, char **argv)
 	// Scheme
 	scheme = kscheme_new();
 	{
-	char *txt = NULL;
 	kcontext_t *context = NULL;
 	bool_t prepare_retcode = BOOL_FALSE;
+	kdb_t *deploy_db = NULL;
 
 	// Load scheme
 	if (!load_all_dbs(scheme, opts->dbs, config, error)) {
@@ -161,9 +161,14 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Scheme preparing errors:\n");
 		goto err;
 	}
-	txt = ischeme_deploy(scheme, 0);
-	printf("%s\n", txt);
-	faux_str_free(txt);
+
+	// Deploy (for testing purposes)
+	deploy_db = kdb_new("ischeme", NULL);
+	kdb_load_plugin(deploy_db);
+	kdb_init(deploy_db);
+	kdb_deploy_scheme(deploy_db, scheme);
+	kdb_fini(deploy_db);
+	kdb_free(deploy_db);
 goto err; // Test purposes
 	}
 

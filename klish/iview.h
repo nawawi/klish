@@ -8,6 +8,7 @@
 
 #include <faux/error.h>
 #include <klish/icommand.h>
+#include <klish/kview.h>
 
 typedef struct iview_s {
 	char *name;
