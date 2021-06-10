@@ -25,27 +25,27 @@ struct kcontext_s {
 
 // Type
 KGET(context, kcontext_type_e, type);
-KSET(context, kcontext_type_e, type);
+FAUX_HIDDEN KSET(context, kcontext_type_e, type);
 
 // RetCode
 KGET(context, int, retcode);
-KSET(context, int, retcode);
+FAUX_HIDDEN KSET(context, int, retcode);
 
 // Plugin
 KGET(context, kplugin_t *, plugin);
-KSET(context, kplugin_t *, plugin);
+FAUX_HIDDEN KSET(context, kplugin_t *, plugin);
 
 // Sym
 KGET(context, ksym_t *, sym);
-KSET(context, ksym_t *, sym);
+FAUX_HIDDEN KSET(context, ksym_t *, sym);
 
 // Action
 KGET(context, kaction_t *, action);
-KSET(context, kaction_t *, action);
+FAUX_HIDDEN KSET(context, kaction_t *, action);
 
 // Command
 KGET(context, kcommand_t *, command);
-KSET(context, kcommand_t *, command);
+FAUX_HIDDEN KSET(context, kcommand_t *, command);
 
 
 kcontext_t *kcontext_new(kcontext_type_e type)
