@@ -15,9 +15,12 @@ struct kcontext_s {
 	kcontext_type_e type;
 	int retcode;
 	kplugin_t *plugin;
-	ksym_t *sym;
-	kaction_t *action;
 	kcommand_t *command;
+	kaction_t *action;
+	ksym_t *sym;
+	int stdin;
+	int stdout;
+	int stderr;
 };
 
 
@@ -47,6 +50,18 @@ FAUX_HIDDEN KSET(context, kaction_t *, action);
 KGET(context, kcommand_t *, command);
 FAUX_HIDDEN KSET(context, kcommand_t *, command);
 
+// STDIN
+KGET(context, int, stdin);
+FAUX_HIDDEN KSET(context, int, stdin);
+
+// STDOUT
+KGET(context, int, stdout);
+FAUX_HIDDEN KSET(context, int, stdout);
+
+// STDERR
+KGET(context, int, stderr);
+FAUX_HIDDEN KSET(context, int, stderr);
+
 
 kcontext_t *kcontext_new(kcontext_type_e type)
 {
@@ -60,8 +75,14 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	// Initialize
 	context->type = type;
 	context->plugin = NULL;
-	context->sym = NULL;
+	context->command = NULL;
 	context->action = NULL;
+	context->sym = NULL;
+
+	// I/O
+	context->stdin = -1;
+	context->stdout = -1;
+	context->stderr = -1;
 
 	return context;
 }
