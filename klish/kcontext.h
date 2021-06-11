@@ -39,6 +39,9 @@ FAUX_HIDDEN bool_t kcontext_set_stdout(kcontext_t *context, int stdout);
 // STDERR
 int kcontext_stderr(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_stderr(kcontext_t *context, int stderr);
+// PID
+pid_t kcontext_pid(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_pid(kcontext_t *context, pid_t pid);
 
 C_DECL_END
 

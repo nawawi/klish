@@ -349,4 +349,3 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 
 	return BOOL_TRUE;
 }
-

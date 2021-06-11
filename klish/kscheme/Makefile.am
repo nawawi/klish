@@ -8,4 +8,5 @@ libklish_la_SOURCES += \
 	klish/kscheme/kcommand.c \
 	klish/kscheme/kview.c \
 	klish/kscheme/kscheme.c \
+	klish/kscheme/knspace.c \
 	klish/kscheme/kdb.c

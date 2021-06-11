@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <faux/str.h>
 #include <faux/conv.h>
@@ -21,6 +23,7 @@ struct kcontext_s {
 	int stdin;
 	int stdout;
 	int stderr;
+	pid_t pid;
 };
 
 
@@ -62,6 +65,10 @@ FAUX_HIDDEN KSET(context, int, stdout);
 KGET(context, int, stderr);
 FAUX_HIDDEN KSET(context, int, stderr);
 
+// STDERR
+KGET(context, pid_t, pid);
+FAUX_HIDDEN KSET(context, pid_t, pid);
+
 
 kcontext_t *kcontext_new(kcontext_type_e type)
 {
@@ -83,6 +90,9 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->stdin = -1;
 	context->stdout = -1;
 	context->stderr = -1;
+
+	// PID
+	context->pid = 0; // PID of currently executed ACTION
 
 	return context;
 }

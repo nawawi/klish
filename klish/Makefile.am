@@ -31,6 +31,7 @@ nobase_include_HEADERS += \
 	klish/kaction.h \
 	klish/kptype.h \
 	klish/ksym.h \
+	klish/knspace.h \
 	klish/kdb.h
 
 # Session
