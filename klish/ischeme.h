@@ -10,6 +10,7 @@
 #include <klish/iptype.h>
 #include <klish/iplugin.h>
 #include <klish/iview.h>
+#include <klish/inspace.h>
 #include <klish/kscheme.h>
 
 #define VIEW_LIST .views = &(iview_t * []) {
@@ -35,6 +36,10 @@
 #define PLUGIN_LIST .plugins = &(iplugin_t * []) {
 #define END_PLUGIN_LIST NULL }
 #define PLUGIN &(iplugin_t)
+
+#define NSPACE_LIST .nspaces = &(inspace_t * []) {
+#define END_NSPACE_LIST NULL }
+#define NSPACE &(inspace_t)
 
 
 typedef struct ischeme_s {

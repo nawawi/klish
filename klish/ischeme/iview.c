@@ -8,6 +8,7 @@
 #include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kcommand.h>
+#include <klish/knspace.h>
 #include <klish/kview.h>
 #include <klish/iview.h>
 
@@ -39,6 +40,28 @@ bool_t iview_parse_nested(const iview_t *iview, kview_t *kview,
 	if (!kview || !iview) {
 		faux_error_add(error, TAG": Internal error");
 		return BOOL_FALSE;
+	}
+
+	// NSPACE list
+	if (iview->nspaces) {
+		inspace_t **p_inspace = NULL;
+		for (p_inspace = *iview->nspaces; *p_inspace; p_inspace++) {
+			knspace_t *knspace = NULL;
+			inspace_t *inspace = *p_inspace;
+			knspace = inspace_load(inspace, error);
+			if (!knspace) {
+				retval = BOOL_FALSE;
+				continue;
+			}
+			if (!kview_add_nspace(kview, knspace)) {
+				faux_error_sprintf(error,
+					TAG": Can't add NSPACE \"%s\"",
+					knspace_view_ref(knspace));
+				knspace_free(knspace);
+				retval = BOOL_FALSE;
+				continue;
+			}
+		}
 	}
 
 	// COMMAND list
@@ -119,6 +142,7 @@ char *iview_deploy(const kview_t *kview, int level)
 	char *str = NULL;
 	char *tmp = NULL;
 	kview_commands_node_t *commands_iter = NULL;
+	kview_nspaces_node_t *nspaces_iter = NULL;
 
 	if (!kview)
 		return NULL;
@@ -128,6 +152,26 @@ char *iview_deploy(const kview_t *kview, int level)
 	faux_str_free(tmp);
 
 	attr2ctext(&str, "name", kview_name(kview), level + 1);
+
+	// NSPACE list
+	nspaces_iter = kview_nspaces_iter(kview);
+	if (nspaces_iter) {
+		knspace_t *nspace = NULL;
+
+		tmp = faux_str_sprintf("\n%*cNSPACE_LIST\n\n", level + 1, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+
+		while ((nspace = kview_nspaces_each(&nspaces_iter))) {
+			tmp = inspace_deploy(nspace, level + 2);
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+		}
+
+		tmp = faux_str_sprintf("%*cEND_NSPACE_LIST,\n", level + 1, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+	}
 
 	// COMMAND list
 	commands_iter = kview_commands_iter(kview);

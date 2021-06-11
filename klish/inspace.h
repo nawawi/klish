@@ -7,7 +7,6 @@
 #define _klish_inspace_h
 
 #include <faux/error.h>
-#include <klish/icommand.h>
 #include <klish/knspace.h>
 
 typedef struct inspace_s {

@@ -8,10 +8,12 @@
 
 #include <faux/error.h>
 #include <klish/icommand.h>
+#include <klish/inspace.h>
 #include <klish/kview.h>
 
 typedef struct iview_s {
 	char *name;
+	inspace_t * (*nspaces)[];
 	icommand_t * (*commands)[];
 } iview_t;
 

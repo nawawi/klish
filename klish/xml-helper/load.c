@@ -36,6 +36,7 @@ static kxml_process_fn
 	process_view,
 	process_ptype,
 	process_plugin,
+	process_nspace,
 	process_klish;
 
 // Different TAGs types
@@ -47,6 +48,7 @@ typedef enum {
 	KTAG_VIEW,
 	KTAG_PTYPE,
 	KTAG_PLUGIN,
+	KTAG_NSPACE,
 	KTAG_KLISH,
 	KTAG_MAX
 } ktags_e;
@@ -59,6 +61,7 @@ static const char * const kxml_tags[] = {
 	"VIEW",
 	"PTYPE",
 	"PLUGIN",
+	"NSPACE",
 	"KLISH"
 };
 
@@ -70,6 +73,7 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_view,
 	process_ptype,
 	process_plugin,
+	process_nspace,
 	process_klish
 };
 
@@ -601,6 +605,47 @@ err:
 	kxml_node_attr_free(iaction.exec_on);
 	kxml_node_attr_free(iaction.update_retcode);
 	kxml_node_content_free(iaction.script);
+
+	return res;
+}
+
+
+static bool_t process_nspace(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	inspace_t inspace = {};
+	knspace_t *nspace = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	if (parent_tag != KTAG_VIEW) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain NSPACE tag",
+			kxml_tag_name(parent_tag));
+		return BOOL_FALSE;
+	}
+
+	inspace.ref = kxml_node_attr(element, "ref");
+	inspace.prefix = kxml_node_attr(element, "prefix");
+
+	nspace = inspace_load(&inspace, error);
+	if (!nspace)
+		goto err;
+
+	if (!kview_add_nspace((kview_t *)parent, nspace)) {
+		faux_error_sprintf(error, TAG": Can't add NSPACE \"%s\". ",
+			knspace_view_ref(nspace));
+		knspace_free(nspace);
+		goto err;
+	}
+
+	if (!process_children(element, nspace, error))
+		goto err;
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(inspace.ref);
+	kxml_node_attr_free(inspace.prefix);
 
 	return res;
 }
