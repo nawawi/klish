@@ -34,6 +34,17 @@ nobase_include_HEADERS += \
 	klish/knspace.h \
 	klish/kdb.h
 
+# iScheme
+nobase_include_HEADERS += \
+	klish/ischeme.h \
+	klish/iview.h \
+	klish/icommand.h \
+	klish/iparam.h \
+	klish/iplugin.h \
+	klish/iaction.h \
+	klish/iptype.h \
+	klish/inspace.h
+
 # Session
 nobase_include_HEADERS += \
 	klish/kudata.h \

@@ -5,4 +5,5 @@ libklish_la_SOURCES += \
 	klish/ischeme/icommand.c \
 	klish/ischeme/iptype.c \
 	klish/ischeme/iview.c \
+	klish/ischeme/inspace.c \
 	klish/ischeme/ischeme.c
