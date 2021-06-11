@@ -10,6 +10,7 @@
 #include <klish/kplugin.h>
 #include <klish/kptype.h>
 #include <klish/kview.h>
+#include <klish/knspace.h>
 #include <klish/kscheme.h>
 #include <klish/kcontext.h>
 
@@ -329,8 +330,23 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 	while ((view = kscheme_views_each(&views_iter))) {
 		kview_commands_node_t *commands_iter = NULL;
 		kcommand_t *command = NULL;
+		kview_nspaces_node_t *nspaces_iter = NULL;
+		knspace_t *nspace = NULL;
 
 		printf("VIEW: %s\n", kview_name(view));
+
+		// Iterate NSPACEs
+		nspaces_iter = kview_nspaces_iter(view);
+		while ((nspace = kview_nspaces_each(&nspaces_iter))) {
+			const char *view_ref = knspace_view_ref(nspace);
+			kview_t *rview = NULL;
+			rview = kscheme_find_view(scheme, view_ref);
+			if (!view)
+				return BOOL_FALSE;
+			knspace_set_view(nspace, rview);
+			printf("NSPACE: %s\n",
+				kview_name(knspace_view(nspace)));
+		}
 
 		// Iterate COMMANDs
 		commands_iter = kview_commands_iter(view);
