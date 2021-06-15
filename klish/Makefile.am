@@ -51,7 +51,8 @@ nobase_include_HEADERS += \
 	klish/kustore.h \
 	klish/kcontext.h \
 	klish/kpath.h \
-	klish/kexec.h
+	klish/kexec.h \
+	klish/kpargv.h
 
 # XML-helper
 nobase_include_HEADERS += \
