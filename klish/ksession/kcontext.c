@@ -9,6 +9,7 @@
 #include <faux/conv.h>
 #include <faux/list.h>
 #include <klish/khelper.h>
+#include <klish/kpargv.h>
 #include <klish/kcontext.h>
 #include <klish/kscheme.h>
 
@@ -17,8 +18,8 @@ struct kcontext_s {
 	kcontext_type_e type;
 	int retcode;
 	kplugin_t *plugin;
-	kcommand_t *command;
-	kaction_t *action;
+	kpargv_t *pargv;
+	kaction_t *action; // Current action
 	ksym_t *sym;
 	int stdin;
 	int stdout;
@@ -49,9 +50,9 @@ FAUX_HIDDEN KSET(context, ksym_t *, sym);
 KGET(context, kaction_t *, action);
 FAUX_HIDDEN KSET(context, kaction_t *, action);
 
-// Command
-KGET(context, kcommand_t *, command);
-FAUX_HIDDEN KSET(context, kcommand_t *, command);
+// Pargv
+KGET(context, kpargv_t *, pargv);
+FAUX_HIDDEN KSET(context, kpargv_t *, pargv);
 
 // STDIN
 KGET(context, int, stdin);
@@ -82,7 +83,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	// Initialize
 	context->type = type;
 	context->plugin = NULL;
-	context->command = NULL;
+	context->pargv = NULL;
 	context->action = NULL;
 	context->sym = NULL;
 

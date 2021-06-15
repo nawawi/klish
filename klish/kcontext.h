@@ -7,6 +7,7 @@
 #define _klish_kcontext_h
 
 #include <klish/kcontext_base.h>
+#include <klish/kpargv.h>
 #include <klish/kscheme.h>
 
 
@@ -28,8 +29,8 @@ FAUX_HIDDEN bool_t kcontext_set_sym(kcontext_t *context, ksym_t *sym);
 kaction_t *kcontext_action(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_action(kcontext_t *context, kaction_t *action);
 // Command
-kcommand_t *kcontext_command(const kcontext_t *context);
-FAUX_HIDDEN bool_t kcontext_set_command(kcontext_t *context, kcommand_t *command);
+kpargv_t *kcontext_pargv(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_pargv(kcontext_t *context, kpargv_t *pargv);
 // STDIN
 int kcontext_stdin(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_stdin(kcontext_t *context, int stdin);
