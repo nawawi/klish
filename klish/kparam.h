@@ -13,6 +13,13 @@ typedef struct kparam_s kparam_t;
 
 typedef faux_list_node_t kparam_params_node_t;
 
+typedef enum {
+	KPARAM_COMMON, // Common parameter
+	KPARAM_SUBCOMMAND, // The value of this parameter is its name
+	KPARAM_SWITCH, // User can choose one of nested parameters
+	KPARAM_MULTI, // Nested parameters can be used several times
+} kparam_mode_e;
+
 
 C_DECL_BEGIN
 
@@ -26,6 +33,8 @@ const char *kparam_ptype_ref(const kparam_t *param);
 bool_t kparam_set_ptype_ref(kparam_t *param, const char *ptype_ref);
 kptype_t *kparam_ptype(const kparam_t *param);
 bool_t kparam_set_ptype(kparam_t *param, kptype_t *ptype);
+kparam_mode_e kparam_mode(const kparam_t *param);
+bool_t kparam_set_mode(kparam_t *param, kparam_mode_e mode);
 
 // PARAMs
 faux_list_t *kparam_params(const kparam_t *param);

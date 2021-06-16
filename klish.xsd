@@ -239,7 +239,7 @@
 *	simply controls the conditional variable expansion for this 
 *	parameter.
 *
-* [mode] - Parameter mode. It can be "common", "switch" or "subcommand".
+* [mode] - Parameter mode. It can be "common", "switch", "subcommand", "multi".
 *
 * [prefix] - defines the prefix for an optional parameter. A prefix
 *	with this value on the command line will signify the presence
@@ -281,8 +281,22 @@
 			<xs:enumeration value="common"/>
 			<xs:enumeration value="switch"/>
 			<xs:enumeration value="subcommand"/>
+			<xs:enumeration value="multi"/>
 		</xs:restriction>
 	</xs:simpleType>
+
+	<xsd:group name="param_group_t">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SUBCOMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:choice>
+	</xsd:group>
+
+	<!--  Permit any of these tags in any order in any number     -->
+	<xsd:choice minOccurs="0" maxOccurs="unbounded">
+
 
 	<xs:complexType name="param_t">
 		<xs:attribute name="name" type="xs:string" use="required"/>

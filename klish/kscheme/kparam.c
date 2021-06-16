@@ -15,6 +15,7 @@ struct kparam_s {
 	char *help;
 	char *ptype_ref; // Text reference to PTYPE
 	kptype_t *ptype; // Resolved PARAM's PTYPE
+	kparam_mode_e mode;
 	faux_list_t *params; // Nested parameters
 };
 
@@ -34,6 +35,10 @@ KSET_STR(param, ptype_ref);
 // PTYPE (resolved)
 KGET(param, kptype_t *, ptype);
 KSET(param, kptype_t *, ptype);
+
+// Mode
+KGET(param, kparam_mode_e, mode);
+KSET(param, kparam_mode_e, mode);
 
 // PARAM list
 KGET(param, faux_list_t *, params);
