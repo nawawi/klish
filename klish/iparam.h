@@ -15,6 +15,7 @@ struct iparam_s {
 	char *name;
 	char *help;
 	char *ptype;
+	char *mode;
 	iparam_t * (*params)[]; // Nested PARAMs
 };
 

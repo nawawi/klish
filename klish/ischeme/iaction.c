@@ -62,11 +62,11 @@ bool_t iaction_parse(const iaction_t *info, kaction_t *action, faux_error_t *err
 	// Exec_on
 	if (!faux_str_is_empty(info->exec_on)) {
 		kaction_cond_e c = KACTION_COND_NONE;
-		if (faux_str_casecmp(info->exec_on, "fail"))
+		if (!faux_str_casecmp(info->exec_on, "fail"))
 			c = KACTION_COND_FAIL;
-		else if (faux_str_casecmp(info->exec_on, "success"))
+		else if (!faux_str_casecmp(info->exec_on, "success"))
 			c = KACTION_COND_SUCCESS;
-		else if (faux_str_casecmp(info->exec_on, "always"))
+		else if (!faux_str_casecmp(info->exec_on, "always"))
 			c = KACTION_COND_ALWAYS;
 		if ((KACTION_COND_NONE == c) || !kaction_set_exec_on(action, c)) {
 			faux_error_add(error, TAG": Illegal 'exec_on' attribute");
@@ -118,6 +118,7 @@ char *iaction_deploy(const kaction_t *kaction, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	char *exec_on = NULL;
 
 	if (!kaction)
 		return NULL;
@@ -130,7 +131,21 @@ char *iaction_deploy(const kaction_t *kaction, int level)
 	attr2ctext(&str, "lock", kaction_lock(kaction), level + 1);
 	attr2ctext(&str, "interrupt", faux_conv_bool2str(kaction_interrupt(kaction)), level + 1);
 	attr2ctext(&str, "interactive", faux_conv_bool2str(kaction_interactive(kaction)), level + 1);
-	attr2ctext(&str, "exec_on", faux_conv_bool2str(kaction_exec_on(kaction)), level + 1);
+	// Exec_on
+	switch (kaction_exec_on(kaction)) {
+	case KACTION_COND_FAIL:
+		exec_on = "fail";
+		break;
+	case KACTION_COND_SUCCESS:
+		exec_on = "success";
+		break;
+	case KACTION_COND_ALWAYS:
+		exec_on = "always";
+		break;
+	default:
+		exec_on = NULL;
+	}
+	attr2ctext(&str, "exec_on", exec_on, level + 1);
 	attr2ctext(&str, "update_retcode", faux_conv_bool2str(kaction_update_retcode(kaction)), level + 1);
 	attr2ctext(&str, "script", kaction_script(kaction), level + 1);
 

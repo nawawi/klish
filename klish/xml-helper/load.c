@@ -44,6 +44,9 @@ typedef enum {
 	KTAG_NONE,
 	KTAG_ACTION,
 	KTAG_PARAM,
+	KTAG_SWITCH, // PARAM alias
+	KTAG_SUBCOMMAND, // PARAM alias
+	KTAG_MULTI, // PARAM alias
 	KTAG_COMMAND,
 	KTAG_VIEW,
 	KTAG_PTYPE,
@@ -57,6 +60,9 @@ static const char * const kxml_tags[] = {
 	NULL,
 	"ACTION",
 	"PARAM",
+	"SWITCH",
+	"SUBCOMMAND",
+	"MULTI",
 	"COMMAND",
 	"VIEW",
 	"PTYPE",
@@ -68,6 +74,9 @@ static const char * const kxml_tags[] = {
 static kxml_process_fn *kxml_handlers[] = {
 	NULL,
 	process_action,
+	process_param,
+	process_param,
+	process_param,
 	process_param,
 	process_command,
 	process_view,
@@ -451,10 +460,31 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	kparam_t *param = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	ktags_e tag = kxml_node_tag(element);
+	char *mode = NULL;
 
 	iparam.name = kxml_node_attr(element, "name");
 	iparam.help = kxml_node_attr(element, "help");
 	iparam.ptype = kxml_node_attr(element, "ptype");
+	// Special case for mode
+	mode = kxml_node_attr(element, "mode");
+	if (!faux_str_is_empty(mode)) {
+		iparam.mode = mode;
+	} else {
+		switch (tag) {
+		case KTAG_SWITCH:
+			iparam.mode = "switch";
+			break;
+		case KTAG_SUBCOMMAND:
+			iparam.mode = "subcommand";
+			break;
+		case KTAG_MULTI:
+			iparam.mode = "multi";
+			break;
+		default:
+			break;
+		}
+	}
 
 	param = iparam_load(&iparam, error);
 	if (!param)
@@ -470,7 +500,12 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 			kparam_free(param);
 			goto err;
 		}
-	} else if (KTAG_PARAM == parent_tag) {
+	} else if (
+		(KTAG_PARAM == parent_tag) ||
+		(KTAG_SWITCH == parent_tag) ||
+		(KTAG_SUBCOMMAND == parent_tag) ||
+		(KTAG_MULTI == parent_tag)
+		) {
 		kparam_t *parent_param = (kparam_t *)parent;
 		if (!kparam_add_param(parent_param, param)) {
 			faux_error_sprintf(error,
@@ -496,6 +531,7 @@ err:
 	kxml_node_attr_free(iparam.name);
 	kxml_node_attr_free(iparam.help);
 	kxml_node_attr_free(iparam.ptype);
+	kxml_node_attr_free(mode);
 
 	return res;
 }

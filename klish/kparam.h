@@ -14,6 +14,7 @@ typedef struct kparam_s kparam_t;
 typedef faux_list_node_t kparam_params_node_t;
 
 typedef enum {
+	KPARAM_NONE, // Illegal
 	KPARAM_COMMON, // Common parameter
 	KPARAM_SUBCOMMAND, // The value of this parameter is its name
 	KPARAM_SWITCH, // User can choose one of nested parameters

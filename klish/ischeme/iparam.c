@@ -37,6 +37,23 @@ bool_t iparam_parse(const iparam_t *info, kparam_t *param, faux_error_t *error)
 		}
 	}
 
+	// Mode
+	if (!faux_str_is_empty(info->mode)) {
+		kparam_mode_e mode = KPARAM_NONE;
+		if (!faux_str_casecmp(info->mode, "common"))
+			mode = KPARAM_COMMON;
+		else if (!faux_str_casecmp(info->mode, "switch"))
+			mode = KPARAM_SWITCH;
+		else if (!faux_str_casecmp(info->mode, "subcommand"))
+			mode = KPARAM_SUBCOMMAND;
+		else if (!faux_str_casecmp(info->mode, "multi"))
+			mode = KPARAM_MULTI;
+		if ((KPARAM_NONE == mode) || !kparam_set_mode(param, mode)) {
+			faux_error_add(error, TAG": Illegal 'mode' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
 	return retcode;
 }
 
@@ -129,6 +146,7 @@ char *iparam_deploy(const kparam_t *kparam, int level)
 {
 	char *str = NULL;
 	char *tmp = NULL;
+	char *mode = NULL;
 	kparam_params_node_t *params_iter = NULL;
 
 	tmp = faux_str_sprintf("%*cPARAM {\n", level, ' ');
@@ -138,6 +156,25 @@ char *iparam_deploy(const kparam_t *kparam, int level)
 	attr2ctext(&str, "name", kparam_name(kparam), level + 1);
 	attr2ctext(&str, "help", kparam_help(kparam), level + 1);
 	attr2ctext(&str, "ptype", kparam_ptype_ref(kparam), level + 1);
+
+	// Mode
+	switch (kparam_mode(kparam)) {
+	case KPARAM_COMMON:
+		mode = "common";
+		break;
+	case KPARAM_SWITCH:
+		mode = "switch";
+		break;
+	case KPARAM_SUBCOMMAND:
+		mode = "subcommand";
+		break;
+	case KPARAM_MULTI:
+		mode = "multi";
+		break;
+	default:
+		mode = NULL;
+	}
+	attr2ctext(&str, "mode", mode, level + 1);
 
 	// PARAM list
 	params_iter = kparam_params_iter(kparam);
