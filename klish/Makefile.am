@@ -44,7 +44,8 @@ nobase_include_HEADERS += \
 	klish/iplugin.h \
 	klish/iaction.h \
 	klish/iptype.h \
-	klish/inspace.h
+	klish/inspace.h \
+	klish/ientry.h
 
 # Session
 nobase_include_HEADERS += \

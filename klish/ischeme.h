@@ -11,6 +11,7 @@
 #include <klish/iplugin.h>
 #include <klish/iview.h>
 #include <klish/inspace.h>
+#include <klish/ientry.h>
 #include <klish/kscheme.h>
 
 #define VIEW_LIST .views = &(iview_t * []) {
@@ -41,9 +42,14 @@
 #define END_NSPACE_LIST NULL }
 #define NSPACE &(inspace_t)
 
+#define ENTRY_LIST .entrys = &(ientry_t * []) {
+#define END_ENTRY_LIST NULL }
+#define ENTRY &(ientry_t)
+
 
 typedef struct ischeme_s {
 	char *name;
+	ientry_t * (*entrys)[];
 	iplugin_t * (*plugins)[];
 	iptype_t * (*ptypes)[];
 	iview_t * (*views)[];
