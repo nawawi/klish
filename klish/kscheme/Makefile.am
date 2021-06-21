@@ -9,4 +9,5 @@ libklish_la_SOURCES += \
 	klish/kscheme/kview.c \
 	klish/kscheme/kscheme.c \
 	klish/kscheme/knspace.c \
-	klish/kscheme/kdb.c
+	klish/kscheme/kdb.c \
+	klish/kscheme/kentry.c

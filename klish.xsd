@@ -171,7 +171,6 @@
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="completion" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 

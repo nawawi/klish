@@ -24,6 +24,7 @@ nobase_include_HEADERS += \
 # Scheme
 nobase_include_HEADERS += \
 	klish/kscheme.h \
+	klish/kentry.h \
 	klish/kview.h \
 	klish/kcommand.h \
 	klish/kparam.h \
