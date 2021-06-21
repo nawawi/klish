@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <faux/argv.h>
 #include <klish/khelper.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
 #include <klish/kpath.h>
+#include <klish/kpargv.h>
 #include <klish/ksession.h>
 
 
@@ -79,4 +81,10 @@ void ksession_free(ksession_t *session)
 }
 
 
-//bool_t ksession_parse_command(const kscheme_t scheme, 
+kpargv_t *ksession_parse_line(ksession_t session, const faux_argv_t *argv)
+{
+
+
+
+}
+

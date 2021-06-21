@@ -20,6 +20,7 @@
 
 
 	<xs:element name="KLISH" type="klish_t"/>
+	<xs:element name="ENTRY" type="entry_t"/>
 	<xs:element name="VIEW" type="view_t"/>
 	<xs:element name="COMMAND" type="command_t"/>
 	<xs:element name="FILTER" type="command_t"/>
@@ -85,6 +86,92 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="required"/>
+	</xs:complexType>
+
+
+<!--
+*******************************************************
+* <ENTRY> This tag is used to define wide class of elements.
+*
+* name - A text name for entry.
+*
+* help - A text string which describes the purpose of the entry.
+*
+* ptype - Reference to a PTYPE name. This parameter will be 
+*	validated against the syntax specified for that type.
+*	The special value of "" indicates the parameter is a boolean flag.
+*	The verbatim presence of the texual name on the command line
+*	simply controls the conditional variable expansion for this 
+*	parameter.
+*
+* [mode] - Parameter mode. It can be "common", "switch", "subcommand", "multi".
+*
+* [prefix] - defines the prefix for an optional parameter. A prefix
+*	with this value on the command line will signify the presence
+*	of an additional argument which will be validated as the
+*	value of this parameter.
+*
+* [optional] - Specify whether parameter is optional. The allowed values
+*	is "true" or "false". It's false by default.
+*
+* [order] - Used only together with "optional=true" field.
+*	If order="true" then user can't enter previously declared
+*	optional parameters after current validated parameter.
+*	The allowed values is "true" or "false". It's false by default.
+*
+* [default] - defines a default value for a parameter. Any parameters
+*	at the end of command line which have default values need 
+*	not explicitly be entered.
+*
+* [value] - defines the user's value for subcommand. If this option
+*	is defined the entered parameter will be compared to this
+*	value instead the "name" field. If this field is defined
+*	the mode of PARAM will be forced to "subcommand". The
+*	feature is implemented to support subcommands with the
+*	same names.
+*
+* [hidden] - define the visibility of the parameter while ${__line}
+*	and ${__params} auto variables expanding. The allowed values
+*	is "true" and "false".
+*
+* [test] - define the condition (see the description of 'test'
+*	utility) to process this parameter.
+*
+* [access]  - access rights
+*
+********************************************************
+-->
+	<xs:simpleType name="entry_mode_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="sequence"/>
+			<xs:enumeration value="switch"/>
+			<xs:enumeration value="empty"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:group name="entry_group_t">
+		<xs:choice>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:choice>
+	</xs:group>
+
+	<xs:complexType name="entry_t">
+		<!--  Any order of tags and any number -->
+		<xs:sequence>
+			<xs:group ref="entry_group_t" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="optional"/>
+		<xs:attribute name="container" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="mode" type="param_mode_t" use="optional" default="switch"/>
+		<xs:attribute name="min" type="xs:string" use="optional" default="1"/>
+		<xs:attribute name="max" type="xs:string" use="optional" default="1"/>
+		<xs:attribute name="ptype" type="xs:string" use="optional"/>
+		<xs:attribute name="ref" type="xs:string" use="optional"/>
+		<xs:attribute name="value" type="xs:string" use="optional"/>
+		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="completion" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 
