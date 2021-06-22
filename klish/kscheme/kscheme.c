@@ -346,7 +346,6 @@ kentry_t *kscheme_find_entry_by_path(const kscheme_t *scheme, const char *name)
 	// within scheme.
 	full_name = faux_str_dup(name);
 	entry_name = strtok_r(full_name, delim, &saveptr);
-printf("ENTRY name=%s\n", entry_name);
 	if (!entry_name) {
 		faux_str_free(full_name);
 		return NULL;
@@ -408,10 +407,14 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 		if (!ref_entry) {
 			faux_error_sprintf(error, "Can't find ENTRY \"%s\" for ptype",
 				ptype_str);
-			return BOOL_FALSE;
+			retcode = BOOL_FALSE;
 		}
 		kentry_set_ptype(entry, ref_entry);
 	}
+
+	// ACTIONs
+	if (!kscheme_prepare_action_list(scheme, kentry_actions(entry), error))
+		retcode = BOOL_FALSE;
 
 	// Process nested ENTRYs
 	iter = kentry_entrys_iter(entry);
