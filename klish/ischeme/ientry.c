@@ -253,80 +253,86 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 
 	attr2ctext(&str, "name", kentry_name(kentry), level + 1);
 	attr2ctext(&str, "help", kentry_help(kentry), level + 1);
-	attr2ctext(&str, "container", faux_conv_bool2str(kentry_container(kentry)), level + 1);
-
-	// Mode
-	switch (kentry_mode(kentry)) {
-	case KENTRY_MODE_SEQUENCE:
-		mode = "sequence";
-		break;
-	case KENTRY_MODE_SWITCH:
-		mode = "switch";
-		break;
-	case KENTRY_MODE_EMPTY:
-		mode = "empty";
-		break;
-	default:
-		mode = NULL;
-	}
-	attr2ctext(&str, "mode", mode, level + 1);
-
-	// Min occurs
-	num = faux_str_sprintf("%u", kentry_min(kentry));
-	attr2ctext(&str, "min", num, level + 1);
-	faux_str_free(num);
-	num = NULL;
-
-	// Max occurs
-	num = faux_str_sprintf("%u", kentry_max(kentry));
-	attr2ctext(&str, "max", num, level + 1);
-	faux_str_free(num);
-	num = NULL;
-
-	attr2ctext(&str, "ptype", kentry_ptype_str(kentry), level + 1);
 	attr2ctext(&str, "ref", kentry_ref_str(kentry), level + 1);
-	attr2ctext(&str, "value", kentry_value(kentry), level + 1);
-	attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
 
-	// ENTRY list
-	entrys_iter = kentry_entrys_iter(kentry);
-	if (entrys_iter) {
-		kentry_t *nentry = NULL;
+	// Links (ENTRY with 'ref' attribute) doesn't need the following filds
+	// that will be replaced by content of referenced ENTRY
+	if (faux_str_is_empty(kentry_ref_str(kentry))) {
 
-		tmp = faux_str_sprintf("\n%*cENTRY_LIST\n\n", level + 1, ' ');
-		faux_str_cat(&str, tmp);
-		faux_str_free(tmp);
+		attr2ctext(&str, "container", faux_conv_bool2str(kentry_container(kentry)), level + 1);
 
-		while ((nentry = kentry_entrys_each(&entrys_iter))) {
-			tmp = ientry_deploy(nentry, level + 2);
+		// Mode
+		switch (kentry_mode(kentry)) {
+		case KENTRY_MODE_SEQUENCE:
+			mode = "sequence";
+			break;
+		case KENTRY_MODE_SWITCH:
+			mode = "switch";
+			break;
+		case KENTRY_MODE_EMPTY:
+			mode = "empty";
+			break;
+		default:
+			mode = NULL;
+		}
+		attr2ctext(&str, "mode", mode, level + 1);
+
+		// Min occurs
+		num = faux_str_sprintf("%u", kentry_min(kentry));
+		attr2ctext(&str, "min", num, level + 1);
+		faux_str_free(num);
+		num = NULL;
+
+		// Max occurs
+		num = faux_str_sprintf("%u", kentry_max(kentry));
+		attr2ctext(&str, "max", num, level + 1);
+		faux_str_free(num);
+		num = NULL;
+
+		attr2ctext(&str, "ptype", kentry_ptype_str(kentry), level + 1);
+		attr2ctext(&str, "value", kentry_value(kentry), level + 1);
+		attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
+
+		// ENTRY list
+		entrys_iter = kentry_entrys_iter(kentry);
+		if (entrys_iter) {
+			kentry_t *nentry = NULL;
+
+			tmp = faux_str_sprintf("\n%*cENTRY_LIST\n\n", level + 1, ' ');
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+
+			while ((nentry = kentry_entrys_each(&entrys_iter))) {
+				tmp = ientry_deploy(nentry, level + 2);
+				faux_str_cat(&str, tmp);
+				faux_str_free(tmp);
+			}
+
+			tmp = faux_str_sprintf("%*cEND_ENTRY_LIST,\n", level + 1, ' ');
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
 
-		tmp = faux_str_sprintf("%*cEND_ENTRY_LIST,\n", level + 1, ' ');
-		faux_str_cat(&str, tmp);
-		faux_str_free(tmp);
-	}
+		// ACTION list
+		actions_iter = kentry_actions_iter(kentry);
+		if (actions_iter) {
+			kaction_t *action = NULL;
 
-	// ACTION list
-	actions_iter = kentry_actions_iter(kentry);
-	if (actions_iter) {
-		kaction_t *action = NULL;
+			tmp = faux_str_sprintf("\n%*cACTION_LIST\n\n", level + 1, ' ');
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
 
-		tmp = faux_str_sprintf("\n%*cACTION_LIST\n\n", level + 1, ' ');
-		faux_str_cat(&str, tmp);
-		faux_str_free(tmp);
+			while ((action = kentry_actions_each(&actions_iter))) {
+				tmp = iaction_deploy(action, level + 2);
+				faux_str_cat(&str, tmp);
+				faux_str_free(tmp);
+			}
 
-		while ((action = kentry_actions_each(&actions_iter))) {
-			tmp = iaction_deploy(action, level + 2);
+			tmp = faux_str_sprintf("%*cEND_ACTION_LIST,\n", level + 1, ' ');
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
-
-		tmp = faux_str_sprintf("%*cEND_ACTION_LIST,\n", level + 1, ' ');
-		faux_str_cat(&str, tmp);
-		faux_str_free(tmp);
-	}
+	} // ref_str
 
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');
 	faux_str_cat(&str, tmp);
