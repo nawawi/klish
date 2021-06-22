@@ -140,19 +140,54 @@ kentry_t *kentry_new(const char *name)
 }
 
 
-void kentry_free(kentry_t *entry)
+static void kentry_free_non_link(kentry_t *entry)
+{
+	if (!entry)
+		return;
+
+	faux_str_free(entry->ptype_str);
+	faux_str_free(entry->value);
+
+	faux_list_free(entry->entrys);
+	faux_list_free(entry->actions);
+}
+
+
+static void kentry_free_common(kentry_t *entry)
 {
 	if (!entry)
 		return;
 
 	faux_str_free(entry->name);
 	faux_str_free(entry->help);
-	faux_str_free(entry->ptype_str);
 	faux_str_free(entry->ref_str);
-	faux_str_free(entry->value);
+}
 
-	faux_list_free(entry->entrys);
-	faux_list_free(entry->actions);
+
+void kentry_free(kentry_t *entry)
+{
+	if (!entry)
+		return;
+
+	// If ENTRY is not a link
+	if (!kentry_ref_str(entry))
+		kentry_free_non_link(entry);
+
+	// For links and non-links
+	kentry_free_common(entry);
 
 	faux_free(entry);
+}
+
+
+bool_t kentry_link(kentry_t *dst, const kentry_t *src)
+{
+	assert(dst);
+	if (!dst)
+		return BOOL_FALSE;
+	assert(src);
+	if (!src)
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
 }

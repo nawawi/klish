@@ -327,6 +327,87 @@ bool_t kscheme_prepare_param_list(kscheme_t *scheme, faux_list_t *param_list,
 }
 
 
+kentry_t *kscheme_find_entry_by_path(const kscheme_t *scheme, const char *name)
+{
+	char *saveptr = NULL;
+	const char *delim = "/";
+	char *entry_name = NULL;
+	char *full_name = NULL;
+	kentry_t *entry = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return NULL;
+	assert(name);
+	if (!name)
+		return NULL;
+
+	// Get first component of ENTRY path. It will be searched for
+	// within scheme.
+	full_name = faux_str_dup(name);
+	entry_name = strtok_r(full_name, delim, &saveptr);
+	if (!entry_name) {
+		faux_str_free(full_name);
+		return NULL;
+	}
+	entry = kscheme_find_entry(scheme, entry_name);
+	if (!entry) {
+		faux_str_free(full_name);
+		return NULL;
+	}
+
+	// Search nested ENTRYs
+	while ((entry_name = strtok_r(NULL, delim, &saveptr))) {
+		entry = kentry_find_entry(entry, entry_name);
+		if (!entry)
+			break;
+	}
+
+	faux_str_free(full_name);
+
+	return entry;
+}
+
+
+bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
+	faux_error_t *error) {
+	kentry_entrys_node_t *iter = NULL;
+	kentry_t *nested_entry = NULL;
+	bool_t retcode = BOOL_TRUE;
+	const char *ref = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(entry);
+	if (!entry)
+		return BOOL_FALSE;
+
+	// Firstly if ENTRY is link to another ENTRY then make a copy
+	if ((ref = kentry_ref_str(entry))) {
+		kentry_t *ref_entry = NULL;
+		ref_entry = kscheme_find_entry_by_path(scheme, ref);
+		if (!ref_entry) {
+			faux_error_sprintf(error, "Can't find ENTRY \"%s\"", ref);
+			return BOOL_FALSE;
+		}
+		if (!kentry_link(entry, ref_entry)) {
+			faux_error_sprintf(error, "Can't create link to ENTRY \"%s\"", ref);
+			return BOOL_FALSE;
+		}
+	}
+
+	// Process nested ENTRYs
+	iter = kentry_entrys_iter(entry);
+	while ((nested_entry = kentry_entrys_each(&iter))) {
+		if (!kscheme_prepare_entry(scheme, nested_entry, error))
+			retcode = BOOL_FALSE;
+	}
+
+	return retcode;
+}
+
+
 /** @brief Prepares schema for execution.
  *
  * It loads plugins, link unresolved symbols, then iterates all the
@@ -337,6 +418,8 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 {
 	kscheme_views_node_t *views_iter = NULL;
 	kview_t *view = NULL;
+	kscheme_entrys_node_t *entrys_iter = NULL;
+	kentry_t *entry = NULL;
 
 	assert(scheme);
 	if (!scheme)
@@ -383,6 +466,13 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 				kcommand_params(command), error))
 				return BOOL_FALSE;
 		}
+	}
+
+	// Iterate ENTRYs
+	entrys_iter = kscheme_entrys_iter(scheme);
+	while ((entry = kscheme_entrys_each(&entrys_iter))) {
+		if (!kscheme_prepare_entry(scheme, entry, error))
+			return BOOL_FALSE;
 	}
 
 	return BOOL_TRUE;

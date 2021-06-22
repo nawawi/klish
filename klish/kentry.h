@@ -34,6 +34,8 @@ C_DECL_BEGIN
 kentry_t *kentry_new(const char *name);
 void kentry_free(kentry_t *entry);
 
+bool_t kentry_link(kentry_t *dst, const kentry_t *src);
+
 // Name
 const char *kentry_name(const kentry_t *entry);
 // Help
