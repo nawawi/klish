@@ -133,6 +133,54 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 		}
 	}
 
+	// ENTRY list
+	// ENTRYs can be duplicate. Duplicated ENTRY will add nested
+	// elements to existent ENTRY. Also it can overwrite ENTRY attributes.
+	// So there is no special rule which attribute value will be "on top".
+	// It's a random. Technically later ENTRYs will rewrite previous
+	// values.
+	if (ischeme->entrys) {
+		ientry_t **p_ientry = NULL;
+		for (p_ientry = *ischeme->entrys; *p_ientry; p_ientry++) {
+			kentry_t *nkentry = NULL;
+			ientry_t *nientry = *p_ientry;
+			const char *entry_name = nientry->name;
+
+			if (entry_name)
+				nkentry = kscheme_find_entry(kscheme, entry_name);
+
+			// ENTRY already exists
+			if (nkentry) {
+				if (!ientry_parse(nientry, nkentry, error)) {
+					retval = BOOL_FALSE;
+					continue;
+				}
+				if (!ientry_parse_nested(nientry, nkentry,
+					error)) {
+					retval = BOOL_FALSE;
+					continue;
+				}
+				continue;
+			}
+
+			// New ENTRY
+			nkentry = ientry_load(nientry, error);
+			if (!nkentry) {
+				retval = BOOL_FALSE;
+				continue;
+			}
+			kentry_set_parent(nkentry, NULL); // Set empty parent entry
+			if (!kscheme_add_entry(kscheme, nkentry)) {
+				faux_error_sprintf(error,
+					TAG": Can't add ENTRY \"%s\"",
+					kentry_name(nkentry));
+				kentry_free(nkentry);
+				retval = BOOL_FALSE;
+				continue;
+			}
+		}
+	}
+
 	if (!retval)
 		faux_error_sprintf(error, TAG": Illegal nested elements");
 
@@ -161,6 +209,7 @@ char *ischeme_deploy(const kscheme_t *scheme, int level)
 	kscheme_plugins_node_t *plugins_iter = NULL;
 	kscheme_ptypes_node_t *ptypes_iter = NULL;
 	kscheme_views_node_t *views_iter = NULL;
+	kscheme_entrys_node_t *entrys_iter = NULL;
 
 	tmp = faux_str_sprintf("ischeme_t sch = {\n");
 	faux_str_cat(&str, tmp);
@@ -222,6 +271,26 @@ char *ischeme_deploy(const kscheme_t *scheme, int level)
 		}
 
 		tmp = faux_str_sprintf("%*cEND_VIEW_LIST,\n", level + 1, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+	}
+
+	// ENTRY list
+	entrys_iter = kscheme_entrys_iter(scheme);
+	if (entrys_iter) {
+		kentry_t *entry = NULL;
+
+		tmp = faux_str_sprintf("\n%*cENTRY_LIST\n\n", level, ' ');
+		faux_str_cat(&str, tmp);
+		faux_str_free(tmp);
+
+		while ((entry = kscheme_entrys_each(&entrys_iter))) {
+			tmp = ientry_deploy(entry, level + 2);
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+		}
+
+		tmp = faux_str_sprintf("%*cEND_ENTRY_LIST,\n", level + 1, ' ');
 		faux_str_cat(&str, tmp);
 		faux_str_free(tmp);
 	}

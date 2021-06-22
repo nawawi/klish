@@ -5,6 +5,7 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/conv.h>
 #include <klish/khelper.h>
 #include <klish/ientry.h>
 #include <klish/kptype.h>
@@ -243,6 +244,7 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 	char *tmp = NULL;
 	char *mode = NULL;
 	kentry_entrys_node_t *entrys_iter = NULL;
+	kentry_actions_node_t *actions_iter = NULL;
 	char *num = NULL;
 
 	tmp = faux_str_sprintf("%*cENTRY {\n", level, ' ');

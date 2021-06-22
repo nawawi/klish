@@ -10,6 +10,7 @@
 #include <klish/kplugin.h>
 #include <klish/kptype.h>
 #include <klish/kview.h>
+#include <klish/kentry.h>
 #include <klish/kcontext_base.h>
 
 
@@ -18,12 +19,16 @@ typedef struct kscheme_s kscheme_t;
 typedef faux_list_node_t kscheme_views_node_t;
 typedef faux_list_node_t kscheme_ptypes_node_t;
 typedef faux_list_node_t kscheme_plugins_node_t;
+typedef faux_list_node_t kscheme_entrys_node_t;
 
 
 C_DECL_BEGIN
 
 kscheme_t *kscheme_new(void);
 void kscheme_free(kscheme_t *scheme);
+
+bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
+bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
 
 // VIEWs
 faux_list_t *kscheme_views(const kscheme_t *scheme);
@@ -49,9 +54,13 @@ ssize_t kscheme_plugins_len(const kscheme_t *scheme);
 kscheme_plugins_node_t *kscheme_plugins_iter(const kscheme_t *scheme);
 kplugin_t *kscheme_plugins_each(kscheme_plugins_node_t **iter);
 
-bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
-bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
-
+// ENTRYs
+faux_list_t *kscheme_entrys(const kscheme_t *scheme);
+bool_t kscheme_add_entry(kscheme_t *scheme, kentry_t *entry);
+kentry_t *kscheme_find_entry(const kscheme_t *scheme, const char *name);
+ssize_t kscheme_entrys_len(const kscheme_t *scheme);
+kscheme_entrys_node_t *kscheme_entrys_iter(const kscheme_t *scheme);
+kentry_t *kscheme_entrys_each(kscheme_entrys_node_t **iter);
 
 C_DECL_END
 

@@ -11,6 +11,7 @@
 #include <klish/kptype.h>
 #include <klish/kview.h>
 #include <klish/knspace.h>
+#include <klish/kentry.h>
 #include <klish/kscheme.h>
 #include <klish/kcontext.h>
 
@@ -19,6 +20,7 @@ struct kscheme_s {
 	faux_list_t *plugins;
 	faux_list_t *ptypes;
 	faux_list_t *views;
+	faux_list_t *entrys;
 };
 
 // Simple methods
@@ -53,6 +55,16 @@ KNESTED_LEN(scheme, view);
 KNESTED_ITER(scheme, view);
 KNESTED_EACH(scheme, view);
 
+// ENTRY list
+KGET(scheme, faux_list_t *, entrys);
+KCMP_NESTED(scheme, entry, name);
+KCMP_NESTED_BY_KEY(scheme, entry, name);
+KADD_NESTED(scheme, entry);
+KFIND_NESTED(scheme, entry);
+KNESTED_LEN(scheme, entry);
+KNESTED_ITER(scheme, entry);
+KNESTED_EACH(scheme, entry);
+
 
 kscheme_t *kscheme_new(void)
 {
@@ -81,6 +93,14 @@ kscheme_t *kscheme_new(void)
 		(void (*)(void *))kview_free);
 	assert(scheme->views);
 
+	// ENTRY list
+	// Must be unsorted because order is important
+	scheme->entrys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+		kscheme_entry_compare, kscheme_entry_kcompare,
+		(void (*)(void *))kentry_free);
+	assert(scheme->entrys);
+
+
 	return scheme;
 }
 
@@ -93,6 +113,8 @@ void kscheme_free(kscheme_t *scheme)
 	faux_list_free(scheme->plugins);
 	faux_list_free(scheme->ptypes);
 	faux_list_free(scheme->views);
+	faux_list_free(scheme->entrys);
+
 	faux_free(scheme);
 }
 
