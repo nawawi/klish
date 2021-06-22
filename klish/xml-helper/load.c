@@ -37,7 +37,8 @@ static kxml_process_fn
 	process_ptype,
 	process_plugin,
 	process_nspace,
-	process_klish;
+	process_klish,
+	process_entry;
 
 // Different TAGs types
 typedef enum {
@@ -53,7 +54,8 @@ typedef enum {
 	KTAG_PLUGIN,
 	KTAG_NSPACE,
 	KTAG_KLISH,
-	KTAG_MAX
+	KTAG_ENTRY,
+	KTAG_MAX,
 } ktags_e;
 
 static const char * const kxml_tags[] = {
@@ -68,7 +70,8 @@ static const char * const kxml_tags[] = {
 	"PTYPE",
 	"PLUGIN",
 	"NSPACE",
-	"KLISH"
+	"KLISH",
+	"ENTRY",
 };
 
 static kxml_process_fn *kxml_handlers[] = {
@@ -83,7 +86,8 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_ptype,
 	process_plugin,
 	process_nspace,
-	process_klish
+	process_klish,
+	process_entry,
 };
 
 
@@ -621,6 +625,17 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 			kaction_free(action);
 			goto err;
 		}
+	} else if (KTAG_ENTRY == parent_tag) {
+		kentry_t *entry = (kentry_t *)parent;
+		if (!kentry_add_action(entry, action)) {
+			faux_error_sprintf(error,
+				TAG": Can't add ACTION #%d to ENTRY \"%s\". "
+				"Probably duplication",
+				kentry_actions_len(entry) + 1,
+				kentry_name(entry));
+			kaction_free(action);
+			goto err;
+		}
 	} else {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",
@@ -685,3 +700,103 @@ err:
 
 	return res;
 }
+
+
+static bool_t process_entry(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kentry_t *parent_entry = (kentry_t *)parent;
+
+	// Mandatory entry name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": entry without name");
+		return BOOL_FALSE;
+	}
+
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = kxml_node_attr(element, "container");
+	ientry.mode = kxml_node_attr(element, "mode");
+	ientry.min = kxml_node_attr(element, "min");
+	ientry.max = kxml_node_attr(element, "max");
+	ientry.ptype = kxml_node_attr(element, "ptype");
+	ientry.ref = kxml_node_attr(element, "ref");
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = kxml_node_attr(element, "restore");
+
+	// Parent must be a KLISH or ENTRY tag
+	if ((parent_tag != KTAG_KLISH) && (parent_tag != KTAG_ENTRY)) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain ENTRY tag",
+			kxml_tag_name(parent_tag));
+		goto err;
+	}
+	if (!parent_entry) {
+		faux_error_sprintf(error,
+			TAG": Broken parent object for ENTRY \"%s\"",
+			ientry.name);
+		goto err;
+	}
+
+	if (KTAG_KLISH == parent_tag) { // High level ENTRY
+		// Does such ENTRY already exist
+		entry = kscheme_find_entry((kscheme_t *)parent, ientry.name);
+		if (entry) {
+			if (!ientry_parse(&ientry, entry, error))
+				goto err;
+		} else { // New entry object
+			entry = ientry_load(&ientry, error);
+			if (!entry)
+				goto err;
+			if (!kscheme_add_entry((kscheme_t *)parent, entry)) {
+				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
+					"Probably duplication",
+					kentry_name(entry));
+				kentry_free(entry);
+				goto err;
+			}
+		}
+	} else { // ENTRY within ENTRY
+		// Does such ENTRY already exist
+		entry = kentry_find_entry(parent_entry, ientry.name);
+		if (entry) {
+			if (!ientry_parse(&ientry, entry, error))
+				goto err;
+		} else { // New entry object
+			entry = ientry_load(&ientry, error);
+			if (!entry)
+				goto err;
+			kentry_set_parent(entry, parent_entry);
+			if (!kentry_add_entry(parent_entry, entry)) {
+				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
+					"Probably duplication",
+					kentry_name(entry));
+				kentry_free(entry);
+				goto err;
+			}
+		}
+	}
+
+	if (!process_children(element, entry, error))
+		goto err;
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.container);
+	kxml_node_attr_free(ientry.mode);
+	kxml_node_attr_free(ientry.min);
+	kxml_node_attr_free(ientry.max);
+	kxml_node_attr_free(ientry.ptype);
+	kxml_node_attr_free(ientry.ref);
+	kxml_node_attr_free(ientry.value);
+	kxml_node_attr_free(ientry.restore);
+
+	return res;
+}
+
