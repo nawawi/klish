@@ -375,6 +375,7 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	kentry_t *nested_entry = NULL;
 	bool_t retcode = BOOL_TRUE;
 	const char *ref = NULL;
+	kentry_t *ref_entry = NULL;
 
 	assert(scheme);
 	if (!scheme)
@@ -384,12 +385,14 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 		return BOOL_FALSE;
 
 	// Firstly if ENTRY is link to another ENTRY then make a copy
-	if ((ref = kentry_ref_str(entry))) {
-		kentry_t *ref_entry = NULL;
-		ref_entry = kscheme_find_entry_by_path(scheme, ref);
-		if (!ref_entry) {
-			faux_error_sprintf(error, "Can't find ENTRY \"%s\"", ref);
-			return BOOL_FALSE;
+	if (kentry_ref_str(entry)) {
+		ref_entry = entry;
+		while ((ref = kentry_ref_str(ref_entry))) {
+			ref_entry = kscheme_find_entry_by_path(scheme, ref);
+			if (!ref_entry) {
+				faux_error_sprintf(error, "Can't find ENTRY \"%s\"", ref);
+				return BOOL_FALSE;
+			}
 		}
 		if (!kentry_link(entry, ref_entry)) {
 			faux_error_sprintf(error, "Can't create link to ENTRY \"%s\"", ref);
