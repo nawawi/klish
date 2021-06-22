@@ -22,7 +22,6 @@ struct kentry_s {
 	char *ptype_str; // Text reference to PTYPE
 	kentry_t *ptype; // Resolved entry's PTYPE
 	char *ref_str; // Text reference to aliased ENTRY
-	kentry_t *ref; // Resolved aliased ENTRY
 	char *value; // Additional info
 	bool_t restore; // Should entry restore its depth while execution
 	faux_list_t *entrys; // Nested ENTRYs
@@ -69,9 +68,6 @@ KSET(entry, kentry_t *, ptype);
 // Ref string (must be resolved later)
 KGET_STR(entry, ref_str);
 KSET_STR(entry, ref_str);
-// Ref (resolved)
-KGET(entry, kentry_t *, ref);
-KSET(entry, kentry_t *, ref);
 
 // Value
 KGET_STR(entry, value);
@@ -121,7 +117,6 @@ kentry_t *kentry_new(const char *name)
 	entry->ptype_str = NULL;
 	entry->ptype = NULL;
 	entry->ref_str = NULL;
-	entry->ref = NULL;
 	entry->value = NULL;
 	entry->restore = BOOL_FALSE;
 
@@ -188,6 +183,27 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	assert(src);
 	if (!src)
 		return BOOL_FALSE;
+
+	// Free all fields that will be linker to src later
+	kentry_free_non_link(dst);
+
+	// Copy structure by hand because else some fields must be
+	// returned back anyway and temp memory must be allocated. I think it
+	// worse.
+	// name - orig
+	// help - orig
+	// parent - orig
+	dst->container = src->container;
+	dst->mode = src->mode;
+	dst->min = src->min;
+	dst->max = src->max;
+	dst->ptype_str = src->ptype_str;
+	dst->ptype = src->ptype;
+	// ref_str - orig
+	dst->value = src->value;
+	dst->restore = src->restore;
+	dst->entrys = src->entrys;
+	dst->actions = src->actions;
 
 	return BOOL_TRUE;
 }

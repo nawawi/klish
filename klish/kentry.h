@@ -64,8 +64,6 @@ bool_t kentry_set_ptype(kentry_t *entry, kentry_t *ptype);
 // Ref
 const char *kentry_ref_str(const kentry_t *entry);
 bool_t kentry_set_ref_str(kentry_t *entry, const char *ref_str);
-kentry_t *kentry_ref(const kentry_t *entry);
-bool_t kentry_set_ref(kentry_t *entry, kentry_t *ptype);
 // Value
 const char *kentry_value(const kentry_t *entry);
 bool_t kentry_set_value(kentry_t *entry, const char *value);

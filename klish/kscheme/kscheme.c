@@ -346,6 +346,7 @@ kentry_t *kscheme_find_entry_by_path(const kscheme_t *scheme, const char *name)
 	// within scheme.
 	full_name = faux_str_dup(name);
 	entry_name = strtok_r(full_name, delim, &saveptr);
+printf("ENTRY name=%s\n", entry_name);
 	if (!entry_name) {
 		faux_str_free(full_name);
 		return NULL;
@@ -376,6 +377,7 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	bool_t retcode = BOOL_TRUE;
 	const char *ref = NULL;
 	kentry_t *ref_entry = NULL;
+	const char *ptype_str = NULL;
 
 	assert(scheme);
 	if (!scheme)
@@ -398,6 +400,17 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 			faux_error_sprintf(error, "Can't create link to ENTRY \"%s\"", ref);
 			return BOOL_FALSE;
 		}
+	}
+
+	// Resolve ptype's ENTRY
+	if ((ptype_str = kentry_ptype_str(entry))) {
+		ref_entry = kscheme_find_entry_by_path(scheme, ptype_str);
+		if (!ref_entry) {
+			faux_error_sprintf(error, "Can't find ENTRY \"%s\" for ptype",
+				ptype_str);
+			return BOOL_FALSE;
+		}
+		kentry_set_ptype(entry, ref_entry);
 	}
 
 	// Process nested ENTRYs
