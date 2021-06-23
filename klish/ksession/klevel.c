@@ -8,22 +8,22 @@
 #include <faux/str.h>
 #include <klish/khelper.h>
 #include <klish/kpath.h>
-#include <klish/kview.h>
+#include <klish/kentry.h>
 
 struct klevel_s {
-	kview_t *view;
+	kentry_t *entry;
 };
 
 
-// View
-KGET(level, kview_t *, view);
+// ENTRY
+KGET(level, kentry_t *, entry);
 
 
-klevel_t *klevel_new(kview_t *view)
+klevel_t *klevel_new(kentry_t *entry)
 {
 	klevel_t *level = NULL;
 
-	if (!view)
+	if (!entry)
 		return NULL;
 
 	level = faux_zmalloc(sizeof(*level));
@@ -32,7 +32,7 @@ klevel_t *klevel_new(kview_t *view)
 		return NULL;
 
 	// Initialize
-	level->view = view;
+	level->entry = entry;
 
 	return level;
 }

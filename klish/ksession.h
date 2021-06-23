@@ -8,14 +8,14 @@
 
 #include <klish/kscheme.h>
 
-#define KSESSION_DEFAULT_VIEW "main"
+#define KSESSION_STARTING_ENTRY "main"
 
 typedef struct ksession_s ksession_t;
 
 
 C_DECL_BEGIN
 
-ksession_t *ksession_new(const kscheme_t *scheme, const char *start_view);
+ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry);
 void ksession_free(ksession_t *session);
 
 const kscheme_t *ksession_scheme(const ksession_t *session);

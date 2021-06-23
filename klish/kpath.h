@@ -7,7 +7,7 @@
 #define _klish_kpath_h
 
 #include <faux/list.h>
-#include <klish/kview.h>
+#include <klish/kentry.h>
 
 typedef struct kpath_s kpath_t;
 typedef struct klevel_s klevel_t;
@@ -19,10 +19,10 @@ C_DECL_BEGIN
 
 // Level
 
-klevel_t *klevel_new(kview_t *view);
+klevel_t *klevel_new(kentry_t *entry);
 void klevel_free(klevel_t *level);
 
-kview_t *klevel_view(const klevel_t *level);
+kentry_t *klevel_entry(const klevel_t *level);
 
 // Path
 

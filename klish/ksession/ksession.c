@@ -27,30 +27,30 @@ KGET(session, const kscheme_t *, scheme);
 KGET(session, kpath_t *, path);
 
 
-ksession_t *ksession_new(const kscheme_t *scheme, const char *start_view)
+ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry)
 {
 	ksession_t *session = NULL;
-	kview_t *view = NULL;
-	const char *view_to_search = NULL;
+	kentry_t *entry = NULL;
+	const char *entry_to_search = NULL;
 	klevel_t *level = NULL;
 
 	assert(scheme);
 	if (!scheme)
 		return NULL;
 
-	// Before real session allocation we will try to find starting view.
-	// Starting view can be get from function argument, from STARTUP tag or
+	// Before real session allocation we will try to find starting entry.
+	// Starting entry can be get from function argument, from STARTUP tag or
 	// default name 'main' can be used. Don't create session if we can't get
-	// starting view at all. Priorities are (from higher) argument, STARTUP,
+	// starting entry at all. Priorities are (from higher) argument, STARTUP,
 	// default name.
-	if (start_view)
-		view_to_search = start_view;
+	if (start_entry)
+		entry_to_search = start_entry;
 	// STARTUP is not implemented yet
 	else
-		view_to_search = KSESSION_DEFAULT_VIEW;
-	view = kscheme_find_view(scheme, view_to_search);
-	if (view)
-		return NULL; // Can't find starting view
+		entry_to_search = KSESSION_STARTING_ENTRY;
+	entry = kscheme_find_entry_by_path(scheme, entry_to_search);
+	if (entry)
+		return NULL; // Can't find starting entry
 
 	session = faux_zmalloc(sizeof(*session));
 	assert(session);
@@ -62,7 +62,7 @@ ksession_t *ksession_new(const kscheme_t *scheme, const char *start_view)
 	// Create kpath_t stack
 	session->path = kpath_new();
 	assert(session->path);
-	level = klevel_new(view);
+	level = klevel_new(entry);
 	assert(level);
 	kpath_push(session->path, level);
 
@@ -80,11 +80,30 @@ void ksession_free(ksession_t *session)
 	free(session);
 }
 
-/*
-kpargv_t *ksession_parse_line(ksession_t session, const faux_argv_t *argv)
+
+kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
 {
+	const kscheme_t *scheme = ksession_scheme(session);
+	faux_argv_t *argv = NULL;
 
+	assert(session);
+	if (!session)
+		return NULL;
+	assert(line);
+	if (!line)
+		return NULL;
 
+	// Split line to arguments
+	argv = faux_argv_new();
+	assert(argv);
+	if (!argv)
+		return NULL;
+	if (faux_argv_parse(argv, line) <= 0) {
+		faux_argv_free(argv);
+		return NULL;
+	}
 
+	scheme = scheme;
+
+	return NULL;
 }
-*/

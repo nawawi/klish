@@ -7,7 +7,6 @@
 
 #include <faux/list.h>
 #include <klish/khelper.h>
-#include <klish/kudata.h>
 #include <klish/kpath.h>
 
 struct kpath_s {
