@@ -1,4 +1,5 @@
 /** @file kparg.c
+ * @brief Parsed ARGument
  */
 
 
@@ -9,29 +10,29 @@
 
 #include <faux/str.h>
 #include <klish/khelper.h>
-#include <klish/kparam.h>
+#include <klish/kentry.h>
 #include <klish/kpargv.h> // Contains parg and pargv
 
 
 struct kparg_s {
-	kparam_t *param;
+	kentry_t *entry;
 	char *value;
 };
 
 
-// Param
-KGET(parg, kparam_t *, param);
+// Entry
+KGET(parg, kentry_t *, entry);
 
 // Value
 KSET_STR(parg, value);
 KGET_STR(parg, value);
 
 
-kparg_t *kparg_new(kparam_t *param, const char *value)
+kparg_t *kparg_new(kentry_t *entry, const char *value)
 {
 	kparg_t *parg = NULL;
 
-	if (!param)
+	if (!entry)
 		return NULL;
 
 	parg = faux_zmalloc(sizeof(*parg));
@@ -40,7 +41,7 @@ kparg_t *kparg_new(kparam_t *param, const char *value)
 		return NULL;
 
 	// Initialize
-	parg->param = param;
+	parg->entry = entry;
 	kparg_set_value(parg, value);
 
 	return parg;

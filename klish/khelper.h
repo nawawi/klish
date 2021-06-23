@@ -136,6 +136,16 @@
 	return faux_list_len(inst->nested##s); \
 }
 
+#define _KNESTED_IS_EMPTY(obj, nested) \
+	bool_t k##obj##_##nested##s_is_empty(const k##obj##_t *inst)
+#define KNESTED_IS_EMPTY(obj, nested) \
+	_KNESTED_IS_EMPTY(obj, nested) { \
+	assert(inst); \
+	if (!inst) \
+		return -1; \
+	return faux_list_is_empty(inst->nested##s); \
+}
+
 #define _KNESTED_ITER(obj, nested) \
 	k##obj##_##nested##s_node_t *k##obj##_##nested##s_iter(const k##obj##_t *inst)
 #define KNESTED_ITER(obj, nested) \

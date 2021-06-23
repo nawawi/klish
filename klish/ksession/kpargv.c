@@ -7,23 +7,21 @@
 
 #include <faux/list.h>
 #include <klish/khelper.h>
-#include <klish/kcommand.h>
-#include <klish/kparam.h>
 #include <klish/kpargv.h>
 
 
 struct kpargv_s {
-	kcommand_t *command;
 	faux_list_t *pargs;
 };
 
 
-// Command
-KGET(pargv, kcommand_t *, command);
-KSET(pargv, kcommand_t *, command);
-
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
+KADD_NESTED(pargv, parg);
+KNESTED_LEN(pargv, parg);
+KNESTED_IS_EMPTY(pargv, parg);
+KNESTED_ITER(pargv, parg);
+KNESTED_EACH(pargv, parg);
 
 
 kpargv_t *kpargv_new()
@@ -55,48 +53,12 @@ void kpargv_free(kpargv_t *pargv)
 }
 
 
-size_t kpargv_len(const kpargv_t *pargv)
-{
-	assert(pargv);
-	if (!pargv)
-		return 0;
-
-	return faux_list_len(pargv->pargs);
-}
-
-
-size_t kpargv_is_empty(const kpargv_t *pargv)
-{
-	assert(pargv);
-	if (!pargv)
-		return 0;
-
-	return faux_list_is_empty(pargv->pargs);
-}
-
-
-bool_t kpargv_add(kpargv_t *pargv, kparg_t *parg)
-{
-	assert(pargv);
-	assert(parg);
-	if (!pargv)
-		return BOOL_FALSE;
-	if (!parg)
-		return BOOL_FALSE;
-
-	if (!faux_list_add(pargv->pargs, parg))
-		return BOOL_FALSE;
-
-	return BOOL_TRUE;
-}
-
-
-kparg_t *kpargv_last(const kpargv_t *pargv)
+kparg_t *kpargv_pargs_last(const kpargv_t *pargv)
 {
 	assert(pargv);
 	if (!pargv)
 		return NULL;
-	if (kpargv_is_empty(pargv))
+	if (kpargv_pargs_is_empty(pargv))
 		return NULL;
 
 	return (kparg_t *)faux_list_data(faux_list_tail(pargv->pargs));
