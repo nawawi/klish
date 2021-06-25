@@ -111,7 +111,7 @@ kentry_t *kentry_new(const char *name)
 	entry->help = NULL;
 	entry->parent = NULL;
 	entry->container = BOOL_FALSE;
-	entry->mode = KENTRY_MODE_SWITCH;
+	entry->mode = KENTRY_MODE_SEQUENCE;
 	entry->min = 1;
 	entry->max = 1;
 	entry->ptype_str = NULL;
