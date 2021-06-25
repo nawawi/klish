@@ -79,31 +79,3 @@ void ksession_free(ksession_t *session)
 
 	free(session);
 }
-
-
-kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
-{
-	const kscheme_t *scheme = ksession_scheme(session);
-	faux_argv_t *argv = NULL;
-
-	assert(session);
-	if (!session)
-		return NULL;
-	assert(line);
-	if (!line)
-		return NULL;
-
-	// Split line to arguments
-	argv = faux_argv_new();
-	assert(argv);
-	if (!argv)
-		return NULL;
-	if (faux_argv_parse(argv, line) <= 0) {
-		faux_argv_free(argv);
-		return NULL;
-	}
-
-	scheme = scheme;
-
-	return NULL;
-}

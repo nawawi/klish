@@ -7,4 +7,5 @@ libklish_la_SOURCES += \
 	klish/ksession/kexec.c \
 	klish/ksession/kparg.c \
 	klish/ksession/kpargv.c \
-	klish/ksession/ksession.c
+	klish/ksession/ksession.c \
+	klish/ksession/ksession_parse.c
