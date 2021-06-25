@@ -34,7 +34,7 @@ void kpargv_free(kpargv_t *pargv);
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
 ssize_t kpargv_pargs_len(const kpargv_t *pargv);
 bool_t kpargv_pargs_is_empty(const kpargv_t *pargv);
-bool_t kpargv_pargs_add(kpargv_t *pargv, kparg_t *parg);
+bool_t kpargv_add_parg(kpargv_t *pargv, kparg_t *parg);
 kparg_t *kpargv_pargs_last(const kpargv_t *pargv);
 
 C_DECL_END
