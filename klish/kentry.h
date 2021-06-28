@@ -76,6 +76,7 @@ faux_list_t *kentry_entrys(const kentry_t *entry);
 bool_t kentry_add_entry(kentry_t *entry, kentry_t *nested_entry);
 kentry_t *kentry_find_entry(const kentry_t *entry, const char *name);
 ssize_t kentry_entrys_len(const kentry_t *entry);
+bool_t kentry_entrys_is_empty(const kentry_t *entry);
 kentry_entrys_node_t *kentry_entrys_iter(const kentry_t *entry);
 kentry_t *kentry_entrys_each(kentry_entrys_node_t **iter);
 

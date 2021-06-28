@@ -83,6 +83,8 @@ static KCMP_NESTED(entry, entry, name);
 static KCMP_NESTED_BY_KEY(entry, entry, name);
 KADD_NESTED(entry, entry);
 KFIND_NESTED(entry, entry);
+KNESTED_LEN(entry, entry);
+KNESTED_IS_EMPTY(entry, entry);
 KNESTED_ITER(entry, entry);
 KNESTED_EACH(entry, entry);
 
