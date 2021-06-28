@@ -187,6 +187,8 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
 
 	ksession_parse_arg(current_entry, &argv_iter, pargv);
 
+	printf("KKKKKKKKK %ld\n", kpargv_pargs_len(pargv));
+
 	if (kpargv_pargs_is_empty(pargv)) {
 		kpargv_free(pargv);
 		return NULL;

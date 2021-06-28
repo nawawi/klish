@@ -38,6 +38,7 @@
 #include <klish/kscheme.h>
 #include <klish/ischeme.h>
 #include <klish/kcontext.h>
+#include <klish/ksession.h>
 #include <klish/kdb.h>
 
 #include "private.h"
@@ -77,6 +78,7 @@ int main(int argc, char **argv)
 	int listen_unix_sock = -1;
 	ktpd_clients_t *clients = NULL;
 	kscheme_t *scheme = NULL;
+	ksession_t *session = NULL;
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
 
@@ -169,8 +171,11 @@ int main(int argc, char **argv)
 	kdb_deploy_scheme(deploy_db, scheme);
 	kdb_fini(deploy_db);
 	kdb_free(deploy_db);
-goto err; // Test purposes
 	}
+
+	session = ksession_new(scheme, NULL);
+	ksession_parse_line(session, "cmd m1 e1");
+goto err; // Test purposes
 
 	// Listen socket
 	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);

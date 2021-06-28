@@ -49,7 +49,7 @@ ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry)
 	else
 		entry_to_search = KSESSION_STARTING_ENTRY;
 	entry = kscheme_find_entry_by_path(scheme, entry_to_search);
-	if (entry)
+	if (!entry)
 		return NULL; // Can't find starting entry
 
 	session = faux_zmalloc(sizeof(*session));

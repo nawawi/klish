@@ -7,6 +7,7 @@
 #define _klish_ksession_h
 
 #include <klish/kscheme.h>
+#include <klish/kpath.h>
 
 #define KSESSION_STARTING_ENTRY "main"
 
@@ -20,6 +21,9 @@ void ksession_free(ksession_t *session);
 
 const kscheme_t *ksession_scheme(const ksession_t *session);
 kpath_t *ksession_path(const ksession_t *session);
+
+kpargv_t *ksession_parse_line(ksession_t *session, const char *line);
+
 
 C_DECL_END
 
