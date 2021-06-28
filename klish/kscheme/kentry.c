@@ -24,6 +24,7 @@ struct kentry_s {
 	char *ref_str; // Text reference to aliased ENTRY
 	char *value; // Additional info
 	bool_t restore; // Should entry restore its depth while execution
+	bool_t order; // Is entry ordered
 	faux_list_t *entrys; // Nested ENTRYs
 	faux_list_t *actions; // Nested ACTIONs
 };
@@ -77,6 +78,10 @@ KSET_STR(entry, value);
 KGET_BOOL(entry, restore);
 KSET_BOOL(entry, restore);
 
+// Order
+KGET_BOOL(entry, order);
+KSET_BOOL(entry, order);
+
 // Nested ENTRYs list
 KGET(entry, faux_list_t *, entrys);
 static KCMP_NESTED(entry, entry, name);
@@ -121,6 +126,7 @@ kentry_t *kentry_new(const char *name)
 	entry->ref_str = NULL;
 	entry->value = NULL;
 	entry->restore = BOOL_FALSE;
+	entry->order = BOOL_FALSE;
 
 	// ENTRY list
 	entry->entrys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,

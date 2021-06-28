@@ -112,11 +112,34 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 	// SEQUENCE
 	} else if (KENTRY_MODE_SEQUENCE == mode) {
 		kentry_entrys_node_t *iter = kentry_entrys_iter(entry);
+		kentry_entrys_node_t *saved_iter = iter;
 		kentry_t *nested = NULL;
-		kparse_status_e nrc = KPARSE_NOTFOUND;
+
 		while ((nested = kentry_entrys_each(&iter))) {
-			if ((nrc = ksession_parse_arg(nested, argv_iter, pargv)))
-				retcode = KPARSE_INPROGRESS;
+			kparse_status_e nrc = KPARSE_NOTFOUND;
+			size_t num = 0;
+			for (num = 0; num < kentry_max(nested); num++) {
+				nrc = ksession_parse_arg(nested, argv_iter, pargv);
+				if (nrc != KPARSE_INPROGRESS)
+					break;
+			}
+			if ((nrc != KPARSE_INPROGRESS) && (nrc != KPARSE_NOTFOUND)) {
+				rc = nrc;
+				break;
+			}
+			// Not found all mandatory instances (NOTFOUND)
+			if (num < kentry_min(nested)) {
+				rc = KPARSE_NOTFOUND;
+				break;
+			}
+			// It's not an error if optional parameter is absend
+			rc = KPARSE_INPROGRESS;
+
+			// Mandatory or ordered parameter
+			if ((kentry_min(nested) > 0) ||
+				kentry_order(nested))
+				saved_iter = iter;
+			iter = saved_iter;
 		}
 	
 	}
