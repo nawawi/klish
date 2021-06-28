@@ -7,6 +7,7 @@
 
 #include <faux/list.h>
 #include <klish/khelper.h>
+//#include <klish/kentry.h>
 #include <klish/kpargv.h>
 
 
@@ -24,6 +25,16 @@ KNESTED_ITER(pargv, parg);
 KNESTED_EACH(pargv, parg);
 
 
+int kpargv_pargs_kcompare(const void *key, const void *list_item)
+{
+	const kentry_t *f = (const kentry_t *)key;
+	const kparg_t *s = (const kparg_t *)list_item;
+	if (f == kparg_entry(s))
+		return 0;
+	return 1;
+}
+
+
 kpargv_t *kpargv_new()
 {
 	kpargv_t *pargv = NULL;
@@ -35,7 +46,7 @@ kpargv_t *kpargv_new()
 
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
-		NULL, NULL, (void (*)(void *))kparg_free);
+		NULL, kpargv_pargs_kcompare, (void (*)(void *))kparg_free);
 	assert(pargv->pargs);
 
 	return pargv;
@@ -62,4 +73,17 @@ kparg_t *kpargv_pargs_last(const kpargv_t *pargv)
 		return NULL;
 
 	return (kparg_t *)faux_list_data(faux_list_tail(pargv->pargs));
+}
+
+
+kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry)
+{
+	assert(pargv);
+	if (!pargv)
+		return NULL;
+	assert(entry);
+	if (!entry)
+		return NULL;
+
+	return (kparg_t *)faux_list_kfind(pargv->pargs, entry);
 }

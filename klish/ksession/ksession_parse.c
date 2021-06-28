@@ -118,6 +118,8 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 		while ((nested = kentry_entrys_each(&iter))) {
 			kparse_status_e nrc = KPARSE_NOTFOUND;
 			size_t num = 0;
+			if (kpargv_entry_exists(pargv, nested))
+				continue;
 			for (num = 0; num < kentry_max(nested); num++) {
 				nrc = ksession_parse_arg(nested, argv_iter, pargv);
 				if (nrc != KPARSE_INPROGRESS)
