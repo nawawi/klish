@@ -23,6 +23,7 @@ struct ientry_s {
 	char *ref;
 	char *value;
 	char *restore;
+	char *order;
 	ientry_t * (*entrys)[]; // Nested entrys
 	iaction_t * (*actions)[];
 };

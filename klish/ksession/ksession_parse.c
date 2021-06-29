@@ -108,19 +108,26 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 		while ((nested = kentry_entrys_each(&iter))) {
 			kparse_status_e nrc = KPARSE_NOTFOUND;
 			size_t num = 0;
+			size_t min = kentry_min(nested);
+
+printf("Arg: %s, entry %s\n", faux_argv_current(*argv_iter), kentry_name(nested));
+			// Filter out double parsing for optional entries.
 			if (kpargv_entry_exists(pargv, nested))
 				continue;
+			// Try to match argument and current entry
+			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
 				nrc = ksession_parse_arg(nested, argv_iter, pargv);
 				if (nrc != KPARSE_INPROGRESS)
 					break;
 			}
+			// All errors will break the loop
 			if ((nrc != KPARSE_INPROGRESS) && (nrc != KPARSE_NOTFOUND)) {
 				rc = nrc;
 				break;
 			}
 			// Not found all mandatory instances (NOTFOUND)
-			if (num < kentry_min(nested)) {
+			if (num < min) {
 				rc = KPARSE_NOTFOUND;
 				break;
 			}
@@ -128,10 +135,14 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 			rc = KPARSE_INPROGRESS;
 
 			// Mandatory or ordered parameter
-			if ((kentry_min(nested) > 0) ||
-				kentry_order(nested))
+			if ((min > 0) || kentry_order(nested))
 				saved_iter = iter;
-			iter = saved_iter;
+
+			// If optional entry is found then go back to nearest
+			// non-optional (or ordered) entry to try to find
+			// another optional entries.
+			if ((0 == min) && (num > 0))
+				iter = saved_iter;
 		}
 	
 	}

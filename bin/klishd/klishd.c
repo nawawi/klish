@@ -40,6 +40,7 @@
 #include <klish/kcontext.h>
 #include <klish/ksession.h>
 #include <klish/kdb.h>
+#include <klish/kpargv.h>
 
 #include "private.h"
 
@@ -177,8 +178,10 @@ int main(int argc, char **argv)
 	{
 	kparse_status_e pstatus = KPARSE_NONE;
 	char *s = NULL;
-	const char *line = "cmd m8 e1";
+	const char *line = "cmd o4 o3 o5 m8 e1";
 	kpargv_t *pargv = NULL;
+	kpargv_pargs_node_t *p_iter = NULL;
+	
 	session = ksession_new(scheme, NULL);
 	pstatus = ksession_parse_line(session, line, &pargv);
 	switch (pstatus) {
@@ -205,6 +208,13 @@ int main(int argc, char **argv)
 		break;
 	}
 	printf("Line '%s': %s\n", line, s);
+
+	kparg_t *parg = NULL;
+	p_iter = kpargv_pargs_iter(pargv);
+	while ((parg = kpargv_pargs_each(&p_iter))) {
+		printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
+	}
+	printf("\n");
 	}
 
 goto err; // Test purposes

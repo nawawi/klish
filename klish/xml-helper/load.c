@@ -727,6 +727,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
+	ientry.order = kxml_node_attr(element, "order");
 
 	// Parent must be a KLISH or ENTRY tag
 	if ((parent_tag != KTAG_KLISH) && (parent_tag != KTAG_ENTRY)) {
@@ -796,6 +797,7 @@ err:
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
+	kxml_node_attr_free(ientry.order);
 
 	return res;
 }

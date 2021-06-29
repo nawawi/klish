@@ -110,6 +110,16 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 		}
 	}
 
+	// Order
+	if (!faux_str_is_empty(info->order)) {
+		bool_t b = BOOL_FALSE;
+		if (!faux_conv_str2bool(info->order, &b) ||
+			!kentry_set_order(entry, b)) {
+			faux_error_add(error, TAG": Illegal 'order' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
 	return retcode;
 }
 
@@ -292,6 +302,7 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 		attr2ctext(&str, "ptype", kentry_ptype_str(kentry), level + 1);
 		attr2ctext(&str, "value", kentry_value(kentry), level + 1);
 		attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
+		attr2ctext(&str, "order", faux_conv_bool2str(kentry_order(kentry)), level + 1);
 
 		// ENTRY list
 		entrys_iter = kentry_entrys_iter(kentry);
