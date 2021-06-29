@@ -178,11 +178,12 @@ int main(int argc, char **argv)
 	{
 	kparse_status_e pstatus = KPARSE_NONE;
 	char *s = NULL;
-	const char *line = "cmd o5 m8 o2";
+	const char *line = "cmd1 o1 m7 o2 e1";
 	kpargv_t *pargv = NULL;
 	kpargv_pargs_node_t *p_iter = NULL;
 	
-	session = ksession_new(scheme, NULL);
+	session = ksession_new(scheme, "/lowview");
+	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
 	pstatus = ksession_parse_line(session, line, &pargv);
 	switch (pstatus) {
 	case KPARSE_NONE:
@@ -209,12 +210,14 @@ int main(int argc, char **argv)
 	}
 	printf("Line '%s': %s\n", line, s);
 
-	kparg_t *parg = NULL;
-	p_iter = kpargv_pargs_iter(pargv);
-	while ((parg = kpargv_pargs_each(&p_iter))) {
-		printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
+	if (pargv) {
+		kparg_t *parg = NULL;
+		p_iter = kpargv_pargs_iter(pargv);
+		while ((parg = kpargv_pargs_each(&p_iter))) {
+			printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
+		}
+		printf("\n");
 	}
-	printf("\n");
 	
 	kpargv_free(pargv);
 	ksession_free(session);

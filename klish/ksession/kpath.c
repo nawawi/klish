@@ -101,3 +101,18 @@ klevel_t *kpath_current(const kpath_t *path)
 
 	return (klevel_t *)faux_list_data(faux_list_tail(path->levels));
 }
+
+
+kpath_levels_node_t *kpath_iterr(const kpath_t *path)
+{
+	assert(path);
+	if (!path)
+		return NULL;
+	return (kpath_levels_node_t *)faux_list_tail(path->levels);
+}
+
+
+klevel_t *kpath_eachr(kpath_levels_node_t **iterr)
+{
+	return (klevel_t *)faux_list_eachr((faux_list_node_t **)iterr);
+}

@@ -161,9 +161,10 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 {
 	faux_argv_t *argv = NULL;
 	faux_argv_node_t *argv_iter = NULL;
-	kentry_t *current_entry = NULL;
 	kpargv_t *pargv = NULL;
 	kparse_status_e pstatus = KPARSE_NONE;
+	kpath_levels_node_t *levels_iterr = NULL;
+	klevel_t *level = NULL;
 
 	if (parsed_argv)
 		*parsed_argv = NULL;
@@ -185,11 +186,17 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 	}
 	argv_iter = faux_argv_iter(argv);
 
-	current_entry = klevel_entry(kpath_current(ksession_path(session)));
 	pargv = kpargv_new();
 	assert(pargv);
-
-	pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
+	// Iterate levels of path from higher to lower. Note the reversed
+	// iterator will be used.
+	levels_iterr = kpath_iterr(ksession_path(session));
+	while ((level = kpath_eachr(&levels_iterr))) {
+		kentry_t *current_entry = klevel_entry(level);
+		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
+		if (pstatus != KPARSE_NOTFOUND)
+			break;
+	}
 	// It's a higher level of parsing, so some statuses can have different
 	// meanings
 	if (KPARSE_NONE == pstatus)
@@ -199,7 +206,8 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 			pstatus = KPARSE_OK;
 		else
 			pstatus = KPARSE_ILLEGAL; // Additional not parsable args
-	}
+	} else if (KPARSE_NOTFOUND == pstatus)
+			pstatus = KPARSE_ILLEGAL; // Unknown command
 
 	if (kpargv_pargs_is_empty(pargv)) {
 		kpargv_free(pargv);

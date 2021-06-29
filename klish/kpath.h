@@ -34,6 +34,8 @@ size_t kpath_is_empty(const kpath_t *path);
 bool_t kpath_push(kpath_t *path, klevel_t *level);
 bool_t kpath_pop(kpath_t *path);
 klevel_t *kpath_current(const kpath_t *path);
+kpath_levels_node_t *kpath_iterr(const kpath_t *path);
+klevel_t *kpath_eachr(kpath_levels_node_t **iterr);
 
 C_DECL_END
 
