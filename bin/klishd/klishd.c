@@ -168,13 +168,45 @@ int main(int argc, char **argv)
 	deploy_db = kdb_new("ischeme", NULL);
 	kdb_load_plugin(deploy_db);
 	kdb_init(deploy_db);
-	kdb_deploy_scheme(deploy_db, scheme);
+//	kdb_deploy_scheme(deploy_db, scheme);
 	kdb_fini(deploy_db);
 	kdb_free(deploy_db);
 	}
 
+	// Parsing
+	{
+	kparse_status_e pstatus = KPARSE_NONE;
+	char *s = NULL;
+	const char *line = "cmd m8 e1";
+	kpargv_t *pargv = NULL;
 	session = ksession_new(scheme, NULL);
-	ksession_parse_line(session, "cmd m1 e1");
+	pstatus = ksession_parse_line(session, line, &pargv);
+	switch (pstatus) {
+	case KPARSE_NONE:
+		s = "None";
+		break;
+	case KPARSE_OK:
+		s = "Ok";
+		break;
+	case KPARSE_INPROGRESS:
+		s = "In progress";
+		break;
+	case KPARSE_NOTFOUND:
+		s = "Not found";
+		break;
+	case KPARSE_INCOMPLETED:
+		s = "Incompleted";
+		break;
+	case KPARSE_ILLEGAL:
+		s = "Illegal";
+		break;
+	case KPARSE_ERROR:
+		s = "Error";
+		break;
+	}
+	printf("Line '%s': %s\n", line, s);
+	}
+
 goto err; // Test purposes
 
 	// Listen socket

@@ -13,16 +13,6 @@
 #include <klish/kpargv.h>
 #include <klish/ksession.h>
 
-typedef enum {
-	KPARSE_NONE,
-	KPARSE_OK,
-	KPARSE_INPROGRESS,
-	KPARSE_NOTFOUND,
-	KPARSE_INCOMPLETED,
-	KPARSE_ILLEGAL,
-	KPARSE_ERROR,
-} kparse_status_e;
-
 
 static bool_t ksession_validate_arg(kentry_t *entry, const char *arg)
 {
@@ -156,43 +146,59 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 }
 
 
-kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
+kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
+	kpargv_t **parsed_argv)
 {
 	faux_argv_t *argv = NULL;
 	faux_argv_node_t *argv_iter = NULL;
 	kentry_t *current_entry = NULL;
 	kpargv_t *pargv = NULL;
+	kparse_status_e pstatus = KPARSE_NONE;
 
+	if (parsed_argv)
+		*parsed_argv = NULL;
 	assert(session);
 	if (!session)
-		return NULL;
+		return KPARSE_ERROR;
 	assert(line);
 	if (!line)
-		return NULL;
+		return KPARSE_ERROR;
 
 	// Split line to arguments
 	argv = faux_argv_new();
 	assert(argv);
 	if (!argv)
-		return NULL;
-	if (faux_argv_parse(argv, line) <= 0) {
+		return KPARSE_ERROR;
+	if (faux_argv_parse(argv, line) < 0) {
 		faux_argv_free(argv);
-		return NULL;
+		return KPARSE_ERROR;
 	}
+printf("AAAAAAAAAAA %ld\n", faux_argv_len(argv));
 	argv_iter = faux_argv_iter(argv);
 
 	current_entry = klevel_entry(kpath_current(ksession_path(session)));
 	pargv = kpargv_new();
 	assert(pargv);
 
-	ksession_parse_arg(current_entry, &argv_iter, pargv);
-
-	printf("KKKKKKKKK %ld\n", kpargv_pargs_len(pargv));
+	pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
+	// It's a higher level of parsing, so some statuses can have different
+	// meanings
+/*	if (KPARSE_NONE == pstatus)
+		pstatus = KPARSE_ERROR; // Strange case
+	else if (KPARSE_INPROGRESS == pstatus) {
+		if (NULL == argv_iter) // All args are parsed
+			pstatus = KPARSE_OK;
+		else
+			pstatus = KPARSE_ILLEGAL; // Additional not parsable args
+	}
+*/
+printf("KKKKKKKKK %ld\n", kpargv_pargs_len(pargv));
 
 	if (kpargv_pargs_is_empty(pargv)) {
 		kpargv_free(pargv);
-		return NULL;
+		pargv = NULL;
 	}
+	*parsed_argv = pargv;
 
-	return pargv;
+	return pstatus;
 }

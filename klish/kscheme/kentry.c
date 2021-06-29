@@ -149,7 +149,6 @@ static void kentry_free_non_link(kentry_t *entry)
 		return;
 
 	faux_str_free(entry->ptype_str);
-	faux_str_free(entry->value);
 
 	faux_list_free(entry->entrys);
 	faux_list_free(entry->actions);
@@ -162,6 +161,7 @@ static void kentry_free_common(kentry_t *entry)
 		return;
 
 	faux_str_free(entry->name);
+	faux_str_free(entry->value);
 	faux_str_free(entry->help);
 	faux_str_free(entry->ref_str);
 }
@@ -208,7 +208,7 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	dst->ptype_str = src->ptype_str;
 	dst->ptype = src->ptype;
 	// ref_str - orig
-	dst->value = src->value;
+	// value - orig
 	dst->restore = src->restore;
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;

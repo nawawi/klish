@@ -13,6 +13,16 @@
 
 typedef struct ksession_s ksession_t;
 
+typedef enum {
+	KPARSE_NONE,
+	KPARSE_OK,
+	KPARSE_INPROGRESS,
+	KPARSE_NOTFOUND,
+	KPARSE_INCOMPLETED,
+	KPARSE_ILLEGAL,
+	KPARSE_ERROR,
+} kparse_status_e;
+
 
 C_DECL_BEGIN
 
@@ -22,7 +32,8 @@ void ksession_free(ksession_t *session);
 const kscheme_t *ksession_scheme(const ksession_t *session);
 kpath_t *ksession_path(const ksession_t *session);
 
-kpargv_t *ksession_parse_line(ksession_t *session, const char *line);
+kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
+	kpargv_t **parsed_argv);
 
 
 C_DECL_END
