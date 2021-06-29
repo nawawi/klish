@@ -207,5 +207,7 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 	}
 	*parsed_argv = pargv;
 
+	faux_argv_free(argv);
+
 	return pstatus;
 }

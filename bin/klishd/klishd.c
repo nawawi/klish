@@ -215,6 +215,10 @@ int main(int argc, char **argv)
 		printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
 	}
 	printf("\n");
+	
+	kpargv_free(pargv);
+	ksession_free(session);
+	
 	}
 
 goto err; // Test purposes
