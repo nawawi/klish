@@ -184,7 +184,6 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 		faux_argv_free(argv);
 		return KPARSE_ERROR;
 	}
-printf("AAAAAAAAAAA %ld\n", faux_argv_len(argv));
 	argv_iter = faux_argv_iter(argv);
 
 	current_entry = klevel_entry(kpath_current(ksession_path(session)));
@@ -194,7 +193,7 @@ printf("AAAAAAAAAAA %ld\n", faux_argv_len(argv));
 	pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
 	// It's a higher level of parsing, so some statuses can have different
 	// meanings
-/*	if (KPARSE_NONE == pstatus)
+	if (KPARSE_NONE == pstatus)
 		pstatus = KPARSE_ERROR; // Strange case
 	else if (KPARSE_INPROGRESS == pstatus) {
 		if (NULL == argv_iter) // All args are parsed
@@ -202,8 +201,6 @@ printf("AAAAAAAAAAA %ld\n", faux_argv_len(argv));
 		else
 			pstatus = KPARSE_ILLEGAL; // Additional not parsable args
 	}
-*/
-printf("KKKKKKKKK %ld\n", kpargv_pargs_len(pargv));
 
 	if (kpargv_pargs_is_empty(pargv)) {
 		kpargv_free(pargv);
