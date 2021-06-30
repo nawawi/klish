@@ -190,6 +190,7 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
 
 	pargv = kpargv_new();
 	assert(pargv);
+	kpargv_set_continuable(pargv, faux_argv_is_continuable(argv));
 	// Iterate levels of path from higher to lower. Note the reversed
 	// iterator will be used.
 	path = ksession_path(session);

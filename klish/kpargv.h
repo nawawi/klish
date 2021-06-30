@@ -47,13 +47,15 @@ void kpargv_free(kpargv_t *pargv);
 kpargv_status_e kpargv_status(const kpargv_t *pargv);
 bool_t kpargv_set_status(kpargv_t *pargv, kpargv_status_e status);
 const char *kpargv_status_str(const kpargv_t *pargv);
-
 // Level
 size_t kpargv_level(const kpargv_t *pargv);
 bool_t kpargv_set_level(kpargv_t *pargv, size_t level);
 // Command
 const kentry_t *kpargv_command(const kpargv_t *pargv);
 bool_t kpargv_set_command(kpargv_t *pargv, const kentry_t *command);
+// Continuable
+bool_t kpargv_continuable(const kpargv_t *pargv);
+bool_t kpargv_set_continuable(kpargv_t *pargv, bool_t continuable);
 // Pargs
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
 ssize_t kpargv_pargs_len(const kpargv_t *pargv);

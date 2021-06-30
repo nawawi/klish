@@ -16,6 +16,7 @@ struct kpargv_s {
 	kpargv_status_e status; // Parse status
 	size_t level; // Number of path's level where command was found
 	const kentry_t *command; // ENTRY that consider as command (has ACTIONs)
+	bool_t continuable; // Last argument can be expanded
 };
 
 // Level
@@ -29,6 +30,10 @@ KSET(pargv, size_t, level);
 // Command
 KGET(pargv, const kentry_t *, command);
 KSET(pargv, const kentry_t *, command);
+
+// Continuable
+KGET_BOOL(pargv, continuable);
+KSET_BOOL(pargv, continuable);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
