@@ -7,14 +7,28 @@
 
 #include <faux/list.h>
 #include <klish/khelper.h>
-//#include <klish/kentry.h>
+#include <klish/kentry.h>
 #include <klish/kpargv.h>
 
 
 struct kpargv_s {
 	faux_list_t *pargs;
+	kpargv_status_e status; // Parse status
+	size_t level; // Number of path's level where command was found
+	const kentry_t *command; // ENTRY that consider as command (has ACTIONs)
 };
 
+// Level
+KGET(pargv, kpargv_status_e, status);
+KSET(pargv, kpargv_status_e, status);
+
+// Level
+KGET(pargv, size_t, level);
+KSET(pargv, size_t, level);
+
+// Command
+KGET(pargv, const kentry_t *, command);
+KSET(pargv, const kentry_t *, command);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);

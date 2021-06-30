@@ -37,13 +37,13 @@ static bool_t ksession_validate_arg(kentry_t *entry, const char *arg)
 }
 
 
-static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
+static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 	faux_argv_node_t **argv_iter, kpargv_t *pargv)
 {
 	kentry_t *entry = current_entry;
 	kentry_mode_e mode = KENTRY_MODE_NONE;
-	kparse_status_e retcode = KPARSE_NOTFOUND; // For ENTRY itself
-	kparse_status_e rc = KPARSE_NOTFOUND; // For nested ENTRYs
+	kpargv_status_e retcode = KPARSE_NOTFOUND; // For ENTRY itself
+	kpargv_status_e rc = KPARSE_NOTFOUND; // For nested ENTRYs
 
 	assert(current_entry);
 	if (!current_entry)
@@ -105,7 +105,7 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 		kentry_t *nested = NULL;
 
 		while ((nested = kentry_entrys_each(&iter))) {
-			kparse_status_e nrc = KPARSE_NOTFOUND;
+			kpargv_status_e nrc = KPARSE_NOTFOUND;
 			size_t num = 0;
 			size_t min = kentry_min(nested);
 
@@ -156,15 +156,17 @@ static kparse_status_e ksession_parse_arg(kentry_t *current_entry,
 }
 
 
-kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
+kpargv_status_e ksession_parse_line(ksession_t *session, const char *line,
 	kpargv_t **parsed_argv)
 {
 	faux_argv_t *argv = NULL;
 	faux_argv_node_t *argv_iter = NULL;
 	kpargv_t *pargv = NULL;
-	kparse_status_e pstatus = KPARSE_NONE;
+	kpargv_status_e pstatus = KPARSE_NONE;
 	kpath_levels_node_t *levels_iterr = NULL;
 	klevel_t *level = NULL;
+	size_t level_found = 0; // Level where command was found
+	kpath_t *path = NULL;
 
 	if (parsed_argv)
 		*parsed_argv = NULL;
@@ -190,12 +192,15 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 	assert(pargv);
 	// Iterate levels of path from higher to lower. Note the reversed
 	// iterator will be used.
-	levels_iterr = kpath_iterr(ksession_path(session));
+	path = ksession_path(session);
+	levels_iterr = kpath_iterr(path);
+	level_found = kpath_len(path);
 	while ((level = kpath_eachr(&levels_iterr))) {
 		kentry_t *current_entry = klevel_entry(level);
 		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
 		if (pstatus != KPARSE_NOTFOUND)
 			break;
+		level_found--;
 	}
 	// It's a higher level of parsing, so some statuses can have different
 	// meanings
@@ -216,6 +221,7 @@ kparse_status_e ksession_parse_line(ksession_t *session, const char *line,
 	*parsed_argv = pargv;
 
 	faux_argv_free(argv);
-
+if (pargv)
+printf("Level: %lu\n", level_found);
 	return pstatus;
 }

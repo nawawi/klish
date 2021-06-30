@@ -9,6 +9,18 @@
 #include <faux/list.h>
 #include <klish/kentry.h>
 
+
+typedef enum {
+	KPARSE_NONE,
+	KPARSE_OK,
+	KPARSE_INPROGRESS,
+	KPARSE_NOTFOUND,
+	KPARSE_INCOMPLETED,
+	KPARSE_ILLEGAL,
+	KPARSE_ERROR,
+} kpargv_status_e;
+
+
 typedef struct kpargv_s kpargv_t;
 typedef struct kparg_s kparg_t;
 
@@ -31,6 +43,16 @@ const char *kparg_value(const kparg_t *parg);
 kpargv_t *kpargv_new();
 void kpargv_free(kpargv_t *pargv);
 
+// Status
+kpargv_status_e kpargv_status(const kpargv_t *pargv);
+bool_t kpargv_set_status(kpargv_t *pargv, kpargv_status_e status);
+// Level
+size_t kpargv_level(const kpargv_t *pargv);
+bool_t kpargv_set_level(kpargv_t *pargv, size_t level);
+// Command
+const kentry_t *kpargv_command(const kpargv_t *pargv);
+bool_t kpargv_set_command(kpargv_t *pargv, const kentry_t *command);
+// Pargs
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
 ssize_t kpargv_pargs_len(const kpargv_t *pargv);
 bool_t kpargv_pargs_is_empty(const kpargv_t *pargv);

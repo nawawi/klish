@@ -176,9 +176,9 @@ int main(int argc, char **argv)
 
 	// Parsing
 	{
-	kparse_status_e pstatus = KPARSE_NONE;
+	kpargv_status_e pstatus = KPARSE_NONE;
 	char *s = NULL;
-	const char *line = "cmd1 o1 m7 o2 e1";
+	const char *line = "cmd o1 m7 o2 e1";
 	kpargv_t *pargv = NULL;
 	kpargv_pargs_node_t *p_iter = NULL;
 	
