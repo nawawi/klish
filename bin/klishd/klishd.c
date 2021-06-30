@@ -176,7 +176,6 @@ int main(int argc, char **argv)
 
 	// Parsing
 	{
-	char *s = NULL;
 	const char *line = "cmd o1 m7 o2 e1";
 	kpargv_t *pargv = NULL;
 	kpargv_pargs_node_t *p_iter = NULL;
@@ -185,32 +184,9 @@ int main(int argc, char **argv)
 	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
 	pargv = ksession_parse_line(session, line);
 	if (pargv) {
-		switch (kpargv_status(pargv)) {
-		case KPARSE_NONE:
-			s = "None";
-			break;
-		case KPARSE_OK:
-			s = "Ok";
-			break;
-		case KPARSE_INPROGRESS:
-			s = "In progress";
-			break;
-		case KPARSE_NOTFOUND:
-			s = "Not found";
-			break;
-		case KPARSE_INCOMPLETED:
-			s = "Incompleted";
-			break;
-		case KPARSE_ILLEGAL:
-			s = "Illegal";
-			break;
-		case KPARSE_ERROR:
-			s = "Error";
-			break;
-		}
 		printf("Level: %lu, Command: %s, Line '%s': %s\n",
 			kpargv_level(pargv), kentry_name(kpargv_command(pargv)),
-			line, s);
+			line, kpargv_status_str(pargv));
 
 		kparg_t *parg = NULL;
 		p_iter = kpargv_pargs_iter(pargv);

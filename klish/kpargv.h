@@ -46,6 +46,8 @@ void kpargv_free(kpargv_t *pargv);
 // Status
 kpargv_status_e kpargv_status(const kpargv_t *pargv);
 bool_t kpargv_set_status(kpargv_t *pargv, kpargv_status_e status);
+const char *kpargv_status_str(const kpargv_t *pargv);
+
 // Level
 size_t kpargv_level(const kpargv_t *pargv);
 bool_t kpargv_set_level(kpargv_t *pargv, size_t level);

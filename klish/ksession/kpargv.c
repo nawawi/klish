@@ -106,3 +106,39 @@ kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry)
 
 	return (kparg_t *)faux_list_kfind(pargv->pargs, entry);
 }
+
+
+const char *kpargv_status_str(const kpargv_t *pargv)
+{
+	const char *s = "Unknown";
+
+	assert(pargv);
+	if (!pargv)
+		return NULL;
+
+	switch (kpargv_status(pargv)) {
+	case KPARSE_NONE:
+		s = "None";
+		break;
+	case KPARSE_OK:
+		s = "Ok";
+		break;
+	case KPARSE_INPROGRESS:
+		s = "In progress";
+		break;
+	case KPARSE_NOTFOUND:
+		s = "Not found";
+		break;
+	case KPARSE_INCOMPLETED:
+		s = "Incompleted";
+		break;
+	case KPARSE_ILLEGAL:
+		s = "Illegal";
+		break;
+	case KPARSE_ERROR:
+		s = "Error";
+		break;
+	}
+
+	return s;
+}
