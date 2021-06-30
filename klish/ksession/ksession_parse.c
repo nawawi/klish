@@ -156,8 +156,7 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 }
 
 
-kpargv_status_e ksession_parse_line(ksession_t *session, const char *line,
-	kpargv_t **parsed_argv)
+kpargv_t *ksession_parse_line(ksession_t *session, const char *line)
 {
 	faux_argv_t *argv = NULL;
 	faux_argv_node_t *argv_iter = NULL;
@@ -168,23 +167,21 @@ kpargv_status_e ksession_parse_line(ksession_t *session, const char *line,
 	size_t level_found = 0; // Level where command was found
 	kpath_t *path = NULL;
 
-	if (parsed_argv)
-		*parsed_argv = NULL;
 	assert(session);
 	if (!session)
-		return KPARSE_ERROR;
+		return NULL;
 	assert(line);
 	if (!line)
-		return KPARSE_ERROR;
+		return NULL;
 
 	// Split line to arguments
 	argv = faux_argv_new();
 	assert(argv);
 	if (!argv)
-		return KPARSE_ERROR;
+		return NULL;
 	if (faux_argv_parse(argv, line) < 0) {
 		faux_argv_free(argv);
-		return KPARSE_ERROR;
+		return NULL;
 	}
 	argv_iter = faux_argv_iter(argv);
 
@@ -214,14 +211,10 @@ kpargv_status_e ksession_parse_line(ksession_t *session, const char *line,
 	} else if (KPARSE_NOTFOUND == pstatus)
 			pstatus = KPARSE_ILLEGAL; // Unknown command
 
-	if (kpargv_pargs_is_empty(pargv)) {
-		kpargv_free(pargv);
-		pargv = NULL;
-	}
-	*parsed_argv = pargv;
+	kpargv_set_status(pargv, pstatus);
+	kpargv_set_level(pargv, level_found);
 
 	faux_argv_free(argv);
-if (pargv)
-printf("Level: %lu\n", level_found);
-	return pstatus;
+
+	return pargv;
 }

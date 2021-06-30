@@ -176,7 +176,6 @@ int main(int argc, char **argv)
 
 	// Parsing
 	{
-	kpargv_status_e pstatus = KPARSE_NONE;
 	char *s = NULL;
 	const char *line = "cmd o1 m7 o2 e1";
 	kpargv_t *pargv = NULL;
@@ -184,8 +183,8 @@ int main(int argc, char **argv)
 	
 	session = ksession_new(scheme, "/lowview");
 	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
-	pstatus = ksession_parse_line(session, line, &pargv);
-	switch (pstatus) {
+	pargv = ksession_parse_line(session, line);
+	switch (kpargv_status(pargv)) {
 	case KPARSE_NONE:
 		s = "None";
 		break;
@@ -208,7 +207,7 @@ int main(int argc, char **argv)
 		s = "Error";
 		break;
 	}
-	printf("Line '%s': %s\n", line, s);
+	printf("Level: %lu, Line '%s': %s\n", kpargv_level(pargv), line, s);
 
 	if (pargv) {
 		kparg_t *parg = NULL;

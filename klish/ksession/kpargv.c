@@ -58,6 +58,11 @@ kpargv_t *kpargv_new()
 	if (!pargv)
 		return NULL;
 
+	// Initialization
+	pargv->status = KPARSE_NONE;
+	pargv->level = 0;
+	pargv->command = NULL;
+
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, kpargv_pargs_kcompare, (void (*)(void *))kparg_free);
