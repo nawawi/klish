@@ -184,32 +184,34 @@ int main(int argc, char **argv)
 	session = ksession_new(scheme, "/lowview");
 	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
 	pargv = ksession_parse_line(session, line);
-	switch (kpargv_status(pargv)) {
-	case KPARSE_NONE:
-		s = "None";
-		break;
-	case KPARSE_OK:
-		s = "Ok";
-		break;
-	case KPARSE_INPROGRESS:
-		s = "In progress";
-		break;
-	case KPARSE_NOTFOUND:
-		s = "Not found";
-		break;
-	case KPARSE_INCOMPLETED:
-		s = "Incompleted";
-		break;
-	case KPARSE_ILLEGAL:
-		s = "Illegal";
-		break;
-	case KPARSE_ERROR:
-		s = "Error";
-		break;
-	}
-	printf("Level: %lu, Line '%s': %s\n", kpargv_level(pargv), line, s);
-
 	if (pargv) {
+		switch (kpargv_status(pargv)) {
+		case KPARSE_NONE:
+			s = "None";
+			break;
+		case KPARSE_OK:
+			s = "Ok";
+			break;
+		case KPARSE_INPROGRESS:
+			s = "In progress";
+			break;
+		case KPARSE_NOTFOUND:
+			s = "Not found";
+			break;
+		case KPARSE_INCOMPLETED:
+			s = "Incompleted";
+			break;
+		case KPARSE_ILLEGAL:
+			s = "Illegal";
+			break;
+		case KPARSE_ERROR:
+			s = "Error";
+			break;
+		}
+		printf("Level: %lu, Command: %s, Line '%s': %s\n",
+			kpargv_level(pargv), kentry_name(kpargv_command(pargv)),
+			line, s);
+
 		kparg_t *parg = NULL;
 		p_iter = kpargv_pargs_iter(pargv);
 		while ((parg = kpargv_pargs_each(&p_iter))) {
@@ -217,7 +219,7 @@ int main(int argc, char **argv)
 		}
 		printf("\n");
 	}
-	
+
 	kpargv_free(pargv);
 	ksession_free(session);
 	

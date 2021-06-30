@@ -66,6 +66,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 		if (ksession_validate_arg(entry, current_arg)) {
 			kparg_t *parg = kparg_new(entry, current_arg);
 			kpargv_add_parg(pargv, parg);
+			// Command is an ENTRY with ACTIONs or NAVigation
+			if (kentry_actions_len(entry) > 0)
+				kpargv_set_command(pargv, entry);
 			faux_argv_each(argv_iter); // Next argument
 			retcode = KPARSE_INPROGRESS;
 		} else {
