@@ -44,10 +44,10 @@ KSET(param, kparam_mode_e, mode);
 KGET(param, faux_list_t *, params);
 static KCMP_NESTED(param, param, name);
 static KCMP_NESTED_BY_KEY(param, param, name);
-KADD_NESTED(param, param);
+KADD_NESTED(param, kparam_t *, params);
 KFIND_NESTED(param, param);
-KNESTED_ITER(param, param);
-KNESTED_EACH(param, param);
+KNESTED_ITER(param, params);
+KNESTED_EACH(param, kparam_t *, params);
 
 
 kparam_t *kparam_new(const char *name)

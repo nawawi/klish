@@ -31,7 +31,7 @@ const char *kview_name(const kview_t *view);
 
 // COMMANDs
 faux_list_t *kview_commands(const kview_t *view);
-bool_t kview_add_command(kview_t *view, kcommand_t *command);
+bool_t kview_add_commands(kview_t *view, kcommand_t *command);
 kcommand_t *kview_find_command(const kview_t *view, const char *name);
 ssize_t kview_commands_len(const kview_t *view);
 kview_commands_node_t *kview_commands_iter(const kview_t *view);
@@ -39,7 +39,7 @@ kcommand_t *kview_commands_each(kview_commands_node_t **iter);
 
 // NAMESPACEs
 faux_list_t *kview_nspaces(const kview_t *view);
-bool_t kview_add_nspace(kview_t *view, knspace_t *nspace);
+bool_t kview_add_nspaces(kview_t *view, knspace_t *nspace);
 ssize_t kview_nspaces_len(const kview_t *view);
 kview_nspaces_node_t *kview_nspaces_iter(const kview_t *view);
 knspace_t *kview_nspaces_each(kview_nspaces_node_t **iter);

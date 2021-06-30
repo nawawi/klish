@@ -61,7 +61,7 @@ bool_t icommand_parse_nested(const icommand_t *icommand, kcommand_t *kcommand,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kcommand_add_param(kcommand, kparam)) {
+			if (!kcommand_add_params(kcommand, kparam)) {
 				// Search for PARAM duplicates
 				if (kcommand_find_param(kcommand,
 					kparam_name(kparam))) {
@@ -92,7 +92,7 @@ bool_t icommand_parse_nested(const icommand_t *icommand, kcommand_t *kcommand,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kcommand_add_action(kcommand, kaction)) {
+			if (!kcommand_add_actions(kcommand, kaction)) {
 				faux_error_sprintf(error,
 					TAG": Can't add ACTION #%d",
 					kcommand_actions_len(kcommand) + 1);

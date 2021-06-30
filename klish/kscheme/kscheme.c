@@ -29,41 +29,41 @@ struct kscheme_s {
 KGET(scheme, faux_list_t *, plugins);
 KCMP_NESTED(scheme, plugin, name);
 KCMP_NESTED_BY_KEY(scheme, plugin, name);
-KADD_NESTED(scheme, plugin);
+KADD_NESTED(scheme, kplugin_t *, plugins);
 KFIND_NESTED(scheme, plugin);
-KNESTED_LEN(scheme, plugin);
-KNESTED_ITER(scheme, plugin);
-KNESTED_EACH(scheme, plugin);
+KNESTED_LEN(scheme, plugins);
+KNESTED_ITER(scheme, plugins);
+KNESTED_EACH(scheme, kplugin_t *, plugins);
 
 // PTYPE list
 KGET(scheme, faux_list_t *, ptypes);
 KCMP_NESTED(scheme, ptype, name);
 KCMP_NESTED_BY_KEY(scheme, ptype, name);
-KADD_NESTED(scheme, ptype);
+KADD_NESTED(scheme, kptype_t *, ptypes);
 KFIND_NESTED(scheme, ptype);
-KNESTED_LEN(scheme, ptype);
-KNESTED_ITER(scheme, ptype);
-KNESTED_EACH(scheme, ptype);
+KNESTED_LEN(scheme, ptypes);
+KNESTED_ITER(scheme, ptypes);
+KNESTED_EACH(scheme, kptype_t *, ptypes);
 
 // VIEW list
 KGET(scheme, faux_list_t *, views);
 KCMP_NESTED(scheme, view, name);
 KCMP_NESTED_BY_KEY(scheme, view, name);
-KADD_NESTED(scheme, view);
+KADD_NESTED(scheme, kview_t *, views);
 KFIND_NESTED(scheme, view);
-KNESTED_LEN(scheme, view);
-KNESTED_ITER(scheme, view);
-KNESTED_EACH(scheme, view);
+KNESTED_LEN(scheme, views);
+KNESTED_ITER(scheme, views);
+KNESTED_EACH(scheme, kview_t *, views);
 
 // ENTRY list
 KGET(scheme, faux_list_t *, entrys);
 KCMP_NESTED(scheme, entry, name);
 KCMP_NESTED_BY_KEY(scheme, entry, name);
-KADD_NESTED(scheme, entry);
+KADD_NESTED(scheme, kentry_t *, entrys);
 KFIND_NESTED(scheme, entry);
-KNESTED_LEN(scheme, entry);
-KNESTED_ITER(scheme, entry);
-KNESTED_EACH(scheme, entry);
+KNESTED_LEN(scheme, entrys);
+KNESTED_ITER(scheme, entrys);
+KNESTED_EACH(scheme, kentry_t *, entrys);
 
 
 kscheme_t *kscheme_new(void)

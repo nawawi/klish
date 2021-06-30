@@ -86,19 +86,19 @@ KSET_BOOL(entry, order);
 KGET(entry, faux_list_t *, entrys);
 static KCMP_NESTED(entry, entry, name);
 static KCMP_NESTED_BY_KEY(entry, entry, name);
-KADD_NESTED(entry, entry);
+KADD_NESTED(entry, kentry_t *, entrys);
 KFIND_NESTED(entry, entry);
-KNESTED_LEN(entry, entry);
-KNESTED_IS_EMPTY(entry, entry);
-KNESTED_ITER(entry, entry);
-KNESTED_EACH(entry, entry);
+KNESTED_LEN(entry, entrys);
+KNESTED_IS_EMPTY(entry, entrys);
+KNESTED_ITER(entry, entrys);
+KNESTED_EACH(entry, kentry_t *, entrys);
 
 // ACTION list
 KGET(entry, faux_list_t *, actions);
-KADD_NESTED(entry, action);
-KNESTED_LEN(entry, action);
-KNESTED_ITER(entry, action);
-KNESTED_EACH(entry, action);
+KADD_NESTED(entry, kaction_t *, actions);
+KNESTED_LEN(entry, actions);
+KNESTED_ITER(entry, actions);
+KNESTED_EACH(entry, kaction_t *, actions);
 
 
 kentry_t *kentry_new(const char *name)

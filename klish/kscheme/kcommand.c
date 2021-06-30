@@ -31,18 +31,18 @@ KSET_STR(command, help);
 KGET(command, faux_list_t *, params);
 static KCMP_NESTED(command, param, name);
 static KCMP_NESTED_BY_KEY(command, param, name);
-KADD_NESTED(command, param);
+KADD_NESTED(command, kparam_t *, params);
 KFIND_NESTED(command, param);
-KNESTED_LEN(command, param);
-KNESTED_ITER(command, param);
-KNESTED_EACH(command, param);
+KNESTED_LEN(command, params);
+KNESTED_ITER(command, params);
+KNESTED_EACH(command, kparam_t *, params);
 
 // ACTION list
 KGET(command, faux_list_t *, actions);
-KADD_NESTED(command, action);
-KNESTED_LEN(command, action);
-KNESTED_ITER(command, action);
-KNESTED_EACH(command, action);
+KADD_NESTED(command, kaction_t *, actions);
+KNESTED_LEN(command, actions);
+KNESTED_ITER(command, actions);
+KNESTED_EACH(command, kaction_t *, actions);
 
 
 kcommand_t *kcommand_new(const char *name)

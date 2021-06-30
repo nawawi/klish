@@ -79,17 +79,17 @@
 	KSET(obj, bool_t, name)
 
 // Function to add object to list
-#define _KADD_NESTED(obj, nested) \
-	bool_t k##obj##_add_##nested(k##obj##_t *inst, k##nested##_t *subobj)
-#define KADD_NESTED(obj, nested) \
-	_KADD_NESTED(obj, nested) { \
+#define _KADD_NESTED(obj, type, nested) \
+	bool_t k##obj##_add_##nested(k##obj##_t *inst, type subobj)
+#define KADD_NESTED(obj, type, nested) \
+	_KADD_NESTED(obj, type, nested) { \
 	assert(inst); \
 	if (!inst) \
 		return BOOL_FALSE; \
 	assert(subobj); \
 	if (!subobj) \
 		return BOOL_FALSE; \
-	if (!faux_list_add(inst->nested##s, subobj)) \
+	if (!faux_list_add(inst->nested, subobj)) \
 		return BOOL_FALSE; \
 	return BOOL_TRUE; \
 }
@@ -127,40 +127,40 @@
 }
 
 #define _KNESTED_LEN(obj, nested) \
-	ssize_t k##obj##_##nested##s_len(const k##obj##_t *inst)
+	ssize_t k##obj##_##nested##_len(const k##obj##_t *inst)
 #define KNESTED_LEN(obj, nested) \
 	_KNESTED_LEN(obj, nested) { \
 	assert(inst); \
 	if (!inst) \
 		return -1; \
-	return faux_list_len(inst->nested##s); \
+	return faux_list_len(inst->nested); \
 }
 
 #define _KNESTED_IS_EMPTY(obj, nested) \
-	bool_t k##obj##_##nested##s_is_empty(const k##obj##_t *inst)
+	bool_t k##obj##_##nested##_is_empty(const k##obj##_t *inst)
 #define KNESTED_IS_EMPTY(obj, nested) \
 	_KNESTED_IS_EMPTY(obj, nested) { \
 	assert(inst); \
 	if (!inst) \
 		return -1; \
-	return faux_list_is_empty(inst->nested##s); \
+	return faux_list_is_empty(inst->nested); \
 }
 
 #define _KNESTED_ITER(obj, nested) \
-	k##obj##_##nested##s_node_t *k##obj##_##nested##s_iter(const k##obj##_t *inst)
+	k##obj##_##nested##_node_t *k##obj##_##nested##_iter(const k##obj##_t *inst)
 #define KNESTED_ITER(obj, nested) \
 	_KNESTED_ITER(obj, nested) { \
 	assert(inst); \
 	if (!inst) \
 		return NULL; \
-	return (k##obj##_##nested##s_node_t *)faux_list_head(inst->nested##s); \
+	return (k##obj##_##nested##_node_t *)faux_list_head(inst->nested); \
 }
 
-#define _KNESTED_EACH(obj, nested) \
-	k##nested##_t *k##obj##_##nested##s_each(k##obj##_##nested##s_node_t **iter)
-#define KNESTED_EACH(obj, nested) \
-	_KNESTED_EACH(obj, nested) { \
-	return (k##nested##_t *)faux_list_each((faux_list_node_t **)iter); \
+#define _KNESTED_EACH(obj, type, nested) \
+	type k##obj##_##nested##_each(k##obj##_##nested##_node_t **iter)
+#define KNESTED_EACH(obj, type, nested) \
+	_KNESTED_EACH(obj, type, nested) { \
+	return (type)faux_list_each((faux_list_node_t **)iter); \
 }
 
 

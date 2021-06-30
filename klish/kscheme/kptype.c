@@ -29,10 +29,10 @@ KSET_STR(ptype, help);
 
 // ACTION list
 KGET(ptype, faux_list_t *, actions);
-KADD_NESTED(ptype, action);
-KNESTED_LEN(ptype, action);
-KNESTED_ITER(ptype, action);
-KNESTED_EACH(ptype, action);
+KADD_NESTED(ptype, kaction_t *, actions);
+KNESTED_LEN(ptype, actions);
+KNESTED_ITER(ptype, actions);
+KNESTED_EACH(ptype, kaction_t *, actions);
 
 
 kptype_t *kptype_new(const char *name)

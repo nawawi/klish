@@ -76,7 +76,7 @@ bool_t kentry_set_order(kentry_t *entry, bool_t order);
 
 // Nested ENTRY list
 faux_list_t *kentry_entrys(const kentry_t *entry);
-bool_t kentry_add_entry(kentry_t *entry, kentry_t *nested_entry);
+bool_t kentry_add_entrys(kentry_t *entry, kentry_t *nested_entry);
 kentry_t *kentry_find_entry(const kentry_t *entry, const char *name);
 ssize_t kentry_entrys_len(const kentry_t *entry);
 bool_t kentry_entrys_is_empty(const kentry_t *entry);
@@ -85,7 +85,7 @@ kentry_t *kentry_entrys_each(kentry_entrys_node_t **iter);
 
 // ACTIONs
 faux_list_t *kentry_actions(const kentry_t *entry);
-bool_t kentry_add_action(kentry_t *entry, kaction_t *action);
+bool_t kentry_add_actions(kentry_t *entry, kaction_t *action);
 ssize_t kentry_actions_len(const kentry_t *entry);
 kentry_actions_node_t *kentry_actions_iter(const kentry_t *entry);
 kaction_t *kentry_actions_each(kentry_actions_node_t **iter);

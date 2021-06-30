@@ -63,11 +63,11 @@ KSET(plugin, void *, udata);
 KGET(plugin, faux_list_t *, syms);
 static KCMP_NESTED(plugin, sym, name);
 static KCMP_NESTED_BY_KEY(plugin, sym, name);
-KADD_NESTED(plugin, sym);
+KADD_NESTED(plugin, ksym_t *, syms);
 KFIND_NESTED(plugin, sym);
-KNESTED_LEN(plugin, sym);
-KNESTED_ITER(plugin, sym);
-KNESTED_EACH(plugin, sym);
+KNESTED_LEN(plugin, syms);
+KNESTED_ITER(plugin, syms);
+KNESTED_EACH(plugin, ksym_t *, syms);
 
 
 kplugin_t *kplugin_new(const char *name)

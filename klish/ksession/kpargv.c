@@ -13,6 +13,7 @@
 
 struct kpargv_s {
 	faux_list_t *pargs;
+	faux_list_t *completions;
 	kpargv_status_e status; // Parse status
 	size_t level; // Number of path's level where command was found
 	const kentry_t *command; // ENTRY that consider as command (has ACTIONs)
@@ -37,11 +38,19 @@ KSET_BOOL(pargv, continuable);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
-KADD_NESTED(pargv, parg);
-KNESTED_LEN(pargv, parg);
-KNESTED_IS_EMPTY(pargv, parg);
-KNESTED_ITER(pargv, parg);
-KNESTED_EACH(pargv, parg);
+KADD_NESTED(pargv, kparg_t *, pargs);
+KNESTED_LEN(pargv, pargs);
+KNESTED_IS_EMPTY(pargv, pargs);
+KNESTED_ITER(pargv, pargs);
+KNESTED_EACH(pargv, kparg_t *, pargs);
+
+// Completions
+KGET(pargv, faux_list_t *, completions);
+KADD_NESTED(pargv, kentry_t *, completions);
+KNESTED_LEN(pargv, completions);
+KNESTED_IS_EMPTY(pargv, completions);
+KNESTED_ITER(pargv, completions);
+KNESTED_EACH(pargv, kentry_t *, completions);
 
 
 int kpargv_pargs_kcompare(const void *key, const void *list_item)

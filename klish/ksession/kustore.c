@@ -18,7 +18,7 @@ struct kustore_s {
 // User data blobs list
 KCMP_NESTED(ustore, udata, name);
 KCMP_NESTED_BY_KEY(ustore, udata, name);
-KADD_NESTED(ustore, udata);
+KADD_NESTED(ustore, kudata_t *, udatas);
 KFIND_NESTED(ustore, udata);
 
 

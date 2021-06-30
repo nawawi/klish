@@ -39,7 +39,7 @@ bool_t kparam_set_mode(kparam_t *param, kparam_mode_e mode);
 
 // PARAMs
 faux_list_t *kparam_params(const kparam_t *param);
-bool_t kparam_add_param(kparam_t *param, kparam_t *nested_param);
+bool_t kparam_add_params(kparam_t *param, kparam_t *nested_param);
 kparam_t *kparam_find_param(const kparam_t *param, const char *name);
 ssize_t kparam_params_len(const kparam_t *param);
 kparam_params_node_t *kparam_params_iter(const kparam_t *param);

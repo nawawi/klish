@@ -32,7 +32,7 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 
 // VIEWs
 faux_list_t *kscheme_views(const kscheme_t *scheme);
-bool_t kscheme_add_view(kscheme_t *scheme, kview_t *view);
+bool_t kscheme_add_views(kscheme_t *scheme, kview_t *view);
 kview_t *kscheme_find_view(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_views_len(const kscheme_t *scheme);
 kscheme_views_node_t *kscheme_views_iter(const kscheme_t *scheme);
@@ -40,7 +40,7 @@ kview_t *kscheme_views_each(kscheme_views_node_t **iter);
 
 // PTYPEs
 faux_list_t *kscheme_ptypes(const kscheme_t *scheme);
-bool_t kscheme_add_ptype(kscheme_t *scheme, kptype_t *ptype);
+bool_t kscheme_add_ptypes(kscheme_t *scheme, kptype_t *ptype);
 kptype_t *kscheme_find_ptype(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_ptypes_len(const kscheme_t *scheme);
 kscheme_ptypes_node_t *kscheme_ptypes_iter(const kscheme_t *scheme);
@@ -48,7 +48,7 @@ kptype_t *kscheme_ptypes_each(kscheme_ptypes_node_t **iter);
 
 // PLUGINs
 faux_list_t *kscheme_plugins(const kscheme_t *scheme);
-bool_t kscheme_add_plugin(kscheme_t *scheme, kplugin_t *plugin);
+bool_t kscheme_add_plugins(kscheme_t *scheme, kplugin_t *plugin);
 kplugin_t *kscheme_find_plugin(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_plugins_len(const kscheme_t *scheme);
 kscheme_plugins_node_t *kscheme_plugins_iter(const kscheme_t *scheme);
@@ -57,7 +57,7 @@ kplugin_t *kscheme_plugins_each(kscheme_plugins_node_t **iter);
 // ENTRYs
 kentry_t *kscheme_find_entry_by_path(const kscheme_t *scheme, const char *name);
 faux_list_t *kscheme_entrys(const kscheme_t *scheme);
-bool_t kscheme_add_entry(kscheme_t *scheme, kentry_t *entry);
+bool_t kscheme_add_entrys(kscheme_t *scheme, kentry_t *entry);
 kentry_t *kscheme_find_entry(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_entrys_len(const kscheme_t *scheme);
 kscheme_entrys_node_t *kscheme_entrys_iter(const kscheme_t *scheme);

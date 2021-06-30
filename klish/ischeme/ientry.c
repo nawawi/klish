@@ -171,7 +171,7 @@ bool_t ientry_parse_nested(const ientry_t *ientry, kentry_t *kentry,
 				continue;
 			}
 			kentry_set_parent(nkentry, kentry); // Set parent entry
-			if (!kentry_add_entry(kentry, nkentry)) {
+			if (!kentry_add_entrys(kentry, nkentry)) {
 				faux_error_sprintf(error,
 					TAG": Can't add ENTRY \"%s\"",
 					kentry_name(nkentry));
@@ -194,7 +194,7 @@ bool_t ientry_parse_nested(const ientry_t *ientry, kentry_t *kentry,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kentry_add_action(kentry, kaction)) {
+			if (!kentry_add_actions(kentry, kaction)) {
 				faux_error_sprintf(error,
 					TAG": Can't add ACTION #%d",
 					kentry_actions_len(kentry) + 1);

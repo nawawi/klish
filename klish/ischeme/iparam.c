@@ -80,7 +80,7 @@ bool_t iparam_parse_nested(const iparam_t *iparam, kparam_t *kparam,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kparam_add_param(kparam, nkparam)) {
+			if (!kparam_add_params(kparam, nkparam)) {
 				// Search for PARAM duplicates
 				if (kparam_find_param(kparam,
 					kparam_name(nkparam))) {

@@ -57,7 +57,7 @@ bool_t iptype_parse_nested(const iptype_t *iptype, kptype_t *kptype,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kptype_add_action(kptype, kaction)) {
+			if (!kptype_add_actions(kptype, kaction)) {
 				faux_error_sprintf(error,
 					TAG": Can't add ACTION #%d",
 					kptype_actions_len(kptype) + 1);

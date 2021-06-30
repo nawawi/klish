@@ -27,7 +27,7 @@ bool_t kcommand_set_help(kcommand_t *command, const char *help);
 
 // PARAMs
 faux_list_t *kcommand_params(const kcommand_t *command);
-bool_t kcommand_add_param(kcommand_t *command, kparam_t *param);
+bool_t kcommand_add_params(kcommand_t *command, kparam_t *param);
 kparam_t *kcommand_find_param(const kcommand_t *command, const char *name);
 ssize_t kcommand_params_len(const kcommand_t *command);
 kcommand_params_node_t *kcommand_params_iter(const kcommand_t *command);
@@ -35,7 +35,7 @@ kparam_t *kcommand_params_each(kcommand_params_node_t **iter);
 
 // ACTIONs
 faux_list_t *kcommand_actions(const kcommand_t *command);
-bool_t kcommand_add_action(kcommand_t *command, kaction_t *action);
+bool_t kcommand_add_actions(kcommand_t *command, kaction_t *action);
 ssize_t kcommand_actions_len(const kcommand_t *command);
 kcommand_actions_node_t *kcommand_actions_iter(const kcommand_t *command);
 kaction_t *kcommand_actions_each(kcommand_actions_node_t **iter);

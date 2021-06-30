@@ -25,7 +25,7 @@ int kplugin_klish_init(kcontext_t *context)
 	plugin = kcontext_plugin(context);
 	assert(plugin);
 
-	kplugin_add_sym(plugin, ksym_new("nop", klish_nop));
+	kplugin_add_syms(plugin, ksym_new("nop", klish_nop));
 
 //	fprintf(stderr, "Plugin 'klish' init\n");
 	context = context; // Happy compiler

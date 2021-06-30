@@ -349,7 +349,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 		view = iview_load(&iview, error);
 		if (!view)
 			goto err;
-		if (!kscheme_add_view(scheme, view)) {
+		if (!kscheme_add_views(scheme, view)) {
 			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\". "
 				"Probably duplication",
 				kview_name(view));
@@ -391,7 +391,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	if (!ptype)
 		goto err;
 
-	if (!kscheme_add_ptype((kscheme_t *)parent, ptype)) {
+	if (!kscheme_add_ptypes((kscheme_t *)parent, ptype)) {
 		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\". "
 			"Probably duplication",
 			kptype_name(ptype));
@@ -435,7 +435,7 @@ static bool_t process_plugin(const kxml_node_t *element, void *parent,
 	if (!plugin)
 		goto err;
 
-	if (!kscheme_add_plugin((kscheme_t *)parent, plugin)) {
+	if (!kscheme_add_plugins((kscheme_t *)parent, plugin)) {
 		faux_error_sprintf(error, TAG": Can't add PLUGIN \"%s\". "
 			"Probably duplication",
 			kplugin_name(plugin));
@@ -496,7 +496,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 
 	if (KTAG_COMMAND == parent_tag) {
 		kcommand_t *command = (kcommand_t *)parent;
-		if (!kcommand_add_param(command, param)) {
+		if (!kcommand_add_params(command, param)) {
 			faux_error_sprintf(error,
 				TAG": Can't add PARAM \"%s\" to COMMAND \"%s\". "
 				"Probably duplication",
@@ -511,7 +511,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		(KTAG_MULTI == parent_tag)
 		) {
 		kparam_t *parent_param = (kparam_t *)parent;
-		if (!kparam_add_param(parent_param, param)) {
+		if (!kparam_add_params(parent_param, param)) {
 			faux_error_sprintf(error,
 				TAG": Can't add PARAM \"%s\" to PARAM \"%s\". "
 				"Probably duplication",
@@ -563,7 +563,7 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	if (!command)
 		goto err;
 
-	if (!kview_add_command((kview_t *)parent, command)) {
+	if (!kview_add_commands((kview_t *)parent, command)) {
 		faux_error_sprintf(error, TAG": Can't add COMMAND \"%s\". "
 			"Probably duplication",
 			kcommand_name(command));
@@ -605,7 +605,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 
 	if (KTAG_COMMAND == parent_tag) {
 		kcommand_t *command = (kcommand_t *)parent;
-		if (!kcommand_add_action(command, action)) {
+		if (!kcommand_add_actions(command, action)) {
 			faux_error_sprintf(error,
 				TAG": Can't add ACTION #%d to COMMAND \"%s\". "
 				"Probably duplication",
@@ -616,7 +616,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		}
 	} else if (KTAG_PTYPE == parent_tag) {
 		kptype_t *ptype = (kptype_t *)parent;
-		if (!kptype_add_action(ptype, action)) {
+		if (!kptype_add_actions(ptype, action)) {
 			faux_error_sprintf(error,
 				TAG": Can't add ACTION #%d to PTYPE \"%s\". "
 				"Probably duplication",
@@ -627,7 +627,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		}
 	} else if (KTAG_ENTRY == parent_tag) {
 		kentry_t *entry = (kentry_t *)parent;
-		if (!kentry_add_action(entry, action)) {
+		if (!kentry_add_actions(entry, action)) {
 			faux_error_sprintf(error,
 				TAG": Can't add ACTION #%d to ENTRY \"%s\". "
 				"Probably duplication",
@@ -683,7 +683,7 @@ static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	if (!nspace)
 		goto err;
 
-	if (!kview_add_nspace((kview_t *)parent, nspace)) {
+	if (!kview_add_nspaces((kview_t *)parent, nspace)) {
 		faux_error_sprintf(error, TAG": Can't add NSPACE \"%s\". ",
 			knspace_view_ref(nspace));
 		knspace_free(nspace);
@@ -753,7 +753,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 			entry = ientry_load(&ientry, error);
 			if (!entry)
 				goto err;
-			if (!kscheme_add_entry((kscheme_t *)parent, entry)) {
+			if (!kscheme_add_entrys((kscheme_t *)parent, entry)) {
 				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
 					"Probably duplication",
 					kentry_name(entry));
@@ -772,7 +772,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 			if (!entry)
 				goto err;
 			kentry_set_parent(entry, parent_entry);
-			if (!kentry_add_entry(parent_entry, entry)) {
+			if (!kentry_add_entrys(parent_entry, entry)) {
 				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
 					"Probably duplication",
 					kentry_name(entry));

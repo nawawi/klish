@@ -53,7 +53,7 @@ bool_t iview_parse_nested(const iview_t *iview, kview_t *kview,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kview_add_nspace(kview, knspace)) {
+			if (!kview_add_nspaces(kview, knspace)) {
 				faux_error_sprintf(error,
 					TAG": Can't add NSPACE \"%s\"",
 					knspace_view_ref(knspace));
@@ -75,7 +75,7 @@ bool_t iview_parse_nested(const iview_t *iview, kview_t *kview,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kview_add_command(kview, kcommand)) {
+			if (!kview_add_commands(kview, kcommand)) {
 				// Search for COMMAND duplicates
 				if (kview_find_command(kview,
 					kcommand_name(kcommand))) {

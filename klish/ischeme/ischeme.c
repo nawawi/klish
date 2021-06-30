@@ -38,7 +38,7 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 				retval = BOOL_FALSE; // Don't stop
 				continue;
 			}
-			if (!kscheme_add_plugin(kscheme, kplugin)) {
+			if (!kscheme_add_plugins(kscheme, kplugin)) {
 				// Search for PLUGIN duplicates
 				if (kscheme_find_plugin(kscheme,
 					kplugin_name(kplugin))) {
@@ -68,7 +68,7 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 				retval = BOOL_FALSE; // Don't stop
 				continue;
 			}
-			if (!kscheme_add_ptype(kscheme, kptype)) {
+			if (!kscheme_add_ptypes(kscheme, kptype)) {
 				// Search for PTYPE duplicates
 				if (kscheme_find_ptype(kscheme,
 					kptype_name(kptype))) {
@@ -122,7 +122,7 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 				retval = BOOL_FALSE;
 				continue;
 			}
-			if (!kscheme_add_view(kscheme, kview)) {
+			if (!kscheme_add_views(kscheme, kview)) {
 				faux_error_sprintf(error,
 					TAG": Can't add VIEW \"%s\"",
 					kview_name(kview));
@@ -170,7 +170,7 @@ bool_t ischeme_parse_nested(const ischeme_t *ischeme, kscheme_t *kscheme,
 				continue;
 			}
 			kentry_set_parent(nkentry, NULL); // Set empty parent entry
-			if (!kscheme_add_entry(kscheme, nkentry)) {
+			if (!kscheme_add_entrys(kscheme, nkentry)) {
 				faux_error_sprintf(error,
 					TAG": Can't add ENTRY \"%s\"",
 					kentry_name(nkentry));

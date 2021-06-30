@@ -27,18 +27,18 @@ KGET_STR(view, name);
 KGET(view, faux_list_t *, commands);
 KCMP_NESTED(view, command, name);
 KCMP_NESTED_BY_KEY(view, command, name);
-KADD_NESTED(view, command);
+KADD_NESTED(view, kcommand_t *, commands);
 KFIND_NESTED(view, command);
-KNESTED_LEN(view, command);
-KNESTED_ITER(view, command);
-KNESTED_EACH(view, command);
+KNESTED_LEN(view, commands);
+KNESTED_ITER(view, commands);
+KNESTED_EACH(view, kcommand_t *, commands);
 
 // NSPACE list
 KGET(view, faux_list_t *, nspaces);
-KADD_NESTED(view, nspace);
-KNESTED_LEN(view, nspace);
-KNESTED_ITER(view, nspace);
-KNESTED_EACH(view, nspace);
+KADD_NESTED(view, knspace_t *, nspaces);
+KNESTED_LEN(view, nspaces);
+KNESTED_ITER(view, nspaces);
+KNESTED_EACH(view, knspace_t *, nspaces);
 
 
 kview_t *kview_new(const char *name)

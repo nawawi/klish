@@ -25,6 +25,7 @@ typedef struct kpargv_s kpargv_t;
 typedef struct kparg_s kparg_t;
 
 typedef faux_list_node_t kpargv_pargs_node_t;
+typedef faux_list_node_t kpargv_completions_node_t;
 
 
 C_DECL_BEGIN
@@ -56,15 +57,24 @@ bool_t kpargv_set_command(kpargv_t *pargv, const kentry_t *command);
 // Continuable
 bool_t kpargv_continuable(const kpargv_t *pargv);
 bool_t kpargv_set_continuable(kpargv_t *pargv, bool_t continuable);
+
 // Pargs
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
 ssize_t kpargv_pargs_len(const kpargv_t *pargv);
 bool_t kpargv_pargs_is_empty(const kpargv_t *pargv);
-bool_t kpargv_add_parg(kpargv_t *pargv, kparg_t *parg);
+bool_t kpargv_add_pargs(kpargv_t *pargv, kparg_t *parg);
 kpargv_pargs_node_t *kpargv_pargs_iter(const kpargv_t *pargv);
 kparg_t *kpargv_pargs_each(kpargv_pargs_node_t **iter);
 kparg_t *kpargv_pargs_last(const kpargv_t *pargv);
 kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry);
+
+// Completions
+faux_list_t *kpargv_completions(const kpargv_t *pargv);
+bool_t kpargv_add_completions(kpargv_t *pargv, kentry_t *completion);
+ssize_t kpargv_completions_len(const kpargv_t *pargv);
+bool_t kpargv_compleions_is_empty(const kpargv_t *pargv);
+kpargv_completions_node_t *kpargv_completions_iter(const kpargv_t *pargv);
+kentry_t *kpargv_completions_each(kpargv_completions_node_t **iter);
 
 C_DECL_END
 
