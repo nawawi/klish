@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 	// Parsing
 	{
 //	const char *line = "cmd o4 m7 o2 e1";
-	const char *line = "cmd o4 o4 o4 m3 o2 e1 ";
+	const char *line = "cmd o4 o4 o4 m3 o2";
 	kpargv_t *pargv = NULL;
 	kpargv_pargs_node_t *p_iter = NULL;
 	

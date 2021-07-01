@@ -63,7 +63,15 @@ KNESTED_ITER(pargv, completions);
 KNESTED_EACH(pargv, kentry_t *, completions);
 
 
-int kpargv_pargs_kcompare(const void *key, const void *list_item)
+static int kpargv_completions_compare(const void *first, const void *second)
+{
+	const kentry_t *f = (const kentry_t *)first;
+	const kentry_t *s = (const kentry_t *)second;
+	return strcmp(kentry_name(f), kentry_name(s));
+}
+
+
+static int kpargv_pargs_kcompare(const void *key, const void *list_item)
 {
 	const kentry_t *f = (const kentry_t *)key;
 	const kparg_t *s = (const kparg_t *)list_item;
@@ -96,8 +104,8 @@ kpargv_t *kpargv_new()
 	assert(pargv->pargs);
 
 	// Completions
-	pargv->completions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
-		NULL, NULL, NULL);
+	pargv->completions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+		kpargv_completions_compare, NULL, NULL);
 	assert(pargv->completions);
 
 	return pargv;
