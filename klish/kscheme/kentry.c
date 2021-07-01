@@ -201,15 +201,15 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	// name - orig
 	// help - orig
 	// parent - orig
-	dst->container = src->container;
+	// container - orig
 	dst->mode = src->mode;
-	dst->min = src->min;
-	dst->max = src->max;
+	// min - orig
+	// max - orig
 	dst->ptype_str = src->ptype_str;
 	dst->ptype = src->ptype;
 	// ref_str - orig
 	// value - orig
-	dst->restore = src->restore;
+	// restore - orig
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;
 

@@ -18,9 +18,11 @@ struct kpargv_s {
 	size_t level; // Number of path's level where command was found
 	const kentry_t *command; // ENTRY that consider as command (has ACTIONs)
 	bool_t continuable; // Last argument can be expanded
+	kpargv_purpose_e purpose; // Exec/Completion/Help
+	char *last_arg;
 };
 
-// Level
+// Status
 KGET(pargv, kpargv_status_e, status);
 KSET(pargv, kpargv_status_e, status);
 
@@ -35,6 +37,14 @@ KSET(pargv, const kentry_t *, command);
 // Continuable
 KGET_BOOL(pargv, continuable);
 KSET_BOOL(pargv, continuable);
+
+// Purpose
+KGET(pargv, kpargv_purpose_e, purpose);
+KSET(pargv, kpargv_purpose_e, purpose);
+
+// Last argument
+KSET_STR(pargv, last_arg);
+KGET_STR(pargv, last_arg);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
@@ -76,11 +86,19 @@ kpargv_t *kpargv_new()
 	pargv->status = KPARSE_NONE;
 	pargv->level = 0;
 	pargv->command = NULL;
+	pargv->continuable = BOOL_FALSE;
+	pargv->purpose = KPURPOSE_EXEC;
+	pargv->last_arg = NULL;
 
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, kpargv_pargs_kcompare, (void (*)(void *))kparg_free);
 	assert(pargv->pargs);
+
+	// Completions
+	pargv->completions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, NULL);
+	assert(pargv->completions);
 
 	return pargv;
 }
@@ -91,7 +109,10 @@ void kpargv_free(kpargv_t *pargv)
 	if (!pargv)
 		return;
 
+	faux_str_free(pargv->last_arg);
+
 	faux_list_free(pargv->pargs);
+	faux_list_free(pargv->completions);
 
 	free(pargv);
 }
@@ -122,18 +143,11 @@ kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry)
 }
 
 
-const char *kpargv_status_str(const kpargv_t *pargv)
+const char *kpargv_status_decode(kpargv_status_e status)
 {
 	const char *s = "Unknown";
 
-	assert(pargv);
-	if (!pargv)
-		return NULL;
-
-	switch (kpargv_status(pargv)) {
-	case KPARSE_NONE:
-		s = "None";
-		break;
+	switch (status) {
 	case KPARSE_OK:
 		s = "Ok";
 		break;
@@ -149,10 +163,20 @@ const char *kpargv_status_str(const kpargv_t *pargv)
 	case KPARSE_ILLEGAL:
 		s = "Illegal";
 		break;
-	case KPARSE_ERROR:
+	default: // ERROR/MAX/NONE
 		s = "Error";
 		break;
 	}
 
 	return s;
+}
+
+
+const char *kpargv_status_str(const kpargv_t *pargv)
+{
+	assert(pargv);
+	if (!pargv)
+		return NULL;
+
+	return kpargv_status_decode(kpargv_status(pargv));
 }
