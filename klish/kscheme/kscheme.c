@@ -8,9 +8,6 @@
 #include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kplugin.h>
-#include <klish/kptype.h>
-#include <klish/kview.h>
-#include <klish/knspace.h>
 #include <klish/kentry.h>
 #include <klish/kscheme.h>
 #include <klish/kcontext.h>
@@ -18,8 +15,6 @@
 
 struct kscheme_s {
 	faux_list_t *plugins;
-	faux_list_t *ptypes;
-	faux_list_t *views;
 	faux_list_t *entrys;
 };
 
@@ -34,26 +29,6 @@ KFIND_NESTED(scheme, plugin);
 KNESTED_LEN(scheme, plugins);
 KNESTED_ITER(scheme, plugins);
 KNESTED_EACH(scheme, kplugin_t *, plugins);
-
-// PTYPE list
-KGET(scheme, faux_list_t *, ptypes);
-KCMP_NESTED(scheme, ptype, name);
-KCMP_NESTED_BY_KEY(scheme, ptype, name);
-KADD_NESTED(scheme, kptype_t *, ptypes);
-KFIND_NESTED(scheme, ptype);
-KNESTED_LEN(scheme, ptypes);
-KNESTED_ITER(scheme, ptypes);
-KNESTED_EACH(scheme, kptype_t *, ptypes);
-
-// VIEW list
-KGET(scheme, faux_list_t *, views);
-KCMP_NESTED(scheme, view, name);
-KCMP_NESTED_BY_KEY(scheme, view, name);
-KADD_NESTED(scheme, kview_t *, views);
-KFIND_NESTED(scheme, view);
-KNESTED_LEN(scheme, views);
-KNESTED_ITER(scheme, views);
-KNESTED_EACH(scheme, kview_t *, views);
 
 // ENTRY list
 KGET(scheme, faux_list_t *, entrys);
@@ -81,25 +56,12 @@ kscheme_t *kscheme_new(void)
 		(void (*)(void *))kplugin_free);
 	assert(scheme->plugins);
 
-	// PTYPE list
-	scheme->ptypes = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
-		kscheme_ptype_compare, kscheme_ptype_kcompare,
-		(void (*)(void *))kptype_free);
-	assert(scheme->ptypes);
-
-	// VIEW list
-	scheme->views = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
-		kscheme_view_compare, kscheme_view_kcompare,
-		(void (*)(void *))kview_free);
-	assert(scheme->views);
-
 	// ENTRY list
 	// Must be unsorted because order is important
 	scheme->entrys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
 		kscheme_entry_compare, kscheme_entry_kcompare,
 		(void (*)(void *))kentry_free);
 	assert(scheme->entrys);
-
 
 	return scheme;
 }
@@ -111,8 +73,6 @@ void kscheme_free(kscheme_t *scheme)
 		return;
 
 	faux_list_free(scheme->plugins);
-	faux_list_free(scheme->ptypes);
-	faux_list_free(scheme->views);
 	faux_list_free(scheme->entrys);
 
 	faux_free(scheme);
@@ -290,43 +250,6 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, faux_list_t *action_list,
 }
 
 
-bool_t kscheme_prepare_param_list(kscheme_t *scheme, faux_list_t *param_list,
-	faux_error_t *error) {
-	faux_list_node_t *iter = NULL;
-	kparam_t *param = NULL;
-	bool_t retcode = BOOL_TRUE;
-
-	assert(scheme);
-	if (!scheme)
-		return BOOL_FALSE;
-	assert(param_list);
-	if (!param_list)
-		return BOOL_FALSE;
-	if (faux_list_is_empty(param_list))
-		return BOOL_TRUE;
-
-	iter = faux_list_head(param_list);
-	while ((param = (kparam_t *)faux_list_each(&iter))) {
-		kptype_t *ptype = NULL;
-		const char *ptype_ref = kparam_ptype_ref(param);
-		ptype = kscheme_find_ptype(scheme, ptype_ref);
-		if (!ptype) {
-			faux_error_sprintf(error, "Can't find ptype \"%s\"",
-				ptype_ref);
-			retcode = BOOL_FALSE;
-			continue;
-		}
-		kparam_set_ptype(param, ptype);
-		// Nested PARAMs
-		if (!kscheme_prepare_param_list(scheme, kparam_params(param),
-			error))
-			retcode = BOOL_FALSE;
-	}
-
-	return retcode;
-}
-
-
 kentry_t *kscheme_find_entry_by_path(const kscheme_t *scheme, const char *name)
 {
 	char *saveptr = NULL;
@@ -435,8 +358,6 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
  */
 bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 {
-	kscheme_views_node_t *views_iter = NULL;
-	kview_t *view = NULL;
 	kscheme_entrys_node_t *entrys_iter = NULL;
 	kentry_t *entry = NULL;
 
@@ -448,44 +369,6 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 
 	if (!kscheme_load_plugins(scheme, context, error))
 		return BOOL_FALSE;
-
-	// Iterate VIEWs
-	views_iter = kscheme_views_iter(scheme);
-	while ((view = kscheme_views_each(&views_iter))) {
-		kview_commands_node_t *commands_iter = NULL;
-		kcommand_t *command = NULL;
-		kview_nspaces_node_t *nspaces_iter = NULL;
-		knspace_t *nspace = NULL;
-
-		printf("VIEW: %s\n", kview_name(view));
-
-		// Iterate NSPACEs
-		nspaces_iter = kview_nspaces_iter(view);
-		while ((nspace = kview_nspaces_each(&nspaces_iter))) {
-			const char *view_ref = knspace_view_ref(nspace);
-			kview_t *rview = NULL;
-			rview = kscheme_find_view(scheme, view_ref);
-			if (!view)
-				return BOOL_FALSE;
-			knspace_set_view(nspace, rview);
-			printf("NSPACE: %s\n",
-				kview_name(knspace_view(nspace)));
-		}
-
-		// Iterate COMMANDs
-		commands_iter = kview_commands_iter(view);
-		while ((command = kview_commands_each(&commands_iter))) {
-			printf("COMMAND: %s\n", kcommand_name(command));
-			// ACTIONs
-			if (!kscheme_prepare_action_list(scheme,
-				kcommand_actions(command), error))
-				return BOOL_FALSE;
-			// PARAMs
-			if (!kscheme_prepare_param_list(scheme,
-				kcommand_params(command), error))
-				return BOOL_FALSE;
-		}
-	}
 
 	// Iterate ENTRYs
 	entrys_iter = kscheme_entrys_iter(scheme);

@@ -21,19 +21,16 @@
 
 	<xs:element name="KLISH" type="klish_t"/>
 	<xs:element name="ENTRY" type="entry_t"/>
-	<xs:element name="VIEW" type="view_t"/>
-	<xs:element name="COMMAND" type="command_t"/>
-	<xs:element name="FILTER" type="command_t"/>
+	<xs:element name="VIEW" type="view_t"/> <!-- Wrapper -->
+	<xs:element name="COMMAND" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="STARTUP" type="startup_t"/>
 	<xs:element name="ACTION" type="action_t"/>
 	<xs:element name="OVERVIEW" type="overview_t"/>
 	<xs:element name="DETAIL" type="detail_t"/>
-	<xs:element name="PTYPE" type="ptype_t"/>
-	<xs:element name="PARAM" type="param_t"/>
-	<xs:element name="SWITCH" type="param_t"/> <!-- PARAM alias -->
-	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- PARAM alias -->
-	<xs:element name="MULTI" type="param_t"/> <!-- PARAM alias -->
-	<xs:element name="NAMESPACE" type="namespace_t"/>
+	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
+	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="NAMESPACE" type="namespace_t"/> <!-- Wrapper -->
 	<xs:element name="VAR" type="var_t"/>
 	<xs:element name="WATCHDOG" type="wdog_t"/>
 	<xs:element name="HOTKEY" type="hotkey_t"/>
@@ -65,6 +62,7 @@
 			<xs:element ref="STARTUP" minOccurs="0"/>
 			<xs:element ref="VAR" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
@@ -171,6 +169,7 @@
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 
@@ -186,34 +185,19 @@
 *	or dynamic variables which are expanded
 *	before display.
 *
-* [depth] - a depth of nested view (uses for config).
-*
-* [restore] - restore the depth or view of commands
-*	contained by this view
-*
 * [access] - access rights
 *
 ********************************************************
 -->
-
-	<xs:simpleType name="restore_t">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="none"/>
-			<xs:enumeration value="depth"/>
-			<xs:enumeration value="view"/>
-		</xs:restriction>
-	</xs:simpleType>
-
 	<xs:complexType name="view_t">
 		<xs:sequence>
 			<xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="prompt" type="xs:string" use="optional"/>
-		<xs:attribute name="depth" type="xs:string" use="optional" default="0"/>
-		<xs:attribute name="restore" type="restore_t" use="optional" default="none"/>
 		<xs:attribute name="access" type="xs:string" use="optional"/>
 	</xs:complexType>
 
@@ -311,21 +295,10 @@
 *
 ********************************************************
 -->
-	<xs:simpleType name="param_mode_t">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="common"/>
-			<xs:enumeration value="switch"/>
-			<xs:enumeration value="subcommand"/>
-			<xs:enumeration value="multi"/>
-		</xs:restriction>
-	</xs:simpleType>
-
 	<xs:group name="param_group_t">
 		<xs:choice>
 			<xs:element ref="PARAM"/>
-			<xs:element ref="SWITCH"/>
-			<xs:element ref="SUBCOMMAND"/>
-			<xs:element ref="MULTI"/>
+			<xs:element ref="ENTRY"/>
 		</xs:choice>
 	</xs:group>
 
@@ -337,16 +310,9 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="required"/>
 		<xs:attribute name="ptype" type="xs:string" use="required"/>
-		<xs:attribute name="default" type="xs:string" use="optional"/>
-		<xs:attribute name="prefix" type="xs:string" use="optional"/>
-		<xs:attribute name="mode" type="param_mode_t" use="optional" default="common"/>
-		<xs:attribute name="optional" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="common"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
-		<xs:attribute name="hidden" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="test" type="xs:string" use="optional"/>
-		<xs:attribute name="completion" type="xs:string" use="optional"/>
-		<xs:attribute name="access" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 
@@ -451,6 +417,7 @@
 			<!--  Any order of PARAM tags and any number -->
 			<xs:group ref="param_group_t" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="required"/>

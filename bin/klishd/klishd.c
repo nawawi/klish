@@ -44,7 +44,6 @@
 
 #include "private.h"
 
-#include "sch.c"
 
 // Local static functions
 static int create_listen_unix_sock(const char *path);
@@ -169,7 +168,7 @@ int main(int argc, char **argv)
 	deploy_db = kdb_new("ischeme", NULL);
 	kdb_load_plugin(deploy_db);
 	kdb_init(deploy_db);
-//	kdb_deploy_scheme(deploy_db, scheme);
+	kdb_deploy_scheme(deploy_db, scheme);
 	kdb_fini(deploy_db);
 	kdb_free(deploy_db);
 	}

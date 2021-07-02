@@ -7,28 +7,9 @@
 #define _klish_ischeme_h
 
 #include <faux/error.h>
-#include <klish/iptype.h>
 #include <klish/iplugin.h>
-#include <klish/iview.h>
-#include <klish/inspace.h>
 #include <klish/ientry.h>
 #include <klish/kscheme.h>
-
-#define VIEW_LIST .views = &(iview_t * []) {
-#define END_VIEW_LIST NULL }
-#define VIEW &(iview_t)
-
-#define PTYPE_LIST .ptypes = &(iptype_t * []) {
-#define END_PTYPE_LIST NULL }
-#define PTYPE &(iptype_t)
-
-#define COMMAND_LIST .commands = &(icommand_t * []) {
-#define END_COMMAND_LIST NULL }
-#define COMMAND &(icommand_t)
-
-#define PARAM_LIST .params = &(iparam_t * []) {
-#define END_PARAM_LIST NULL }
-#define PARAM &(iparam_t)
 
 #define ACTION_LIST .actions = &(iaction_t * []) {
 #define END_ACTION_LIST NULL }
@@ -37,10 +18,6 @@
 #define PLUGIN_LIST .plugins = &(iplugin_t * []) {
 #define END_PLUGIN_LIST NULL }
 #define PLUGIN &(iplugin_t)
-
-#define NSPACE_LIST .nspaces = &(inspace_t * []) {
-#define END_NSPACE_LIST NULL }
-#define NSPACE &(inspace_t)
 
 #define ENTRY_LIST .entrys = &(ientry_t * []) {
 #define END_ENTRY_LIST NULL }
@@ -51,8 +28,6 @@ typedef struct ischeme_s {
 	char *name;
 	ientry_t * (*entrys)[];
 	iplugin_t * (*plugins)[];
-	iptype_t * (*ptypes)[];
-	iview_t * (*views)[];
 } ischeme_t;
 
 C_DECL_BEGIN

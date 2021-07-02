@@ -8,7 +8,6 @@
 #include <faux/conv.h>
 #include <klish/khelper.h>
 #include <klish/ientry.h>
-#include <klish/kptype.h>
 #include <klish/kentry.h>
 
 #define TAG "ENTRY"

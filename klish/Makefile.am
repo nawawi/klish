@@ -25,26 +25,16 @@ nobase_include_HEADERS += \
 nobase_include_HEADERS += \
 	klish/kscheme.h \
 	klish/kentry.h \
-	klish/kview.h \
-	klish/kcommand.h \
-	klish/kparam.h \
 	klish/kplugin.h \
 	klish/kaction.h \
-	klish/kptype.h \
 	klish/ksym.h \
-	klish/knspace.h \
 	klish/kdb.h
 
 # iScheme
 nobase_include_HEADERS += \
 	klish/ischeme.h \
-	klish/iview.h \
-	klish/icommand.h \
-	klish/iparam.h \
 	klish/iplugin.h \
 	klish/iaction.h \
-	klish/iptype.h \
-	klish/inspace.h \
 	klish/ientry.h
 
 # Session

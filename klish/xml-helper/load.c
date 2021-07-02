@@ -313,57 +313,68 @@ static bool_t process_klish(const kxml_node_t *element, void *parent,
 static bool_t process_view(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
-	iview_t iview = {};
-	kview_t *view = NULL;
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 	kscheme_t *scheme = (kscheme_t *)parent;
+
+	// Mandatory VIEW name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": VIEW without name");
+		return BOOL_FALSE;
+	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = "true";
+	ientry.mode = "switch";
+	ientry.min = "1";
+	ientry.max = "1";
+	ientry.ptype = NULL;
+	ientry.ref = NULL;
+	ientry.value = NULL;
+	ientry.restore = "false";
+	ientry.order = "true";
 
 	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
+		goto err;
 	}
 	if (!scheme) {
 		faux_error_sprintf(error,
 			TAG": Broken parent object for VIEW \"%s\"",
-			iview.name);
-		return BOOL_FALSE;
-	}
-
-	// Mandatory VIEW name
-	iview.name = kxml_node_attr(element, "name");
-	if (!iview.name) {
-		faux_error_sprintf(error, TAG": VIEW without name");
-		return BOOL_FALSE;
+			ientry.name);
+		goto err;
 	}
 
 	// Does VIEW already exist
-	view = kscheme_find_view(scheme, iview.name);
-	if (view) {
-		if (!iview_parse(&iview, view, error))
+	entry = kscheme_find_entry(scheme, ientry.name);
+	if (entry) {
+		if (!ientry_parse(&ientry, entry, error))
 			goto err;
 	} else { // New VIEW object
-		view = iview_load(&iview, error);
-		if (!view)
+		entry = ientry_load(&ientry, error);
+		if (!entry)
 			goto err;
-		if (!kscheme_add_views(scheme, view)) {
+		if (!kscheme_add_entrys(scheme, entry)) {
 			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\". "
 				"Probably duplication",
-				kview_name(view));
-			kview_free(view);
+				kentry_name(entry));
+			kentry_free(entry);
 			goto err;
 		}
 	}
 
-	if (!process_children(element, view, error))
+	if (!process_children(element, entry, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(iview.name);
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
 
 	return res;
 }
@@ -372,40 +383,63 @@ err:
 static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
-	iptype_t iptype = {};
-	kptype_t *ptype = NULL;
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kscheme_t *scheme = (kscheme_t *)parent;
 
+	// Mandatory PTYPE name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": PTYPE without name");
+		return BOOL_FALSE;
+	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = "true";
+	ientry.mode = "sequence";
+	ientry.min = "1";
+	ientry.max = "1";
+	ientry.ptype = NULL;
+	ientry.ref = NULL;
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = "false";
+	ientry.order = "true";
+
+	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PTYPE tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
+		goto err;
+	}
+	if (!scheme) {
+		faux_error_sprintf(error,
+			TAG": Broken parent object for PTYPE \"%s\"",
+			ientry.name);
+		goto err;
 	}
 
-	iptype.name = kxml_node_attr(element, "name");
-	iptype.help = kxml_node_attr(element, "help");
-
-	ptype = iptype_load(&iptype, error);
-	if (!ptype)
+	// Create and add object
+	entry = ientry_load(&ientry, error);
+	if (!entry)
 		goto err;
-
-	if (!kscheme_add_ptypes((kscheme_t *)parent, ptype)) {
+	if (!kscheme_add_entrys(scheme, entry)) {
 		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\". "
 			"Probably duplication",
-			kptype_name(ptype));
-		kptype_free(ptype);
+			kentry_name(entry));
+		kentry_free(entry);
 		goto err;
 	}
 
-	if (!process_children(element, ptype, error))
+	if (!process_children(element, entry, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(iptype.name);
-	kxml_node_attr_free(iptype.help);
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.value);
 
 	return res;
 }
@@ -460,82 +494,82 @@ err:
 static bool_t process_param(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
-	iparam_t iparam = {};
-	kparam_t *param = NULL;
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	ktags_e tag = kxml_node_tag(element);
-	char *mode = NULL;
+	kentry_t *parent_entry = (kentry_t *)parent;
+	kentry_t *entry_add_to = parent_entry;
 
-	iparam.name = kxml_node_attr(element, "name");
-	iparam.help = kxml_node_attr(element, "help");
-	iparam.ptype = kxml_node_attr(element, "ptype");
-	// Special case for mode
-	mode = kxml_node_attr(element, "mode");
-	if (!faux_str_is_empty(mode)) {
-		iparam.mode = mode;
-	} else {
-		switch (tag) {
-		case KTAG_SWITCH:
-			iparam.mode = "switch";
-			break;
-		case KTAG_SUBCOMMAND:
-			iparam.mode = "subcommand";
-			break;
-		case KTAG_MULTI:
-			iparam.mode = "multi";
-			break;
-		default:
-			break;
-		}
+	// Mandatory PARAM name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": PARAM without name");
+		return BOOL_FALSE;
 	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = kxml_node_attr(element, "container");
+	ientry.mode = kxml_node_attr(element, "mode");
+	ientry.min = kxml_node_attr(element, "min");
+	ientry.max = kxml_node_attr(element, "max");
+	ientry.ptype = kxml_node_attr(element, "ptype");
+	ientry.ref = kxml_node_attr(element, "ref");
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = "false";
+	ientry.order = kxml_node_attr(element, "order");
 
-	param = iparam_load(&iparam, error);
-	if (!param)
+	entry = ientry_load(&ientry, error);
+	if (!entry)
 		goto err;
 
-	if (KTAG_COMMAND == parent_tag) {
-		kcommand_t *command = (kcommand_t *)parent;
-		if (!kcommand_add_params(command, param)) {
-			faux_error_sprintf(error,
-				TAG": Can't add PARAM \"%s\" to COMMAND \"%s\". "
-				"Probably duplication",
-				kparam_name(param), kcommand_name(command));
-			kparam_free(param);
-			goto err;
-		}
-	} else if (
-		(KTAG_PARAM == parent_tag) ||
-		(KTAG_SWITCH == parent_tag) ||
-		(KTAG_SUBCOMMAND == parent_tag) ||
-		(KTAG_MULTI == parent_tag)
-		) {
-		kparam_t *parent_param = (kparam_t *)parent;
-		if (!kparam_add_params(parent_param, param)) {
-			faux_error_sprintf(error,
-				TAG": Can't add PARAM \"%s\" to PARAM \"%s\". "
-				"Probably duplication",
-				kparam_name(param), kparam_name(parent_param));
-			kparam_free(param);
-			goto err;
-		}
-	} else {
+	if ((KTAG_COMMAND != parent_tag) &&
+		(KTAG_PARAM != parent_tag) &&
+		(KTAG_ENTRY != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PARAM tag",
 			kxml_tag_name(parent_tag));
-		kparam_free(param);
+		kentry_free(entry);
 		goto err;
 	}
 
-	if (!process_children(element, param, error))
+	// Add newly created entry to special container in 'sequence' mode if
+	// parent entry can has 'switch' mode.
+	if (kentry_mode(parent_entry) == KENTRY_MODE_SWITCH) {
+		const char *seq_entry_name = "__sequence";
+		kentry_t *seq_entry = kentry_find_entry(parent_entry, seq_entry_name);
+		if (!seq_entry) {
+			seq_entry = kentry_new(seq_entry_name);
+			assert(seq_entry);
+			kentry_set_container(seq_entry, BOOL_TRUE);
+			kentry_set_mode(seq_entry, KENTRY_MODE_SEQUENCE);
+			kentry_add_entrys(parent_entry, seq_entry);
+		}
+		entry_add_to = seq_entry;
+	}
+	if (!kentry_add_entrys(entry_add_to, entry)) {
+		faux_error_sprintf(error,
+			TAG": Can't add PARAM \"%s\" to ENTRY \"%s\". "
+			"Probably duplication",
+			kentry_name(entry_add_to), kentry_name(entry_add_to));
+		kentry_free(entry);
+		goto err;
+	}
+
+	if (!process_children(element, entry, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(iparam.name);
-	kxml_node_attr_free(iparam.help);
-	kxml_node_attr_free(iparam.ptype);
-	kxml_node_attr_free(mode);
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.container);
+	kxml_node_attr_free(ientry.mode);
+	kxml_node_attr_free(ientry.min);
+	kxml_node_attr_free(ientry.max);
+	kxml_node_attr_free(ientry.ptype);
+	kxml_node_attr_free(ientry.ref);
+	kxml_node_attr_free(ientry.value);
+	kxml_node_attr_free(ientry.order);
 
 	return res;
 }
@@ -544,40 +578,63 @@ err:
 static bool_t process_command(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
-	icommand_t icommand = {};
-	kcommand_t *command = NULL;
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kentry_t *parent_entry = (kentry_t *)parent;
 
-	if (parent_tag != KTAG_VIEW) {
+	// Mandatory COMMAND name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": COMMAND without name");
+		return BOOL_FALSE;
+	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = "false";
+	ientry.mode = "switch";
+	ientry.min = "1";
+	ientry.max = "1";
+	ientry.ptype = kxml_node_attr(element, "ptype");
+	ientry.ref = kxml_node_attr(element, "ref");
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = kxml_node_attr(element, "restore");
+	ientry.order = kxml_node_attr(element, "order");
+
+	entry = ientry_load(&ientry, error);
+	if (!entry)
+		goto err;
+
+	if ((KTAG_COMMAND != parent_tag) &&
+		(KTAG_VIEW != parent_tag) &&
+		(KTAG_ENTRY != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain COMMAND tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
-	}
-
-	icommand.name = kxml_node_attr(element, "name");
-	icommand.help = kxml_node_attr(element, "help");
-
-	command = icommand_load(&icommand, error);
-	if (!command)
+		kentry_free(entry);
 		goto err;
-
-	if (!kview_add_commands((kview_t *)parent, command)) {
-		faux_error_sprintf(error, TAG": Can't add COMMAND \"%s\". "
+	}
+	if (!kentry_add_entrys(parent_entry, entry)) {
+		faux_error_sprintf(error,
+			TAG": Can't add PARAM \"%s\" to ENTRY \"%s\". "
 			"Probably duplication",
-			kcommand_name(command));
-		kcommand_free(command);
+			kentry_name(entry), kentry_name(parent_entry));
+		kentry_free(entry);
 		goto err;
 	}
 
-	if (!process_children(element, command, error))
+	if (!process_children(element, entry, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(icommand.name);
-	kxml_node_attr_free(icommand.help);
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.ptype);
+	kxml_node_attr_free(ientry.ref);
+	kxml_node_attr_free(ientry.value);
+	kxml_node_attr_free(ientry.restore);
+	kxml_node_attr_free(ientry.order);
 
 	return res;
 }
@@ -590,6 +647,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	kaction_t *action = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kentry_t *parent_entry = (kentry_t *)parent;
 
 	iaction.sym = kxml_node_attr(element, "sym");
 	iaction.lock = kxml_node_attr(element, "lock");
@@ -603,43 +661,21 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	if (!action)
 		goto err;
 
-	if (KTAG_COMMAND == parent_tag) {
-		kcommand_t *command = (kcommand_t *)parent;
-		if (!kcommand_add_actions(command, action)) {
-			faux_error_sprintf(error,
-				TAG": Can't add ACTION #%d to COMMAND \"%s\". "
-				"Probably duplication",
-				kcommand_actions_len(command) + 1,
-				kcommand_name(command));
-			kaction_free(action);
-			goto err;
-		}
-	} else if (KTAG_PTYPE == parent_tag) {
-		kptype_t *ptype = (kptype_t *)parent;
-		if (!kptype_add_actions(ptype, action)) {
-			faux_error_sprintf(error,
-				TAG": Can't add ACTION #%d to PTYPE \"%s\". "
-				"Probably duplication",
-				kptype_actions_len(ptype) + 1,
-				kptype_name(ptype));
-			kaction_free(action);
-			goto err;
-		}
-	} else if (KTAG_ENTRY == parent_tag) {
-		kentry_t *entry = (kentry_t *)parent;
-		if (!kentry_add_actions(entry, action)) {
-			faux_error_sprintf(error,
-				TAG": Can't add ACTION #%d to ENTRY \"%s\". "
-				"Probably duplication",
-				kentry_actions_len(entry) + 1,
-				kentry_name(entry));
-			kaction_free(action);
-			goto err;
-		}
-	} else {
+	if ((parent_tag != KTAG_ENTRY) &&
+		(parent_tag != KTAG_COMMAND) &&
+		(parent_tag != KTAG_PTYPE)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",
 			kxml_tag_name(parent_tag));
+		kaction_free(action);
+		goto err;
+	}
+	if (!kentry_add_actions(parent_entry, action)) {
+		faux_error_sprintf(error,
+			TAG": Can't add ACTION #%d to ENTRY \"%s\". "
+			"Probably duplication",
+			kentry_actions_len(parent_entry) + 1,
+			kentry_name(parent_entry));
 		kaction_free(action);
 		goto err;
 	}
@@ -664,39 +700,68 @@ err:
 static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
-	inspace_t inspace = {};
-	knspace_t *nspace = NULL;
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kentry_t *parent_entry = (kentry_t *)parent;
 
-	if (parent_tag != KTAG_VIEW) {
+	// Mandatory NSPACE name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": NSPACE without name");
+		return BOOL_FALSE;
+	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = kxml_node_attr(element, "container");
+	ientry.mode = kxml_node_attr(element, "mode");;
+	ientry.min = kxml_node_attr(element, "min");
+	ientry.max = kxml_node_attr(element, "max");
+	ientry.ptype = kxml_node_attr(element, "ptype");
+	ientry.ref = kxml_node_attr(element, "ref");
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = kxml_node_attr(element, "restore");
+	ientry.order = kxml_node_attr(element, "order");
+
+	entry = ientry_load(&ientry, error);
+	if (!entry)
+		goto err;
+
+	if ((KTAG_COMMAND != parent_tag) &&
+		(KTAG_VIEW != parent_tag) &&
+		(KTAG_PARAM != parent_tag) &&
+		(KTAG_ENTRY != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain NSPACE tag",
 			kxml_tag_name(parent_tag));
-		return BOOL_FALSE;
-	}
-
-	inspace.ref = kxml_node_attr(element, "ref");
-	inspace.prefix = kxml_node_attr(element, "prefix");
-
-	nspace = inspace_load(&inspace, error);
-	if (!nspace)
+		kentry_free(entry);
 		goto err;
-
-	if (!kview_add_nspaces((kview_t *)parent, nspace)) {
-		faux_error_sprintf(error, TAG": Can't add NSPACE \"%s\". ",
-			knspace_view_ref(nspace));
-		knspace_free(nspace);
+	}
+	if (!kentry_add_entrys(parent_entry, entry)) {
+		faux_error_sprintf(error,
+			TAG": Can't add NSPACE \"%s\" to ENTRY \"%s\". "
+			"Probably duplication",
+			kentry_name(entry), kentry_name(parent_entry));
+		kentry_free(entry);
 		goto err;
 	}
 
-	if (!process_children(element, nspace, error))
+	if (!process_children(element, entry, error))
 		goto err;
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(inspace.ref);
-	kxml_node_attr_free(inspace.prefix);
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.container);
+	kxml_node_attr_free(ientry.mode);
+	kxml_node_attr_free(ientry.min);
+	kxml_node_attr_free(ientry.max);
+	kxml_node_attr_free(ientry.ptype);
+	kxml_node_attr_free(ientry.ref);
+	kxml_node_attr_free(ientry.value);
+	kxml_node_attr_free(ientry.restore);
+	kxml_node_attr_free(ientry.order);
 
 	return res;
 }
