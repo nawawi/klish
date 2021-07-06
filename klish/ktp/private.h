@@ -14,7 +14,9 @@ typedef enum {
 	KTPD_SESSION_STATE_WAIT_FOR_PROCESS = 'p',
 } ktpd_session_state_e;
 
+
 struct ktpd_session_s {
+	ksession_t *ksession;
 	ktpd_session_state_e state;
 	uid_t uid;
 	gid_t gid;
@@ -40,9 +42,10 @@ struct ktp_session_s {
 	faux_net_t *net;
 };
 
-
+/*
 struct ktpd_clients_s {
 	faux_list_t *list;
 };
+*/
 
 #endif // _klish_ktp_private_h

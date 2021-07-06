@@ -3,6 +3,7 @@
 
 #include <faux/faux.h>
 #include <faux/list.h>
+#include <klish/ksession.h>
 
 #define USOCK_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
 
@@ -24,7 +25,8 @@ bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
 
 // Server KTP session
-ktpd_session_t *ktpd_session_new(int sock);
+ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
+	const char *start_entry);
 void ktpd_session_free(ktpd_session_t *session);
 bool_t ktpd_session_connected(ktpd_session_t *session);
 int ktpd_session_fd(const ktpd_session_t *session);

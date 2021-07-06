@@ -13,6 +13,7 @@
 #include <faux/str.h>
 #include <faux/async.h>
 #include <faux/msg.h>
+#include <klish/ksession.h>
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
@@ -134,7 +135,8 @@ static bool_t ktpd_session_stall_cb(faux_async_t *async,
 }
 
 
-ktpd_session_t *ktpd_session_new(int sock)
+ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
+	const char *start_entry)
 {
 	ktpd_session_t *session = NULL;
 
@@ -148,6 +150,8 @@ ktpd_session_t *ktpd_session_new(int sock)
 
 	// Init
 	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
+	session->ksession = ksession_new(scheme, start_entry);
+	assert(session->ksession);
 	session->async = faux_async_new(sock);
 	assert(session->async);
 	// Receive message header first
@@ -165,6 +169,7 @@ void ktpd_session_free(ktpd_session_t *session)
 	if (!session)
 		return;
 
+	ksession_free(session->ksession);
 	faux_free(session->hdr);
 	close(ktpd_session_fd(session));
 	faux_async_free(session->async);

@@ -256,17 +256,17 @@ err:
 	// ATTENTION: It's a forked service process
 	retval = -1; // Pessimism for service process
 
-	ktpd_session = ktpd_session_new(client_fd);
+	ktpd_session = ktpd_session_new(client_fd, scheme, NULL);
 	assert(ktpd_session);
 	if (!ktpd_session) {
-		syslog(LOG_ERR, "Can't create KTPd session");
+		syslog(LOG_ERR, "Can't create KTPd session\n");
 		close(client_fd);
 		goto err_client;
 	}
 
 //	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
 //	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
-	syslog(LOG_DEBUG, "New connection %d", client_fd);
+	syslog(LOG_DEBUG, "New connection %d\n", client_fd);
 
 	retval = 0;
 err_client:
