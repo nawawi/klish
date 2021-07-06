@@ -5,6 +5,7 @@
 #include <faux/ini.h>
 
 #define LOG_NAME "klishd"
+#define LOG_SERVICE_NAME "klishd-service"
 #define DEFAULT_PIDFILE "/var/run/klishd.pid"
 #define DEFAULT_CFGFILE "/etc/klish/klishd.conf"
 #define DEFAULT_DBS "libxml2"

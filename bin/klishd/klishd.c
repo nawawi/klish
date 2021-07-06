@@ -57,8 +57,8 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-//static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-//	void *associated_data, void *user_data);
+static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -67,6 +67,8 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 //	void *associated_data, void *user_data);
 //static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
 //	void *associated_data, void *user_data);
+
+static bool_t fd_stall_cb(ktpd_session_t *session, void *user_data);
 
 
 /** @brief Main function
@@ -207,7 +209,7 @@ int main(int argc, char **argv)
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGHUP, refresh_config_ev, opts);
-	faux_eloop_add_signal(eloop, SIGHUP, wait_for_child_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGCHLD, wait_for_child_ev, NULL);
 	// Listen socket. Waiting for new connections
 	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN,
 		listen_socket_ev, &client_fd);
@@ -256,6 +258,11 @@ err:
 	// ATTENTION: It's a forked service process
 	retval = -1; // Pessimism for service process
 
+	// Re-Initialize syslog
+	openlog(LOG_SERVICE_NAME, logoptions, opts->log_facility);
+	if (!opts->verbose)
+		setlogmask(LOG_UPTO(LOG_INFO));
+
 	ktpd_session = ktpd_session_new(client_fd, scheme, NULL);
 	assert(ktpd_session);
 	if (!ktpd_session) {
@@ -267,6 +274,19 @@ err:
 //	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
 //	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
 	syslog(LOG_DEBUG, "New connection %d\n", client_fd);
+
+	// Event loop
+	eloop = faux_eloop_new(NULL);
+	// Signals
+	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
+	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
+	// FDs
+	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
+	faux_eloop_add_fd(eloop, client_fd, POLLIN, client_ev, ktpd_session);
+	// Main service loop
+	faux_eloop_loop(eloop);
+	faux_eloop_free(eloop);
 
 	retval = 0;
 err_client:
@@ -586,7 +606,7 @@ static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-bool_t fd_stall_cb(ktpd_session_t *session, void *user_data)
+static bool_t fd_stall_cb(ktpd_session_t *session, void *user_data)
 {
 	faux_eloop_t *eloop = (faux_eloop_t *)user_data;
 
@@ -646,42 +666,30 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-/*
+
 static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	ktpd_clients_t *clients = (ktpd_clients_t *)user_data;
-	ktpd_session_t *session = NULL;
+	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
 
-	assert(clients);
-
-	// Find out session
-	session = ktpd_clients_find(clients, info->fd);
-	if (!session) { // Some strange case
-		syslog(LOG_ERR, "Can't find client session for fd %d", info->fd);
-		faux_eloop_del_fd(eloop, info->fd);
-		close(info->fd);
-		return BOOL_TRUE;
-	}
+	assert(ktpd_session);
 
 	// Write data
 	if (info->revents & POLLOUT) {
 		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
-		if (!ktpd_session_async_out(session)) {
+		if (!ktpd_session_async_out(ktpd_session)) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			ktpd_clients_del(clients, info->fd);
 			syslog(LOG_ERR, "Problem with async input");
 		}
 	}
 
 	// Read data
 	if (info->revents & POLLIN) {
-		if (!ktpd_session_async_in(session)) {
+		if (!ktpd_session_async_in(ktpd_session)) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			ktpd_clients_del(clients, info->fd);
 			syslog(LOG_ERR, "Problem with async input");
 		}
 	}
@@ -689,16 +697,14 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// EOF
 	if (info->revents & POLLHUP) {
 		faux_eloop_del_fd(eloop, info->fd);
-		ktpd_clients_del(clients, info->fd);
 		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
 	}
 
 	type = type; // Happy compiler
-	user_data = user_data; // Happy compiler
 
 	return BOOL_TRUE;
 }
-*/
 
 
 /*
