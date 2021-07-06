@@ -49,6 +49,7 @@
 static int create_listen_unix_sock(const char *path);
 static kscheme_t *load_all_dbs(const char *dbs,
 	faux_ini_t *global_config, faux_error_t *error);
+static bool_t clear_scheme(kscheme_t *scheme, faux_error_t *error);
 
 
 // Main loop events
@@ -83,6 +84,7 @@ int main(int argc, char **argv)
 	ksession_t *session = NULL;
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
+	int client_fd = -1;
 
 //	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
 //	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
@@ -208,7 +210,7 @@ int main(int argc, char **argv)
 	faux_eloop_add_signal(eloop, SIGHUP, wait_for_child_ev, NULL);
 	// Listen socket. Waiting for new connections
 	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN,
-		listen_socket_ev, &ktpd_session);
+		listen_socket_ev, &client_fd);
 	// Scheduled events
 //	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
 //	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
@@ -219,39 +221,64 @@ int main(int argc, char **argv)
 	retval = 0;
 
 err:
-	syslog(LOG_DEBUG, "Cleanup.\n");
-
-	ktpd_session_free(ktpd_session);
+	// Print errors
+	if (faux_error_len(error) > 0)
+		faux_error_show(error);
+	faux_error_free(error);
 
 	// Close listen socket
 	if (listen_unix_sock >= 0)
 		close(listen_unix_sock);
 
-	// Remove pidfile
-	if (pidfd >= 0) {
-		if (unlink(opts->pidfile) < 0) {
-			syslog(LOG_ERR, "Can't remove pid-file %s: %s\n",
-			opts->pidfile, strerror(errno));
+	// Finish listen daemon if it's not forked service process.
+	if (client_fd < 0) {
+
+		// Free scheme
+		clear_scheme(scheme, error);
+
+		// Free command line options
+		opts_free(opts);
+		faux_ini_free(config);
+
+		// Remove pidfile
+		if (pidfd >= 0) {
+			if (unlink(opts->pidfile) < 0) {
+				syslog(LOG_ERR, "Can't remove pid-file %s: %s\n",
+				opts->pidfile, strerror(errno));
+			}
 		}
+
+		syslog(LOG_INFO, "Stop daemon.\n");
+
+		return retval;
 	}
 
-	// Free scheme
-	if (scheme) {
-		kcontext_t *context = kcontext_new(KCONTEXT_PLUGIN_FINI);
-		kscheme_fini(scheme, context, error);
-		kcontext_free(context);
-		kscheme_free(scheme);
+	// ATTENTION: It's a forked service process
+	retval = -1; // Pessimism for service process
+
+	ktpd_session = ktpd_session_new(client_fd);
+	assert(ktpd_session);
+	if (!ktpd_session) {
+		syslog(LOG_ERR, "Can't create KTPd session");
+		close(client_fd);
+		goto err_client;
 	}
+
+//	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
+//	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
+	syslog(LOG_DEBUG, "New connection %d", client_fd);
+
+	retval = 0;
+err_client:
+
+	ktpd_session_free(ktpd_session);
+
+	// Free scheme
+	clear_scheme(scheme, error);
 
 	// Free command line options
 	opts_free(opts);
 	faux_ini_free(config);
-
-	syslog(LOG_INFO, "Stop daemon.\n");
-
-	if (faux_error_len(error) > 0)
-		faux_error_show(error);
-	faux_error_free(error);
 
 	return retval;
 }
@@ -415,6 +442,22 @@ static kscheme_t *load_all_dbs(const char *dbs,
 }
 
 
+static bool_t clear_scheme(kscheme_t *scheme, faux_error_t *error)
+{
+	kcontext_t *context = NULL;
+
+	if (!scheme)
+		return BOOL_TRUE; // It's not an error
+
+	context = kcontext_new(KCONTEXT_PLUGIN_FINI);
+	kscheme_fini(scheme, context, error);
+	kcontext_free(context);
+	kscheme_free(scheme);
+
+	return BOOL_TRUE;
+}
+
+
 /** @brief Create listen socket
  *
  * Previously removes old socket's file from filesystem. Note daemon must check
@@ -563,7 +606,6 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	int new_conn = -1;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	ktpd_session_t *ktpd_session = NULL;
 	pid_t child_pid = -1;
 
 	assert(user_data);
@@ -591,20 +633,9 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	}
 
 	// Child (forked service process)
-	ktpd_session = ktpd_session_new(new_conn);
-	assert(ktpd_session);
-	if (!ktpd_session) {
-		syslog(LOG_ERR, "Can't create KTPd session");
-		close(new_conn);
-		return BOOL_FALSE;
-	}
 
 	// Pass new ktpd_session to main programm
-	*((ktpd_session_t **)user_data) = ktpd_session;
-
-//	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
-//	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
-	syslog(LOG_DEBUG, "New connection %d", new_conn);
+	*((int *)user_data) = new_conn;
 
 	type = type; // Happy compiler
 	eloop = eloop;
