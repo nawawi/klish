@@ -47,7 +47,7 @@
 
 // Local static functions
 static int create_listen_unix_sock(const char *path);
-static bool_t load_all_dbs(kscheme_t *scheme, const char *dbs,
+static kscheme_t *load_all_dbs(const char *dbs,
 	faux_ini_t *global_config, faux_error_t *error);
 
 
@@ -56,14 +56,16 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
+//static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+//	void *associated_data, void *user_data);
 static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
+//static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
+//	void *associated_data, void *user_data);
+//static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
+//	void *associated_data, void *user_data);
 
 
 /** @brief Main function
@@ -76,14 +78,14 @@ int main(int argc, char **argv)
 	int logoptions = 0;
 	faux_eloop_t *eloop = NULL;
 	int listen_unix_sock = -1;
-	ktpd_clients_t *clients = NULL;
+	ktpd_session_t *ktpd_session = NULL;
 	kscheme_t *scheme = NULL;
 	ksession_t *session = NULL;
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
 
-	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
-	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
+//	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
+//	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
 
 	// Parse command line options
 	opts = opts_init();
@@ -142,35 +144,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Scheme
-	scheme = kscheme_new();
-	{
-	kcontext_t *context = NULL;
-	bool_t prepare_retcode = BOOL_FALSE;
-	kdb_t *deploy_db = NULL;
-
 	// Load scheme
-	if (!load_all_dbs(scheme, opts->dbs, config, error)) {
+	if (!(scheme = load_all_dbs(opts->dbs, config, error))) {
 		fprintf(stderr, "Scheme errors:\n");
 		goto err;
-	}
-
-	// Prepare scheme
-	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
-	prepare_retcode = kscheme_prepare(scheme, context, error);
-	kcontext_free(context);
-	if (!prepare_retcode) {
-		fprintf(stderr, "Scheme preparing errors:\n");
-		goto err;
-	}
-
-	// Deploy (for testing purposes)
-	deploy_db = kdb_new("ischeme", NULL);
-	kdb_load_plugin(deploy_db);
-	kdb_init(deploy_db);
-	kdb_deploy_scheme(deploy_db, scheme);
-	kdb_fini(deploy_db);
-	kdb_free(deploy_db);
 	}
 
 	// Parsing
@@ -214,20 +191,12 @@ int main(int argc, char **argv)
 	
 	}
 
-goto err; // Test purposes
-
 	// Listen socket
 	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);
 	listen_unix_sock = create_listen_unix_sock(opts->unix_socket_path);
 	if (listen_unix_sock < 0)
 		goto err;
 	syslog(LOG_DEBUG, "Listen socket %d", listen_unix_sock);
-
-	// Clients sessions DB
-	clients = ktpd_clients_new();
-	assert(clients);
-	if (!clients)
-		goto err;
 
 	// Event loop
 	eloop = faux_eloop_new(NULL);
@@ -236,28 +205,23 @@ goto err; // Test purposes
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGHUP, refresh_config_ev, opts);
+	faux_eloop_add_signal(eloop, SIGHUP, wait_for_child_ev, NULL);
 	// Listen socket. Waiting for new connections
-	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN, listen_socket_ev, clients);
+	faux_eloop_add_fd(eloop, listen_unix_sock, POLLIN,
+		listen_socket_ev, &ktpd_session);
 	// Scheduled events
-	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
-	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
+//	faux_eloop_add_sched_once_delayed(eloop, &delayed, 1, sched_once, NULL);
+//	faux_eloop_add_sched_periodic_delayed(eloop, 2, sched_periodic, NULL, &period, FAUX_SCHED_INFINITE);
 	// Main loop
 	faux_eloop_loop(eloop);
 	faux_eloop_free(eloop);
-
-/*
-		// Non-blocking wait for all children
-		while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
-			syslog(LOG_DEBUG, "Exit child process %d\n", pid);
-		}
-*/
 
 	retval = 0;
 
 err:
 	syslog(LOG_DEBUG, "Cleanup.\n");
 
-	ktpd_clients_free(clients);
+	ktpd_session_free(ktpd_session);
 
 	// Close listen socket
 	if (listen_unix_sock >= 0)
@@ -368,28 +332,35 @@ static bool_t load_db(kscheme_t *scheme, const char *db_name,
 }
 
 
-static bool_t load_all_dbs(kscheme_t *scheme, const char *dbs,
+static kscheme_t *load_all_dbs(const char *dbs,
 	faux_ini_t *global_config, faux_error_t *error)
 {
+	kscheme_t *scheme = NULL;
 	faux_argv_t *dbs_argv = NULL;
 	faux_argv_node_t *iter = NULL;
 	const char *db_name = NULL;
 	bool_t retcode = BOOL_TRUE;
+	kcontext_t *context = NULL;
 
-	assert(scheme);
-	if (!scheme)
-		return BOOL_FALSE;
 	assert(dbs);
 	if (!dbs)
-		return BOOL_FALSE;
+		return NULL;
+
+	scheme = kscheme_new();
+	assert(scheme);
+	if (!scheme)
+		return NULL;
 
 	dbs_argv = faux_argv_new();
 	assert(dbs_argv);
-	if (!dbs_argv)
-		return BOOL_FALSE;
+	if (!dbs_argv) {
+		kscheme_free(scheme);
+		return NULL;
+	}
 	if (faux_argv_parse(dbs_argv, dbs) <= 0) {
+		kscheme_free(scheme);
 		faux_argv_free(dbs_argv);
-		return BOOL_FALSE;
+		return NULL;
 	}
 
 	// For each DB
@@ -409,7 +380,38 @@ static bool_t load_all_dbs(kscheme_t *scheme, const char *dbs,
 
 	faux_argv_free(dbs_argv);
 
-	return retcode;
+	// Something went wrong while loading DBs
+	if (!retcode) {
+		kscheme_free(scheme);
+		return NULL;
+	}
+
+	// Prepare scheme
+	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
+	retcode = kscheme_prepare(scheme, context, error);
+	kcontext_free(context);
+	if (!retcode) {
+		kscheme_free(scheme);
+		faux_error_sprintf(error, "Scheme preparing errors.\n");
+		return NULL;
+	}
+
+/*
+	// Debug
+	{
+		kdb_t *deploy_db = NULL;
+
+		// Deploy (for testing purposes)
+		deploy_db = kdb_new("ischeme", NULL);
+		kdb_load_plugin(deploy_db);
+		kdb_init(deploy_db);
+		kdb_deploy_scheme(deploy_db, scheme);
+		kdb_fini(deploy_db);
+		kdb_free(deploy_db);
+	}
+*/
+
+	return scheme;
 }
 
 
@@ -482,6 +484,36 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+/** @brief Wait for child processes (service processes).
+ */
+static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	int wstatus = 0;
+	pid_t child_pid = -1;
+
+	// Wait for any child process. Doesn't block.
+	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
+		if (WIFSIGNALED(wstatus)) {
+			syslog(LOG_ERR, "Service process %d was terminated "
+				"by signal: %d",
+				child_pid, WTERMSIG(wstatus));
+		} else {
+			syslog(LOG_ERR, "Service process %d was terminated: %d",
+				child_pid, WIFEXITED(wstatus));
+		}
+	}
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+	user_data = user_data;
+
+	return BOOL_TRUE;
+}
+
+
 /** @brief Re-read config file.
  *
  * This function can refresh klishd options but plugins (dbs for example) are
@@ -531,33 +563,59 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	int new_conn = -1;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	ktpd_clients_t *clients = (ktpd_clients_t *)user_data;
-	ktpd_session_t *session = NULL;
+	ktpd_session_t *ktpd_session = NULL;
+	pid_t child_pid = -1;
 
-	assert(clients);
+	assert(user_data);
 
 	new_conn = accept(info->fd, NULL, NULL);
 	if (new_conn < 0) {
 		syslog(LOG_ERR, "Can't accept() new connection");
 		return BOOL_TRUE;
 	}
-	session = ktpd_clients_add(clients, new_conn);
-	if (!session) {
-		syslog(LOG_ERR, "Duplicated client fd");
+
+	// Fork new instance for newly connected client
+	child_pid = fork();
+	if (child_pid < 0) {
 		close(new_conn);
+		syslog(LOG_ERR, "Can't fork service process for client");
 		return BOOL_TRUE;
 	}
-	ktpd_session_set_stall_cb(session, fd_stall_cb, eloop);
-	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
+
+	// Parent
+	if (child_pid > 0) {
+		close(new_conn); // It's needed by child but not for parent
+		syslog(LOG_ERR, "Service process for client was forked: %d",
+			child_pid);
+		return BOOL_TRUE;
+	}
+
+	// Child (forked service process)
+	ktpd_session = ktpd_session_new(new_conn);
+	assert(ktpd_session);
+	if (!ktpd_session) {
+		syslog(LOG_ERR, "Can't create KTPd session");
+		close(new_conn);
+		return BOOL_FALSE;
+	}
+
+	// Pass new ktpd_session to main programm
+	*((ktpd_session_t **)user_data) = ktpd_session;
+
+//	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
+//	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
 	syslog(LOG_DEBUG, "New connection %d", new_conn);
 
 	type = type; // Happy compiler
-	user_data = user_data; // Happy compiler
+	eloop = eloop;
 
-	return BOOL_TRUE;
+	// Return BOOL_FALSE to break listen parent loop. Child will create its
+	// own loop then.
+	return BOOL_FALSE;
 }
 
 
+/*
 static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -609,8 +667,10 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	return BOOL_TRUE;
 }
+*/
 
 
+/*
 static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -625,7 +685,9 @@ printf("Once %d\n", info->ev_id);
 
 	return BOOL_TRUE;
 }
+*/
 
+/*
 static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -640,3 +702,4 @@ printf("Periodic %d\n", info->ev_id);
 
 	return BOOL_TRUE;
 }
+*/
