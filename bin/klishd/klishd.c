@@ -563,7 +563,7 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 				child_pid, WTERMSIG(wstatus));
 		} else {
 			syslog(LOG_ERR, "Service process %d was terminated: %d",
-				child_pid, WIFEXITED(wstatus));
+				child_pid, WEXITSTATUS(wstatus));
 		}
 	}
 
