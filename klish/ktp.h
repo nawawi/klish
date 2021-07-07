@@ -31,6 +31,13 @@ typedef enum {
 } ktp_cmd_e;
 
 
+typedef enum {
+	KTP_PARAM_NULL = '\0',
+	KTP_PARAM_LINE = 'L',
+	KTP_PARAM_ERROR = 'E',
+} ktp_param_e;
+
+
 C_DECL_BEGIN
 
 int ktp_connect_unix(const char *sun_path);

@@ -54,11 +54,18 @@ int main(int argc, char **argv)
 	net = faux_net_new();
 	faux_net_set_fd(net, ktp_session_fd(session));
 	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
-	faux_msg_set_cmd(msg, KTP_AUTH);
+	faux_msg_set_cmd(msg, KTP_CMD);
+	if (opts->line)
+		faux_msg_add_param(msg, KTP_PARAM_LINE,
+			opts->line, strlen(opts->line));
+	faux_msg_debug(msg);
 	faux_msg_send(msg, net);
-//	write(ktp_session_fd(session), "hello", 5);
-
 	faux_msg_free(msg);
+
+	msg = faux_msg_recv(net);
+	faux_msg_debug(msg);
+	faux_msg_free(msg);
+
 	faux_net_free(net);
 
 	retval = 0;

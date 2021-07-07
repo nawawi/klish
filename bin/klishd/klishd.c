@@ -681,7 +681,7 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		if (!ktpd_session_async_out(ktpd_session)) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with async input");
+			syslog(LOG_ERR, "Problem with async output");
 		}
 	}
 

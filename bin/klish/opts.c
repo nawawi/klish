@@ -30,6 +30,7 @@ struct options *opts_init(void)
 	// Initialize
 	opts->verbose = BOOL_FALSE;
 	opts->unix_socket_path = faux_str_dup(KLISH_DEFAULT_UNIX_SOCKET_PATH);
+	opts->line = NULL;
 
 	return opts;
 }
@@ -42,6 +43,8 @@ void opts_free(struct options *opts)
 	if (!opts)
 		return;
 	faux_str_free(opts->unix_socket_path);
+	faux_str_free(opts->line);
+
 	faux_free(opts);
 }
 
@@ -50,11 +53,12 @@ void opts_free(struct options *opts)
  */
 int opts_parse(int argc, char *argv[], struct options *opts)
 {
-	static const char *shortopts = "hvS:";
+	static const char *shortopts = "hvS:c:";
 	static const struct option longopts[] = {
 		{"socket",		1, NULL, 'S'},
 		{"help",		0, NULL, 'h'},
 		{"verbose",		0, NULL, 'v'},
+		{"command",		1, NULL, 'c'},
 		{NULL,			0, NULL, 0}
 	};
 
@@ -76,6 +80,10 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 		case 'h':
 			help(0, argv[0]);
 			_exit(0);
+			break;
+		case 'c':
+			faux_str_free(opts->line);
+			opts->line = faux_str_dup(optarg);
 			break;
 		default:
 			help(-1, argv[0]);
@@ -111,8 +119,9 @@ void help(int status, const char *argv0)
 		printf("Usage   : %s [options]\n", name);
 		printf("Klish client\n");
 		printf("Options :\n");
-		printf("\t-S, --socket UNIX socket path.\n");
+		printf("\t-S <path>, --socket=<path> UNIX socket path.\n");
 		printf("\t-h, --help Print this help.\n");
 		printf("\t-v, --verbose Be verbose.\n");
+		printf("\t-c <line>, --command=<line> Command to execute.\n");
 	}
 }

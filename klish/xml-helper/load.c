@@ -21,10 +21,6 @@
 
 #define TAG "XML"
 
-#ifdef DEBUG
-#define KXML_DEBUG DEBUG
-#endif
-
 
 typedef bool_t (kxml_process_fn)(const kxml_node_t *element,
 	void *parent, faux_error_t *error);

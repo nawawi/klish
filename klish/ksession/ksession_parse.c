@@ -130,9 +130,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 		kentry_t *nested = NULL;
 
 		while ((nested = kentry_entrys_each(&iter))) {
-printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
+//printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			rc = ksession_parse_arg(nested, argv_iter, pargv);
-printf("%s\n", kpargv_status_decode(rc));
+//printf("%s\n", kpargv_status_decode(rc));
 			// If some arguments was consumed then we will not check
 			// next SWITCH's entries in any case.
 			if (saved_argv_iter != *argv_iter)
@@ -161,9 +161,9 @@ printf("%s\n", kpargv_status_decode(rc));
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
-printf("SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
+//printf("SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 				nrc = ksession_parse_arg(nested, argv_iter, pargv);
-printf("%s\n", kpargv_status_decode(nrc));
+//printf("%s\n", kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
 					break;
 			}

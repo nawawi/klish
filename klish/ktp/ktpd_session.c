@@ -39,6 +39,49 @@ static bool_t check_ktp_header(faux_hdr_t *hdr)
 }
 
 
+static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
+{
+	bool_t rc = BOOL_FALSE;
+
+	assert(session);
+	if (!session)
+		goto err;
+	assert(msg);
+	if (!msg)
+		goto err;
+
+	goto err;
+
+	rc = BOOL_TRUE;
+err:
+	if (!rc) {
+		char *buf = NULL;
+		size_t buf_len = 0;
+		faux_msg_t *emsg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
+		const char *error = "Can't process line";
+		faux_msg_set_cmd(emsg, KTP_CMD_ACK);
+		faux_msg_add_param(emsg, KTP_PARAM_ERROR, error, strlen(error));
+	
+//	faux_net_t *net = faux_net_new();
+//	faux_net_set_fd(net, ktpd_session_fd(session));
+faux_msg_debug(emsg);
+//	printf("Send len: %ld\n", faux_msg_send(emsg, net));
+//	faux_net_free(net);
+
+	
+	
+//	buf = buf;
+//	buf_len = buf_len;
+		faux_msg_serialize(emsg, &buf, &buf_len);
+		faux_async_write(session->async, buf, buf_len);
+		faux_free(buf);
+		faux_msg_free(emsg);
+	}
+
+	return rc;
+}
+
+
 static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 {
 	assert(session);
@@ -48,7 +91,19 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 	if (!msg)
 		return BOOL_FALSE;
 
-	printf("Dispatch %d\n", faux_msg_get_len(msg));
+	printf("Dispatch cmd %c\n", (char)faux_msg_get_cmd(msg));
+	switch (faux_msg_get_cmd(msg)) {
+	case KTP_CMD:
+		ktpd_session_process_cmd(session, msg);
+		break;
+/*	case KTP_COMPLETION:
+		break;
+	case KTP_HELP:
+		break;
+*/	default:
+		printf("Unsupported command\n");
+		break;
+	}
 
 	return BOOL_TRUE;
 }
