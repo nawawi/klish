@@ -83,7 +83,6 @@ int main(int argc, char **argv)
 	int listen_unix_sock = -1;
 	ktpd_session_t *ktpd_session = NULL;
 	kscheme_t *scheme = NULL;
-	ksession_t *session = NULL;
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
 	int client_fd = -1;
@@ -152,47 +151,6 @@ int main(int argc, char **argv)
 	if (!(scheme = load_all_dbs(opts->dbs, config, error))) {
 		fprintf(stderr, "Scheme errors:\n");
 		goto err;
-	}
-
-	// Parsing
-	{
-//	const char *line = "cmd o4 m7 o2 e1";
-	const char *line = "cmd o4 o4 o4 m3 o2";
-	kpargv_t *pargv = NULL;
-	kpargv_pargs_node_t *p_iter = NULL;
-	
-	session = ksession_new(scheme, "/lowview");
-	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
-	pargv = ksession_parse_line(session, line, KPURPOSE_COMPLETION);
-	if (pargv) {
-		printf("Level: %lu, Command: %s, Line '%s': %s\n",
-			kpargv_level(pargv),
-			kpargv_command(pargv) ? kentry_name(kpargv_command(pargv)) : "<none>",
-			line,
-			kpargv_status_str(pargv));
-
-		kparg_t *parg = NULL;
-		p_iter = kpargv_pargs_iter(pargv);
-		if (kpargv_pargs_len(pargv) > 0) {
-			while ((parg = kpargv_pargs_each(&p_iter))) {
-				printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
-			}
-			printf("\n");
-		}
-
-		// Completions
-		if (!kpargv_completions_is_empty(pargv)) {
-			kentry_t *completion = NULL;
-			kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
-			printf("Completions (%s):\n", kpargv_last_arg(pargv));
-			while ((completion = kpargv_completions_each(&citer)))
-				printf("* %s\n", kentry_name(completion));
-		}
-	}
-
-	kpargv_free(pargv);
-	ksession_free(session);
-	
 	}
 
 	// Listen socket
