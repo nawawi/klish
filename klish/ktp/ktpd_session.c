@@ -60,45 +60,71 @@ static bool_t ktpd_session_send_error(ktpd_session_t *session,
 
 static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 {
-	bool_t rc = BOOL_FALSE;
-	char *line_raw = NULL;
-	uint32_t line_raw_len = 0;
-	const char *error = "Can't process line";
 	char *line = NULL;
-	faux_msg_t *emsg = NULL;
+	faux_msg_t *ack = NULL;
 	kpargv_t *pargv = NULL;
+	ktp_cmd_e cmd = KTP_CMD_ACK;
 
 	assert(session);
-	if (!session)
-		goto err;
 	assert(msg);
-	if (!msg)
-		goto err;
 
 	// Get line from message
-	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
-		(void **)&line_raw, &line_raw_len)) {
-		error = "The line is not specified";
-		goto err;
+	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
+		ktpd_session_send_error(session, cmd,
+			"The line is not specified");
+		return BOOL_FALSE;
 	}
-	line = faux_str_dupn(line_raw, line_raw_len);
 
 	// Parsing
-	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_COMPLETION);
+	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_EXEC);
+	faux_str_free(line);
 	kpargv_debug(pargv);
+	if (kpargv_status(pargv) != KPARSE_OK) {
+		char *error = NULL;
+		error = faux_str_sprintf("Can't parse line: %s",
+			kpargv_status_str(pargv));
+		kpargv_free(pargv);
+		ktpd_session_send_error(session, cmd, error);
+		return BOOL_FALSE;
+	}
 	kpargv_free(pargv);
 
 	// Send ACK message
-	emsg = ktp_msg_preform(KTP_CMD_ACK, KTP_STATUS_NONE);
-	faux_msg_send_async(emsg, session->async);
-	faux_msg_free(emsg);
+	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+	faux_msg_send_async(ack, session->async);
+	faux_msg_free(ack);
 
-	rc = BOOL_TRUE;
-err:
-	if (!rc)
-		ktpd_session_send_error(session, KTP_CMD_ACK, error);
+	return BOOL_TRUE;
+}
 
-	return rc;
+
+static bool_t ktpd_session_process_completion(ktpd_session_t *session, faux_msg_t *msg)
+{
+	char *line = NULL;
+	faux_msg_t *ack = NULL;
+	kpargv_t *pargv = NULL;
+	ktp_cmd_e cmd = KTP_COMPLETION_ACK;
+
+	assert(session);
+	assert(msg);
+
+	// Get line from message
+	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
+		ktpd_session_send_error(session, cmd, NULL);
+		return BOOL_FALSE;
+	}
+
+	// Parsing
+	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_COMPLETION);
+	faux_str_free(line);
+	kpargv_free(pargv);
+
+	// Send ACK message
+	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+	faux_msg_send_async(ack, session->async);
+	faux_msg_free(ack);
+
+	return BOOL_TRUE;
 }
 
 
@@ -116,9 +142,10 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 	case KTP_CMD:
 		ktpd_session_process_cmd(session, msg);
 		break;
-/*	case KTP_COMPLETION:
+	case KTP_COMPLETION:
+		ktpd_session_process_completion(session, msg);
 		break;
-	case KTP_HELP:
+/*	case KTP_HELP:
 		break;
 */	default:
 		printf("Unsupported command\n");

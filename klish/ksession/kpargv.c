@@ -124,6 +124,7 @@ void kpargv_free(kpargv_t *pargv)
 		return;
 
 	faux_str_free(pargv->last_arg);
+	faux_str_free(pargv->orig_line);
 
 	faux_list_free(pargv->pargs);
 	faux_list_free(pargv->completions);
