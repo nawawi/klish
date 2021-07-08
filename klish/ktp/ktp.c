@@ -11,6 +11,7 @@
 #include <sys/un.h>
 
 #include <faux/str.h>
+#include <faux/msg.h>
 #include <klish/ktp.h>
 
 #include "private.h"
@@ -62,4 +63,19 @@ int ktp_accept(int listen_sock)
 	new_conn = accept(listen_sock, NULL, NULL);
 
 	return new_conn;
+}
+
+
+faux_msg_t *ktp_msg_preform(ktp_cmd_e cmd, uint32_t status)
+{
+	faux_msg_t *msg = NULL;
+
+	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
+	assert(msg);
+	if (!msg)
+		return NULL;
+	faux_msg_set_cmd(msg, cmd);
+	faux_msg_set_status(msg, status);
+
+	return msg;
 }

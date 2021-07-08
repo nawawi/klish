@@ -38,11 +38,20 @@ typedef enum {
 } ktp_param_e;
 
 
+// Status field. Bitmap
+#define KTP_STATUS_NONE  (uint32_t)0x00000000
+#define KTP_STATUS_ERROR (uint32_t)0x00000001
+
+#define KTP_STATUS_IS_ERROR(status) (status & KTP_STATUS_ERROR)
+
+
 C_DECL_BEGIN
 
 int ktp_connect_unix(const char *sun_path);
 void ktp_disconnect(int fd);
 int ktp_accept(int listen_sock);
+
+faux_msg_t *ktp_msg_preform(ktp_cmd_e cmd, uint32_t status);
 
 C_DECL_END
 

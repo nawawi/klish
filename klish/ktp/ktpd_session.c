@@ -48,8 +48,7 @@ static bool_t ktpd_session_send_error(ktpd_session_t *session,
 	if (!session)
 		return BOOL_FALSE;
 
-	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
-	faux_msg_set_cmd(msg, cmd);
+	msg = ktp_msg_preform(cmd, KTP_STATUS_ERROR);
 	if (error)
 		faux_msg_add_param(msg, KTP_PARAM_ERROR, error, strlen(error));
 	faux_msg_send_async(msg, session->async);
@@ -116,8 +115,7 @@ printf("LINE: %s\n", line);
 	}
 	kpargv_free(pargv);
 
-	emsg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
-	faux_msg_set_cmd(emsg, KTP_CMD_ACK);
+	emsg = ktp_msg_preform(KTP_CMD_ACK, KTP_STATUS_NONE);
 	faux_msg_send_async(emsg, session->async);
 	faux_msg_free(emsg);
 
