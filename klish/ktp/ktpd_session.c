@@ -67,7 +67,6 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	char *line = NULL;
 	faux_msg_t *emsg = NULL;
 	kpargv_t *pargv = NULL;
-	kpargv_pargs_node_t *p_iter = NULL;
 
 	assert(session);
 	if (!session)
@@ -76,45 +75,20 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	if (!msg)
 		goto err;
 
+	// Get line from message
 	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
 		(void **)&line_raw, &line_raw_len)) {
 		error = "The line is not specified";
 		goto err;
 	}
 	line = faux_str_dupn(line_raw, line_raw_len);
-printf("LINE: %s\n", line);
 
 	// Parsing
-//	session = ksession_new(scheme, "/lowview");
-//	kpath_push(ksession_path(session), klevel_new(kscheme_find_entry_by_path(scheme, "/main")));
 	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_COMPLETION);
-	if (pargv) {
-		printf("Level: %lu, Command: %s, Line '%s': %s\n",
-			kpargv_level(pargv),
-			kpargv_command(pargv) ? kentry_name(kpargv_command(pargv)) : "<none>",
-			line,
-			kpargv_status_str(pargv));
-
-		kparg_t *parg = NULL;
-		p_iter = kpargv_pargs_iter(pargv);
-		if (kpargv_pargs_len(pargv) > 0) {
-			while ((parg = kpargv_pargs_each(&p_iter))) {
-				printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
-			}
-			printf("\n");
-		}
-
-		// Completions
-		if (!kpargv_completions_is_empty(pargv)) {
-			kentry_t *completion = NULL;
-			kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
-			printf("Completions (%s):\n", kpargv_last_arg(pargv));
-			while ((completion = kpargv_completions_each(&citer)))
-				printf("* %s\n", kentry_name(completion));
-		}
-	}
+	kpargv_debug(pargv);
 	kpargv_free(pargv);
 
+	// Send ACK message
 	emsg = ktp_msg_preform(KTP_CMD_ACK, KTP_STATUS_NONE);
 	faux_msg_send_async(emsg, session->async);
 	faux_msg_free(emsg);

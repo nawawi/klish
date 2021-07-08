@@ -74,6 +74,9 @@ bool_t kpargv_set_purpose(kpargv_t *pargv, kpargv_purpose_e purpose);
 // Last argument
 bool_t kpargv_set_last_arg(kpargv_t *pargv, const char *last_arg);
 const char *kpargv_last_arg(const kpargv_t *pargv);
+// Original line
+bool_t kpargv_set_orig_line(kpargv_t *pargv, const char *orig_line);
+const char *kpargv_orig_line(const kpargv_t *pargv);
 
 // Pargs
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
@@ -92,6 +95,9 @@ ssize_t kpargv_completions_len(const kpargv_t *pargv);
 bool_t kpargv_completions_is_empty(const kpargv_t *pargv);
 kpargv_completions_node_t *kpargv_completions_iter(const kpargv_t *pargv);
 kentry_t *kpargv_completions_each(kpargv_completions_node_t **iter);
+
+// Debug
+bool_t kpargv_debug(const kpargv_t *pargv);
 
 C_DECL_END
 

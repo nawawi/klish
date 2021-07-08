@@ -20,6 +20,7 @@ struct kpargv_s {
 	bool_t continuable; // Last argument can be expanded
 	kpargv_purpose_e purpose; // Exec/Completion/Help
 	char *last_arg;
+	char *orig_line;
 };
 
 // Status
@@ -45,6 +46,10 @@ KSET(pargv, kpargv_purpose_e, purpose);
 // Last argument
 KSET_STR(pargv, last_arg);
 KGET_STR(pargv, last_arg);
+
+// Original line
+KSET_STR(pargv, orig_line);
+KGET_STR(pargv, orig_line);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
@@ -97,6 +102,7 @@ kpargv_t *kpargv_new()
 	pargv->continuable = BOOL_FALSE;
 	pargv->purpose = KPURPOSE_EXEC;
 	pargv->last_arg = NULL;
+	pargv->orig_line = NULL;
 
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -187,4 +193,47 @@ const char *kpargv_status_str(const kpargv_t *pargv)
 		return NULL;
 
 	return kpargv_status_decode(kpargv_status(pargv));
+}
+
+
+bool_t kpargv_debug(const kpargv_t *pargv)
+{
+#ifdef PARGV_DEBUG
+	kpargv_pargs_node_t *p_iter = NULL;
+
+	assert(pargv);
+	if (!pargv)
+		return BOOL_FALSE;
+
+	printf("Level: %lu, Command: %s, Line '%s': %s\n",
+		kpargv_level(pargv),
+		kpargv_command(pargv) ? kentry_name(kpargv_command(pargv)) : "<none>",
+		kpargv_orig_line(pargv),
+		kpargv_status_str(pargv));
+
+	// Parsed parameters
+	p_iter = kpargv_pargs_iter(pargv);
+	if (kpargv_pargs_len(pargv) > 0) {
+		kparg_t *parg = NULL;
+		while ((parg = kpargv_pargs_each(&p_iter))) {
+			printf("%s(%s) ", kparg_value(parg), kentry_name(kparg_entry(parg)));
+		}
+		printf("\n");
+	}
+
+	// Completions
+	if (!kpargv_completions_is_empty(pargv)) {
+		kentry_t *completion = NULL;
+		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
+		printf("Completions (%s):\n", kpargv_last_arg(pargv));
+		while ((completion = kpargv_completions_each(&citer)))
+			printf("* %s\n", kentry_name(completion));
+	}
+
+	return BOOL_TRUE;
+#else
+	pargv = pargv; // Happy compiler
+
+	return BOOL_TRUE;
+#endif
 }
