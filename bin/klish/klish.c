@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	net = faux_net_new();
 	faux_net_set_fd(net, ktp_session_fd(session));
 	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
-	faux_msg_set_cmd(msg, KTP_COMPLETION);
+	faux_msg_set_cmd(msg, KTP_CMD);
 	if (opts->line)
 		faux_msg_add_param(msg, KTP_PARAM_LINE,
 			opts->line, strlen(opts->line));

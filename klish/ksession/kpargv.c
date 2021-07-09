@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include <faux/list.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kentry.h>
 #include <klish/kpargv.h>
@@ -170,6 +171,9 @@ const char *kpargv_status_decode(kpargv_status_e status)
 		break;
 	case KPARSE_ILLEGAL:
 		s = "Illegal";
+		break;
+	case KPARSE_NOACTION:
+		s = "Has no action";
 		break;
 	default: // ERROR/MAX/NONE
 		s = "Error";

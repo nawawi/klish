@@ -19,6 +19,7 @@ typedef enum {
 	KPARSE_INCOMPLETED,
 	KPARSE_ILLEGAL,
 	KPARSE_ERROR,
+	KPARSE_NOACTION,
 	KPARSE_MAX,
 } kpargv_status_e;
 

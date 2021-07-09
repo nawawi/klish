@@ -5,12 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <faux/list.h>
 #include <faux/argv.h>
+#include <faux/error.h>
 #include <klish/khelper.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
 #include <klish/kpath.h>
 #include <klish/kpargv.h>
+#include <klish/kexec.h>
 #include <klish/ksession.h>
 
 
@@ -265,7 +268,10 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 		else
 			pstatus = KPARSE_ILLEGAL; // Additional not parsable args
 	} else if (KPARSE_NOTFOUND == pstatus)
-			pstatus = KPARSE_ILLEGAL; // Unknown command
+		pstatus = KPARSE_ILLEGAL; // Unknown command
+	// If no ACTIONs were found i.e. command was not found
+	if ((KPARSE_OK == pstatus) && !kpargv_command(pargv))
+		pstatus = KPARSE_NOACTION;
 
 	kpargv_set_status(pargv, pstatus);
 	kpargv_set_level(pargv, level_found);
@@ -275,7 +281,7 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 
 
 // Delimeter of commands is '|' (pipe)
-faux_list_t *ksession_split_pipes(const char *raw_line)
+faux_list_t *ksession_split_pipes(const char *raw_line, faux_error_t *error)
 {
 	faux_list_t *list = NULL;
 	faux_argv_t *argv = NULL;
@@ -316,6 +322,8 @@ faux_list_t *ksession_split_pipes(const char *raw_line)
 			if (faux_argv_len(cur_argv) == 0) {
 				faux_argv_free(argv);
 				faux_list_free(list);
+				faux_error_sprintf(error, "The pipe '|' can't "
+					"be at the first position");
 				return NULL;
 			}
 			// Add argv to argv's list
@@ -331,12 +339,13 @@ faux_list_t *ksession_split_pipes(const char *raw_line)
 	faux_argv_set_continuable(cur_argv, faux_argv_is_continuable(argv));
 	// Empty cur_argv is not an error. It's usefull for completion and help.
 	// But empty cur_argv and continuable is abnormal.
-	if (faux_argv_len(cur_argv) == 0) {
-		if (faux_argv_is_continuable(cur_argv)) {
-			faux_argv_free(argv);
-			faux_list_free(list);
-			return NULL;
-		}
+	if ((faux_argv_len(cur_argv) == 0) &&
+		faux_argv_is_continuable(cur_argv)) {
+		faux_argv_free(argv);
+		faux_list_free(list);
+		faux_error_sprintf(error, "The pipe '|' can't "
+			"be the last argument");
+		return NULL;
 	}
 	faux_list_add(list, cur_argv);
 
@@ -348,6 +357,8 @@ faux_list_t *ksession_split_pipes(const char *raw_line)
 
 // All components except last one must be legal for execution but last
 // component must be parsed for completion.
+// Completion is a "back-end" operation so it doesn't need detailed error
+// reporting.
 kpargv_t *ksession_parse_for_completion(ksession_t *session,
 	const char *raw_line)
 {
@@ -363,7 +374,7 @@ kpargv_t *ksession_parse_for_completion(ksession_t *session,
 		return NULL;
 
 	// Split raw line (with '|') to components
-	split = ksession_split_pipes(raw_line);
+	split = ksession_split_pipes(raw_line, NULL);
 	if (!split || (faux_list_len(split) < 1)) {
 		faux_list_free(split);
 		return NULL;
@@ -395,4 +406,72 @@ kpargv_t *ksession_parse_for_completion(ksession_t *session,
 	faux_list_free(split);
 
 	return pargv;
+}
+
+
+kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
+	faux_error_t *error)
+{
+	faux_list_t *split = NULL;
+	faux_list_node_t *iter = NULL;
+	kpargv_t *pargv = NULL;
+	kexec_t *exec = NULL;
+
+	assert(session);
+	if (!session)
+		return NULL;
+	assert(raw_line);
+	if (!raw_line)
+		return NULL;
+
+	// Split raw line (with '|') to components
+	split = ksession_split_pipes(raw_line, error);
+	if (!split || (faux_list_len(split) < 1)) {
+		faux_list_free(split);
+		return NULL;
+	}
+
+	// Create exec list
+	exec = kexec_new();
+	assert(exec);
+	if (!exec) {
+		faux_list_free(split);
+		return NULL;
+	}
+
+	iter = faux_list_head(split);
+	while (iter) {
+		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
+		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
+		// All components must be ready for execution
+		if (!pargv) {
+			kpargv_free(pargv);
+			faux_list_free(split);
+			return NULL;
+		}
+		if (kpargv_status(pargv) != KPARSE_OK) {
+			faux_error_sprintf(error, "%s",
+				kpargv_status_str(pargv));
+			kpargv_free(pargv);
+			faux_list_free(split);
+			return NULL;
+		}
+		// Only the first component can have 'restore=true' attribute
+		if ((iter != faux_list_head(split)) &&
+			kentry_restore(kpargv_command(pargv))) {
+			faux_error_sprintf(error, "The command \"%s\" "
+				"can't be desination of pipe",
+				kentry_name(kpargv_command(pargv)));
+			kpargv_free(pargv);
+			faux_list_free(split);
+			return NULL;
+		}
+
+		// Next component
+		iter = faux_list_next_node(iter);
+	}
+
+	faux_list_free(split);
+
+	return exec;
 }
