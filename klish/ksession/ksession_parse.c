@@ -285,3 +285,75 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
 
 	return pargv;
 }
+
+
+// Delimeter of commands is '|' (pipe)
+faux_list_t *ksession_split_pipes(const char *line)
+{
+	faux_list_t *list = NULL;
+	faux_argv_t *argv = NULL;
+	faux_argv_node_t *argv_iter = NULL;
+	faux_argv_t *cur_argv = NULL; // Current argv
+	const char *delimeter = "|";
+	const char *arg = NULL;
+
+	assert(line);
+	if (!line)
+		return NULL;
+
+	// Split raw line to arguments
+	argv = faux_argv_new();
+	assert(argv);
+	if (!argv)
+		return NULL;
+	if (faux_argv_parse(argv, line) < 0) {
+		faux_argv_free(argv);
+		return NULL;
+	}
+
+	list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, (void (*)(void *))faux_argv_free);
+	assert(list);
+	if (!list) {
+		faux_argv_free(argv);
+		return NULL;
+	}
+
+	argv_iter = faux_argv_iter(argv);
+	cur_argv = faux_argv_new();
+	assert(cur_argv);
+	while ((arg = faux_argv_each(&argv_iter))) {
+		if (strcmp(arg, delimeter) == 0) {
+			// End of current line (from "|" to "|")
+			// '|' in a first position is an error
+			if (faux_argv_len(cur_argv) == 0) {
+				faux_argv_free(argv);
+				faux_list_free(list);
+				return NULL;
+			}
+			// Add argv to argv's list
+			faux_list_add(list, cur_argv);
+			cur_argv = faux_argv_new();
+			assert(cur_argv);
+		} else {
+			faux_argv_add(cur_argv, arg);
+		}
+	}
+
+	// Continuable flag is usefull for last argv
+	faux_argv_set_continuable(cur_argv, faux_argv_is_continuable(argv));
+	// Empty cur_argv is not an error. It's usefull for completion and help.
+	// But empty cur_argv and continuable is abnormal.
+	if (faux_argv_len(cur_argv) == 0) {
+		if (faux_argv_is_continuable(cur_argv)) {
+			faux_argv_free(argv);
+			faux_list_free(list);
+			return NULL;
+		}
+	}
+	faux_list_add(list, cur_argv);
+
+	faux_argv_free(argv);
+
+	return list;
+}

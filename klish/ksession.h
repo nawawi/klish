@@ -25,6 +25,7 @@ kpath_t *ksession_path(const ksession_t *session);
 
 kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
 	kpargv_purpose_e purpose);
+faux_list_t *ksession_split_pipes(const char *line);
 
 C_DECL_END
 

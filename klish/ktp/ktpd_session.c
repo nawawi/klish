@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <syslog.h>
 
 #include <faux/str.h>
 #include <faux/async.h>
@@ -65,6 +66,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 
+	faux_list_t *split = NULL;
+
 	assert(session);
 	assert(msg);
 
@@ -74,6 +77,10 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 			"The line is not specified");
 		return BOOL_FALSE;
 	}
+
+	split = ksession_split_pipes(line);
+	printf("split %ld\n", split ? (ssize_t)faux_list_len(split) : -1);
+	faux_list_free(split);
 
 	// Parsing
 	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_EXEC);
@@ -128,8 +135,40 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *session, faux_msg_
 }
 
 
+static bool_t ktpd_session_process_help(ktpd_session_t *session, faux_msg_t *msg)
+{
+	char *line = NULL;
+	faux_msg_t *ack = NULL;
+	kpargv_t *pargv = NULL;
+	ktp_cmd_e cmd = KTP_HELP_ACK;
+
+	assert(session);
+	assert(msg);
+
+	// Get line from message
+	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
+		ktpd_session_send_error(session, cmd, NULL);
+		return BOOL_FALSE;
+	}
+
+	// Parsing
+	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_HELP);
+	faux_str_free(line);
+	kpargv_free(pargv);
+
+	// Send ACK message
+	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+	faux_msg_send_async(ack, session->async);
+	faux_msg_free(ack);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 {
+	uint16_t cmd = 0;
+
 	assert(session);
 	if (!session)
 		return BOOL_FALSE;
@@ -137,18 +176,19 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 	if (!msg)
 		return BOOL_FALSE;
 
-	printf("Dispatch cmd %c\n", (char)faux_msg_get_cmd(msg));
-	switch (faux_msg_get_cmd(msg)) {
+	cmd = faux_msg_get_cmd(msg);
+	switch (cmd) {
 	case KTP_CMD:
 		ktpd_session_process_cmd(session, msg);
 		break;
 	case KTP_COMPLETION:
 		ktpd_session_process_completion(session, msg);
 		break;
-/*	case KTP_HELP:
+	case KTP_HELP:
+		ktpd_session_process_help(session, msg);
 		break;
-*/	default:
-		printf("Unsupported command\n");
+	default:
+		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
 		break;
 	}
 
