@@ -63,7 +63,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 {
 	char *line = NULL;
 	faux_msg_t *ack = NULL;
-	kpargv_t *pargv = NULL;
+//	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 
 	faux_list_t *split = NULL;
@@ -82,7 +82,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	printf("split %ld\n", split ? (ssize_t)faux_list_len(split) : -1);
 	faux_list_free(split);
 
-	// Parsing
+/*	// Parsing
 	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_EXEC);
 	faux_str_free(line);
 	kpargv_debug(pargv);
@@ -95,7 +95,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 		return BOOL_FALSE;
 	}
 	kpargv_free(pargv);
-
+*/
 	// Send ACK message
 	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
 	faux_msg_send_async(ack, session->async);
@@ -122,8 +122,14 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *session, faux_msg_
 	}
 
 	// Parsing
-	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_COMPLETION);
+	pargv = ksession_parse_for_completion(session->ksession, line);
 	faux_str_free(line);
+	if (!pargv) {
+		ktpd_session_send_error(session, cmd, NULL);
+		return BOOL_FALSE;
+	}
+	kpargv_debug(pargv);
+
 	kpargv_free(pargv);
 
 	// Send ACK message
@@ -139,7 +145,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *session, faux_msg_t *msg
 {
 	char *line = NULL;
 	faux_msg_t *ack = NULL;
-	kpargv_t *pargv = NULL;
+//	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_HELP_ACK;
 
 	assert(session);
@@ -151,11 +157,11 @@ static bool_t ktpd_session_process_help(ktpd_session_t *session, faux_msg_t *msg
 		return BOOL_FALSE;
 	}
 
-	// Parsing
+/*	// Parsing
 	pargv = ksession_parse_line(session->ksession, line, KPURPOSE_HELP);
 	faux_str_free(line);
 	kpargv_free(pargv);
-
+*/
 	// Send ACK message
 	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
 	faux_msg_send_async(ack, session->async);

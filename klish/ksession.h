@@ -23,9 +23,12 @@ void ksession_free(ksession_t *session);
 const kscheme_t *ksession_scheme(const ksession_t *session);
 kpath_t *ksession_path(const ksession_t *session);
 
-kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
+kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 	kpargv_purpose_e purpose);
-faux_list_t *ksession_split_pipes(const char *line);
+faux_list_t *ksession_split_pipes(const char *raw_line);
+kpargv_t *ksession_parse_for_completion(ksession_t *session,
+	const char *raw_line);
+
 
 C_DECL_END
 

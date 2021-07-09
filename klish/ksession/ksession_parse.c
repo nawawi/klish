@@ -208,10 +208,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 }
 
 
-kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
+kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 	kpargv_purpose_e purpose)
 {
-	faux_argv_t *argv = NULL;
 	faux_argv_node_t *argv_iter = NULL;
 	kpargv_t *pargv = NULL;
 	kpargv_status_e pstatus = KPARSE_NONE;
@@ -223,19 +222,10 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
 	assert(session);
 	if (!session)
 		return NULL;
-	assert(line);
-	if (!line)
-		return NULL;
-
-	// Split line to arguments
-	argv = faux_argv_new();
 	assert(argv);
 	if (!argv)
 		return NULL;
-	if (faux_argv_parse(argv, line) < 0) {
-		faux_argv_free(argv);
-		return NULL;
-	}
+
 	argv_iter = faux_argv_iter(argv);
 
 	// Initialize kpargv_t
@@ -243,7 +233,6 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
 	assert(pargv);
 	kpargv_set_continuable(pargv, faux_argv_is_continuable(argv));
 	kpargv_set_purpose(pargv, purpose);
-	kpargv_set_orig_line(pargv, line);
 
 	// Iterate levels of path from higher to lower. Note the reversed
 	// iterator will be used.
@@ -281,14 +270,12 @@ kpargv_t *ksession_parse_line(ksession_t *session, const char *line,
 	kpargv_set_status(pargv, pstatus);
 	kpargv_set_level(pargv, level_found);
 
-	faux_argv_free(argv);
-
 	return pargv;
 }
 
 
 // Delimeter of commands is '|' (pipe)
-faux_list_t *ksession_split_pipes(const char *line)
+faux_list_t *ksession_split_pipes(const char *raw_line)
 {
 	faux_list_t *list = NULL;
 	faux_argv_t *argv = NULL;
@@ -297,8 +284,8 @@ faux_list_t *ksession_split_pipes(const char *line)
 	const char *delimeter = "|";
 	const char *arg = NULL;
 
-	assert(line);
-	if (!line)
+	assert(raw_line);
+	if (!raw_line)
 		return NULL;
 
 	// Split raw line to arguments
@@ -306,7 +293,7 @@ faux_list_t *ksession_split_pipes(const char *line)
 	assert(argv);
 	if (!argv)
 		return NULL;
-	if (faux_argv_parse(argv, line) < 0) {
+	if (faux_argv_parse(argv, raw_line) < 0) {
 		faux_argv_free(argv);
 		return NULL;
 	}
@@ -356,4 +343,56 @@ faux_list_t *ksession_split_pipes(const char *line)
 	faux_argv_free(argv);
 
 	return list;
+}
+
+
+// All components except last one must be legal for execution but last
+// component must be parsed for completion.
+kpargv_t *ksession_parse_for_completion(ksession_t *session,
+	const char *raw_line)
+{
+	faux_list_t *split = NULL;
+	faux_list_node_t *iter = NULL;
+	kpargv_t *pargv = NULL;
+
+	assert(session);
+	if (!session)
+		return NULL;
+	assert(raw_line);
+	if (!raw_line)
+		return NULL;
+
+	// Split raw line (with '|') to components
+	split = ksession_split_pipes(raw_line);
+	if (!split || (faux_list_len(split) < 1)) {
+		faux_list_free(split);
+		return NULL;
+	}
+
+	iter = faux_list_head(split);
+	while (iter) {
+		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
+		if (iter == faux_list_tail(split)) { // Last item
+			pargv = ksession_parse_line(session, argv,
+				KPURPOSE_COMPLETION);
+			if (!pargv) {
+				faux_list_free(split);
+				return NULL;
+			}
+		} else { // Non-last item
+			pargv = ksession_parse_line(session, argv,
+				KPURPOSE_EXEC);
+			// All non-last components must be ready for execution
+			if (!pargv || kpargv_status(pargv) != KPARSE_OK) {
+				kpargv_free(pargv);
+				faux_list_free(split);
+				return NULL;
+			}
+		}
+		iter = faux_list_next_node(iter);
+	}
+
+	faux_list_free(split);
+
+	return pargv;
 }

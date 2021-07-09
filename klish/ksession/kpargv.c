@@ -20,7 +20,6 @@ struct kpargv_s {
 	bool_t continuable; // Last argument can be expanded
 	kpargv_purpose_e purpose; // Exec/Completion/Help
 	char *last_arg;
-	char *orig_line;
 };
 
 // Status
@@ -46,10 +45,6 @@ KSET(pargv, kpargv_purpose_e, purpose);
 // Last argument
 KSET_STR(pargv, last_arg);
 KGET_STR(pargv, last_arg);
-
-// Original line
-KSET_STR(pargv, orig_line);
-KGET_STR(pargv, orig_line);
 
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
@@ -102,7 +97,6 @@ kpargv_t *kpargv_new()
 	pargv->continuable = BOOL_FALSE;
 	pargv->purpose = KPURPOSE_EXEC;
 	pargv->last_arg = NULL;
-	pargv->orig_line = NULL;
 
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -124,7 +118,6 @@ void kpargv_free(kpargv_t *pargv)
 		return;
 
 	faux_str_free(pargv->last_arg);
-	faux_str_free(pargv->orig_line);
 
 	faux_list_free(pargv->pargs);
 	faux_list_free(pargv->completions);
@@ -206,10 +199,9 @@ bool_t kpargv_debug(const kpargv_t *pargv)
 	if (!pargv)
 		return BOOL_FALSE;
 
-	printf("Level: %lu, Command: %s, Line '%s': %s\n",
+	printf("Level: %lu, Command: %s, Status: %s\n",
 		kpargv_level(pargv),
 		kpargv_command(pargv) ? kentry_name(kpargv_command(pargv)) : "<none>",
-		kpargv_orig_line(pargv),
 		kpargv_status_str(pargv));
 
 	// Parsed parameters
