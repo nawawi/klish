@@ -30,6 +30,13 @@ KSET(exec, int, stdout);
 KGET(exec, int, stderr);
 KSET(exec, int, stderr);
 
+// CONTEXT list
+KADD_NESTED(exec, kcontext_t *, contexts);
+KNESTED_LEN(exec, contexts);
+KNESTED_IS_EMPTY(exec, contexts);
+KNESTED_ITER(exec, contexts);
+KNESTED_EACH(exec, kcontext_t *, contexts);
+
 
 kexec_t *kexec_new()
 {

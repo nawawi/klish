@@ -82,6 +82,13 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	error = faux_error_new();
 	exec = ksession_parse_for_exec(session->ksession, line, error);
 	faux_str_free(line);
+
+	kexec_contexts_node_t *iter = kexec_contexts_iter(exec);
+	kcontext_t *context = NULL;
+	while ((context = kexec_contexts_each(&iter))) {
+		kpargv_debug(kcontext_pargv(context));
+	}
+
 //	kpargv_debug(pargv);
 //	if (kpargv_status(pargv) != KPARSE_OK) {
 //		char *error = NULL;

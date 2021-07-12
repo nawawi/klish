@@ -442,6 +442,8 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	iter = faux_list_head(split);
 	while (iter) {
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
+		kcontext_t *context = NULL;
+
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
 		// All components must be ready for execution
 		if (!pargv) {
@@ -466,6 +468,12 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 			faux_list_free(split);
 			return NULL;
 		}
+
+		// Fill the kexec_t
+		context = kcontext_new(KCONTEXT_PLUGIN_ACTION);
+		assert(context);
+		kcontext_set_pargv(context, pargv);
+		kexec_add_contexts(exec, context);
 
 		// Next component
 		iter = faux_list_next_node(iter);
