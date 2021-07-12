@@ -83,10 +83,14 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	exec = ksession_parse_for_exec(session->ksession, line, error);
 	faux_str_free(line);
 
-	kexec_contexts_node_t *iter = kexec_contexts_iter(exec);
-	kcontext_t *context = NULL;
-	while ((context = kexec_contexts_each(&iter))) {
-		kpargv_debug(kcontext_pargv(context));
+	if (exec) {
+		kexec_contexts_node_t *iter = kexec_contexts_iter(exec);
+		kcontext_t *context = NULL;
+		while ((context = kexec_contexts_each(&iter))) {
+			kpargv_debug(kcontext_pargv(context));
+		}
+	} else {
+		faux_error_show(error);
 	}
 
 //	kpargv_debug(pargv);
@@ -100,7 +104,6 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 //	}
 //
 //	kpargv_free(pargv);
-	faux_error_show(error);
 	kexec_free(exec);
 	faux_error_free(error);
 

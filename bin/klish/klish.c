@@ -63,15 +63,17 @@ int main(int argc, char **argv)
 	faux_msg_free(msg);
 
 	msg = faux_msg_recv(net);
-	faux_msg_debug(msg);
-	if (KTP_STATUS_IS_ERROR(faux_msg_get_status(msg))) {
-		char *error = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
-		if (error) {
-			printf("Error: %s\n", error);
-			faux_str_free(error);
+	if (msg) {
+		faux_msg_debug(msg);
+		if (KTP_STATUS_IS_ERROR(faux_msg_get_status(msg))) {
+			char *error = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
+			if (error) {
+				printf("Error: %s\n", error);
+				faux_str_free(error);
+			}
 		}
+		faux_msg_free(msg);
 	}
-	faux_msg_free(msg);
 
 	faux_net_free(net);
 
