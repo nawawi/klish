@@ -46,6 +46,8 @@
 
 
 // Local static functions
+bool_t daemonize(const char *pidfile);
+bool_t kentry_entrys_is_empty(const kentry_t *entry);
 static int create_listen_unix_sock(const char *path);
 static kscheme_t *load_all_dbs(const char *dbs,
 	faux_ini_t *global_config, faux_error_t *error);
@@ -120,32 +122,9 @@ int main(int argc, char **argv)
 
 	syslog(LOG_INFO, "Start daemon.\n");
 
-	// Fork the daemon
-	if (!opts->foreground) {
-		// Daemonize
-		syslog(LOG_DEBUG, "Daemonize\n");
-		if (daemon(0, 0) < 0) {
-			syslog(LOG_ERR, "Can't daemonize\n");
+	// Fork the daemon if needed
+	if (!opts->foreground && !daemonize(opts->pidfile))
 			goto err;
-		}
-
-		// Write pidfile
-		syslog(LOG_DEBUG, "Write PID file: %s\n", opts->pidfile);
-		if ((pidfd = open(opts->pidfile,
-			O_WRONLY | O_CREAT | O_EXCL | O_TRUNC,
-			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
-			syslog(LOG_WARNING, "Can't open pidfile %s: %s\n",
-				opts->pidfile, strerror(errno));
-		} else {
-			char str[20];
-			snprintf(str, sizeof(str), "%u\n", getpid());
-			str[sizeof(str) - 1] = '\0';
-			if (write(pidfd, str, strlen(str)) < 0)
-				syslog(LOG_WARNING, "Can't write to %s: %s\n",
-					opts->pidfile, strerror(errno));
-			close(pidfd);
-		}
-	}
 
 	// Load scheme
 	if (!(scheme = load_all_dbs(opts->dbs, config, error))) {
@@ -259,6 +238,38 @@ err_client:
 	faux_ini_free(config);
 
 	return retval;
+}
+
+
+bool_t daemonize(const char *pidfile)
+{
+	int pidfd = -1;
+
+	// Daemonize
+	syslog(LOG_DEBUG, "Daemonize\n");
+	if (daemon(0, 0) < 0) {
+		syslog(LOG_ERR, "Can't daemonize\n");
+		return BOOL_FALSE;
+	}
+
+	// Write pidfile
+	syslog(LOG_DEBUG, "Write PID file: %s\n", pidfile);
+	if ((pidfd = open(pidfile,
+		O_WRONLY | O_CREAT | O_EXCL | O_TRUNC,
+		S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
+		syslog(LOG_WARNING, "Can't open pidfile %s: %s\n",
+			pidfile, strerror(errno));
+	} else {
+		char str[20];
+		snprintf(str, sizeof(str), "%u\n", getpid());
+		str[sizeof(str) - 1] = '\0';
+		if (write(pidfd, str, strlen(str)) < 0)
+			syslog(LOG_WARNING, "Can't write to %s: %s\n",
+				pidfile, strerror(errno));
+		close(pidfd);
+	}
+
+	return BOOL_TRUE;
 }
 
 
