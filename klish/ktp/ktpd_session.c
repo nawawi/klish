@@ -93,6 +93,9 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 		faux_error_show(error);
 	}
 
+
+//	ktpd_session_exec(session, exec);
+
 //	kpargv_debug(pargv);
 //	if (kpargv_status(pargv) != KPARSE_OK) {
 //		char *error = NULL;

@@ -106,3 +106,22 @@ bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 
 	return BOOL_TRUE;
 }
+
+
+bool_t kexec_execute(kexec_t *exec)
+{
+	faux_list_node_t *iter = NULL;
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	iter = faux_list_tail(exec->contexts);
+	while ((context = faux_list_data(iter))) {
+	
+		iter = faux_list_prev_node(iter);
+	}
+
+	return BOOL_TRUE;
+}
