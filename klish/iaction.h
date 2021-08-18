@@ -16,6 +16,8 @@ typedef struct iaction_s {
 	char *interactive;
 	char *exec_on;
 	char *update_retcode;
+	char *permanent;
+	char *sync;
 	char *script;
 } iaction_t;
 

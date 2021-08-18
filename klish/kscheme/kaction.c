@@ -21,6 +21,8 @@ struct kaction_s {
 //	bool_t async;
 	kaction_cond_e exec_on;
 	bool_t update_retcode;
+	tri_t permanent;
+	tri_t sync;
 	char *script;
 };
 
@@ -50,6 +52,14 @@ KSET(action, kaction_cond_e, exec_on);
 // Update_retcode
 KGET_BOOL(action, update_retcode);
 KSET_BOOL(action, update_retcode);
+
+// Permanent
+KGET(action, tri_t, permanent);
+KSET(action, tri_t, permanent);
+
+// Sync
+KGET(action, tri_t, sync);
+KSET(action, tri_t, sync);
 
 // Script
 KGET_STR(action, script);
@@ -93,4 +103,52 @@ void kaction_free(kaction_t *action)
 	faux_str_free(action->script);
 
 	faux_free(action);
+}
+
+
+bool_t kaction_is_permanent(const kaction_t *action)
+{
+	ksym_t *sym = NULL;
+	tri_t val = TRI_UNDEFINED;
+
+	assert(action);
+	if (!action)
+		return BOOL_FALSE;
+
+	sym = kaction_sym(action);
+	if (!sym)
+		return BOOL_FALSE;
+
+	val = ksym_permanent(sym);
+	if (TRI_UNDEFINED == val)
+		val = kaction_permanent(action);
+
+	if (TRI_TRUE == val)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE; // Default if not set
+}
+
+
+bool_t kaction_is_sync(const kaction_t *action)
+{
+	ksym_t *sym = NULL;
+	tri_t val = TRI_UNDEFINED;
+
+	assert(action);
+	if (!action)
+		return BOOL_FALSE;
+
+	sym = kaction_sym(action);
+	if (!sym)
+		return BOOL_FALSE;
+
+	val = ksym_sync(sym);
+	if (TRI_UNDEFINED == val)
+		val = kaction_sync(action);
+
+	if (TRI_TRUE == val)
+		return BOOL_TRUE;
+
+	return BOOL_FALSE; // Default if not set
 }

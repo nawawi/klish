@@ -84,6 +84,26 @@ bool_t iaction_parse(const iaction_t *info, kaction_t *action, faux_error_t *err
 		}
 	}
 
+	// Permanent
+	if (!faux_str_is_empty(info->permanent)) {
+		tri_t b = TRI_UNDEFINED;
+		if (!faux_conv_str2tri(info->permanent, &b) ||
+			!kaction_set_permanent(action, b)) {
+			faux_error_add(error, TAG": Illegal 'permanent' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
+	// Sync
+	if (!faux_str_is_empty(info->sync)) {
+		tri_t b = TRI_UNDEFINED;
+		if (!faux_conv_str2tri(info->sync, &b) ||
+			!kaction_set_sync(action, b)) {
+			faux_error_add(error, TAG": Illegal 'sync' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
 	// Script
 	if (!faux_str_is_empty(info->script)) {
 		if (!kaction_set_script(action, info->script)) {
@@ -147,6 +167,8 @@ char *iaction_deploy(const kaction_t *kaction, int level)
 	}
 	attr2ctext(&str, "exec_on", exec_on, level + 1);
 	attr2ctext(&str, "update_retcode", faux_conv_bool2str(kaction_update_retcode(kaction)), level + 1);
+	attr2ctext(&str, "permanent", faux_conv_tri2str(kaction_permanent(kaction)), level + 1);
+	attr2ctext(&str, "sync", faux_conv_tri2str(kaction_sync(kaction)), level + 1);
 	attr2ctext(&str, "script", kaction_script(kaction), level + 1);
 
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');

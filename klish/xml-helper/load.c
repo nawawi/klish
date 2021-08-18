@@ -656,6 +656,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	iaction.interactive = kxml_node_attr(element, "interactive");
 	iaction.exec_on = kxml_node_attr(element, "exec_on");
 	iaction.update_retcode = kxml_node_attr(element, "update_retcode");
+	iaction.permanent = kxml_node_attr(element, "permanent");
+	iaction.sync = kxml_node_attr(element, "sync");
 	iaction.script = kxml_node_content(element);
 
 	action = iaction_load(&iaction, error);
@@ -692,6 +694,8 @@ err:
 	kxml_node_attr_free(iaction.interactive);
 	kxml_node_attr_free(iaction.exec_on);
 	kxml_node_attr_free(iaction.update_retcode);
+	kxml_node_attr_free(iaction.permanent);
+	kxml_node_attr_free(iaction.sync);
 	kxml_node_content_free(iaction.script);
 
 	return res;

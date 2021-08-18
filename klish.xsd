@@ -137,6 +137,11 @@
 *
 * [access]  - access rights
 *
+* [filter="true/false"] - Developer can define 'filter' command to filter stdout
+*	of piped ("|") commands. Filter can't contain 'sync' ACTIONs. It will be
+*	always fork()-ed. Only filters can be on the right hand to pipe "|".
+*	Consider filters as a special type of commands.
+*
 ********************************************************
 -->
 	<xs:simpleType name="entry_mode_t">
@@ -170,6 +175,7 @@
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="filter" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 
@@ -348,6 +354,17 @@
 *	by current ACTION's return code or ACTION's return code can be ignored.
 *	Default is "true".
 *
+* [permanent="true/false"] - The klish can be invoked with --dry-run option. In
+*	this case all ACTIONs will be not actually executed but will always
+*	return success. But some actions like navigation is necessary to be
+*	executed in any case. Permanent flag will inform engine to always
+*	execute ACTION.
+*
+* [sync="true/false"] - Common behaviour is to fork() process before ACTION
+*	execution. But ACTION may be executed in-place (without fork()) if sync
+*	flag is set to true. It's not recommended to use sync ACTIONs widely.
+*	It's usefull for small fast functions only.
+*
 ********************************************************
 -->
 	<xs:simpleType name="action_cond_t">
@@ -367,6 +384,8 @@
 				<xs:attribute name="interactive" type="xs:boolean" use="optional" default="false"/>
 				<xs:attribute name="exec_on" type="action_cond_t" use="optional" default="success"/>
 				<xs:attribute name="update_retcode" type="xs:boolean" use="optional" default="true"/>
+				<xs:attribute name="permanent" type="xs:boolean" use="optional" default="false"/>
+				<xs:attribute name="sync" type="xs:boolean" use="optional" default="false"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>

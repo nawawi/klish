@@ -312,6 +312,7 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 		attr2ctext(&str, "value", kentry_value(kentry), level + 1);
 		attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
 		attr2ctext(&str, "order", faux_conv_bool2str(kentry_order(kentry)), level + 1);
+		attr2ctext(&str, "filter", faux_conv_bool2str(kentry_filter(kentry)), level + 1);
 
 		// ENTRY list
 		entrys_iter = kentry_entrys_iter(kentry);
