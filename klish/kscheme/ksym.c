@@ -14,6 +14,8 @@
 struct ksym_s {
 	char *name;
 	ksym_fn function;
+	tri_t permanent;
+	tri_t sync;
 };
 
 
@@ -26,6 +28,14 @@ KSET_STR_ONCE(sym, name);
 // Function
 KGET(sym, ksym_fn, function);
 KSET(sym, ksym_fn, function);
+
+// Permanent
+KGET(sym, tri_t, permanent);
+KSET(sym, tri_t, permanent);
+
+// Sync
+KGET(sym, tri_t, sync);
+KSET(sym, tri_t, sync);
 
 
 ksym_t *ksym_new(const char *name, ksym_fn function)
@@ -43,6 +53,8 @@ ksym_t *ksym_new(const char *name, ksym_fn function)
 	// Initialize
 	sym->name = faux_str_dup(name);
 	sym->function = function;
+	sym->permanent = TRI_UNDEFINED;
+	sym->sync = TRI_UNDEFINED;
 
 	return sym;
 }

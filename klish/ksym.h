@@ -21,8 +21,15 @@ ksym_t *ksym_new(const char *name, ksym_fn function);
 void ksym_free(ksym_t *sym);
 
 const char *ksym_name(const ksym_t *sym);
+
 ksym_fn ksym_function(const ksym_t *sym);
 bool_t ksym_set_function(ksym_t *sym, ksym_fn fn);
+
+tri_t ksym_permanent(const ksym_t *sym);
+bool_t ksym_set_permanent(ksym_t *sym, tri_t permanent);
+
+tri_t ksym_sync(const ksym_t *sym);
+bool_t ksym_set_sync(ksym_t *sym, tri_t sync);
 
 C_DECL_END
 
