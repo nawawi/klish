@@ -249,6 +249,14 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 			continue;
 		}
 		kaction_set_sym(action, sym);
+		// Filter can't contain sync symbols.
+		if (kentry_filter(entry) && kaction_is_sync(action)) {
+			faux_error_sprintf(error, "Filter \"%s\" can't contain "
+				"sync symbol \"%s\"",
+				kentry_name(entry), sym_ref);
+			retcode = BOOL_FALSE;
+			continue;
+		}
 	}
 
 	return retcode;
