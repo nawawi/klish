@@ -331,6 +331,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.value = NULL;
 	ientry.restore = "false";
 	ientry.order = "true";
+	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
@@ -401,6 +402,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
 	ientry.order = "true";
+	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
 	if (parent_tag != KTAG_KLISH) {
@@ -513,6 +515,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
 	ientry.order = kxml_node_attr(element, "order");
+	ientry.filter = "false";
 
 	entry = ientry_load(&ientry, error);
 	if (!entry)
@@ -596,6 +599,7 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
 	ientry.order = kxml_node_attr(element, "order");
+	ientry.filter = kxml_node_attr(element, "filter");
 
 	entry = ientry_load(&ientry, error);
 	if (!entry)
@@ -631,6 +635,7 @@ err:
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
 	kxml_node_attr_free(ientry.order);
+	kxml_node_attr_free(ientry.filter);
 
 	return res;
 }
@@ -718,6 +723,7 @@ static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
 	ientry.order = kxml_node_attr(element, "order");
+	ientry.filter = "false";
 
 	entry = ientry_load(&ientry, error);
 	if (!entry)
@@ -789,6 +795,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
 	ientry.order = kxml_node_attr(element, "order");
+	ientry.filter = kxml_node_attr(element, "filter");
 
 	// Parent must be a KLISH or ENTRY tag
 	if ((parent_tag != KTAG_KLISH) && (parent_tag != KTAG_ENTRY)) {
@@ -859,6 +866,7 @@ err:
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
 	kxml_node_attr_free(ientry.order);
+	kxml_node_attr_free(ientry.filter);
 
 	return res;
 }

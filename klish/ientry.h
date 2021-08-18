@@ -24,6 +24,7 @@ struct ientry_s {
 	char *value;
 	char *restore;
 	char *order;
+	char *filter;
 	ientry_t * (*entrys)[]; // Nested entrys
 	iaction_t * (*actions)[];
 };

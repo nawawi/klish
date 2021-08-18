@@ -119,6 +119,16 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 		}
 	}
 
+	// Filter
+	if (!faux_str_is_empty(info->filter)) {
+		bool_t b = BOOL_FALSE;
+		if (!faux_conv_str2bool(info->filter, &b) ||
+			!kentry_set_filter(entry, b)) {
+			faux_error_add(error, TAG": Illegal 'filter' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
 	return retcode;
 }
 

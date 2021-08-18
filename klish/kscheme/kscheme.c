@@ -217,15 +217,20 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 }
 
 
-bool_t kscheme_prepare_action_list(kscheme_t *scheme, faux_list_t *action_list,
+bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 	faux_error_t *error) {
 	faux_list_node_t *iter = NULL;
 	kaction_t *action = NULL;
 	bool_t retcode = BOOL_TRUE;
+	faux_list_t *action_list = NULL;
 
 	assert(scheme);
 	if (!scheme)
 		return BOOL_FALSE;
+	assert(entry);
+	if (!entry)
+		return BOOL_FALSE;
+	action_list = kentry_actions(entry);
 	assert(action_list);
 	if (!action_list)
 		return BOOL_FALSE;
@@ -336,7 +341,7 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	}
 
 	// ACTIONs
-	if (!kscheme_prepare_action_list(scheme, kentry_actions(entry), error))
+	if (!kscheme_prepare_action_list(scheme, entry, error))
 		retcode = BOOL_FALSE;
 
 	// Process nested ENTRYs

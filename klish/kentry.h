@@ -73,6 +73,9 @@ bool_t kentry_set_restore(kentry_t *entry, bool_t restore);
 // Order
 bool_t kentry_order(const kentry_t *entry);
 bool_t kentry_set_order(kentry_t *entry, bool_t order);
+// Filter
+bool_t kentry_filter(const kentry_t *entry);
+bool_t kentry_set_filter(kentry_t *entry, bool_t filter);
 
 // Nested ENTRY list
 faux_list_t *kentry_entrys(const kentry_t *entry);

@@ -108,7 +108,38 @@ bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 }
 
 
-bool_t kexec_execute(kexec_t *exec)
+/*
+static bool_t exec_action(kcontext_t context,
+{
+
+
+}
+
+
+static bool_t exec_action_sequence(kcontext_t *context)
+{
+	faux_list_node_t *iter = NULL;
+	faux_list_t *actions = NULL;
+
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+
+	actions = 
+
+}
+*/
+
+/*
+static bool_t kexec_prepare(kexec_t *exec)
+{
+	exec = exec;
+
+	return BOOL_TRUE;
+}
+*/
+
+bool_t kexec_exec(kexec_t *exec)
 {
 	faux_list_node_t *iter = NULL;
 	kcontext_t *context = NULL;

@@ -25,6 +25,7 @@ struct kentry_s {
 	char *value; // Additional info
 	bool_t restore; // Should entry restore its depth while execution
 	bool_t order; // Is entry ordered
+	bool_t filter; // Is entry filter. Filter can't have inline actions.
 	faux_list_t *entrys; // Nested ENTRYs
 	faux_list_t *actions; // Nested ACTIONs
 };
@@ -82,6 +83,10 @@ KSET_BOOL(entry, restore);
 KGET_BOOL(entry, order);
 KSET_BOOL(entry, order);
 
+// Filter
+KGET_BOOL(entry, filter);
+KSET_BOOL(entry, filter);
+
 // Nested ENTRYs list
 KGET(entry, faux_list_t *, entrys);
 static KCMP_NESTED(entry, entry, name);
@@ -127,6 +132,7 @@ kentry_t *kentry_new(const char *name)
 	entry->value = NULL;
 	entry->restore = BOOL_FALSE;
 	entry->order = BOOL_FALSE;
+	entry->filter = BOOL_FALSE;
 
 	// ENTRY list
 	entry->entrys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
@@ -210,6 +216,8 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	// ref_str - orig
 	// value - orig
 	// restore - orig
+	// order - orig
+	dst->filter = src->filter;
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;
 
