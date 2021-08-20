@@ -130,14 +130,18 @@ static bool_t exec_action_sequence(kcontext_t *context)
 }
 */
 
-/*
+
 static bool_t kexec_prepare(kexec_t *exec)
 {
 	exec = exec;
 
+	// Create "global" stdin, stdout, stderr for the whole job execution.
+	// Now function creates only the simple pipes but somedays it will be
+	// able to create pseudo-terminal for interactive sessions.
+
 	return BOOL_TRUE;
 }
-*/
+
 
 bool_t kexec_exec(kexec_t *exec)
 {
@@ -146,6 +150,11 @@ bool_t kexec_exec(kexec_t *exec)
 
 	assert(exec);
 	if (!exec)
+		return BOOL_FALSE;
+
+	// Firsly prepare kexec object for execution. The file streams must
+	// be created for stdin, stdout, stderr of processes.
+	if (!kexec_prepare(exec))
 		return BOOL_FALSE;
 
 	iter = faux_list_tail(exec->contexts);
