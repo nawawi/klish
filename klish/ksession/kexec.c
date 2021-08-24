@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <faux/list.h>
 #include <klish/khelper.h>
@@ -133,11 +134,60 @@ static bool_t exec_action_sequence(kcontext_t *context)
 
 static bool_t kexec_prepare(kexec_t *exec)
 {
-	exec = exec;
+	int pipefd[2] = {};
+	faux_list_node_t *iter = NULL;
+	int global_stderr = -1;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+	// Nothing to prepare for empty list
+	if (kexec_contexts_is_empty(exec))
+		return BOOL_FALSE;
 
 	// Create "global" stdin, stdout, stderr for the whole job execution.
 	// Now function creates only the simple pipes but somedays it will be
 	// able to create pseudo-terminal for interactive sessions.
+
+	// STDIN
+	if (pipe(pipefd) < 0)
+		return BOOL_FALSE;
+	kcontext_set_stdin(faux_list_data(faux_list_head(exec->contexts)),
+		pipefd[0]); // Read end
+	kexec_set_stdin(exec, pipefd[1]); // Write end
+
+	// STDOUT
+	if (pipe(pipefd) < 0)
+		return BOOL_FALSE;
+	kexec_set_stdout(exec, pipefd[0]); // Read end
+	kcontext_set_stdout(faux_list_data(faux_list_tail(exec->contexts)),
+		pipefd[1]); // Write end
+
+	// STDERR
+	if (pipe(pipefd) < 0)
+		return BOOL_FALSE;
+	kexec_set_stderr(exec, pipefd[0]); // Read end
+	// STDERR write end will be set to all list members as stderr
+	global_stderr = pipefd[1]; // Write end
+
+	// Iterate all context_t elements
+	for (iter = faux_list_head(exec->contexts); iter;
+		iter = faux_list_next_node(iter)) {
+		faux_list_node_t *next = faux_list_next_node(iter);
+		kcontext_t *context = (kcontext_t *)faux_list_data(iter);
+
+		// Set the same STDERR to all contexts
+		kcontext_set_stderr(context, global_stderr);
+
+		// Create pipes beetween processes
+		if (next) {
+			kcontext_t *next_context = (kcontext_t *)faux_list_data(next);
+			if (pipe(pipefd) < 0)
+				return BOOL_FALSE;
+			kcontext_set_stdout(context, pipefd[1]); // Write end
+			kcontext_set_stdin(next_context, pipefd[0]); // Read end
+		}
+	}
 
 	return BOOL_TRUE;
 }
