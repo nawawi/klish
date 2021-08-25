@@ -462,7 +462,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		if ((iter != faux_list_head(split)) &&
 			kentry_restore(kpargv_command(pargv))) {
 			faux_error_sprintf(error, "The command \"%s\" "
-				"can't be desination of pipe",
+				"can't be destination of pipe",
 				kentry_name(kpargv_command(pargv)));
 			kpargv_free(pargv);
 			faux_list_free(split);

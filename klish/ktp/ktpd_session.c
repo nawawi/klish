@@ -46,6 +46,8 @@ static bool_t ktpd_session_read_cb(faux_async_t *async,
 	void *data, size_t len, void *user_data);
 static bool_t ktpd_session_stall_cb(faux_async_t *async,
 	size_t len, void *user_data);
+static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 
 
 ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
@@ -65,8 +67,11 @@ ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
 
 	// Init
 	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
+	session->eloop = eloop;
 	session->ksession = ksession_new(scheme, start_entry);
 	assert(session->ksession);
+
+	// Async object
 	session->async = faux_async_new(sock);
 	assert(session->async);
 	// Receive message header first
@@ -74,8 +79,11 @@ ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
 	faux_async_set_read_cb(session->async, ktpd_session_read_cb, session);
 	session->hdr = NULL;
-
 	faux_async_set_stall_cb(session->async, ktpd_session_stall_cb, session);
+
+	// Eloop callbacks
+	faux_eloop_add_fd(session->eloop, ktpd_session_fd(session), POLLIN,
+		client_ev, session);
 
 	return session;
 }
@@ -163,7 +171,10 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 			kpargv_debug(kcontext_pargv(context));
 		}
 	} else {
-		faux_error_show(error);
+		char *err = faux_error_cstr(error);
+		ktpd_session_send_error(session, cmd, err);
+		faux_str_free(err);
+		return BOOL_FALSE;
 	}
 
 
@@ -415,6 +426,62 @@ bool_t ktpd_session_async_out(ktpd_session_t *session)
 
 	if (faux_async_out(session->async) < 0)
 		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
+
+	assert(ktpd_session);
+
+	// Write data
+	if (info->revents & POLLOUT) {
+		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
+		if (!ktpd_session_async_out(ktpd_session)) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async output");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// Read data
+	if (info->revents & POLLIN) {
+		if (!ktpd_session_async_in(ktpd_session)) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// EOF
+	if (info->revents & POLLHUP) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	type = type; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktpd_session_terminated_action(ktpd_session_t *session,
+	pid_t pid, int wstatus)
+{
+	assert(session);
+	if (!session)
+		return BOOL_FALSE;
+
+	syslog(LOG_ERR, "ACTION process %d was terminated: %d",
+		pid, WEXITSTATUS(wstatus));
 
 	return BOOL_TRUE;
 }

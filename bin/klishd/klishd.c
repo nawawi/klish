@@ -59,16 +59,12 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
 static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-//static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
-//	void *associated_data, void *user_data);
-//static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
-//	void *associated_data, void *user_data);
+static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 
 
 /** @brief Main function
@@ -86,9 +82,6 @@ int main(int argc, char **argv)
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
 	int client_fd = -1;
-
-//	struct timespec delayed = { .tv_sec = 10, .tv_nsec = 0 };
-//	struct timespec period = { .tv_sec = 3, .tv_nsec = 0 };
 
 	// Parse command line options
 	opts = opts_init();
@@ -192,6 +185,7 @@ err: // For listen daemon
 
 	// ATTENTION: It's a forked service process
 	retval = -1; // Pessimism for service process
+	eloop = NULL;
 
 	// Re-Initialize syslog
 	openlog(LOG_SERVICE_NAME, logoptions, opts->log_facility);
@@ -207,7 +201,6 @@ err: // For listen daemon
 	assert(ktpd_session);
 	if (!ktpd_session) {
 		syslog(LOG_ERR, "Can't create KTPd session\n");
-		faux_eloop_free(eloop);
 		close(client_fd);
 		goto err_client;
 	}
@@ -218,16 +211,18 @@ err: // For listen daemon
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
-	// FDs
-	faux_eloop_add_fd(eloop, client_fd, POLLIN, client_ev, ktpd_session);
+	// Theoretically eloop can use SIGCHLD for different child processes but
+	// not only for single ktpd_session's ACTIONs so it's not goot to grab
+	// whole SIGCHLD event handler by ktpd_session object.
+	faux_eloop_add_signal(eloop, SIGCHLD, wait_for_actions_ev, ktpd_session);
 	// Main service loop
 	faux_eloop_loop(eloop);
-	faux_eloop_free(eloop);
 
 	retval = 0;
 err_client:
 
 	ktpd_session_free(ktpd_session);
+	faux_eloop_free(eloop);
 
 	// Free scheme
 	clear_scheme(scheme, error);
@@ -545,6 +540,31 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+/** @brief Wait for child processes (ACTIONs).
+ */
+static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	int wstatus = 0;
+	pid_t child_pid = -1;
+	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
+
+	// Wait for any child process. Doesn't block.
+	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
+		if (!ktpd_session)
+			continue;
+		ktpd_session_terminated_action(ktpd_session, child_pid, wstatus);
+	}
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
+}
+
+
 /** @brief Re-read config file.
  *
  * This function can refresh klishd options but plugins (dbs for example) are
@@ -619,81 +639,3 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// own loop then.
 	return BOOL_FALSE;
 }
-
-
-
-static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
-
-	assert(ktpd_session);
-
-	// Write data
-	if (info->revents & POLLOUT) {
-		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
-		if (!ktpd_session_async_out(ktpd_session)) {
-			// Someting went wrong
-			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with async output");
-			return BOOL_FALSE; // Stop event loop
-		}
-	}
-
-	// Read data
-	if (info->revents & POLLIN) {
-		if (!ktpd_session_async_in(ktpd_session)) {
-			// Someting went wrong
-			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with async input");
-			return BOOL_FALSE; // Stop event loop
-		}
-	}
-
-	// EOF
-	if (info->revents & POLLHUP) {
-		faux_eloop_del_fd(eloop, info->fd);
-		syslog(LOG_DEBUG, "Close connection %d", info->fd);
-		return BOOL_FALSE; // Stop event loop
-	}
-
-	type = type; // Happy compiler
-
-	return BOOL_TRUE;
-}
-
-
-/*
-static bool_t sched_once(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
-printf("Once %d\n", info->ev_id);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_TRUE;
-}
-*/
-
-/*
-static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	faux_eloop_info_sched_t *info = (faux_eloop_info_sched_t *)associated_data;
-printf("Periodic %d\n", info->ev_id);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_TRUE;
-}
-*/
