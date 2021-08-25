@@ -70,8 +70,6 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 //static bool_t sched_periodic(faux_eloop_t *eloop, faux_eloop_type_e type,
 //	void *associated_data, void *user_data);
 
-static bool_t fd_stall_cb(ktpd_session_t *session, void *user_data);
-
 
 /** @brief Main function
  */
@@ -200,24 +198,27 @@ err: // For listen daemon
 	if (!opts->verbose)
 		setlogmask(LOG_UPTO(LOG_INFO));
 
-	ktpd_session = ktpd_session_new(client_fd, scheme, NULL);
+	// Create event loop
+	eloop = faux_eloop_new(NULL);
+
+	// Create KTP session
+	// Function ktpd_session_new() will add new events to eloop itself.
+	ktpd_session = ktpd_session_new(client_fd, scheme, NULL, eloop);
 	assert(ktpd_session);
 	if (!ktpd_session) {
 		syslog(LOG_ERR, "Can't create KTPd session\n");
+		faux_eloop_free(eloop);
 		close(client_fd);
 		goto err_client;
 	}
 
 	syslog(LOG_DEBUG, "New connection %d\n", client_fd);
 
-	// Event loop
-	eloop = faux_eloop_new(NULL);
 	// Signals
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
 	// FDs
-	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
 	faux_eloop_add_fd(eloop, client_fd, POLLIN, client_ev, ktpd_session);
 	// Main service loop
 	faux_eloop_loop(eloop);
@@ -568,19 +569,6 @@ static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	eloop = eloop;
 	type = type;
 	associated_data = associated_data;
-
-	return BOOL_TRUE;
-}
-
-
-static bool_t fd_stall_cb(ktpd_session_t *session, void *user_data)
-{
-	faux_eloop_t *eloop = (faux_eloop_t *)user_data;
-
-	assert(session);
-	assert(eloop);
-
-	faux_eloop_include_fd_event(eloop, ktpd_session_fd(session), POLLOUT);
 
 	return BOOL_TRUE;
 }

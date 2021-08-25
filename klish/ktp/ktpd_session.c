@@ -10,10 +10,12 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <syslog.h>
+#include <poll.h>
 
 #include <faux/str.h>
 #include <faux/async.h>
 #include <faux/msg.h>
+#include <faux/eloop.h>
 #include <klish/ksession.h>
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -34,10 +36,62 @@ struct ktpd_session_s {
 	gid_t gid;
 	char *user;
 	faux_async_t *async;
-	ktpd_session_stall_cb_fn stall_cb; // Stall callback
-	void *stall_udata;
 	faux_hdr_t *hdr; // Engine will receive header and then msg
+	faux_eloop_t *eloop;
 };
+
+
+// Static declarations
+static bool_t ktpd_session_read_cb(faux_async_t *async,
+	void *data, size_t len, void *user_data);
+static bool_t ktpd_session_stall_cb(faux_async_t *async,
+	size_t len, void *user_data);
+
+
+ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
+	const char *start_entry, faux_eloop_t *eloop)
+{
+	ktpd_session_t *session = NULL;
+
+	if (sock < 0)
+		return NULL;
+	if (!eloop)
+		return NULL;
+
+	session = faux_zmalloc(sizeof(*session));
+	assert(session);
+	if (!session)
+		return NULL;
+
+	// Init
+	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
+	session->ksession = ksession_new(scheme, start_entry);
+	assert(session->ksession);
+	session->async = faux_async_new(sock);
+	assert(session->async);
+	// Receive message header first
+	faux_async_set_read_limits(session->async,
+		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
+	faux_async_set_read_cb(session->async, ktpd_session_read_cb, session);
+	session->hdr = NULL;
+
+	faux_async_set_stall_cb(session->async, ktpd_session_stall_cb, session);
+
+	return session;
+}
+
+
+void ktpd_session_free(ktpd_session_t *session)
+{
+	if (!session)
+		return;
+
+	ksession_free(session->ksession);
+	faux_free(session->hdr);
+	close(ktpd_session_fd(session));
+	faux_async_free(session->async);
+	faux_free(session);
+}
 
 
 static bool_t check_ktp_header(faux_hdr_t *hdr)
@@ -303,58 +357,14 @@ static bool_t ktpd_session_stall_cb(faux_async_t *async,
 
 	assert(async);
 	assert(session);
+	assert(session->eloop);
 
-	if (!session->stall_cb)
-		return BOOL_TRUE;
-
-	session->stall_cb(session, session->stall_udata);
+	faux_eloop_include_fd_event(session->eloop, ktpd_session_fd(session), POLLOUT);
 
 	async = async; // Happy compiler
 	len = len; // Happy compiler
 
 	return BOOL_TRUE;
-}
-
-
-ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
-	const char *start_entry)
-{
-	ktpd_session_t *session = NULL;
-
-	if (sock < 0)
-		return NULL;
-
-	session = faux_zmalloc(sizeof(*session));
-	assert(session);
-	if (!session)
-		return NULL;
-
-	// Init
-	session->state = KTPD_SESSION_STATE_NOT_AUTHORIZED;
-	session->ksession = ksession_new(scheme, start_entry);
-	assert(session->ksession);
-	session->async = faux_async_new(sock);
-	assert(session->async);
-	// Receive message header first
-	faux_async_set_read_limits(session->async,
-		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
-	faux_async_set_read_cb(session->async, ktpd_session_read_cb, session);
-	session->hdr = NULL;
-
-	return session;
-}
-
-
-void ktpd_session_free(ktpd_session_t *session)
-{
-	if (!session)
-		return;
-
-	ksession_free(session->ksession);
-	faux_free(session->hdr);
-	close(ktpd_session_fd(session));
-	faux_async_free(session->async);
-	faux_free(session);
 }
 
 
@@ -407,19 +417,6 @@ bool_t ktpd_session_async_out(ktpd_session_t *session)
 		return BOOL_FALSE;
 
 	return BOOL_TRUE;
-}
-
-
-void ktpd_session_set_stall_cb(ktpd_session_t *session,
-	ktpd_session_stall_cb_fn stall_cb, void *user_data)
-{
-	assert(session);
-	if (!session)
-		return;
-
-	session->stall_cb = stall_cb;
-	session->stall_udata = user_data;
-	faux_async_set_stall_cb(session->async, ktpd_session_stall_cb, session);
 }
 
 

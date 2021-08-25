@@ -3,6 +3,7 @@
 
 #include <faux/faux.h>
 #include <faux/list.h>
+#include <faux/eloop.h>
 #include <klish/ksession.h>
 #include <klish/ktp.h>
 
@@ -34,14 +35,12 @@ int ktp_session_fd(const ktp_session_t *session);
 
 // Server KTP session
 ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
-	const char *start_entry);
+	const char *start_entry, faux_eloop_t *eloop);
 void ktpd_session_free(ktpd_session_t *session);
 bool_t ktpd_session_connected(ktpd_session_t *session);
 int ktpd_session_fd(const ktpd_session_t *session);
 bool_t ktpd_session_async_in(ktpd_session_t *session);
 bool_t ktpd_session_async_out(ktpd_session_t *session);
-void ktpd_session_set_stall_cb(ktpd_session_t *session,
-	ktpd_session_stall_cb_fn stall_cb, void *user_data);
 
 C_DECL_END
 
