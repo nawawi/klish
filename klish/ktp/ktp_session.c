@@ -13,7 +13,20 @@
 #include <faux/str.h>
 #include <klish/ktp_session.h>
 
-#include "private.h"
+
+typedef enum {
+	KTP_SESSION_STATE_DISCONNECTED = 'd',
+	KTP_SESSION_STATE_NOT_AUTHORIZED = 'a',
+	KTP_SESSION_STATE_IDLE = 'i',
+	KTP_SESSION_STATE_WAIT_FOR_COMPLETION = 'v',
+	KTP_SESSION_STATE_WAIT_FOR_HELP = 'h',
+	KTP_SESSION_STATE_WAIT_FOR_CMD = 'c',
+} ktp_session_state_e;
+
+struct ktp_session_s {
+	ktp_session_state_e state;
+	faux_net_t *net;
+};
 
 
 ktp_session_t *ktp_session_new(int sock)

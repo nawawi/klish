@@ -25,6 +25,7 @@ struct kcontext_s {
 	int stdout;
 	int stderr;
 	pid_t pid;
+	bool_t done; // If all actions are done
 };
 
 
@@ -69,6 +70,10 @@ FAUX_HIDDEN KSET(context, int, stderr);
 // STDERR
 KGET(context, pid_t, pid);
 FAUX_HIDDEN KSET(context, pid_t, pid);
+
+// Done
+KGET_BOOL(context, done);
+FAUX_HIDDEN KSET_BOOL(context, done);
 
 
 kcontext_t *kcontext_new(kcontext_type_e type)

@@ -12,9 +12,7 @@
 
 #include <faux/str.h>
 #include <faux/msg.h>
-#include <klish/ktp.h>
-
-#include "private.h"
+#include <klish/ktp_session.h>
 
 
 int ktp_connect_unix(const char *sun_path)

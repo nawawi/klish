@@ -170,7 +170,7 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// STDERR write end will be set to all list members as stderr
 	global_stderr = pipefd[1]; // Write end
 
-	// Iterate all context_t elements
+	// Iterate all context_t elements to fill all stdin, stdout, stderr
 	for (iter = faux_list_head(exec->contexts); iter;
 		iter = faux_list_next_node(iter)) {
 		faux_list_node_t *next = faux_list_next_node(iter);

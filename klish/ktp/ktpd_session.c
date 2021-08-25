@@ -18,7 +18,26 @@
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
-#include "private.h"
+
+typedef enum {
+	KTPD_SESSION_STATE_DISCONNECTED = 'd',
+	KTPD_SESSION_STATE_NOT_AUTHORIZED = 'a',
+	KTPD_SESSION_STATE_IDLE = 'i',
+	KTPD_SESSION_STATE_WAIT_FOR_PROCESS = 'p',
+} ktpd_session_state_e;
+
+
+struct ktpd_session_s {
+	ksession_t *ksession;
+	ktpd_session_state_e state;
+	uid_t uid;
+	gid_t gid;
+	char *user;
+	faux_async_t *async;
+	ktpd_session_stall_cb_fn stall_cb; // Stall callback
+	void *stall_udata;
+	faux_hdr_t *hdr; // Engine will receive header and then msg
+};
 
 
 static bool_t check_ktp_header(faux_hdr_t *hdr)

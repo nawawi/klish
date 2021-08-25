@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 
 	retval = 0;
 
-err:
+err: // For listen daemon
 	// Print errors
 	if (faux_error_len(error) > 0)
 		faux_error_show(error);
@@ -208,8 +208,6 @@ err:
 		goto err_client;
 	}
 
-//	ktpd_session_set_stall_cb(ktpd_session, fd_stall_cb, eloop);
-//	faux_eloop_add_fd(eloop, new_conn, POLLIN, client_ev, clients);
 	syslog(LOG_DEBUG, "New connection %d\n", client_fd);
 
 	// Event loop
