@@ -35,6 +35,9 @@ bool_t kexec_contexts_is_empty(const kexec_t *exec);
 kexec_contexts_node_t *kexec_contexts_iter(const kexec_t *exec);
 kcontext_t *kexec_contexts_each(kexec_contexts_node_t **iter);
 
+bool_t kexec_exec(kexec_t *exec);
+
+
 C_DECL_END
 
 #endif // _klish_kexec_h

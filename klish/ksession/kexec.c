@@ -117,19 +117,9 @@ static bool_t exec_action(kcontext_t context,
 }
 
 
-static bool_t exec_action_sequence(kcontext_t *context)
-{
-	faux_list_node_t *iter = NULL;
-	faux_list_t *actions = NULL;
-
-	assert(context);
-	if (!context)
-		return BOOL_FALSE;
-
-	actions = 
-
-}
 */
+
+
 
 
 static bool_t kexec_prepare(kexec_t *exec)
@@ -193,6 +183,43 @@ static bool_t kexec_prepare(kexec_t *exec)
 }
 
 
+static bool_t exec_action_sequence(kcontext_t *context, pid_t pid)
+{
+	faux_list_node_t *iter = NULL;
+	faux_list_t *actions = NULL;
+
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+
+
+printf("CONTEXT\n");
+actions = actions;
+iter = iter;
+pid = pid;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t exec_command(kexec_t *exec, pid_t pid)
+{
+	faux_list_node_t *iter = NULL;
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		exec_action_sequence(context, pid);
+	}
+
+	return BOOL_TRUE;
+}
+
+
 bool_t kexec_exec(kexec_t *exec)
 {
 	faux_list_node_t *iter = NULL;
@@ -206,6 +233,10 @@ bool_t kexec_exec(kexec_t *exec)
 	// be created for stdin, stdout, stderr of processes.
 	if (!kexec_prepare(exec))
 		return BOOL_FALSE;
+
+	// Here no ACTIONs are executing, so pass -1 as pid of terminated
+	// ACTION's process.
+	exec_command(exec, -1);
 
 	iter = faux_list_tail(exec->contexts);
 	while ((context = faux_list_data(iter))) {

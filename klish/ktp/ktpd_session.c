@@ -177,6 +177,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 		return BOOL_FALSE;
 	}
 
+	kexec_exec(exec);
+
 
 //	ktpd_session_exec(session, exec);
 
