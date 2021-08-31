@@ -192,6 +192,13 @@ static bool_t exec_action_sequence(kcontext_t *context, pid_t pid)
 	if (!context)
 		return BOOL_FALSE;
 
+	if (kcontext_done(context) || (kcontext_pid(context) != pid))
+		return BOOL_TRUE;
+
+//	iter = kexec_contexts_iter(exec);
+//	while ((context = kexec_contexts_each(&iter))) {
+//		exec_action_sequence(context, pid);
+//	}
 
 printf("CONTEXT\n");
 actions = actions;

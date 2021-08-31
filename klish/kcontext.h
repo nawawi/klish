@@ -25,9 +25,6 @@ FAUX_HIDDEN bool_t kcontext_set_plugin(kcontext_t *context, kplugin_t *plugin);
 // Sym
 ksym_t *kcontext_sym(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_sym(kcontext_t *context, ksym_t *sym);
-// Action
-kaction_t *kcontext_action(const kcontext_t *context);
-FAUX_HIDDEN bool_t kcontext_set_action(kcontext_t *context, kaction_t *action);
 // Command
 kpargv_t *kcontext_pargv(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pargv(kcontext_t *context, kpargv_t *pargv);

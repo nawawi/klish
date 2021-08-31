@@ -19,7 +19,7 @@ struct kcontext_s {
 	int retcode;
 	kplugin_t *plugin;
 	kpargv_t *pargv;
-	kaction_t *action; // Current action
+	faux_list_node_t *action_iter; // Current action
 	ksym_t *sym;
 	int stdin;
 	int stdout;
@@ -47,10 +47,6 @@ FAUX_HIDDEN KSET(context, kplugin_t *, plugin);
 KGET(context, ksym_t *, sym);
 FAUX_HIDDEN KSET(context, ksym_t *, sym);
 
-// Action
-KGET(context, kaction_t *, action);
-FAUX_HIDDEN KSET(context, kaction_t *, action);
-
 // Pargv
 KGET(context, kpargv_t *, pargv);
 FAUX_HIDDEN KSET(context, kpargv_t *, pargv);
@@ -67,7 +63,7 @@ FAUX_HIDDEN KSET(context, int, stdout);
 KGET(context, int, stderr);
 FAUX_HIDDEN KSET(context, int, stderr);
 
-// STDERR
+// PID
 KGET(context, pid_t, pid);
 FAUX_HIDDEN KSET(context, pid_t, pid);
 
@@ -89,7 +85,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->type = type;
 	context->plugin = NULL;
 	context->pargv = NULL;
-	context->action = NULL;
+	context->action_iter = NULL;
 	context->sym = NULL;
 
 	// I/O
