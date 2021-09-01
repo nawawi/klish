@@ -51,6 +51,10 @@ FAUX_HIDDEN KSET(context, ksym_t *, sym);
 KGET(context, kpargv_t *, pargv);
 FAUX_HIDDEN KSET(context, kpargv_t *, pargv);
 
+// Action iterator
+KGET(context, faux_list_node_t *, action_iter);
+FAUX_HIDDEN KSET(context, faux_list_node_t *, action_iter);
+
 // STDIN
 KGET(context, int, stdin);
 FAUX_HIDDEN KSET(context, int, stdin);
@@ -83,18 +87,16 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 
 	// Initialize
 	context->type = type;
+	context->retcode = 0;
 	context->plugin = NULL;
 	context->pargv = NULL;
 	context->action_iter = NULL;
 	context->sym = NULL;
-
-	// I/O
 	context->stdin = -1;
 	context->stdout = -1;
 	context->stderr = -1;
-
-	// PID
 	context->pid = 0; // PID of currently executed ACTION
+	context->done = BOOL_FALSE;
 
 	return context;
 }

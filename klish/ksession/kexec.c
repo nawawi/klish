@@ -109,18 +109,6 @@ bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 }
 
 
-/*
-static bool_t exec_action(kcontext_t context,
-{
-
-
-}
-
-
-*/
-
-
-
 
 static bool_t kexec_prepare(kexec_t *exec)
 {
@@ -183,33 +171,75 @@ static bool_t kexec_prepare(kexec_t *exec)
 }
 
 
-static bool_t exec_action_sequence(kcontext_t *context, pid_t pid)
+static bool_t exec_action(kcontext_t *context, const kaction_t *action)
 {
-	faux_list_node_t *iter = NULL;
-	faux_list_t *actions = NULL;
-
-	assert(context);
-	if (!context)
-		return BOOL_FALSE;
-
-	if (kcontext_done(context) || (kcontext_pid(context) != pid))
-		return BOOL_TRUE;
-
-//	iter = kexec_contexts_iter(exec);
-//	while ((context = kexec_contexts_each(&iter))) {
-//		exec_action_sequence(context, pid);
-//	}
-
-printf("CONTEXT\n");
-actions = actions;
-iter = iter;
-pid = pid;
+	context = context;
+	action = action;
 
 	return BOOL_TRUE;
 }
 
 
-static bool_t exec_command(kexec_t *exec, pid_t pid)
+static bool_t exec_action_sequence(kcontext_t *context, pid_t pid, int wstatus)
+{
+	faux_list_node_t *iter = NULL;
+	int exitstatus = WEXITSTATUS(wstatus);
+
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+
+	// There is two reasons to don't start any real actions.
+	// - The ACTION sequence is already done;
+	// - Passed PID (PID of completed process) is not owned by this context.
+	// Returns true because it's not an error.
+	if (kcontext_done(context) || (kcontext_pid(context) != pid))
+		return BOOL_TRUE;
+
+	iter = kcontext_action_iter(context); // Get saved current ACTION
+	do {
+		faux_list_t *actions = NULL;
+		const kaction_t *action = NULL;
+		// Here we know that given PID is our PID and some ACTIONs are
+		// left to be executed.
+
+		// If some process returns then compute current retcode.
+		if (iter) {
+			const kaction_t *terminated_action = NULL;
+			terminated_action = faux_list_data(iter);
+			assert(terminated_action);
+			if (kaction_update_retcode(terminated_action))
+				kcontext_set_retcode(context, exitstatus);
+		}
+
+	if (!iter) { // Is it the first ACTION within list
+		actions = kentry_actions(kpargv_command(kcontext_pargv(context)));
+		assert(actions);
+		iter = faux_list_head(actions);
+	} else {
+		iter = faux_list_next_node(iter);
+	}
+	kcontext_set_action_iter(context, iter);
+
+	if (!iter) { // It was last ACTION
+		kcontext_set_done(context, BOOL_TRUE);
+	}
+
+	action = (const kaction_t *)faux_list_data(iter);
+	assert(action);
+	exec_action(context, action);
+
+printf("CONTEXT\n");
+
+	} while (iter);
+
+	wstatus = wstatus;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
 {
 	faux_list_node_t *iter = NULL;
 	kcontext_t *context = NULL;
@@ -220,7 +250,7 @@ static bool_t exec_command(kexec_t *exec, pid_t pid)
 
 	iter = kexec_contexts_iter(exec);
 	while ((context = kexec_contexts_each(&iter))) {
-		exec_action_sequence(context, pid);
+		exec_action_sequence(context, pid, wstatus);
 	}
 
 	return BOOL_TRUE;
@@ -229,9 +259,6 @@ static bool_t exec_command(kexec_t *exec, pid_t pid)
 
 bool_t kexec_exec(kexec_t *exec)
 {
-	faux_list_node_t *iter = NULL;
-	kcontext_t *context = NULL;
-
 	assert(exec);
 	if (!exec)
 		return BOOL_FALSE;
@@ -243,13 +270,7 @@ bool_t kexec_exec(kexec_t *exec)
 
 	// Here no ACTIONs are executing, so pass -1 as pid of terminated
 	// ACTION's process.
-	exec_command(exec, -1);
-
-	iter = faux_list_tail(exec->contexts);
-	while ((context = faux_list_data(iter))) {
-	
-		iter = faux_list_prev_node(iter);
-	}
+	continue_command_execution(exec, -1, 0);
 
 	return BOOL_TRUE;
 }

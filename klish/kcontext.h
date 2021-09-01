@@ -6,6 +6,7 @@
 #ifndef _klish_kcontext_h
 #define _klish_kcontext_h
 
+#include <faux/list.h>
 #include <klish/kcontext_base.h>
 #include <klish/kpargv.h>
 #include <klish/kscheme.h>
@@ -25,9 +26,12 @@ FAUX_HIDDEN bool_t kcontext_set_plugin(kcontext_t *context, kplugin_t *plugin);
 // Sym
 ksym_t *kcontext_sym(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_sym(kcontext_t *context, ksym_t *sym);
-// Command
+// Pargv object
 kpargv_t *kcontext_pargv(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pargv(kcontext_t *context, kpargv_t *pargv);
+// Action iterator
+faux_list_node_t *kcontext_action_iter(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_action_iter(kcontext_t *context, faux_list_node_t *action_iter);
 // STDIN
 int kcontext_stdin(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_stdin(kcontext_t *context, int stdin);
