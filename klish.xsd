@@ -344,7 +344,7 @@
 *
 * [interactive="true/false"] - Is action interactive.
 *
-* [exec_on="fail/success/always"] - ACTION's execution depends on
+* [exec_on="fail/success/always/never"] - ACTION's execution depends on
 *	return code of previous elements of ACTION chain. If the
 *	condition is not met then ACTION will not be executed. The "always"
 *	value means that ACTION will be always executed and chain return
@@ -372,6 +372,7 @@
 			<xs:enumeration value="fail"/>
 			<xs:enumeration value="success"/>
 			<xs:enumeration value="always"/>
+			<xs:enumeration value="never"/>
 		</xs:restriction>
 	</xs:simpleType>
 

@@ -181,9 +181,11 @@ static int exec_action(kcontext_t *context, const kaction_t *action, pid_t *pid)
 {
 	context = context;
 	action = action;
-	*pid = -1;
 
-	printf("DDD: exec_action\n");
+	if (pid)
+		*pid = -1;
+
+	printf("DDD: exec_action [%s]\n", kaction_script(action));
 
 	return 0;
 }
