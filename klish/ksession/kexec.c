@@ -181,13 +181,18 @@ static int exec_action(kcontext_t *context, const kaction_t *action, pid_t *pid)
 {
 	context = context;
 	action = action;
+	ksym_fn fn;
+	int exitcode = 0;
 
 	if (pid)
 		*pid = -1;
 
-	printf("DDD: exec_action [%s]\n", kaction_script(action));
+//	printf("DDD: exec_action [%s]\n", kaction_script(action));
 
-	return 0;
+	fn = ksym_function(kaction_sym(action));
+	exitcode = fn(context);
+
+	return exitcode;
 }
 
 
