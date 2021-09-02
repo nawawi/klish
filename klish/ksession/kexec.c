@@ -204,9 +204,9 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 	// There is two reasons to don't start any real actions.
 	// - The ACTION sequence is already done;
 	// - Passed PID (PID of completed process) is not owned by this context.
-	// Returns true because it's not an error.
+	// Returns false that indicates this PID is not mine.
 	if (kcontext_done(context) || (kcontext_pid(context) != pid))
-		return BOOL_TRUE;
+		return BOOL_FALSE;
 
 	// Here we know that given PID is our PID
 	iter = kcontext_action_iter(context); // Get saved current ACTION
@@ -268,6 +268,10 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 
 	} while (-1 == new_pid); // PID is not -1 when new process was forked
 
+	// Save PID of newly created process
+	if (new_pid != -1) // It means that process was fork()ed
+		kcontext_set_pid(context, new_pid);
+
 	return BOOL_TRUE;
 }
 
@@ -283,7 +287,10 @@ static bool_t continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
 
 	iter = kexec_contexts_iter(exec);
 	while ((context = kexec_contexts_each(&iter))) {
-		exec_action_sequence(exec, context, pid, wstatus);
+		bool_t found = BOOL_FALSE;
+		found = exec_action_sequence(exec, context, pid, wstatus);
+		if (found && (pid != -1))
+			break;
 	}
 
 	return BOOL_TRUE;
