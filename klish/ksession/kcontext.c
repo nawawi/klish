@@ -95,7 +95,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->stdin = -1;
 	context->stdout = -1;
 	context->stderr = -1;
-	context->pid = 0; // PID of currently executed ACTION
+	context->pid = -1; // PID of currently executed ACTION
 	context->done = BOOL_FALSE;
 
 	return context;

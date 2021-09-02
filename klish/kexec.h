@@ -19,6 +19,9 @@ C_DECL_BEGIN
 kexec_t *kexec_new(void);
 void kexec_free(kexec_t *exec);
 
+// Dry-run
+bool_t kexec_dry_run(const kexec_t *exec);
+bool_t kexec_set_dry_run(kexec_t *exec, bool_t dry_run);
 // STDIN
 int kexec_stdin(const kexec_t *exec);
 bool_t kexec_set_stdin(kexec_t *exec, int stdin);

@@ -406,9 +406,9 @@ static kscheme_t *load_all_dbs(const char *dbs,
 		return NULL;
 	}
 
-/*
+
 	// Debug
-	{
+/*	{
 		kdb_t *deploy_db = NULL;
 
 		// Deploy (for testing purposes)

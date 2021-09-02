@@ -106,6 +106,34 @@ void kaction_free(kaction_t *action)
 }
 
 
+bool_t kaction_meet_exec_conditions(const kaction_t *action, int current_retcode)
+{
+	bool_t r = BOOL_FALSE; // Default is pessimistic
+
+	assert(action);
+	if (!action)
+		return BOOL_FALSE;
+
+	switch (kaction_exec_on(action)) {
+	case KACTION_COND_ALWAYS:
+		r = BOOL_TRUE;
+		break;
+	case KACTION_COND_SUCCESS:
+		if (0 == current_retcode)
+			r = BOOL_TRUE;
+		break;
+	case KACTION_COND_FAIL:
+		if (current_retcode != 0)
+			r = BOOL_TRUE;
+		break;
+	default:
+		r = BOOL_FALSE; // NEVER or NONE
+	}
+
+	return r;
+}
+
+
 bool_t kaction_is_permanent(const kaction_t *action)
 {
 	ksym_t *sym = NULL;

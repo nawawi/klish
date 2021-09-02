@@ -13,11 +13,15 @@
 
 struct kexec_s {
 	faux_list_t *contexts;
+	bool_t dry_run;
 	int stdin;
 	int stdout;
 	int stderr;
 };
 
+// Dry-run
+KGET_BOOL(exec, dry_run);
+KSET_BOOL(exec, dry_run);
 
 // STDIN
 KGET(exec, int, stdin);
@@ -47,6 +51,8 @@ kexec_t *kexec_new()
 	assert(exec);
 	if (!exec)
 		return NULL;
+
+	exec->dry_run = BOOL_FALSE;
 
 	// List of execute contexts
 	exec->contexts = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -171,19 +177,25 @@ static bool_t kexec_prepare(kexec_t *exec)
 }
 
 
-static bool_t exec_action(kcontext_t *context, const kaction_t *action)
+static int exec_action(kcontext_t *context, const kaction_t *action, pid_t *pid)
 {
 	context = context;
 	action = action;
+	*pid = -1;
 
-	return BOOL_TRUE;
+	printf("DDD: exec_action\n");
+
+	return 0;
 }
 
 
-static bool_t exec_action_sequence(kcontext_t *context, pid_t pid, int wstatus)
+static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
+	pid_t pid, int wstatus)
 {
 	faux_list_node_t *iter = NULL;
 	int exitstatus = WEXITSTATUS(wstatus);
+	int *pexitstatus = &exitstatus;
+	pid_t new_pid = -1; // PID of newly forked ACTION process
 
 	assert(context);
 	if (!context)
@@ -196,44 +208,65 @@ static bool_t exec_action_sequence(kcontext_t *context, pid_t pid, int wstatus)
 	if (kcontext_done(context) || (kcontext_pid(context) != pid))
 		return BOOL_TRUE;
 
+	// Here we know that given PID is our PID
 	iter = kcontext_action_iter(context); // Get saved current ACTION
 	do {
 		faux_list_t *actions = NULL;
 		const kaction_t *action = NULL;
-		// Here we know that given PID is our PID and some ACTIONs are
-		// left to be executed.
 
-		// If some process returns then compute current retcode.
-		if (iter) {
+		// Compute new value for retcode.
+		// Here iter is a pointer to previous action but not new.
+		// If iter == NULL then it will be a first ACTION from the sequence.
+		if (iter && pexitstatus) {
 			const kaction_t *terminated_action = NULL;
 			terminated_action = faux_list_data(iter);
 			assert(terminated_action);
 			if (kaction_update_retcode(terminated_action))
-				kcontext_set_retcode(context, exitstatus);
+				kcontext_set_retcode(context, *pexitstatus);
 		}
 
-	if (!iter) { // Is it the first ACTION within list
-		actions = kentry_actions(kpargv_command(kcontext_pargv(context)));
-		assert(actions);
-		iter = faux_list_head(actions);
-	} else {
-		iter = faux_list_next_node(iter);
-	}
-	kcontext_set_action_iter(context, iter);
+		// Get next ACTION from sequence
+		if (!iter) { // Is it the first ACTION within list
+			actions = kentry_actions(kpargv_command(kcontext_pargv(context)));
+			assert(actions);
+			iter = faux_list_head(actions);
+		} else {
+			iter = faux_list_next_node(iter);
+		}
+		kcontext_set_action_iter(context, iter);
 
-	if (!iter) { // It was last ACTION
-		kcontext_set_done(context, BOOL_TRUE);
-	}
+		// Was it end of ACTION sequence?
+		if (!iter) {
+			kcontext_set_done(context, BOOL_TRUE);
+			break;
+		}
 
-	action = (const kaction_t *)faux_list_data(iter);
-	assert(action);
-	exec_action(context, action);
+		// Not all ACTIONs has an exit status. Some can have condition to
+		// skip real execution. So they has no exit status.
+		pexitstatus = NULL;
 
-printf("CONTEXT\n");
+		// Get new ACTION to execute
+		action = (const kaction_t *)faux_list_data(iter);
+		assert(action);
 
-	} while (iter);
+		// Check for previous retcode to find out if next command must
+		// be executed.
+		if (!kaction_meet_exec_conditions(action, kcontext_retcode(context)))
+			continue; // Skip execution
 
-	wstatus = wstatus;
+		// Here we know that process will be executed. Dry-run mode is a
+		// pseudo-execution too i.e. ACTION has exit status.
+		pexitstatus = &exitstatus;
+
+		// Check for dry-run flag and 'permanent' feature of ACTION.
+		if (kexec_dry_run(exec) && !kaction_permanent(action)) {
+			exitstatus = 0; // Exit status while dry-run is always 0
+			continue;
+		}
+
+		exitstatus = exec_action(context, action, &new_pid);
+
+	} while (-1 == new_pid); // PID is not -1 when new process was forked
 
 	return BOOL_TRUE;
 }
@@ -250,7 +283,7 @@ static bool_t continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
 
 	iter = kexec_contexts_iter(exec);
 	while ((context = kexec_contexts_each(&iter))) {
-		exec_action_sequence(context, pid, wstatus);
+		exec_action_sequence(exec, context, pid, wstatus);
 	}
 
 	return BOOL_TRUE;

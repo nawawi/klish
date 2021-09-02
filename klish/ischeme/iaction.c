@@ -68,6 +68,8 @@ bool_t iaction_parse(const iaction_t *info, kaction_t *action, faux_error_t *err
 			c = KACTION_COND_SUCCESS;
 		else if (!faux_str_casecmp(info->exec_on, "always"))
 			c = KACTION_COND_ALWAYS;
+		else if (!faux_str_casecmp(info->exec_on, "never"))
+			c = KACTION_COND_NEVER;
 		if ((KACTION_COND_NONE == c) || !kaction_set_exec_on(action, c)) {
 			faux_error_add(error, TAG": Illegal 'exec_on' attribute");
 			retcode = BOOL_FALSE;
@@ -161,6 +163,9 @@ char *iaction_deploy(const kaction_t *kaction, int level)
 		break;
 	case KACTION_COND_ALWAYS:
 		exec_on = "always";
+		break;
+	case KACTION_COND_NEVER:
+		exec_on = "never";
 		break;
 	default:
 		exec_on = NULL;

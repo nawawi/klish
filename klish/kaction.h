@@ -16,7 +16,8 @@ typedef enum {
 	KACTION_COND_NONE,
 	KACTION_COND_FAIL,
 	KACTION_COND_SUCCESS,
-	KACTION_COND_ALWAYS
+	KACTION_COND_ALWAYS,
+	KACTION_COND_NEVER,
 } kaction_cond_e;
 
 
@@ -39,6 +40,7 @@ bool_t kaction_set_interactive(kaction_t *action, bool_t interactive);
 
 kaction_cond_e kaction_exec_on(const kaction_t *action);
 bool_t kaction_set_exec_on(kaction_t *action, kaction_cond_e exec_on);
+bool_t kaction_meet_exec_conditions(const kaction_t *action, int current_retcode);
 
 bool_t kaction_update_retcode(const kaction_t *action);
 bool_t kaction_set_update_retcode(kaction_t *action, bool_t update_retcode);
