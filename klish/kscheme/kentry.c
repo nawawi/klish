@@ -17,6 +17,7 @@ struct kentry_s {
 	kentry_t *parent; // Parent kentry_t element
 	bool_t container; // Is entry container (element with hidden path)
 	kentry_mode_e mode; // Mode of nested ENTRYs list
+	kentry_purpose_e purpose; // Special purpose of ENTRY
 	size_t min; // Min occurs of entry
 	size_t max; // Max occurs of entry
 	char *ptype_str; // Text reference to PTYPE
@@ -51,6 +52,10 @@ KSET_BOOL(entry, container);
 // Mode
 KGET(entry, kentry_mode_e, mode);
 KSET(entry, kentry_mode_e, mode);
+
+// Purpose
+KGET(entry, kentry_purpose_e, purpose);
+KSET(entry, kentry_purpose_e, purpose);
 
 // Min occurs
 KGET(entry, size_t, min);
@@ -124,6 +129,7 @@ kentry_t *kentry_new(const char *name)
 	entry->parent = NULL;
 	entry->container = BOOL_FALSE;
 	entry->mode = KENTRY_MODE_SEQUENCE;
+	entry->purpose = KENTRY_PURPOSE_COMMON;
 	entry->min = 1;
 	entry->max = 1;
 	entry->ptype_str = NULL;
@@ -209,6 +215,7 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	// parent - orig
 	// container - orig
 	dst->mode = src->mode;
+	// purpose - orig
 	// min - orig
 	// max - orig
 	dst->ptype_str = src->ptype_str;

@@ -22,6 +22,16 @@ typedef enum {
 	KENTRY_MODE_EMPTY, // Entry must not have a nested entrys
 } kentry_mode_e;
 
+// Purpose of ENTRY
+typedef enum {
+	KENTRY_PURPOSE_NONE,
+	KENTRY_PURPOSE_COMMON, // Common entry like view/command/param
+	KENTRY_PURPOSE_PROMPT, // Prompt for view
+	KENTRY_PURPOSE_COND, // Conditional expression
+	KENTRY_PURPOSE_COMPLETION, // Engine to generate completions
+	KENTRY_PURPOSE_MAX,
+} kentry_purpose_e;
+
 
 // Number of max occurs
 typedef enum {
@@ -50,6 +60,9 @@ bool_t kentry_set_container(kentry_t *entry, bool_t container);
 // Mode
 kentry_mode_e kentry_mode(const kentry_t *entry);
 bool_t kentry_set_mode(kentry_t *entry, kentry_mode_e mode);
+// Purpose
+kentry_purpose_e kentry_purpose(const kentry_t *entry);
+bool_t kentry_set_purpose(kentry_t *entry, kentry_purpose_e purpose);
 // Min occurs
 size_t kentry_min(const kentry_t *entry);
 bool_t kentry_set_min(kentry_t *entry, size_t min);

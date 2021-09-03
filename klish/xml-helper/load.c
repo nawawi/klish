@@ -324,6 +324,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "true";
 	ientry.mode = "switch";
+	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ptype = NULL;
@@ -395,6 +396,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "true";
 	ientry.mode = "sequence";
+	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ptype = NULL;
@@ -508,6 +510,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = kxml_node_attr(element, "container");
 	ientry.mode = kxml_node_attr(element, "mode");
+	ientry.purpose = "common";
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
 	ientry.ptype = kxml_node_attr(element, "ptype");
@@ -592,6 +595,7 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "false";
 	ientry.mode = "switch";
+	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ptype = kxml_node_attr(element, "ptype");
@@ -720,6 +724,7 @@ static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = kxml_node_attr(element, "container");
 	ientry.mode = kxml_node_attr(element, "mode");;
+	ientry.purpose = kxml_node_attr(element, "common");;
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
 	ientry.ptype = kxml_node_attr(element, "ptype");
@@ -792,6 +797,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = kxml_node_attr(element, "container");
 	ientry.mode = kxml_node_attr(element, "mode");
+	ientry.purpose = kxml_node_attr(element, "purpose");
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
 	ientry.ptype = kxml_node_attr(element, "ptype");
@@ -863,6 +869,7 @@ err:
 	kxml_node_attr_free(ientry.help);
 	kxml_node_attr_free(ientry.container);
 	kxml_node_attr_free(ientry.mode);
+	kxml_node_attr_free(ientry.purpose);
 	kxml_node_attr_free(ientry.min);
 	kxml_node_attr_free(ientry.max);
 	kxml_node_attr_free(ientry.ptype);

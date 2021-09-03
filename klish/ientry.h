@@ -17,6 +17,7 @@ struct ientry_s {
 	char *help;
 	char *container;
 	char *mode;
+	char *purpose;
 	char *min;
 	char *max;
 	char *ptype;

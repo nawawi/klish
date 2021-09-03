@@ -152,6 +152,15 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="entry_purpose_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="common"/>
+			<xs:enumeration value="prompt"/>
+			<xs:enumeration value="cond"/>
+			<xs:enumeration value="completion"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:group name="entry_group_t">
 		<xs:choice>
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
@@ -168,6 +177,7 @@
 		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="container" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="mode" type="param_mode_t" use="optional" default="switch"/>
+		<xs:attribute name="purpose" type="param_purpose_t" use="optional" default="common"/>
 		<xs:attribute name="min" type="xs:string" use="optional" default="1"/>
 		<xs:attribute name="max" type="xs:string" use="optional" default="1"/>
 		<xs:attribute name="ptype" type="xs:string" use="optional"/>
