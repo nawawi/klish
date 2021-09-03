@@ -62,6 +62,11 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 
 	purpose = kpargv_purpose(pargv);
 
+	// Ignore entries with non-COMMON purpose. These entries are for special
+	// processing and will be ignored here.
+//	if (kentry_purpose(entry) != KENTRY_PURPOSE_COMMON)
+//		return KPARSE_NOTFOUND;
+
 	// Is entry candidate to resolve current arg?
 	// Container can't be a candidate.
 	if (!kentry_container(entry)) {
