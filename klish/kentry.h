@@ -106,6 +106,10 @@ ssize_t kentry_actions_len(const kentry_t *entry);
 kentry_actions_node_t *kentry_actions_iter(const kentry_t *entry);
 kaction_t *kentry_actions_each(kentry_actions_node_t **iter);
 
+// Fast access for nested entries with special purposes
+kentry_t *kentry_nested_by_purpose(const kentry_t *entry, kentry_purpose_e purpose);
+bool_t kentry_set_nested_by_purpose(kentry_t *entry, kentry_purpose_e purpose,
+	kentry_t *nested);
 
 C_DECL_END
 

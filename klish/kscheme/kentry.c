@@ -29,6 +29,8 @@ struct kentry_s {
 	bool_t filter; // Is entry filter. Filter can't have inline actions.
 	faux_list_t *entrys; // Nested ENTRYs
 	faux_list_t *actions; // Nested ACTIONs
+	// Fast links to nested entries with special purposes:
+	kentry_t* nested_by_purpose[KENTRY_PURPOSE_MAX];
 };
 
 
@@ -151,6 +153,8 @@ kentry_t *kentry_new(const char *name)
 		NULL, NULL, (void (*)(void *))kaction_free);
 	assert(entry->actions);
 
+	faux_bzero(entry->nested_by_purpose, sizeof(entry->nested_by_purpose));
+
 	return entry;
 }
 
@@ -227,6 +231,29 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	dst->filter = src->filter;
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;
+
+	return BOOL_TRUE;
+}
+
+
+kentry_t *kentry_nested_by_purpose(const kentry_t *entry, kentry_purpose_e purpose)
+{
+	assert(entry);
+	if (!entry)
+		return NULL;
+
+	return entry->nested_by_purpose[purpose];
+}
+
+
+bool_t kentry_set_nested_by_purpose(kentry_t *entry, kentry_purpose_e purpose,
+	kentry_t *nested)
+{
+	assert(entry);
+	if (!entry)
+		return BOOL_FALSE;
+
+	entry->nested_by_purpose[purpose] = nested;
 
 	return BOOL_TRUE;
 }
