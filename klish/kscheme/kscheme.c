@@ -357,6 +357,9 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	while ((nested_entry = kentry_entrys_each(&iter))) {
 		if (!kscheme_prepare_entry(scheme, nested_entry, error))
 			retcode = BOOL_FALSE;
+		// Create fast links to nested entries with special purposes
+		kentry_set_nested_by_purpose(entry,
+			kentry_purpose(nested_entry), nested_entry);
 	}
 
 	return retcode;
