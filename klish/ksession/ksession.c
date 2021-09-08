@@ -12,6 +12,7 @@
 #include <klish/kpath.h>
 #include <klish/kpargv.h>
 #include <klish/ksession.h>
+#include <klish/kexec.h>
 
 
 struct ksession_s {
@@ -78,4 +79,27 @@ void ksession_free(ksession_t *session)
 	kpath_free(session->path);
 
 	free(session);
+}
+
+
+bool_t ksession_exec_locally(ksession_t *session, const char *line,
+	int status, faux_error_t *error)
+{
+	kexec_t *exec = NULL;
+
+	assert(session);
+	if (!session)
+		return BOOL_FALSE;
+
+	// Parsing
+	exec = ksession_parse_for_exec(session, line, error);
+	if (!exec)
+		return BOOL_FALSE;
+
+	kexec_exec(exec);
+
+
+	status = status;
+
+	return BOOL_TRUE;
 }

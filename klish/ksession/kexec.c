@@ -99,6 +99,25 @@ size_t kexec_is_empty(const kexec_t *exec)
 }
 
 
+// Retcode of kexec is a retcode of its first context execution because
+// next contexts just a filters.
+bool_t kexec_retcode(const kexec_t *exec, int *status)
+{
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	if (kexec_is_empty(exec))
+		return BOOL_FALSE;
+
+	if (status)
+		*status = kcontext_retcode(
+			(kcontext_t *)faux_list_data(faux_list_head(exec->contexts)));
+
+	return BOOL_TRUE;
+}
+
+
 bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 {
 	assert(exec);
