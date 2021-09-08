@@ -60,12 +60,7 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 	if (!pargv)
 		return KPARSE_ERROR;
 
-	purpose = kpargv_purpose(pargv);
-
-	// Ignore entries with non-COMMON purpose. These entries are for special
-	// processing and will be ignored here.
-//	if (kentry_purpose(entry) != KENTRY_PURPOSE_COMMON)
-//		return KPARSE_NOTFOUND;
+	purpose = kpargv_purpose(pargv); // Purpose of parsing
 
 	// Is entry candidate to resolve current arg?
 	// Container can't be a candidate.
@@ -138,6 +133,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 		kentry_t *nested = NULL;
 
 		while ((nested = kentry_entrys_each(&iter))) {
+			// Ignore entries with non-COMMON purpose.
+			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
+				continue;
 //printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			rc = ksession_parse_arg(nested, argv_iter, pargv);
 //printf("%s\n", kpargv_status_decode(rc));
@@ -163,6 +161,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 			size_t num = 0;
 			size_t min = kentry_min(nested);
 
+			// Ignore entries with non-COMMON purpose.
+			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
+				continue;
 			// Filter out double parsing for optional entries.
 			if (kpargv_entry_exists(pargv, nested))
 				continue;
@@ -249,6 +250,11 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 	level_found = kpath_len(path);
 	while ((level = kpath_eachr(&levels_iterr))) {
 		kentry_t *current_entry = klevel_entry(level);
+		// Ignore entries with non-COMMON purpose. These entries are for
+		// special processing and will be ignored here.
+		if (kentry_purpose(current_entry) != KENTRY_PURPOSE_COMMON)
+			continue;
+		// Parsing
 		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
 		if (pstatus != KPARSE_NOTFOUND)
 			break;
