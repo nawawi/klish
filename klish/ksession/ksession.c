@@ -168,6 +168,7 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 		return BOOL_TRUE;
 
 	// Local service loop
+	eloop = faux_eloop_new(NULL);
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, session);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);

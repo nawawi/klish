@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <faux/list.h>
@@ -220,22 +221,52 @@ static bool_t kexec_prepare(kexec_t *exec)
 }
 
 
-static int exec_action(kcontext_t *context, const kaction_t *action, pid_t *pid)
+static bool_t exec_action(kcontext_t *context, const kaction_t *action,
+	pid_t *pid, int *retcode)
 {
-	context = context;
-	action = action;
-	ksym_fn fn;
+	ksym_fn fn = NULL;
 	int exitcode = 0;
+	pid_t child_pid = -1;
 
-	if (pid)
-		*pid = -1;
-
-//	printf("DDD: exec_action [%s]\n", kaction_script(action));
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+	assert(action);
+	if (!action)
+		return BOOL_FALSE;
 
 	fn = ksym_function(kaction_sym(action));
-	exitcode = fn(context);
 
-	return exitcode;
+	// Sync symbol execution
+	if (kaction_is_sync(action)) {
+		if (pid)
+			*pid = -1;
+
+		exitcode = fn(context);
+		if (retcode)
+			*retcode = exitcode;
+
+		return BOOL_TRUE;
+	}
+
+	// Unsync symbol execution i.e. using forked process
+	child_pid = fork();
+	if (child_pid == -1)
+		return BOOL_FALSE;
+
+	// Parent
+	// Save the child pid and return control. Later event loop will wait
+	// for saved pid.
+	if (child_pid != 0) {
+		if (pid)
+			*pid = child_pid;
+		return BOOL_TRUE;
+	}
+
+	// Child
+	_exit(fn(context));
+
+	return BOOL_TRUE;
 }
 
 
@@ -314,7 +345,7 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 			continue;
 		}
 
-		exitstatus = exec_action(context, action, &new_pid);
+		exec_action(context, action, &new_pid, &exitstatus);
 
 	} while (-1 == new_pid); // PID is not -1 when new process was forked
 
