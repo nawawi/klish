@@ -160,7 +160,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	}
 
 	// Parsing
-	error = faux_error_new();
+/*	error = faux_error_new();
 	exec = ksession_parse_for_exec(session->ksession, line, error);
 	faux_str_free(line);
 
@@ -178,7 +178,16 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	}
 
 	kexec_exec(exec);
+*/
 
+	{
+	int retcode = 0;
+	bool_t r = BOOL_FALSE;
+	r = ksession_exec_locally(session->ksession, line, &retcode, error);
+	if (!r)
+		printf("ksession_exec_locally() return value is false\n");
+	printf("kexec retcode is %d\n", retcode);
+	}
 
 //	ktpd_session_exec(session, exec);
 

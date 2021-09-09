@@ -326,7 +326,7 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 }
 
 
-static bool_t continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
+bool_t kexec_continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
 {
 	faux_list_node_t *iter = NULL;
 	kcontext_t *context = NULL;
@@ -360,7 +360,7 @@ bool_t kexec_exec(kexec_t *exec)
 
 	// Here no ACTIONs are executing, so pass -1 as pid of terminated
 	// ACTION's process.
-	continue_command_execution(exec, -1, 0);
+	kexec_continue_command_execution(exec, -1, 0);
 
 	return BOOL_TRUE;
 }

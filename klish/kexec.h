@@ -41,6 +41,7 @@ bool_t kexec_contexts_is_empty(const kexec_t *exec);
 kexec_contexts_node_t *kexec_contexts_iter(const kexec_t *exec);
 kcontext_t *kexec_contexts_each(kexec_contexts_node_t **iter);
 
+bool_t kexec_continue_command_execution(kexec_t *exec, pid_t pid, int wstatus);
 bool_t kexec_exec(kexec_t *exec);
 
 
