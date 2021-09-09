@@ -7,9 +7,11 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include <faux/argv.h>
 #include <faux/eloop.h>
+#include <faux/buf.h>
 #include <klish/khelper.h>
 #include <klish/kview.h>
 #include <klish/kscheme.h>
@@ -138,11 +140,47 @@ static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	kexec_t *exec = (kexec_t *)user_data;
+	ssize_t r = -1;
+	faux_buf_t *faux_buf = NULL;
+	void *linear_buf = NULL;
+
+	if (!exec)
+		return BOOL_FALSE;
+
+	faux_buf = kexec_bufout(exec);
+	assert(faux_buf);
+
+	do {
+		ssize_t really_readed = 0;
+		ssize_t linear_len =
+			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
+		// Non-blocked read. The fd became non-blocked while
+		// kexec_prepare().
+		r = read(info->fd, linear_buf, linear_len);
+		if (r > 0)
+			really_readed = r;
+		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
+	} while (r > 0);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+
+	return BOOL_TRUE;
+}
+
+
 bool_t ksession_exec_locally(ksession_t *session, const char *line,
 	int *retcode, faux_error_t *error)
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;
+	faux_buf_t *buf = NULL;
 
 	assert(session);
 	if (!session)
@@ -173,10 +211,27 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);
 	faux_eloop_add_signal(eloop, SIGCHLD, action_terminated_ev, exec);
+	faux_eloop_add_fd(eloop, kexec_stdout(exec), POLLIN,
+		action_stdout_ev, exec);
 	faux_eloop_loop(eloop);
 	faux_eloop_free(eloop);
 
 	kexec_retcode(exec, retcode);
+
+	{
+	printf("STDOUT:\n");
+	ssize_t r = 0;
+	buf = kexec_bufout(exec);
+	do {
+		void *d = NULL;
+		ssize_t really_readed = 0;
+		r = faux_buf_dread_lock_easy(buf, &d);
+		if (r > 0) {
+			really_readed = write(STDOUT_FILENO, d, r);
+		}
+		faux_buf_dread_unlock_easy(buf, really_readed);
+	} while (r > 0);
+	}
 
 	return BOOL_TRUE;
 }

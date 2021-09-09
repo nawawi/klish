@@ -7,6 +7,7 @@
 #define _klish_kexec_h
 
 #include <faux/list.h>
+#include <faux/buf.h>
 #include <klish/kcontext.h>
 
 typedef struct kexec_s kexec_t;
@@ -31,6 +32,15 @@ bool_t kexec_set_stdout(kexec_t *exec, int stdout);
 // STDERR
 int kexec_stderr(const kexec_t *exec);
 bool_t kexec_set_stderr(kexec_t *exec, int stderr);
+// BUFIN
+faux_buf_t *kexec_bufin(const kexec_t *exec);
+bool_t kexec_set_bufin(kexec_t *exec, faux_buf_t *bufin);
+// BUFOUT
+faux_buf_t *kexec_bufout(const kexec_t *exec);
+bool_t kexec_set_bufout(kexec_t *exec, faux_buf_t *bufout);
+// BUFERR
+faux_buf_t *kexec_buferr(const kexec_t *exec);
+bool_t kexec_set_buferr(kexec_t *exec, faux_buf_t *buferr);
 // Return code
 bool_t kexec_done(const kexec_t *exec);
 bool_t kexec_retcode(const kexec_t *exec, int *status);

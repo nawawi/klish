@@ -6,8 +6,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <faux/list.h>
+#include <faux/buf.h>
 #include <klish/khelper.h>
 #include <klish/kcontext.h>
 #include <klish/kexec.h>
@@ -18,6 +20,9 @@ struct kexec_s {
 	int stdin;
 	int stdout;
 	int stderr;
+	faux_buf_t *bufin;
+	faux_buf_t *bufout;
+	faux_buf_t *buferr;
 };
 
 // Dry-run
@@ -35,6 +40,18 @@ KSET(exec, int, stdout);
 // STDERR
 KGET(exec, int, stderr);
 KSET(exec, int, stderr);
+
+// BufIN
+KGET(exec, faux_buf_t *, bufin);
+KSET(exec, faux_buf_t *, bufin);
+
+// BufOUT
+KGET(exec, faux_buf_t *, bufout);
+KSET(exec, faux_buf_t *, bufout);
+
+// BufERR
+KGET(exec, faux_buf_t *, buferr);
+KSET(exec, faux_buf_t *, buferr);
 
 // CONTEXT list
 KADD_NESTED(exec, kcontext_t *, contexts);
@@ -65,6 +82,10 @@ kexec_t *kexec_new()
 	exec->stdout = -1;
 	exec->stderr = -1;
 
+	exec->bufin = faux_buf_new(0);
+	exec->bufout = faux_buf_new(0);
+	exec->buferr = faux_buf_new(0);
+
 	return exec;
 }
 
@@ -75,6 +96,10 @@ void kexec_free(kexec_t *exec)
 		return;
 
 	faux_list_free(exec->contexts);
+
+	faux_buf_free(exec->bufin);
+	faux_buf_free(exec->bufout);
+	faux_buf_free(exec->buferr);
 
 	free(exec);
 }
@@ -165,6 +190,7 @@ static bool_t kexec_prepare(kexec_t *exec)
 	int pipefd[2] = {};
 	faux_list_node_t *iter = NULL;
 	int global_stderr = -1;
+	int fflags = 0;
 
 	assert(exec);
 	if (!exec)
@@ -187,6 +213,9 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// STDOUT
 	if (pipe(pipefd) < 0)
 		return BOOL_FALSE;
+	// Read end of 'stdout' pipe must be non-blocked
+	fflags = fcntl(pipefd[0], F_GETFL);
+	fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
 	kexec_set_stdout(exec, pipefd[0]); // Read end
 	kcontext_set_stdout(faux_list_data(faux_list_tail(exec->contexts)),
 		pipefd[1]); // Write end
@@ -194,6 +223,9 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// STDERR
 	if (pipe(pipefd) < 0)
 		return BOOL_FALSE;
+	// Read end of 'stderr' pipe must be non-blocked
+	fflags = fcntl(pipefd[0], F_GETFL);
+	fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
 	kexec_set_stderr(exec, pipefd[0]); // Read end
 	// STDERR write end will be set to all list members as stderr
 	global_stderr = pipefd[1]; // Write end
@@ -264,6 +296,10 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 	}
 
 	// Child
+	dup2(kcontext_stdin(context), STDIN_FILENO);
+	dup2(kcontext_stdout(context), STDOUT_FILENO);
+	dup2(kcontext_stderr(context), STDERR_FILENO);
+
 	_exit(fn(context));
 
 	return BOOL_TRUE;
