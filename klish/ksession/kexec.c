@@ -99,8 +99,29 @@ size_t kexec_is_empty(const kexec_t *exec)
 }
 
 
+// kexec is done when all the kexec's contexts are done
+bool_t kexec_done(const kexec_t *exec)
+{
+	faux_list_node_t *iter = NULL;
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		if (!kcontext_done(context))
+			return BOOL_FALSE;
+	}
+
+	return BOOL_TRUE;
+}
+
+
 // Retcode of kexec is a retcode of its first context execution because
-// next contexts just a filters.
+// next contexts just a filters. Retcode valid if kexec is done. Else current
+// retcode is non-valid and will not be returned at all.
 bool_t kexec_retcode(const kexec_t *exec, int *status)
 {
 	assert(exec);
@@ -108,6 +129,9 @@ bool_t kexec_retcode(const kexec_t *exec, int *status)
 		return BOOL_FALSE;
 
 	if (kexec_is_empty(exec))
+		return BOOL_FALSE;
+
+	if (!kexec_done(exec)) // Unfinished execution
 		return BOOL_FALSE;
 
 	if (status)

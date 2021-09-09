@@ -32,6 +32,7 @@ bool_t kexec_set_stdout(kexec_t *exec, int stdout);
 int kexec_stderr(const kexec_t *exec);
 bool_t kexec_set_stderr(kexec_t *exec, int stderr);
 // Return code
+bool_t kexec_done(const kexec_t *exec);
 bool_t kexec_retcode(const kexec_t *exec, int *status);
 // CONTEXTs
 bool_t kexec_add_contexts(kexec_t *exec, kcontext_t *context);

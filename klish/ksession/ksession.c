@@ -83,7 +83,7 @@ void ksession_free(ksession_t *session)
 
 
 bool_t ksession_exec_locally(ksession_t *session, const char *line,
-	int status, faux_error_t *error)
+	int *retcode, faux_error_t *error)
 {
 	kexec_t *exec = NULL;
 
@@ -96,10 +96,10 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 	if (!exec)
 		return BOOL_FALSE;
 
-	kexec_exec(exec);
+	if (!kexec_exec(exec))
+		return BOOL_FALSE; // Something went wrong
 
-
-	status = status;
+	kexec_retcode(exec, retcode);
 
 	return BOOL_TRUE;
 }
