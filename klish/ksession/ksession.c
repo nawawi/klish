@@ -220,6 +220,7 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 
 	{
 	printf("STDOUT:\n");
+	fflush(stdout);
 	ssize_t r = 0;
 	buf = kexec_bufout(exec);
 	do {

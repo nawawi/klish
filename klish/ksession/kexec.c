@@ -253,44 +253,99 @@ static bool_t kexec_prepare(kexec_t *exec)
 }
 
 
-static bool_t exec_action(kcontext_t *context, const kaction_t *action,
+// === SYNC symbol execution
+// The function will be executed right here. It's necessary for
+// navigation implementation for example. To grab function output the
+// service process will be forked. It gets output and stores it to the
+// internal buffer. After sym function return grabber will write
+// buffered data back. So grabber will simulate async sym execution.
+static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 	pid_t *pid, int *retcode)
 {
 	ksym_fn fn = NULL;
 	int exitcode = 0;
 	pid_t child_pid = -1;
+	int pipefd[2] = {};
+//	int fflags = 0;
 
-	assert(context);
-	if (!context)
-		return BOOL_FALSE;
-	assert(action);
-	if (!action)
+	// Create pipe beetween sym function and grabber
+	if (pipe(pipefd) < 0)
 		return BOOL_FALSE;
 
 	fn = ksym_function(kaction_sym(action));
 
-	// === SYNC symbol execution
-	// The function will be executed right here. It's necessary for
-	// navigation implementation for example. To grab function output the
-	// service process will be forked. It gets output and stores it to the
-	// internal buffer. After sym function return grabber will write
-	// buffered data back. So grabber will simulate async sym execution.
-	if (kaction_is_sync(action)) {
+	fflush(stdout);
+	fflush(stderr);
+
+	// Fork the grabber
+	child_pid = fork();
+	if (child_pid == -1) {
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return BOOL_FALSE;
+	}
+
+	// Parent
+	if (child_pid != 0) {
+		int saved_stdout = -1;
+
+		// Save pid of grabber
 		if (pid)
-			*pid = -1;
+			*pid = child_pid;
+
+		saved_stdout = dup(STDOUT_FILENO);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[0]);
+		close(pipefd[1]);
 
 		exitcode = fn(context);
 		if (retcode)
 			*retcode = exitcode;
 
+		fflush(stdout);
+		fflush(stderr);
+		dup2(saved_stdout, STDOUT_FILENO);
+		close(saved_stdout);
+
 		return BOOL_TRUE;
 	}
 
-	// === ASYNC symbol execution
-	// The process will be forked and sym will be executed there.
-	// The parent will save forked process's pid and immediately return
-	// control to event loop which will get forked process stdout and
-	// wait for process termination.
+	// Child (Output grabber)
+	dup2(pipefd[0], STDIN_FILENO);
+	close(pipefd[0]);
+	close(pipefd[1]);
+	dup2(kcontext_stdout(context), STDOUT_FILENO);
+	dup2(kcontext_stderr(context), STDERR_FILENO);
+
+	char buf[100];
+	int r = -1;
+	
+	write(STDOUT_FILENO, "grabber:", 8);
+	r = read(STDIN_FILENO, buf, 100);
+	write(STDOUT_FILENO, buf, r);
+
+	fflush(stdout);
+	fflush(stderr);
+
+	_exit(0);
+
+	return BOOL_TRUE;
+}
+
+
+// === ASYNC symbol execution
+// The process will be forked and sym will be executed there.
+// The parent will save forked process's pid and immediately return
+// control to event loop which will get forked process stdout and
+// wait for process termination.
+static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
+	pid_t *pid)
+{
+	ksym_fn fn = NULL;
+	int exitcode = 0;
+	pid_t child_pid = -1;
+
+	fn = ksym_function(kaction_sym(action));
 
 	// Oh, it's amazing world of stdio!
 	// Flush buffers before fork() because buffer content will be inherited
@@ -332,12 +387,28 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 }
 
 
+static bool_t exec_action(kcontext_t *context, const kaction_t *action,
+	pid_t *pid, int *retcode)
+{
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+	assert(action);
+	if (!action)
+		return BOOL_FALSE;
+
+	if (kaction_is_sync(action))
+		return exec_action_sync(context, action, pid, retcode);
+
+	return exec_action_async(context, action, pid);
+}
+
+
 static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 	pid_t pid, int wstatus)
 {
 	faux_list_node_t *iter = NULL;
 	int exitstatus = WEXITSTATUS(wstatus);
-	int *pexitstatus = &exitstatus;
 	pid_t new_pid = -1; // PID of newly forked ACTION process
 
 	assert(context);
@@ -353,24 +424,29 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 
 	// Here we know that given PID is our PID
 	iter = kcontext_action_iter(context); // Get saved current ACTION
-	do {
-		faux_list_t *actions = NULL;
-		const kaction_t *action = NULL;
 
-		// Compute new value for retcode.
-		// Here iter is a pointer to previous action but not new.
-		// If iter == NULL then it will be a first ACTION from the sequence.
-		if (iter && pexitstatus) {
-			const kaction_t *terminated_action = NULL;
-			terminated_action = faux_list_data(iter);
-			assert(terminated_action);
-			if (kaction_update_retcode(terminated_action))
-				kcontext_set_retcode(context, *pexitstatus);
-		}
+	// ASYNC: Compute new value for retcode.
+	// Here iter is a pointer to previous action but not new.
+	// It's for async actions only. Sync actions will change global
+	// retcode after the exec_action() invocation.
+	if (iter) {
+		const kaction_t *terminated_action = faux_list_data(iter);
+		assert(terminated_action);
+		if (!kaction_is_sync(terminated_action) &&
+			kaction_update_retcode(terminated_action))
+			kcontext_set_retcode(context, exitstatus);
+	}
+
+	// Loop is needed because some ACTIONs will be skipped due to specified
+	// execution conditions. So try next actions.
+	do {
+		const kaction_t *action = NULL;
+		bool_t is_sync = BOOL_FALSE;
 
 		// Get next ACTION from sequence
 		if (!iter) { // Is it the first ACTION within list
-			actions = kentry_actions(kpargv_command(kcontext_pargv(context)));
+			faux_list_t *actions =
+				kentry_actions(kpargv_command(kcontext_pargv(context)));
 			assert(actions);
 			iter = faux_list_head(actions);
 		} else {
@@ -378,42 +454,40 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 		}
 		kcontext_set_action_iter(context, iter);
 
-		// Was it end of ACTION sequence?
+		// Is it end of ACTION sequence?
 		if (!iter) {
 			kcontext_set_done(context, BOOL_TRUE);
-			break;
+			return BOOL_TRUE;
 		}
-
-		// Not all ACTIONs has an exit status. Some can have condition to
-		// skip real execution. So they has no exit status.
-		pexitstatus = NULL;
 
 		// Get new ACTION to execute
 		action = (const kaction_t *)faux_list_data(iter);
 		assert(action);
 
 		// Check for previous retcode to find out if next command must
-		// be executed.
+		// be executed or skipped.
 		if (!kaction_meet_exec_conditions(action, kcontext_retcode(context)))
-			continue; // Skip execution
-
-		// Here we know that process will be executed. Dry-run mode is a
-		// pseudo-execution too i.e. ACTION has exit status.
-		pexitstatus = &exitstatus;
+			continue; // Skip action, try next one
 
 		// Check for dry-run flag and 'permanent' feature of ACTION.
 		if (kexec_dry_run(exec) && !kaction_permanent(action)) {
+			is_sync = BOOL_TRUE; // Simulate sync action
 			exitstatus = 0; // Exit status while dry-run is always 0
-			continue;
+		 } else { // Normal execution
+			is_sync = kaction_is_sync(action);
+			exec_action(context, action, &new_pid, &exitstatus);
 		}
 
-		exec_action(context, action, &new_pid, &exitstatus);
+		// SYNC: Compute new value for retcode.
+		// Sync actions return retcode immediatelly. Their forked
+		// processes are for output handling only.
+		if (is_sync && kaction_update_retcode(action))
+			kcontext_set_retcode(context, exitstatus);
 
 	} while (-1 == new_pid); // PID is not -1 when new process was forked
 
 	// Save PID of newly created process
-	if (new_pid != -1) // It means that process was fork()ed
-		kcontext_set_pid(context, new_pid);
+	kcontext_set_pid(context, new_pid);
 
 	return BOOL_TRUE;
 }
