@@ -269,7 +269,12 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 
 	fn = ksym_function(kaction_sym(action));
 
-	// Sync symbol execution
+	// === SYNC symbol execution
+	// The function will be executed right here. It's necessary for
+	// navigation implementation for example. To grab function output the
+	// service process will be forked. It gets output and stores it to the
+	// internal buffer. After sym function return grabber will write
+	// buffered data back. So grabber will simulate async sym execution.
 	if (kaction_is_sync(action)) {
 		if (pid)
 			*pid = -1;
@@ -281,6 +286,12 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 		return BOOL_TRUE;
 	}
 
+	// === ASYNC symbol execution
+	// The process will be forked and sym will be executed there.
+	// The parent will save forked process's pid and immediately return
+	// control to event loop which will get forked process stdout and
+	// wait for process termination.
+
 	// Oh, it's amazing world of stdio!
 	// Flush buffers before fork() because buffer content will be inherited
 	// by child. Moreover dup2() can replace old stdout file descriptor by
@@ -289,7 +300,6 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 	fflush(stdout);
 	fflush(stderr);
 
-	// Unsync symbol execution i.e. using forked process
 	child_pid = fork();
 	if (child_pid == -1)
 		return BOOL_FALSE;
