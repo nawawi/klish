@@ -281,6 +281,14 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 		return BOOL_TRUE;
 	}
 
+	// Oh, it's amazing world of stdio!
+	// Flush buffers before fork() because buffer content will be inherited
+	// by child. Moreover dup2() can replace old stdout file descriptor by
+	// the new one but buffer linked with stdout stream will remain the same.
+	// It must be empty.
+	fflush(stdout);
+	fflush(stderr);
+
 	// Unsync symbol execution i.e. using forked process
 	child_pid = fork();
 	if (child_pid == -1)
@@ -300,7 +308,15 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 	dup2(kcontext_stdout(context), STDOUT_FILENO);
 	dup2(kcontext_stderr(context), STDERR_FILENO);
 
-	_exit(fn(context));
+	exitcode = fn(context);
+	// We will use _exit() later so stdio streams will remain unflushed.
+	// Some output data can be lost. Flush necessary streams here.
+	fflush(stdout);
+	fflush(stderr);
+	// Use _exit() but not exit() to don't flush all the stdio streams. It
+	// can be dangerous because parent can have a lot of streams inhereted
+	// by child process.
+	_exit(exitcode);
 
 	return BOOL_TRUE;
 }
