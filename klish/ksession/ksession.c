@@ -180,7 +180,6 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;
-	faux_buf_t *buf = NULL;
 
 	assert(session);
 	if (!session)
@@ -194,16 +193,22 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 	// Session status can be changed while parsing because it can execute
 	// nested ksession_exec_locally() to check for PTYPEs, CONDitions etc.
 	// So check for 'done' flag to propagate it.
-	if (ksession_done(session))
+	if (ksession_done(session)) {
+		kexec_free(exec);
 		return BOOL_FALSE; // Because action is not completed
+	}
 
 	// Execute kexec and then wait for completion using local Eloop
-	if (!kexec_exec(exec))
+	if (!kexec_exec(exec)) {
+		kexec_free(exec);
 		return BOOL_FALSE; // Something went wrong
-	// If kexec contains only sync ACTIONs then we don't need event loop
-	// and can return here.
-	if (kexec_retcode(exec, retcode))
+	}
+	// If kexec contains only non-exec (for example dry-run) ACTIONs then
+	// we don't need event loop and can return here.
+	if (kexec_retcode(exec, retcode)) {
+		kexec_free(exec);
 		return BOOL_TRUE;
+	}
 
 	// Local service loop
 	eloop = faux_eloop_new(NULL);
@@ -218,21 +223,25 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 
 	kexec_retcode(exec, retcode);
 
+	// Debug only
 	{
-	printf("STDOUT:\n");
-	fflush(stdout);
-	ssize_t r = 0;
-	buf = kexec_bufout(exec);
-	do {
-		void *d = NULL;
-		ssize_t really_readed = 0;
-		r = faux_buf_dread_lock_easy(buf, &d);
-		if (r > 0) {
-			really_readed = write(STDOUT_FILENO, d, r);
-		}
-		faux_buf_dread_unlock_easy(buf, really_readed);
-	} while (r > 0);
+		faux_buf_t *buf = NULL;
+		printf("STDOUT:\n");
+		fflush(stdout);
+		ssize_t r = 0;
+		buf = kexec_bufout(exec);
+		do {
+			void *d = NULL;
+			ssize_t really_readed = 0;
+			r = faux_buf_dread_lock_easy(buf, &d);
+			if (r > 0) {
+				really_readed = write(STDOUT_FILENO, d, r);
+			}
+			faux_buf_dread_unlock_easy(buf, really_readed);
+		} while (r > 0);
 	}
+
+	kexec_free(exec);
 
 	return BOOL_TRUE;
 }

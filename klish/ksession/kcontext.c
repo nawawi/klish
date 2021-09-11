@@ -107,5 +107,7 @@ void kcontext_free(kcontext_t *context)
 	if (!context)
 		return;
 
+	kpargv_free(context->pargv);
+
 	faux_free(context);
 }

@@ -274,6 +274,7 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 
 	fn = ksym_function(kaction_sym(action));
 
+	// Prepare streams before fork
 	fflush(stdout);
 	fflush(stderr);
 
@@ -293,15 +294,18 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 		if (pid)
 			*pid = child_pid;
 
+		// Temporarily replace orig output stream by pipe
 		saved_stdout = dup(STDOUT_FILENO);
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[0]);
 		close(pipefd[1]);
 
+		// Execute sym function right here
 		exitcode = fn(context);
 		if (retcode)
 			*retcode = exitcode;
 
+		// Restore orig output stream
 		fflush(stdout);
 		fflush(stderr);
 		dup2(saved_stdout, STDOUT_FILENO);

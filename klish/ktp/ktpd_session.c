@@ -184,6 +184,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *session, faux_msg_t *msg)
 	int retcode = 0;
 	bool_t r = BOOL_FALSE;
 	r = ksession_exec_locally(session->ksession, line, &retcode, error);
+	faux_str_free(line);
 	if (!r)
 		printf("ksession_exec_locally() return value is false\n");
 	printf("kexec retcode is %d\n", retcode);
