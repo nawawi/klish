@@ -265,12 +265,17 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 	ksym_fn fn = NULL;
 	int exitcode = 0;
 	pid_t child_pid = -1;
-	int pipefd[2] = {};
-//	int fflags = 0;
+	int pipe_stdout[2] = {};
+	int pipe_stderr[2] = {};
 
-	// Create pipe beetween sym function and grabber
-	if (pipe(pipefd) < 0)
+	// Create pipes beetween sym function and grabber
+	if (pipe(pipe_stdout) < 0)
 		return BOOL_FALSE;
+	if (pipe(pipe_stderr) < 0) {
+		close(pipe_stdout[0]);
+		close(pipe_stdout[1]);
+		return BOOL_FALSE;
+	}
 
 	fn = ksym_function(kaction_sym(action));
 
@@ -281,55 +286,58 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 	// Fork the grabber
 	child_pid = fork();
 	if (child_pid == -1) {
-		close(pipefd[0]);
-		close(pipefd[1]);
+		close(pipe_stdout[0]);
+		close(pipe_stdout[1]);
+		close(pipe_stderr[0]);
+		close(pipe_stderr[1]);
 		return BOOL_FALSE;
 	}
 
 	// Parent
 	if (child_pid != 0) {
 		int saved_stdout = -1;
+		int saved_stderr = -1;
 
 		// Save pid of grabber
 		if (pid)
 			*pid = child_pid;
 
-		// Temporarily replace orig output stream by pipe
+		// Temporarily replace orig output streams by pipe
+		// stdout
 		saved_stdout = dup(STDOUT_FILENO);
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[0]);
-		close(pipefd[1]);
+		dup2(pipe_stdout[1], STDOUT_FILENO);
+		close(pipe_stdout[0]);
+		close(pipe_stdout[1]);
+		// stderr
+		saved_stderr = dup(STDERR_FILENO);
+		dup2(pipe_stderr[1], STDERR_FILENO);
+		close(pipe_stderr[0]);
+		close(pipe_stderr[1]);
 
 		// Execute sym function right here
 		exitcode = fn(context);
 		if (retcode)
 			*retcode = exitcode;
 
-		// Restore orig output stream
+		// Restore orig output streams
+		// stdout
 		fflush(stdout);
-		fflush(stderr);
 		dup2(saved_stdout, STDOUT_FILENO);
 		close(saved_stdout);
+		// stderr
+		fflush(stderr);
+		dup2(saved_stderr, STDERR_FILENO);
+		close(saved_stderr);
 
 		return BOOL_TRUE;
 	}
 
 	// Child (Output grabber)
-	dup2(pipefd[0], STDIN_FILENO);
-	close(pipefd[0]);
-	close(pipefd[1]);
-	dup2(kcontext_stdout(context), STDOUT_FILENO);
-	dup2(kcontext_stderr(context), STDERR_FILENO);
+	close(pipe_stdout[1]);
+	close(pipe_stderr[1]);
 
-	char buf[100];
-	int r = -1;
-	
-	write(STDOUT_FILENO, "grabber:", 8);
-	r = read(STDIN_FILENO, buf, 100);
-	write(STDOUT_FILENO, buf, r);
-
-	fflush(stdout);
-	fflush(stderr);
+	{
+	}
 
 	_exit(0);
 
