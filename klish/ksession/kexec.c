@@ -101,6 +101,13 @@ void kexec_free(kexec_t *exec)
 
 	faux_list_free(exec->contexts);
 
+	if (exec->stdin != -1)
+		close(exec->stdin);
+	if (exec->stdout != -1)
+		close(exec->stdout);
+	if (exec->stderr != -1)
+		close(exec->stderr);
+
 	faux_buf_free(exec->bufin);
 	faux_buf_free(exec->bufout);
 	faux_buf_free(exec->buferr);

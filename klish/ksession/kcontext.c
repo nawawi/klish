@@ -109,5 +109,12 @@ void kcontext_free(kcontext_t *context)
 
 	kpargv_free(context->pargv);
 
+	if (context->stdin != -1)
+		close(context->stdin);
+	if (context->stdout != -1)
+		close(context->stdout);
+	if (context->stderr != -1)
+		close(context->stderr);
+
 	faux_free(context);
 }
