@@ -41,8 +41,6 @@ bool_t ktpd_session_connected(ktpd_session_t *session);
 int ktpd_session_fd(const ktpd_session_t *session);
 bool_t ktpd_session_async_in(ktpd_session_t *session);
 bool_t ktpd_session_async_out(ktpd_session_t *session);
-bool_t ktpd_session_terminated_action(ktpd_session_t *session,
-	pid_t pid, int wstatus);
 
 C_DECL_END
 

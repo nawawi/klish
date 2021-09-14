@@ -211,10 +211,6 @@ err: // For listen daemon
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
-	// Theoretically eloop can use SIGCHLD for different child processes but
-	// not only for single ktpd_session's ACTIONs so it's not goot to grab
-	// whole SIGCHLD event handler by ktpd_session object.
-	faux_eloop_add_signal(eloop, SIGCHLD, wait_for_actions_ev, ktpd_session);
 	// Main service loop
 	faux_eloop_loop(eloop);
 
@@ -535,31 +531,6 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	type = type;
 	associated_data = associated_data;
 	user_data = user_data;
-
-	return BOOL_TRUE;
-}
-
-
-/** @brief Wait for child processes (ACTIONs).
- */
-static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	int wstatus = 0;
-	pid_t child_pid = -1;
-	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
-
-	// Wait for any child process. Doesn't block.
-	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
-		if (!ktpd_session)
-			continue;
-		ktpd_session_terminated_action(ktpd_session, child_pid, wstatus);
-	}
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
 
 	return BOOL_TRUE;
 }
