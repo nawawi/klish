@@ -16,7 +16,7 @@
 
 typedef enum {
 	KTP_SESSION_STATE_DISCONNECTED = 'd',
-	KTP_SESSION_STATE_NOT_AUTHORIZED = 'a',
+	KTP_SESSION_STATE_UNAUTHORIZED = 'a',
 	KTP_SESSION_STATE_IDLE = 'i',
 	KTP_SESSION_STATE_WAIT_FOR_COMPLETION = 'v',
 	KTP_SESSION_STATE_WAIT_FOR_HELP = 'h',
@@ -42,7 +42,7 @@ ktp_session_t *ktp_session_new(int sock)
 		return NULL;
 
 	// Init
-	session->state = KTP_SESSION_STATE_NOT_AUTHORIZED;
+	session->state = KTP_SESSION_STATE_UNAUTHORIZED;
 	session->net = faux_net_new();
 	assert(session->net);
 	faux_net_set_fd(session->net, sock);
