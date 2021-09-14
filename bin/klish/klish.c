@@ -72,6 +72,15 @@ int main(int argc, char **argv)
 				faux_str_free(error);
 			}
 		}
+		{
+			int retcode = -1;
+			uint8_t *retcode8bit = NULL;
+			if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
+				(void **)&retcode8bit, NULL)) {
+				retcode = (int)(*retcode8bit);
+				printf("Retcode: %d\n", retcode);
+			}
+		}
 		faux_msg_free(msg);
 	}
 

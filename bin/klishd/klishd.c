@@ -63,8 +63,6 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
 
 
 /** @brief Main function

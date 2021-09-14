@@ -35,6 +35,7 @@ typedef enum {
 	KTP_PARAM_NULL = '\0',
 	KTP_PARAM_LINE = 'L',
 	KTP_PARAM_ERROR = 'E',
+	KTP_PARAM_RETCODE = 'R',
 } ktp_param_e;
 
 
