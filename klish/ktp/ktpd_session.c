@@ -129,19 +129,19 @@ static bool_t check_ktp_header(faux_hdr_t *hdr)
 }
 
 
-static bool_t ktpd_session_send_error(ktpd_session_t *session,
+static bool_t ktpd_session_send_error(ktpd_session_t *ktpd,
 	ktp_cmd_e cmd, const char *error)
 {
 	faux_msg_t *msg = NULL;
 
-	assert(session);
-	if (!session)
+	assert(ktpd);
+	if (!ktpd)
 		return BOOL_FALSE;
 
 	msg = ktp_msg_preform(cmd, KTP_STATUS_ERROR);
 	if (error)
 		faux_msg_add_param(msg, KTP_PARAM_ERROR, error, strlen(error));
-	faux_msg_send_async(msg, session->async);
+	faux_msg_send_async(msg, ktpd->async);
 	faux_msg_free(msg);
 
 	return BOOL_TRUE;
@@ -199,27 +199,27 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
-static bool_t ktpd_session_process_completion(ktpd_session_t *session, faux_msg_t *msg)
+static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
 	faux_msg_t *ack = NULL;
 	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_COMPLETION_ACK;
 
-	assert(session);
+	assert(ktpd);
 	assert(msg);
 
 	// Get line from message
 	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
-		ktpd_session_send_error(session, cmd, NULL);
+		ktpd_session_send_error(ktpd, cmd, NULL);
 		return BOOL_FALSE;
 	}
 
 	// Parsing
-	pargv = ksession_parse_for_completion(session->session, line);
+	pargv = ksession_parse_for_completion(ktpd->session, line);
 	faux_str_free(line);
 	if (!pargv) {
-		ktpd_session_send_error(session, cmd, NULL);
+		ktpd_session_send_error(ktpd, cmd, NULL);
 		return BOOL_FALSE;
 	}
 	kpargv_debug(pargv);
@@ -228,49 +228,49 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *session, faux_msg_
 
 	// Send ACK message
 	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
-	faux_msg_send_async(ack, session->async);
+	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
 	return BOOL_TRUE;
 }
 
 
-static bool_t ktpd_session_process_help(ktpd_session_t *session, faux_msg_t *msg)
+static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
 	faux_msg_t *ack = NULL;
 //	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_HELP_ACK;
 
-	assert(session);
+	assert(ktpd);
 	assert(msg);
 
 	// Get line from message
 	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
-		ktpd_session_send_error(session, cmd, NULL);
+		ktpd_session_send_error(ktpd, cmd, NULL);
 		return BOOL_FALSE;
 	}
 
 /*	// Parsing
-	pargv = ksession_parse_line(session->session, line, KPURPOSE_HELP);
+	pargv = ksession_parse_line(ktpd->session, line, KPURPOSE_HELP);
 	faux_str_free(line);
 	kpargv_free(pargv);
 */
 	// Send ACK message
 	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
-	faux_msg_send_async(ack, session->async);
+	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
 	return BOOL_TRUE;
 }
 
 
-static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
+static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
 
-	assert(session);
-	if (!session)
+	assert(ktpd);
+	if (!ktpd)
 		return BOOL_FALSE;
 	assert(msg);
 	if (!msg)
@@ -279,13 +279,13 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *session, faux_msg_t *msg)
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
 	case KTP_CMD:
-		ktpd_session_process_cmd(session, msg);
+		ktpd_session_process_cmd(ktpd, msg);
 		break;
 	case KTP_COMPLETION:
-		ktpd_session_process_completion(session, msg);
+		ktpd_session_process_completion(ktpd, msg);
 		break;
 	case KTP_HELP:
-		ktpd_session_process_help(session, msg);
+		ktpd_session_process_help(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
@@ -435,14 +435,14 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	ktpd_session_t *ktpd_session = (ktpd_session_t *)user_data;
+	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
 
-	assert(ktpd_session);
+	assert(ktpd);
 
 	// Write data
 	if (info->revents & POLLOUT) {
 		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
-		if (!ktpd_session_async_out(ktpd_session)) {
+		if (!ktpd_session_async_out(ktpd)) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
 			syslog(LOG_ERR, "Problem with async output");
@@ -452,7 +452,7 @@ static bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	// Read data
 	if (info->revents & POLLIN) {
-		if (!ktpd_session_async_in(ktpd_session)) {
+		if (!ktpd_session_async_in(ktpd)) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
 			syslog(LOG_ERR, "Problem with async input");
@@ -611,12 +611,12 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 
 
 #if 0
-static void ktpd_session_bad_socket(ktpd_session_t *session)
+static void ktpd_session_bad_socket(ktpd_session_t *ktpd)
 {
-	assert(session);
-	if (!session)
+	assert(ktpd);
+	if (!ktpd)
 		return;
 
-	session->state = KTPD_SESSION_STATE_DISCONNECTED;
+	ktpd->state = KTPD_SESSION_STATE_DISCONNECTED;
 }
 #endif
