@@ -9,9 +9,12 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <syslog.h>
 
 #include <faux/str.h>
 #include <faux/msg.h>
+#include <faux/eloop.h>
+#include <faux/async.h>
 #include <klish/ktp_session.h>
 
 
@@ -64,6 +67,25 @@ int ktp_accept(int listen_sock)
 }
 
 
+bool_t ktp_check_header(faux_hdr_t *hdr)
+{
+	assert(hdr);
+	if (!hdr)
+		return BOOL_FALSE;
+
+	if (faux_hdr_magic(hdr) != KTP_MAGIC)
+		return BOOL_FALSE;
+	if (faux_hdr_major(hdr) != KTP_MAJOR)
+		return BOOL_FALSE;
+	if (faux_hdr_minor(hdr) != KTP_MINOR)
+		return BOOL_FALSE;
+	if (faux_hdr_len(hdr) < (int)sizeof(*hdr))
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
 faux_msg_t *ktp_msg_preform(ktp_cmd_e cmd, uint32_t status)
 {
 	faux_msg_t *msg = NULL;
@@ -76,4 +98,78 @@ faux_msg_t *ktp_msg_preform(ktp_cmd_e cmd, uint32_t status)
 	faux_msg_set_status(msg, status);
 
 	return msg;
+}
+
+
+bool_t ktp_send_error(faux_async_t *async, ktp_cmd_e cmd, const char *error)
+{
+	faux_msg_t *msg = NULL;
+
+	assert(async);
+	if (!async)
+		return BOOL_FALSE;
+
+	msg = ktp_msg_preform(cmd, KTP_STATUS_ERROR);
+	if (error)
+		faux_msg_add_param(msg, KTP_PARAM_ERROR, error, strlen(error));
+	faux_msg_send_async(msg, async);
+	faux_msg_free(msg);
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_peer_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	faux_async_t *async = (faux_async_t *)user_data;
+
+	assert(async);
+
+	// Write data
+	if (info->revents & POLLOUT) {
+		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
+		if (faux_async_out(async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async output");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// Read data
+	if (info->revents & POLLIN) {
+		if (faux_async_in(async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// EOF
+	if (info->revents & POLLHUP) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	type = type; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_stall_cb(faux_async_t *async, size_t len, void *user_data)
+{
+	faux_eloop_t *eloop = (faux_eloop_t *)user_data;
+
+	assert(eloop);
+
+	faux_eloop_include_fd_event(eloop, faux_async_fd(async), POLLOUT);
+
+	len = len; // Happy compiler
+
+	return BOOL_TRUE;
 }
