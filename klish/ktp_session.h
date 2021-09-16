@@ -40,6 +40,7 @@ bool_t ktp_session_done(const ktp_session_t *ktp);
 bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done);
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
+bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line, int *retcode);
 
 
 // Server KTP session

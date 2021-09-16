@@ -28,8 +28,8 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int unix_sock = -1;
 	ktp_session_t *session = NULL;
-	faux_msg_t *msg = NULL;
-	faux_net_t *net = NULL;
+//	faux_msg_t *msg = NULL;
+//	faux_net_t *net = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -50,9 +50,13 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
-
+/*
 	net = faux_net_new();
 	faux_net_set_fd(net, ktp_session_fd(session));
+*/
+	ktp_session_req_cmd(session, opts->line, NULL);
+
+/*
 	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
 	faux_msg_set_cmd(msg, KTP_CMD);
 	if (opts->line)
@@ -85,6 +89,8 @@ int main(int argc, char **argv)
 	}
 
 	faux_net_free(net);
+*/
+
 
 	retval = 0;
 
