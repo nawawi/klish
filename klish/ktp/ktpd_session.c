@@ -434,7 +434,18 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	buf = malloc(len);
 	faux_buf_read(faux_buf, buf, len);
+
+
 write(STDOUT_FILENO, buf, len);
+{
+	faux_msg_t *ack = NULL;
+		ack = ktp_msg_preform(KTP_STDOUT, KTP_STATUS_NONE);
+		faux_msg_add_param(ack, KTP_PARAM_LINE, buf, len);
+		faux_msg_send_async(ack, ktpd->async);
+		faux_msg_free(ack);
+
+
+}
 	free(buf);
 
 	// Happy compiler
