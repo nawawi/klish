@@ -22,14 +22,18 @@
 #include "private.h"
 
 
+static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *user_data);
+static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *user_data);
+
+
 int main(int argc, char **argv)
 {
 	int retval = -1;
 	struct options *opts = NULL;
 	int unix_sock = -1;
-	ktp_session_t *session = NULL;
-//	faux_msg_t *msg = NULL;
-//	faux_net_t *net = NULL;
+	ktp_session_t *ktp = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -44,60 +48,48 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't connect to server\n");
 		goto err;
 	}
-	session = ktp_session_new(unix_sock);
-	assert(session);
-	if (!session) {
+	ktp = ktp_session_new(unix_sock);
+	assert(ktp);
+	if (!ktp) {
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
-/*
-	net = faux_net_new();
-	faux_net_set_fd(net, ktp_session_fd(session));
-*/
-	ktp_session_req_cmd(session, opts->line, NULL);
+	ktp_session_set_stdout_cb(ktp, stdout_cb, NULL);
+	ktp_session_set_stderr_cb(ktp, stderr_cb, NULL);
 
-/*
-	msg = faux_msg_new(KTP_MAGIC, KTP_MAJOR, KTP_MINOR);
-	faux_msg_set_cmd(msg, KTP_CMD);
-	if (opts->line)
-		faux_msg_add_param(msg, KTP_PARAM_LINE,
-			opts->line, strlen(opts->line));
-	faux_msg_debug(msg);
-	faux_msg_send(msg, net);
-	faux_msg_free(msg);
-
-	msg = faux_msg_recv(net);
-	if (msg) {
-		faux_msg_debug(msg);
-		if (KTP_STATUS_IS_ERROR(faux_msg_get_status(msg))) {
-			char *error = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
-			if (error) {
-				printf("Error: %s\n", error);
-				faux_str_free(error);
-			}
-		}
-		{
-			int retcode = -1;
-			uint8_t *retcode8bit = NULL;
-			if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
-				(void **)&retcode8bit, NULL)) {
-				retcode = (int)(*retcode8bit);
-				printf("Retcode: %d\n", retcode);
-			}
-		}
-		faux_msg_free(msg);
-	}
-
-	faux_net_free(net);
-*/
-
+	ktp_session_req_cmd(ktp, opts->line, NULL);
 
 	retval = 0;
-
 err:
-	ktp_session_free(session);
+	ktp_session_free(ktp);
 	ktp_disconnect(unix_sock);
 	opts_free(opts);
 
 	return retval;
+}
+
+
+static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *user_data)
+{
+	if (write(STDOUT_FILENO, line, len) < 0)
+		return BOOL_FALSE;
+
+	ktp = ktp;
+	user_data = user_data;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *user_data)
+{
+	if (write(STDERR_FILENO, line, len) < 0)
+		return BOOL_FALSE;
+
+	ktp = ktp;
+	user_data = user_data;
+
+	return BOOL_TRUE;
 }

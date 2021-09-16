@@ -14,8 +14,6 @@
 typedef struct ktpd_session_s ktpd_session_t;
 typedef struct ktp_session_s ktp_session_t;
 
-typedef bool_t (*ktpd_session_stall_cb_fn)(ktpd_session_t *session,
-	void *user_data);
 
 C_DECL_BEGIN
 
@@ -34,16 +32,26 @@ bool_t ktp_stall_cb(faux_async_t *async, size_t len, void *user_data);
 
 
 // Client KTP session
+typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
+	const char *line, size_t len, void *user_data);
+
 ktp_session_t *ktp_session_new(int sock);
 void ktp_session_free(ktp_session_t *session);
 bool_t ktp_session_done(const ktp_session_t *ktp);
 bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done);
+bool_t ktp_session_set_stdout_cb(ktp_session_t *ktp,
+	ktp_session_stdout_cb_fn stdout_cb, void *stdout_udata);
+bool_t ktp_session_set_stderr_cb(ktp_session_t *ktp,
+	ktp_session_stdout_cb_fn stderr_cb, void *stderr_udata);
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
 bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line, int *retcode);
 
 
 // Server KTP session
+typedef bool_t (*ktpd_session_stall_cb_fn)(ktpd_session_t *session,
+	void *user_data);
+
 ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
 	const char *start_entry, faux_eloop_t *eloop);
 void ktpd_session_free(ktpd_session_t *session);

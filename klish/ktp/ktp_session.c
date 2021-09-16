@@ -30,6 +30,10 @@ struct ktp_session_s {
 	faux_hdr_t *hdr; // Service var: engine will receive header and then msg
 	bool_t done;
 	faux_eloop_t *eloop;
+	ktp_session_stdout_cb_fn stdout_cb;
+	void *stdout_udata;
+	ktp_session_stdout_cb_fn stderr_cb;
+	void *stderr_udata;
 };
 
 
@@ -75,6 +79,12 @@ ktp_session_t *ktp_session_new(int sock)
 	faux_eloop_add_fd(ktp->eloop, ktp_session_fd(ktp), POLLIN,
 		ktp_peer_ev, ktp->async);
 
+	// Callbacks
+	ktp->stdout_cb = NULL;
+	ktp->stdout_udata = NULL;
+	ktp->stderr_cb = NULL;
+	ktp->stderr_udata = NULL;
+
 	return ktp;
 }
 
@@ -109,6 +119,34 @@ bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done)
 		return BOOL_FALSE;
 
 	ktp->done = done;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_session_set_stdout_cb(ktp_session_t *ktp,
+	ktp_session_stdout_cb_fn stdout_cb, void *stdout_udata)
+{
+	assert(ktp);
+	if (!ktp)
+		return BOOL_FALSE;
+
+	ktp->stdout_cb = stdout_cb;
+	ktp->stdout_udata = stdout_udata;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_session_set_stderr_cb(ktp_session_t *ktp,
+	ktp_session_stdout_cb_fn stderr_cb, void *stderr_udata)
+{
+	assert(ktp);
+	if (!ktp)
+		return BOOL_FALSE;
+
+	ktp->stderr_cb = stderr_cb;
+	ktp->stderr_udata = stderr_udata;
 
 	return BOOL_TRUE;
 }
@@ -167,6 +205,43 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	char *line = NULL;
+	unsigned int len = 0;
+
+	assert(ktp);
+	assert(msg);
+
+	if (!ktp->stdout_cb)
+		return BOOL_TRUE; // Just ignore stdout. It's not a bug
+
+	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE, (void **)&line, &len))
+		return BOOL_TRUE; // It's strange but not a bug
+
+	return ktp->stdout_cb(ktp, line, len, ktp->stdout_udata);
+}
+
+
+static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	char *line = NULL;
+	unsigned int len = 0;
+
+	assert(ktp);
+	assert(msg);
+
+	if (!ktp->stderr_cb)
+		return BOOL_TRUE; // Just ignore stdout. It's not a bug
+
+	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
+			(void **)&line, &len))
+		return BOOL_TRUE; // It's strange but not a bug
+
+	return ktp->stderr_cb(ktp, line, len, ktp->stderr_udata);
+}
+
+
 static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
@@ -191,21 +266,16 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 		}
 		return BOOL_FALSE;
 		}
-//		ktpd_session_process_cmd(ktpd, msg);
+//		ktp_session_process_cmd(ktpd, msg);
 		break;
 	case KTP_STDOUT:
-		{
-		char *line = NULL;
-		unsigned int len = 0;
-		if (faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
-			(void **)&line, &len)) {
-			write(STDOUT_FILENO, line, len);
-		}
-		}
-//		ktpd_session_process_completion(ktpd, msg);
+		ktp_session_process_stdout(ktp, msg);
+		break;
+	case KTP_STDERR:
+		ktp_session_process_stderr(ktp, msg);
 		break;
 	case KTP_HELP:
-//		ktpd_session_process_help(ktpd, msg);
+//		ktp_session_process_help(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
