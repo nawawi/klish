@@ -57,7 +57,19 @@ int main(int argc, char **argv)
 	ktp_session_set_stdout_cb(ktp, stdout_cb, NULL);
 	ktp_session_set_stderr_cb(ktp, stderr_cb, NULL);
 
-	ktp_session_req_cmd(ktp, opts->line, NULL);
+	{
+		faux_error_t *error = faux_error_new();
+		int retcode = -1;
+
+		if (ktp_session_req_cmd(ktp, opts->line, &retcode, error)) {
+			fprintf(stderr, "Retcode: %d\n", retcode);
+		} else {
+			fprintf(stderr, "Error:\n");
+			faux_error_fshow(error, stderr);
+		}
+
+		faux_error_free(error);
+	}
 
 	retval = 0;
 err:

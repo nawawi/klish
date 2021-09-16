@@ -24,6 +24,7 @@ typedef enum {
 	KTP_SESSION_STATE_WAIT_FOR_CMD = 'c',
 } ktp_session_state_e;
 
+
 struct ktp_session_s {
 	ktp_session_state_e state;
 	faux_async_t *async;
@@ -34,10 +35,16 @@ struct ktp_session_s {
 	void *stdout_udata;
 	ktp_session_stdout_cb_fn stderr_cb;
 	void *stderr_udata;
+	faux_error_t *error; // Internal
+	bool_t request_done;
+	int cmd_retcode; // Internal
+	bool_t cmd_retcode_available;
 };
 
 
 static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktp_session_read_cb(faux_async_t *async,
 	faux_buf_t *buf, size_t len, void *user_data);
@@ -56,7 +63,7 @@ ktp_session_t *ktp_session_new(int sock)
 		return NULL;
 
 	// Init
-	ktp->state = KTP_SESSION_STATE_UNAUTHORIZED;
+	ktp->state = KTP_SESSION_STATE_IDLE;
 	ktp->done = BOOL_FALSE;
 
 	// Event loop
@@ -77,13 +84,18 @@ ktp_session_t *ktp_session_new(int sock)
 	faux_eloop_add_signal(ktp->eloop, SIGTERM, stop_loop_ev, ktp);
 	faux_eloop_add_signal(ktp->eloop, SIGQUIT, stop_loop_ev, ktp);
 	faux_eloop_add_fd(ktp->eloop, ktp_session_fd(ktp), POLLIN,
-		ktp_peer_ev, ktp->async);
+		server_ev, ktp);
 
 	// Callbacks
 	ktp->stdout_cb = NULL;
 	ktp->stdout_udata = NULL;
 	ktp->stderr_cb = NULL;
 	ktp->stderr_udata = NULL;
+
+	ktp->error = NULL;
+	ktp->cmd_retcode = -1;
+	ktp->cmd_retcode_available = BOOL_FALSE;
+	ktp->request_done = BOOL_FALSE;
 
 	return ktp;
 }
@@ -121,6 +133,16 @@ bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done)
 	ktp->done = done;
 
 	return BOOL_TRUE;
+}
+
+
+faux_error_t *ktp_session_error(const ktp_session_t *ktp)
+{
+	assert(ktp);
+	if (!ktp)
+		return BOOL_FALSE;
+
+	return ktp->error;
 }
 
 
@@ -205,6 +227,51 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktp_session_t *ktp = (ktp_session_t *)user_data;
+
+	assert(ktp);
+
+	// Write data
+	if (info->revents & POLLOUT) {
+		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
+		if (faux_async_out(ktp->async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async output");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// Read data
+	if (info->revents & POLLIN) {
+		if (faux_async_in(ktp->async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// EOF
+	if (info->revents & POLLHUP) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	type = type; // Happy compiler
+
+	if (ktp->request_done)
+		return BOOL_FALSE; // Stop event loop on receiving answer
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -242,9 +309,27 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 }
 
 
+static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	uint8_t *retcode8bit = NULL;
+
+	assert(ktp);
+	assert(msg);
+
+	if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
+		(void **)&retcode8bit, NULL))
+		ktp->cmd_retcode = (int)(*retcode8bit);
+	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
+	ktp->request_done = BOOL_TRUE; // Stop the loop
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
+	bool_t rc = BOOL_TRUE;
 
 	assert(ktp);
 	if (!ktp)
@@ -256,33 +341,20 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
 	case KTP_CMD_ACK:
-		{
-		int retcode = -1;
-		uint8_t *retcode8bit = NULL;
-		if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
-			(void **)&retcode8bit, NULL)) {
-			retcode = (int)(*retcode8bit);
-			printf("Retcode: %d\n", retcode);
-		}
-		return BOOL_FALSE;
-		}
-//		ktp_session_process_cmd(ktpd, msg);
+		rc = ktp_session_process_cmd_ack(ktp, msg);
 		break;
 	case KTP_STDOUT:
-		ktp_session_process_stdout(ktp, msg);
+		rc = ktp_session_process_stdout(ktp, msg);
 		break;
 	case KTP_STDERR:
-		ktp_session_process_stderr(ktp, msg);
-		break;
-	case KTP_HELP:
-//		ktp_session_process_help(ktpd, msg);
+		rc = ktp_session_process_stderr(ktp, msg);
 		break;
 	default:
-		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
+		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd); // Ignore
 		break;
 	}
 
-	return BOOL_TRUE;
+	return rc;
 }
 
 
@@ -342,15 +414,12 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 	ktp_session_dispatch(ktp, completed_msg);
 	faux_msg_free(completed_msg);
 
-	// Session status can be changed while parsing
-	if (ktp_session_done(ktp))
-		return BOOL_FALSE;
-
 	return BOOL_TRUE;
 }
 
 
-bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line, int *retcode)
+bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
+	int *retcode, faux_error_t *error)
 {
 	faux_msg_t *req = NULL;
 
@@ -358,16 +427,30 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line, int *retcode)
 	if (!ktp)
 		return BOOL_FALSE;
 
+	if (ktp->state != KTP_SESSION_STATE_IDLE) {
+		faux_error_sprintf(error,
+			"Can't execute command. Session state is not suitable");
+		return BOOL_FALSE;
+	}
+
 	req = ktp_msg_preform(KTP_CMD, KTP_STATUS_NONE);
 	faux_msg_add_param(req, KTP_PARAM_LINE, line, strlen(line));
 	faux_msg_send_async(req, ktp->async);
 	faux_msg_free(req);
 
+	// Prepare for loop
+	ktp->state = KTP_SESSION_STATE_WAIT_FOR_CMD;
+	ktp->error = error;
+	ktp->cmd_retcode = -1;
+	ktp->cmd_retcode_available = BOOL_FALSE;
+	ktp->request_done = BOOL_FALSE; // Be pessimistic
 
 	faux_eloop_loop(ktp->eloop);
 
-	line = line;
-	retcode = retcode;
+	ktp->state = KTP_SESSION_STATE_IDLE;
+	ktp->error = NULL;
+	if (ktp->cmd_retcode_available && retcode)
+		*retcode = ktp->cmd_retcode;
 
-	return BOOL_TRUE;
+	return ktp->cmd_retcode_available; // Sign of server answer
 }

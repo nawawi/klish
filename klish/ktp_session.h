@@ -4,6 +4,7 @@
 #include <faux/faux.h>
 #include <faux/list.h>
 #include <faux/eloop.h>
+#include <faux/error.h>
 #include <klish/ksession.h>
 #include <klish/ktp.h>
 
@@ -37,15 +38,19 @@ typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
 
 ktp_session_t *ktp_session_new(int sock);
 void ktp_session_free(ktp_session_t *session);
+
 bool_t ktp_session_done(const ktp_session_t *ktp);
 bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done);
+faux_error_t *ktp_session_error(const ktp_session_t *ktp);
 bool_t ktp_session_set_stdout_cb(ktp_session_t *ktp,
 	ktp_session_stdout_cb_fn stdout_cb, void *stdout_udata);
 bool_t ktp_session_set_stderr_cb(ktp_session_t *ktp,
 	ktp_session_stdout_cb_fn stderr_cb, void *stderr_udata);
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
-bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line, int *retcode);
+
+bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
+	int *retcode, faux_error_t *error);
 
 
 // Server KTP session
