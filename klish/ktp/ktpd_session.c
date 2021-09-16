@@ -45,7 +45,7 @@ struct ktpd_session_s {
 
 // Static declarations
 static bool_t ktpd_session_read_cb(faux_async_t *async,
-	void *data, size_t len, void *user_data);
+	faux_buf_t *buf, size_t len, void *user_data);
 static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
@@ -263,14 +263,19 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
  * of message.
  */
 static bool_t ktpd_session_read_cb(faux_async_t *async,
-	void *data, size_t len, void *user_data)
+	faux_buf_t *buf, size_t len, void *user_data)
 {
 	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
 	faux_msg_t *completed_msg = NULL;
+	char *data = NULL;
 
 	assert(async);
-	assert(data);
+	assert(buf);
 	assert(ktpd);
+
+	// Linearize buffer
+	data = malloc(len);
+	faux_buf_read(buf, data, len);
 
 	// Receive header
 	if (!ktpd->hdr) {
