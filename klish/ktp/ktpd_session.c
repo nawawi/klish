@@ -400,23 +400,22 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
 	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
-	kexec_t *exec = NULL;
 	ssize_t r = -1;
 	faux_buf_t *faux_buf = NULL;
-	void *linear_buf = NULL;
 	char *buf = NULL;
 	ssize_t len = 0;
+	faux_msg_t *ack = NULL;
 
 	if (!ktpd)
 		return BOOL_TRUE;
-	exec = ktpd->exec;
-	if (!exec)
+	if (!ktpd->exec)
 		return BOOL_TRUE;
 
-	faux_buf = kexec_bufout(exec);
+	faux_buf = kexec_bufout(ktpd->exec);
 	assert(faux_buf);
 
 	do {
+		void *linear_buf = NULL;
 		ssize_t really_readed = 0;
 		ssize_t linear_len =
 			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
@@ -435,17 +434,67 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	buf = malloc(len);
 	faux_buf_read(faux_buf, buf, len);
 
+	// Create KTP_STDOUT message to send to client
+	ack = ktp_msg_preform(KTP_STDOUT, KTP_STATUS_NONE);
+	faux_msg_add_param(ack, KTP_PARAM_LINE, buf, len);
+	faux_msg_send_async(ack, ktpd->async);
+	faux_msg_free(ack);
 
-write(STDOUT_FILENO, buf, len);
-{
-	faux_msg_t *ack = NULL;
-		ack = ktp_msg_preform(KTP_STDOUT, KTP_STATUS_NONE);
-		faux_msg_add_param(ack, KTP_PARAM_LINE, buf, len);
-		faux_msg_send_async(ack, ktpd->async);
-		faux_msg_free(ack);
+	free(buf);
 
+	// Happy compiler
+	eloop = eloop;
+	type = type;
 
+	return BOOL_TRUE;
 }
+
+
+static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
+	ssize_t r = -1;
+	faux_buf_t *faux_buf = NULL;
+	char *buf = NULL;
+	ssize_t len = 0;
+	faux_msg_t *ack = NULL;
+
+	if (!ktpd)
+		return BOOL_TRUE;
+	if (!ktpd->exec)
+		return BOOL_TRUE;
+
+	faux_buf = kexec_buferr(ktpd->exec);
+	assert(faux_buf);
+
+	do {
+		void *linear_buf = NULL;
+		ssize_t really_readed = 0;
+		ssize_t linear_len =
+			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
+		// Non-blocked read. The fd became non-blocked while
+		// kexec_prepare().
+		r = read(info->fd, linear_buf, linear_len);
+		if (r > 0)
+			really_readed = r;
+		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
+	} while (r > 0);
+
+	len = faux_buf_len(faux_buf);
+	if (0 == len)
+		return BOOL_TRUE;
+
+	buf = malloc(len);
+	faux_buf_read(faux_buf, buf, len);
+
+	// Create KTP_STDERR message to send to client
+	ack = ktp_msg_preform(KTP_STDERR, KTP_STATUS_NONE);
+	faux_msg_add_param(ack, KTP_PARAM_LINE, buf, len);
+	faux_msg_send_async(ack, ktpd->async);
+	faux_msg_free(ack);
+
 	free(buf);
 
 	// Happy compiler
@@ -494,6 +543,8 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 
 	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), POLLIN,
 		action_stdout_ev, ktpd);
+	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), POLLIN,
+		action_stderr_ev, ktpd);
 
 	return BOOL_TRUE;
 }

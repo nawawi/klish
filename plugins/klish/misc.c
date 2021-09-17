@@ -33,6 +33,7 @@ int klish_tsym(kcontext_t *context)
 	script = kaction_script(action);
 	if (faux_str_is_empty(script)) {
 		printf("[<empty>]\n");
+		fprintf(stderr, "Empty item\n");
 		return -1;
 	}
 
