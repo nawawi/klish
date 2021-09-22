@@ -20,8 +20,6 @@ struct kentry_s {
 	kentry_purpose_e purpose; // Special purpose of ENTRY
 	size_t min; // Min occurs of entry
 	size_t max; // Max occurs of entry
-	char *ptype_str; // Text reference to PTYPE
-	kentry_t *ptype; // Resolved entry's PTYPE
 	char *ref_str; // Text reference to aliased ENTRY
 	char *value; // Additional info
 	bool_t restore; // Should entry restore its depth while execution
@@ -66,13 +64,6 @@ KSET(entry, size_t, min);
 // Max occurs
 KGET(entry, size_t, max);
 KSET(entry, size_t, max);
-
-// PTYPE string (must be resolved later)
-KGET_STR(entry, ptype_str);
-KSET_STR(entry, ptype_str);
-// PTYPE (resolved)
-KGET(entry, kentry_t *, ptype);
-KSET(entry, kentry_t *, ptype);
 
 // Ref string (must be resolved later)
 KGET_STR(entry, ref_str);
@@ -134,8 +125,6 @@ kentry_t *kentry_new(const char *name)
 	entry->purpose = KENTRY_PURPOSE_COMMON;
 	entry->min = 1;
 	entry->max = 1;
-	entry->ptype_str = NULL;
-	entry->ptype = NULL;
 	entry->ref_str = NULL;
 	entry->value = NULL;
 	entry->restore = BOOL_FALSE;
@@ -163,8 +152,6 @@ static void kentry_free_non_link(kentry_t *entry)
 {
 	if (!entry)
 		return;
-
-	faux_str_free(entry->ptype_str);
 
 	faux_list_free(entry->entrys);
 	faux_list_free(entry->actions);
@@ -222,8 +209,6 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	// purpose - orig
 	// min - orig
 	// max - orig
-	dst->ptype_str = src->ptype_str;
-	dst->ptype = src->ptype;
 	// ref_str - orig
 	// value - orig
 	// restore - orig

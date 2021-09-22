@@ -155,6 +155,7 @@
 	<xs:simpleType name="entry_purpose_t">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="common"/>
+			<xs:enumeration value="ptype"/>
 			<xs:enumeration value="prompt"/>
 			<xs:enumeration value="cond"/>
 			<xs:enumeration value="completion"/>

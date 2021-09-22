@@ -60,6 +60,8 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 		kentry_purpose_e purpose = KENTRY_PURPOSE_NONE;
 		if (!faux_str_casecmp(info->purpose, "common"))
 			purpose = KENTRY_PURPOSE_COMMON;
+		else if (!faux_str_casecmp(info->purpose, "ptype"))
+			purpose = KENTRY_PURPOSE_PTYPE;
 		else if (!faux_str_casecmp(info->purpose, "prompt"))
 			purpose = KENTRY_PURPOSE_PROMPT;
 		else if (!faux_str_casecmp(info->purpose, "cond"))
@@ -88,14 +90,6 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 		if (!faux_conv_atoui(info->max, &i, 0) ||
 			!kentry_set_max(entry, (size_t)i)) {
 			faux_error_add(error, TAG": Illegal 'max' attribute");
-			retcode = BOOL_FALSE;
-		}
-	}
-
-	// Ptype string
-	if (!faux_str_is_empty(info->ptype)) {
-		if (!kentry_set_ptype_str(entry, info->ptype)) {
-			faux_error_add(error, TAG": Illegal 'ptype' attribute");
 			retcode = BOOL_FALSE;
 		}
 	}
@@ -319,6 +313,9 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 		case KENTRY_PURPOSE_COMMON:
 			purpose = "common";
 			break;
+		case KENTRY_PURPOSE_PTYPE:
+			purpose = "ptype";
+			break;
 		case KENTRY_PURPOSE_PROMPT:
 			purpose = "prompt";
 			break;
@@ -345,7 +342,6 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 		faux_str_free(num);
 		num = NULL;
 
-		attr2ctext(&str, "ptype", kentry_ptype_str(kentry), level + 1);
 		attr2ctext(&str, "value", kentry_value(kentry), level + 1);
 		attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
 		attr2ctext(&str, "order", faux_conv_bool2str(kentry_order(kentry)), level + 1);

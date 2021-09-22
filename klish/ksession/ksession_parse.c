@@ -41,7 +41,7 @@ static bool_t ksession_validate_arg(kentry_t *entry, const char *arg)
 
 
 static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
-	faux_argv_node_t **argv_iter, kpargv_t *pargv)
+	faux_argv_node_t **argv_iter, kpargv_t *pargv, bool_t entry_is_command)
 {
 	kentry_t *entry = current_entry;
 	kentry_mode_e mode = KENTRY_MODE_NONE;
@@ -62,9 +62,24 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 
 	purpose = kpargv_purpose(pargv); // Purpose of parsing
 
+	// If we know the entry is a command then don't validate it. This
+	// behaviour is usefull for special purpose entries like PTYPEs, CONDs,
+	// etc. These entries are the starting point for parsing their args.
+	// We don't need to parse command itself. Command is predefined.
+	if (entry_is_command) {
+		kparg_t *parg = NULL;
+
+		// Command is an ENTRY with ACTIONs
+		if (kentry_actions_len(entry) <= 0)
+			return KPARSE_ILLEGAL;
+		parg = kparg_new(entry, NULL);
+		kpargv_add_pargs(pargv, parg);
+		kpargv_set_command(pargv, entry);
+		retcode = KPARSE_INPROGRESS;
+
 	// Is entry candidate to resolve current arg?
 	// Container can't be a candidate.
-	if (!kentry_container(entry)) {
+	} else if (!kentry_container(entry)) {
 		const char *current_arg = NULL;
 
 //printf("arg: %s, entry: %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>",
@@ -137,7 +152,7 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
 //printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
-			rc = ksession_parse_arg(nested, argv_iter, pargv);
+			rc = ksession_parse_arg(nested, argv_iter, pargv, BOOL_FALSE);
 //printf("%s\n", kpargv_status_decode(rc));
 			// If some arguments was consumed then we will not check
 			// next SWITCH's entries in any case.
@@ -171,7 +186,8 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
 //printf("SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
-				nrc = ksession_parse_arg(nested, argv_iter, pargv);
+				nrc = ksession_parse_arg(nested, argv_iter,
+					pargv, BOOL_FALSE);
 //printf("%s\n", kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
 					break;
@@ -255,7 +271,8 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 		if (kentry_purpose(current_entry) != KENTRY_PURPOSE_COMMON)
 			continue;
 		// Parsing
-		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv);
+		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv,
+			BOOL_FALSE);
 		if (pstatus != KPARSE_NOTFOUND)
 			break;
 		// NOTFOUND but some args were parsed.
@@ -458,7 +475,6 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
 		// All components must be ready for execution
 		if (!pargv) {
-			kpargv_free(pargv);
 			faux_list_free(split);
 			return NULL;
 		}
@@ -491,6 +507,53 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	}
 
 	faux_list_free(split);
+
+	return exec;
+}
+
+
+kexec_t *ksession_parse_for_local_exec(kentry_t *entry)
+{
+	faux_argv_node_t *argv_iter = NULL;
+	kpargv_t *pargv = NULL;
+	kexec_t *exec = NULL;
+	faux_argv_t *argv = faux_argv_new();
+	kcontext_t *context = NULL;
+	kpargv_status_e pstatus = KPARSE_NONE;
+	const char *line = NULL; // TODO: Must be 'line' field of ENTRY
+
+	assert(entry);
+	if (!entry)
+		return NULL;
+
+	exec = kexec_new();
+	assert(exec);
+
+	argv = faux_argv_new();
+	assert(argv);
+	faux_argv_parse(argv, line);
+	argv_iter = faux_argv_iter(argv);
+
+	pargv = kpargv_new();
+	assert(pargv);
+	kpargv_set_continuable(pargv, faux_argv_is_continuable(argv));
+	kpargv_set_purpose(pargv, KPURPOSE_EXEC);
+
+	pstatus = ksession_parse_arg(entry, &argv_iter, pargv, BOOL_TRUE);
+	// Parsing problems
+	if ((pstatus != KPARSE_INPROGRESS) || (argv_iter != NULL)) {
+		kexec_free(exec);
+		faux_argv_free(argv);
+		kpargv_free(pargv);
+		return NULL;
+	}
+
+	context = kcontext_new(KCONTEXT_PLUGIN_ACTION);
+	assert(context);
+	kcontext_set_pargv(context, pargv);
+	kexec_add_contexts(exec, context);
+
+	faux_argv_free(argv);
 
 	return exec;
 }

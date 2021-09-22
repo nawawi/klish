@@ -26,6 +26,7 @@ typedef enum {
 typedef enum {
 	KENTRY_PURPOSE_NONE,
 	KENTRY_PURPOSE_COMMON, // Common entry like view/command/param
+	KENTRY_PURPOSE_PTYPE,
 	KENTRY_PURPOSE_PROMPT, // Prompt for view
 	KENTRY_PURPOSE_COND, // Conditional expression
 	KENTRY_PURPOSE_COMPLETION, // Engine to generate completions
@@ -69,11 +70,6 @@ bool_t kentry_set_min(kentry_t *entry, size_t min);
 // Max occurs
 size_t kentry_max(const kentry_t *entry);
 bool_t kentry_set_max(kentry_t *entry, size_t max);
-// Ptype
-const char *kentry_ptype_str(const kentry_t *entry);
-bool_t kentry_set_ptype_str(kentry_t *entry, const char *ptype_str);
-kentry_t *kentry_ptype(const kentry_t *entry);
-bool_t kentry_set_ptype(kentry_t *entry, kentry_t *ptype);
 // Ref
 const char *kentry_ref_str(const kentry_t *entry);
 bool_t kentry_set_ref_str(kentry_t *entry, const char *ref_str);

@@ -175,18 +175,21 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-bool_t ksession_exec_locally(ksession_t *session, const char *line,
-	int *retcode, faux_error_t *error)
+bool_t ksession_exec_locally(ksession_t *session, kentry_t *entry,
+	int *retcode, const char **out)
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;
+	faux_buf_t *buf = NULL;
+	char *cstr = NULL;
+	ssize_t len = 0;
 
-	assert(session);
-	if (!session)
+	assert(entry);
+	if (!entry)
 		return BOOL_FALSE;
 
 	// Parsing
-	exec = ksession_parse_for_exec(session, line, error);
+	exec = ksession_parse_for_local_exec(entry);
 	if (!exec)
 		return BOOL_FALSE;
 
@@ -223,23 +226,19 @@ bool_t ksession_exec_locally(ksession_t *session, const char *line,
 
 	kexec_retcode(exec, retcode);
 
-	// Debug only
-	{
-		faux_buf_t *buf = NULL;
-		printf("STDOUT:\n");
-		fflush(stdout);
-		ssize_t r = 0;
-		buf = kexec_bufout(exec);
-		do {
-			void *d = NULL;
-			ssize_t really_readed = 0;
-			r = faux_buf_dread_lock_easy(buf, &d);
-			if (r > 0) {
-				really_readed = write(STDOUT_FILENO, d, r);
-			}
-			faux_buf_dread_unlock_easy(buf, really_readed);
-		} while (r > 0);
+	if (!out) {
+		kexec_free(exec);
+		return BOOL_TRUE;
 	}
+	buf = kexec_bufout(exec);
+	if ((len = faux_buf_len(buf)) <= 0) {
+		kexec_free(exec);
+		return BOOL_TRUE;
+	}
+	cstr = faux_malloc(len + 1);
+	faux_buf_read(buf, cstr, len);
+	cstr[len] = '\0';
+	*out = cstr;
 
 	kexec_free(exec);
 
