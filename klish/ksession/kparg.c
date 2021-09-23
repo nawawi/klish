@@ -15,20 +15,20 @@
 
 
 struct kparg_s {
-	kentry_t *entry;
+	const kentry_t *entry;
 	char *value;
 };
 
 
 // Entry
-KGET(parg, kentry_t *, entry);
+KGET(parg, const kentry_t *, entry);
 
 // Value
 KSET_STR(parg, value);
 KGET_STR(parg, value);
 
 
-kparg_t *kparg_new(kentry_t *entry, const char *value)
+kparg_t *kparg_new(const kentry_t *entry, const char *value)
 {
 	kparg_t *parg = NULL;
 

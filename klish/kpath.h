@@ -19,10 +19,10 @@ C_DECL_BEGIN
 
 // Level
 
-klevel_t *klevel_new(kentry_t *entry);
+klevel_t *klevel_new(const kentry_t *entry);
 void klevel_free(klevel_t *level);
 
-kentry_t *klevel_entry(const klevel_t *level);
+const kentry_t *klevel_entry(const klevel_t *level);
 
 // Path
 

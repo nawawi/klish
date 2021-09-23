@@ -89,7 +89,7 @@
 	assert(subobj); \
 	if (!subobj) \
 		return BOOL_FALSE; \
-	if (!faux_list_add(inst->nested, subobj)) \
+	if (!faux_list_add(inst->nested, (void *)subobj)) \
 		return BOOL_FALSE; \
 	return BOOL_TRUE; \
 }

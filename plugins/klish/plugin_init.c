@@ -25,10 +25,13 @@ int kplugin_klish_init(kcontext_t *context)
 	plugin = kcontext_plugin(context);
 	assert(plugin);
 
+	// Misc
 	kplugin_add_syms(plugin, ksym_new("nop", klish_nop));
 	kplugin_add_syms(plugin, ksym_new("tsym", klish_tsym));
 
-//	fprintf(stderr, "Plugin 'klish' init\n");
+	// PTYPEs
+	kplugin_add_syms(plugin, ksym_new("COMMAND", klish_ptype_COMMAND));
+
 	context = context; // Happy compiler
 
 	return 0;

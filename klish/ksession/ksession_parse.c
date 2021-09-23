@@ -17,38 +17,55 @@
 #include <klish/ksession.h>
 
 
-static bool_t ksession_validate_arg(kentry_t *entry, const char *arg)
+static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
 {
-	const char *str = NULL;
+	const char *out = NULL;
+	int retcode = -1;
+	const kentry_t *ptype_entry = NULL;
+	kparg_t *candidate = NULL;
 
-	assert(entry);
-	if (!entry)
+	assert(session);
+	if (!session)
 		return BOOL_FALSE;
-	assert(arg);
-	if (!arg)
+	assert(pargv);
+	if (!pargv)
+		return BOOL_FALSE;
+	candidate = kpargv_candidate_parg(pargv);
+	if (!candidate)
+		return BOOL_FALSE;
+	ptype_entry = kentry_nested_by_purpose(kparg_entry(candidate),
+		KENTRY_PURPOSE_PTYPE);
+	if (!ptype_entry)
 		return BOOL_FALSE;
 
-	// Temporary test code that implements COMMAND i.e. it compares argument
-	// to ENTRY's 'name' or 'value'. Later it will be removed by real code.
-	str = kentry_value(entry);
-	if (!str)
-		str = kentry_name(entry);
-	if (faux_str_casecmp(str, arg) == 0)
-			return BOOL_TRUE;
+	if (!ksession_exec_locally(session, ptype_entry, pargv,
+		&retcode, &out)) {
+		return BOOL_FALSE;
+	}
 
-	return BOOL_FALSE;
+	if (retcode != 0)
+		return BOOL_FALSE;
+
+	if (!faux_str_is_empty(out))
+		kparg_set_value(candidate, out);
+
+	return BOOL_TRUE;
 }
 
 
-static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
-	faux_argv_node_t **argv_iter, kpargv_t *pargv, bool_t entry_is_command)
+static kpargv_status_e ksession_parse_arg(ksession_t *session,
+	const kentry_t *current_entry, faux_argv_node_t **argv_iter,
+	kpargv_t *pargv, bool_t entry_is_command)
 {
-	kentry_t *entry = current_entry;
+	const kentry_t *entry = current_entry;
 	kentry_mode_e mode = KENTRY_MODE_NONE;
 	kpargv_status_e retcode = KPARSE_INPROGRESS; // For ENTRY itself
 	kpargv_status_e rc = KPARSE_NOTFOUND; // For nested ENTRYs
 	faux_argv_node_t *saved_argv_iter = NULL;
 	kpargv_purpose_e purpose = KPURPOSE_NONE;
+
+//fprintf(stderr, "PARSE: name=%s, ref=%s, arg=%s\n",
+//kentry_name(entry), kentry_ref_str(entry), faux_argv_current(*argv_iter));
 
 	assert(current_entry);
 	if (!current_entry)
@@ -81,9 +98,7 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 	// Container can't be a candidate.
 	} else if (!kentry_container(entry)) {
 		const char *current_arg = NULL;
-
-//printf("arg: %s, entry: %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>",
-//	kentry_name(entry));
+		kparg_t *parg = NULL;
 
 		// When purpose is COMPLETION or HELP then fill completion list.
 		// Additionally if it's last continuable argument then lie to
@@ -112,9 +127,10 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 
 		// Validate argument
 		current_arg = faux_argv_current(*argv_iter);
-		if (ksession_validate_arg(entry, current_arg)) {
-			kparg_t *parg = kparg_new(entry, current_arg);
-			kpargv_add_pargs(pargv, parg);
+		parg = kparg_new(entry, current_arg);
+		kpargv_set_candidate_parg(pargv, parg);
+		if (ksession_validate_arg(session, pargv)) {
+			kpargv_accept_candidate_parg(pargv);
 			// Command is an ENTRY with ACTIONs or NAVigation
 			if (kentry_actions_len(entry) > 0)
 				kpargv_set_command(pargv, entry);
@@ -123,6 +139,8 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 		} else {
 			// It's not a container and is not validated so
 			// no chance to find anything here.
+			kpargv_decline_candidate_parg(pargv);
+			kparg_free(parg);
 			return KPARSE_NOTFOUND;
 		}
 	}
@@ -139,20 +157,27 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 	if (KENTRY_MODE_EMPTY == mode)
 		return retcode;
 
+	// Following code (SWITCH or SEQUENCE cases) sometimes don's set rc.
+	// It happens when entry has nested entries but purposes of all entries
+	// are not COMMON so they will be ignored. So return code of function
+	// will be the code of ENTRY itself processing.
+	rc = retcode;
+
 	// SWITCH mode
 	// Entries within SWITCH can't has 'min'/'max' else than 1.
 	// So these attributes will be ignored. Note SWITCH itself can have
 	// 'min'/'max'.
 	if (KENTRY_MODE_SWITCH == mode) {
 		kentry_entrys_node_t *iter = kentry_entrys_iter(entry);
-		kentry_t *nested = NULL;
+		const kentry_t *nested = NULL;
 
 		while ((nested = kentry_entrys_each(&iter))) {
+//printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Ignore entries with non-COMMON purpose.
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
-//printf("SWITCH arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
-			rc = ksession_parse_arg(nested, argv_iter, pargv, BOOL_FALSE);
+			rc = ksession_parse_arg(session, nested, argv_iter,
+				pargv, BOOL_FALSE);
 //printf("%s\n", kpargv_status_decode(rc));
 			// If some arguments was consumed then we will not check
 			// next SWITCH's entries in any case.
@@ -169,13 +194,14 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 	} else if (KENTRY_MODE_SEQUENCE == mode) {
 		kentry_entrys_node_t *iter = kentry_entrys_iter(entry);
 		kentry_entrys_node_t *saved_iter = iter;
-		kentry_t *nested = NULL;
+		const kentry_t *nested = NULL;
 
 		while ((nested = kentry_entrys_each(&iter))) {
 			kpargv_status_e nrc = KPARSE_NOTFOUND;
 			size_t num = 0;
 			size_t min = kentry_min(nested);
 
+//fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Ignore entries with non-COMMON purpose.
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
@@ -185,10 +211,9 @@ static kpargv_status_e ksession_parse_arg(kentry_t *current_entry,
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
-//printf("SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
-				nrc = ksession_parse_arg(nested, argv_iter,
-					pargv, BOOL_FALSE);
-//printf("%s\n", kpargv_status_decode(nrc));
+				nrc = ksession_parse_arg(session, nested,
+					argv_iter, pargv, BOOL_FALSE);
+//fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
 					break;
 			}
@@ -265,14 +290,14 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 	levels_iterr = kpath_iterr(path);
 	level_found = kpath_len(path);
 	while ((level = kpath_eachr(&levels_iterr))) {
-		kentry_t *current_entry = klevel_entry(level);
+		const kentry_t *current_entry = klevel_entry(level);
 		// Ignore entries with non-COMMON purpose. These entries are for
 		// special processing and will be ignored here.
 		if (kentry_purpose(current_entry) != KENTRY_PURPOSE_COMMON)
 			continue;
 		// Parsing
-		pstatus = ksession_parse_arg(current_entry, &argv_iter, pargv,
-			BOOL_FALSE);
+		pstatus = ksession_parse_arg(session, current_entry, &argv_iter,
+			pargv, BOOL_FALSE);
 		if (pstatus != KPARSE_NOTFOUND)
 			break;
 		// NOTFOUND but some args were parsed.
@@ -512,12 +537,13 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 }
 
 
-kexec_t *ksession_parse_for_local_exec(kentry_t *entry)
+kexec_t *ksession_parse_for_local_exec(ksession_t *session,
+	const kentry_t *entry, const kpargv_t *parent_pargv)
 {
 	faux_argv_node_t *argv_iter = NULL;
 	kpargv_t *pargv = NULL;
 	kexec_t *exec = NULL;
-	faux_argv_t *argv = faux_argv_new();
+	faux_argv_t *argv = NULL;
 	kcontext_t *context = NULL;
 	kpargv_status_e pstatus = KPARSE_NONE;
 	const char *line = NULL; // TODO: Must be 'line' field of ENTRY
@@ -539,7 +565,8 @@ kexec_t *ksession_parse_for_local_exec(kentry_t *entry)
 	kpargv_set_continuable(pargv, faux_argv_is_continuable(argv));
 	kpargv_set_purpose(pargv, KPURPOSE_EXEC);
 
-	pstatus = ksession_parse_arg(entry, &argv_iter, pargv, BOOL_TRUE);
+	pstatus = ksession_parse_arg(session, entry, &argv_iter, pargv,
+		BOOL_TRUE);
 	// Parsing problems
 	if ((pstatus != KPARSE_INPROGRESS) || (argv_iter != NULL)) {
 		kexec_free(exec);
@@ -551,6 +578,7 @@ kexec_t *ksession_parse_for_local_exec(kentry_t *entry)
 	context = kcontext_new(KCONTEXT_PLUGIN_ACTION);
 	assert(context);
 	kcontext_set_pargv(context, pargv);
+	kcontext_set_parent_pargv(context, parent_pargv);
 	kexec_add_contexts(exec, context);
 
 	faux_argv_free(argv);

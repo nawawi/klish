@@ -44,10 +44,10 @@ C_DECL_BEGIN
 
 // Parg
 
-kparg_t *kparg_new(kentry_t *entry, const char *value);
+kparg_t *kparg_new(const kentry_t *entry, const char *value);
 void kparg_free(kparg_t *parg);
 
-kentry_t *kparg_entry(const kparg_t *parg);
+const kentry_t *kparg_entry(const kparg_t *parg);
 bool_t kparg_set_value(kparg_t *parg, const char *value);
 const char *kparg_value(const kparg_t *parg);
 
@@ -76,6 +76,11 @@ bool_t kpargv_set_purpose(kpargv_t *pargv, kpargv_purpose_e purpose);
 // Last argument
 bool_t kpargv_set_last_arg(kpargv_t *pargv, const char *last_arg);
 const char *kpargv_last_arg(const kpargv_t *pargv);
+// Candidate parg
+bool_t kpargv_set_candidate_parg(kpargv_t *pargv, kparg_t *candidate_parg);
+kparg_t *kpargv_candidate_parg(const kpargv_t *pargv);
+bool_t kpargv_accept_candidate_parg(kpargv_t *pargv);
+bool_t kpargv_decline_candidate_parg(kpargv_t *pargv);
 
 // Pargs
 faux_list_t *kpargv_pargs(const kpargv_t *pargv);
@@ -89,11 +94,11 @@ kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry);
 
 // Completions
 faux_list_t *kpargv_completions(const kpargv_t *pargv);
-bool_t kpargv_add_completions(kpargv_t *pargv, kentry_t *completion);
+bool_t kpargv_add_completions(kpargv_t *pargv, const kentry_t *completion);
 ssize_t kpargv_completions_len(const kpargv_t *pargv);
 bool_t kpargv_completions_is_empty(const kpargv_t *pargv);
 kpargv_completions_node_t *kpargv_completions_iter(const kpargv_t *pargv);
-kentry_t *kpargv_completions_each(kpargv_completions_node_t **iter);
+const kentry_t *kpargv_completions_each(kpargv_completions_node_t **iter);
 
 // Debug
 bool_t kpargv_debug(const kpargv_t *pargv);

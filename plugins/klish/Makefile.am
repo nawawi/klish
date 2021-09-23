@@ -7,6 +7,7 @@ kplugin_klish_la_LIBADD = libklish.la
 
 kplugin_klish_la_SOURCES += \
 	plugins/klish/plugin_init.c \
+	plugins/klish/ptypes.c \
 	plugins/klish/misc.c
 #	plugins/klish/hook_access.c \
 #	plugins/klish/hook_config.c \

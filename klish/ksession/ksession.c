@@ -42,7 +42,7 @@ KSET_BOOL(session, done);
 ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry)
 {
 	ksession_t *session = NULL;
-	kentry_t *entry = NULL;
+	const kentry_t *entry = NULL;
 	const char *entry_to_search = NULL;
 	klevel_t *level = NULL;
 
@@ -175,8 +175,8 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-bool_t ksession_exec_locally(ksession_t *session, kentry_t *entry,
-	int *retcode, const char **out)
+bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
+	kpargv_t *parent_pargv, int *retcode, const char **out)
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;
@@ -189,7 +189,7 @@ bool_t ksession_exec_locally(ksession_t *session, kentry_t *entry,
 		return BOOL_FALSE;
 
 	// Parsing
-	exec = ksession_parse_for_local_exec(entry);
+	exec = ksession_parse_for_local_exec(session, entry, parent_pargv);
 	if (!exec)
 		return BOOL_FALSE;
 

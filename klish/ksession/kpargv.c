@@ -21,6 +21,7 @@ struct kpargv_s {
 	bool_t continuable; // Last argument can be expanded
 	kpargv_purpose_e purpose; // Exec/Completion/Help
 	char *last_arg;
+	kparg_t *candidate_parg; // Don't free
 };
 
 // Status
@@ -47,6 +48,10 @@ KSET(pargv, kpargv_purpose_e, purpose);
 KSET_STR(pargv, last_arg);
 KGET_STR(pargv, last_arg);
 
+// Level
+KGET(pargv, kparg_t *, candidate_parg);
+KSET(pargv, kparg_t *, candidate_parg);
+
 // Pargs
 KGET(pargv, faux_list_t *, pargs);
 KADD_NESTED(pargv, kparg_t *, pargs);
@@ -57,11 +62,11 @@ KNESTED_EACH(pargv, kparg_t *, pargs);
 
 // Completions
 KGET(pargv, faux_list_t *, completions);
-KADD_NESTED(pargv, kentry_t *, completions);
+KADD_NESTED(pargv, const kentry_t *, completions);
 KNESTED_LEN(pargv, completions);
 KNESTED_IS_EMPTY(pargv, completions);
 KNESTED_ITER(pargv, completions);
-KNESTED_EACH(pargv, kentry_t *, completions);
+KNESTED_EACH(pargv, const kentry_t *, completions);
 
 
 static int kpargv_completions_compare(const void *first, const void *second)
@@ -98,6 +103,7 @@ kpargv_t *kpargv_new()
 	pargv->continuable = BOOL_FALSE;
 	pargv->purpose = KPURPOSE_EXEC;
 	pargv->last_arg = NULL;
+	pargv->candidate_parg = NULL;
 
 	// Parsed arguments list
 	pargv->pargs = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -194,6 +200,32 @@ const char *kpargv_status_str(const kpargv_t *pargv)
 }
 
 
+bool_t kpargv_accept_candidate_parg(kpargv_t *pargv)
+{
+	kparg_t *candidate = NULL;
+
+	assert(pargv);
+	if (!pargv)
+		return BOOL_FALSE;
+	if (!(candidate = pargv->candidate_parg))
+		return BOOL_FALSE;
+	pargv->candidate_parg = NULL;
+
+	return kpargv_add_pargs(pargv, candidate);
+}
+
+
+bool_t kpargv_decline_candidate_parg(kpargv_t *pargv)
+{
+	assert(pargv);
+	if (!pargv)
+		return BOOL_FALSE;
+	pargv->candidate_parg = NULL;
+
+	return BOOL_TRUE;
+}
+
+
 bool_t kpargv_debug(const kpargv_t *pargv)
 {
 #ifdef PARGV_DEBUG
@@ -220,7 +252,7 @@ bool_t kpargv_debug(const kpargv_t *pargv)
 
 	// Completions
 	if (!kpargv_completions_is_empty(pargv)) {
-		kentry_t *completion = NULL;
+		const kentry_t *completion = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
 		printf("Completions (%s):\n", kpargv_last_arg(pargv));
 		while ((completion = kpargv_completions_each(&citer)))

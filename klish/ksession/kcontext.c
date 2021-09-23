@@ -19,8 +19,7 @@ struct kcontext_s {
 	int retcode;
 	kplugin_t *plugin;
 	kpargv_t *pargv;
-	kpargv_t *parent_pargv; // Parent
-	kparg_t *parg_to_validate; // Parent
+	const kpargv_t *parent_pargv; // Parent
 	faux_list_node_t *action_iter; // Current action
 	ksym_t *sym;
 	int stdin;
@@ -54,12 +53,8 @@ KGET(context, kpargv_t *, pargv);
 FAUX_HIDDEN KSET(context, kpargv_t *, pargv);
 
 // Parent pargv
-KGET(context, kpargv_t *, parent_pargv);
-FAUX_HIDDEN KSET(context, kpargv_t *, parent_pargv);
-
-// Parg to validate
-KGET(context, kparg_t *, parg_to_validate);
-FAUX_HIDDEN KSET(context, kparg_t *, parg_to_validate);
+KGET(context, const kpargv_t *, parent_pargv);
+FAUX_HIDDEN KSET(context, const kpargv_t *, parent_pargv);
 
 // Action iterator
 KGET(context, faux_list_node_t *, action_iter);
@@ -101,7 +96,6 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->plugin = NULL;
 	context->pargv = NULL;
 	context->parent_pargv = NULL; // Don't free
-	context->parg_to_validate = NULL; // Don't free
 	context->action_iter = NULL;
 	context->sym = NULL;
 	context->stdin = -1;

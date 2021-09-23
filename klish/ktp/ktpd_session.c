@@ -127,6 +127,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	error = faux_error_new();
 
 	rc = ktpd_session_exec(ktpd, line, &retcode, error);
+	faux_str_free(line);
 	if (ktpd->exec) {
 		faux_error_free(error);
 		return BOOL_TRUE; // Continue and wait for ACTION
