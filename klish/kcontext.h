@@ -29,6 +29,13 @@ FAUX_HIDDEN bool_t kcontext_set_sym(kcontext_t *context, ksym_t *sym);
 // Pargv object
 kpargv_t *kcontext_pargv(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pargv(kcontext_t *context, kpargv_t *pargv);
+// Parent pargv object
+kpargv_t *kcontext_parent_pargv(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_pargv(kcontext_t *context, kpargv_t *parent_pargv);
+// Parg to validate
+kparg_t *kcontext_parg_to_validate(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_parg_to_validate(kcontext_t *context,
+	kparg_t *parg_to_validate);
 // Action iterator
 faux_list_node_t *kcontext_action_iter(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_action_iter(kcontext_t *context, faux_list_node_t *action_iter);
