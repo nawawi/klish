@@ -124,3 +124,13 @@ void kcontext_free(kcontext_t *context)
 
 	faux_free(context);
 }
+
+
+kparg_t *kcontext_candidate_parg(const kcontext_t *context)
+{
+	assert(context);
+	if (!context)
+		return NULL;
+
+	return kpargv_candidate_parg(kcontext_parent_pargv(context));
+}

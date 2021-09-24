@@ -51,6 +51,8 @@ FAUX_HIDDEN bool_t kcontext_set_pid(kcontext_t *context, pid_t pid);
 // Done
 bool_t kcontext_done(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_done(kcontext_t *context, bool_t done);
+// Wrappers
+kparg_t *kcontext_candidate_parg(const kcontext_t *context);
 
 C_DECL_END
 
