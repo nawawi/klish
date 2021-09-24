@@ -1,3 +1,5 @@
+#include <faux/list.h>
+
 
 #ifndef VERSION
 #define VERSION "1.0.0"
@@ -9,7 +11,7 @@
 struct options {
 	bool_t verbose;
 	char *unix_socket_path;
-	char *line;
+	faux_list_t *commands;
 };
 
 // Options

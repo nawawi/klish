@@ -15,6 +15,7 @@
 #include <faux/faux.h>
 #include <faux/str.h>
 #include <faux/msg.h>
+#include <faux/list.h>
 
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -34,6 +35,8 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int unix_sock = -1;
 	ktp_session_t *ktp = NULL;
+	faux_list_node_t *iter = NULL;
+	const char *line = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -57,11 +60,12 @@ int main(int argc, char **argv)
 	ktp_session_set_stdout_cb(ktp, stdout_cb, NULL);
 	ktp_session_set_stderr_cb(ktp, stderr_cb, NULL);
 
-	{
+	iter = faux_list_head(opts->commands);
+	while ((line = faux_list_each(&iter))) {
 		faux_error_t *error = faux_error_new();
 		int retcode = -1;
 
-		if (ktp_session_req_cmd(ktp, opts->line, &retcode, error)) {
+		if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
 			fprintf(stderr, "Retcode: %d\n", retcode);
 		} else {
 			fprintf(stderr, "Error:\n");

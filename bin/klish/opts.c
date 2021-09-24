@@ -12,6 +12,7 @@
 
 #include <faux/faux.h>
 #include <faux/str.h>
+#include <faux/list.h>
 
 #include <klish/ktp_session.h>
 
@@ -30,7 +31,11 @@ struct options *opts_init(void)
 	// Initialize
 	opts->verbose = BOOL_FALSE;
 	opts->unix_socket_path = faux_str_dup(KLISH_DEFAULT_UNIX_SOCKET_PATH);
-	opts->line = NULL;
+
+	// Don't free command list because elements are the pointers to
+	// command line options and don't need to be freed().
+	opts->commands = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, NULL);
 
 	return opts;
 }
@@ -43,7 +48,7 @@ void opts_free(struct options *opts)
 	if (!opts)
 		return;
 	faux_str_free(opts->unix_socket_path);
-	faux_str_free(opts->line);
+	faux_list_free(opts->commands);
 
 	faux_free(opts);
 }
@@ -82,8 +87,7 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 			_exit(0);
 			break;
 		case 'c':
-			faux_str_free(opts->line);
-			opts->line = faux_str_dup(optarg);
+			faux_list_add(opts->commands, optarg);
 			break;
 		default:
 			help(-1, argv[0]);
