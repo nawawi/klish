@@ -16,6 +16,7 @@ int klish_tsym(kcontext_t *context);
 
 // PTYPEs
 int klish_ptype_COMMAND(kcontext_t *context);
+int klish_ptype_COMMAND_CASE(kcontext_t *context);
 
 
 C_DECL_END

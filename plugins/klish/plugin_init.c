@@ -31,6 +31,7 @@ int kplugin_klish_init(kcontext_t *context)
 
 	// PTYPEs
 	kplugin_add_syms(plugin, ksym_new("COMMAND", klish_ptype_COMMAND));
+	kplugin_add_syms(plugin, ksym_new("COMMAND_CASE", klish_ptype_COMMAND_CASE));
 
 	context = context; // Happy compiler
 
