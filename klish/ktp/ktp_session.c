@@ -39,6 +39,8 @@ struct ktp_session_s {
 	bool_t request_done;
 	int cmd_retcode; // Internal
 	bool_t cmd_retcode_available;
+	ktp_status_e cmd_features;
+	bool_t cmd_features_available;
 };
 
 
@@ -96,6 +98,8 @@ ktp_session_t *ktp_session_new(int sock)
 	ktp->cmd_retcode = -1;
 	ktp->cmd_retcode_available = BOOL_FALSE;
 	ktp->request_done = BOOL_FALSE;
+	ktp->cmd_features = KTP_STATUS_NONE;
+	ktp->cmd_features_available = BOOL_FALSE;
 
 	return ktp;
 }
@@ -133,6 +137,16 @@ bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done)
 	ktp->done = done;
 
 	return BOOL_TRUE;
+}
+
+
+ktp_status_e ktp_session_cmd_features(const ktp_session_t *ktp)
+{
+	assert(ktp);
+	if (!ktp)
+		return KTP_STATUS_NONE;
+
+	return ktp->cmd_features;
 }
 
 
@@ -282,6 +296,8 @@ static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *m
 
 	if (!ktp->stdout_cb)
 		return BOOL_TRUE; // Just ignore stdout. It's not a bug
+	if (!ktp->cmd_features_available)
+		return BOOL_TRUE; // Drop message
 
 	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE, (void **)&line, &len))
 		return BOOL_TRUE; // It's strange but not a bug
@@ -299,7 +315,9 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 	assert(msg);
 
 	if (!ktp->stderr_cb)
-		return BOOL_TRUE; // Just ignore stdout. It's not a bug
+		return BOOL_TRUE; // Just ignore message. It's not a bug
+	if (!ktp->cmd_features_available)
+		return BOOL_TRUE; // Drop message
 
 	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
 			(void **)&line, &len))
@@ -312,9 +330,21 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *msg)
 {
 	uint8_t *retcode8bit = NULL;
+	ktp_status_e status = KTP_STATUS_NONE;
 
 	assert(ktp);
 	assert(msg);
+
+	status = faux_msg_get_status(msg);
+	// cmd_ack with flag 'incompleted'
+	if (KTP_STATUS_IS_INCOMPLETED(status)) {
+		// Only first 'incompleted' cmd ack sets cmd features
+		if (!ktp->cmd_features_available) {
+			ktp->cmd_features_available = BOOL_TRUE;
+			ktp->cmd_features = status & KTP_STATUS_INTERACTIVE;
+		}
+		return BOOL_TRUE;
+	}
 
 	if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
 		(void **)&retcode8bit, NULL))
@@ -444,6 +474,8 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 	ktp->cmd_retcode = -1;
 	ktp->cmd_retcode_available = BOOL_FALSE;
 	ktp->request_done = BOOL_FALSE; // Be pessimistic
+	ktp->cmd_features = KTP_STATUS_NONE;
+	ktp->cmd_features_available = BOOL_FALSE;
 
 	faux_eloop_loop(ktp->eloop);
 

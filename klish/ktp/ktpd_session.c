@@ -109,7 +109,6 @@ void ktpd_session_free(ktpd_session_t *ktpd)
 static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
-	faux_msg_t *ack = NULL;
 	int retcode = -1;
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 	faux_error_t *error = NULL;
@@ -128,7 +127,16 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	rc = ktpd_session_exec(ktpd, line, &retcode, error);
 	faux_str_free(line);
+
+	// Command is scheduled. Eloop will wait for ACTION completion.
+	// So inform client about it and about command features like
+	// interactive/non-interactive.
 	if (ktpd->exec) {
+		faux_msg_t *ack = NULL;
+		ktp_status_e status = KTP_STATUS_INCOMPLETED;
+		ack = ktp_msg_preform(cmd, status);
+		faux_msg_send_async(ack, ktpd->async);
+		faux_msg_free(ack);
 		faux_error_free(error);
 		return BOOL_TRUE; // Continue and wait for ACTION
 	}
@@ -142,7 +150,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	if (rc) {
 		uint8_t retcode8bit = 0;
-		ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+		faux_msg_t *ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
 		retcode8bit = (uint8_t)(retcode & 0xff);
 		faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
 		faux_msg_send_async(ack, ktpd->async);
