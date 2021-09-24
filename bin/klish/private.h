@@ -12,6 +12,7 @@ struct options {
 	bool_t verbose;
 	char *unix_socket_path;
 	faux_list_t *commands;
+	faux_list_t *files;
 };
 
 // Options

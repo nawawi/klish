@@ -36,6 +36,8 @@ struct options *opts_init(void)
 	// command line options and don't need to be freed().
 	opts->commands = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, NULL, NULL);
+	opts->files = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, NULL);
 
 	return opts;
 }
@@ -49,6 +51,7 @@ void opts_free(struct options *opts)
 		return;
 	faux_str_free(opts->unix_socket_path);
 	faux_list_free(opts->commands);
+	faux_list_free(opts->files);
 
 	faux_free(opts);
 }
@@ -94,6 +97,23 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 			_exit(-1);
 			break;
 		}
+	}
+
+	// Input files
+	if(optind < argc) {
+		int i;
+		for (i = argc - 1; i >= optind; i--)
+			faux_list_add(opts->files, argv[i]);
+	}
+
+	// Validate options
+
+	// Commands specified by '-c' option can't coexist with input files
+	if (!faux_list_is_empty(opts->commands) &&
+		!faux_list_is_empty(opts->files)) {
+		fprintf(stderr, "Error: Commands specified by '-c' can't coexist "
+			"with input files\n");
+		_exit(-1);
 	}
 
 	return 0;
