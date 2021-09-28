@@ -331,6 +331,7 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 {
 	uint8_t *retcode8bit = NULL;
 	ktp_status_e status = KTP_STATUS_NONE;
+	char *error_str = NULL;
 
 	assert(ktp);
 	assert(msg);
@@ -349,6 +350,11 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 	if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
 		(void **)&retcode8bit, NULL))
 		ktp->cmd_retcode = (int)(*retcode8bit);
+	error_str = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
+	if (error_str) {
+		faux_error_add(ktp->error, error_str);
+		faux_str_free(error_str);
+	}
 	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
 	ktp->request_done = BOOL_TRUE; // Stop the loop
 
@@ -441,6 +447,9 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 	ktp->hdr = NULL; // Ready to recv new header
 
 	// Here message is completed
+#ifdef DEBUG
+//	faux_msg_debug(completed_msg);
+#endif
 	ktp_session_dispatch(ktp, completed_msg);
 	faux_msg_free(completed_msg);
 
