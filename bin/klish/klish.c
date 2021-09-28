@@ -66,14 +66,16 @@ int main(int argc, char **argv)
 		while ((line = faux_list_each(&iter))) {
 			faux_error_t *error = faux_error_new();
 			int retcode = -1;
-
-			if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
-				fprintf(stderr, "Retcode: %d\n", retcode);
-			} else {
+			bool_t rc = BOOL_FALSE;
+			if (!opts->quiet)
+				fprintf(stderr, "%s\n", line);
+			rc = ktp_session_req_cmd(ktp, line, &retcode, error);
+			if (!rc || (faux_error_len(error) > 0)) {
 				fprintf(stderr, "Error:\n");
 				faux_error_fshow(error, stderr);
 			}
-
+			if (rc)
+				fprintf(stderr, "Retcode: %d\n", retcode);
 			faux_error_free(error);
 		}
 
@@ -88,12 +90,16 @@ int main(int argc, char **argv)
 			while ((line = faux_file_getline(fd))) {
 				faux_error_t *error = faux_error_new();
 				int retcode = -1;
-				if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
-					fprintf(stderr, "Retcode: %d\n", retcode);
-				} else {
+				bool_t rc = BOOL_FALSE;
+				if (!opts->quiet)
+					fprintf(stderr, "%s\n", line);
+				rc = ktp_session_req_cmd(ktp, line, &retcode, error);
+				if (!rc || (faux_error_len(error) > 0)) {
 					fprintf(stderr, "Error:\n");
 					faux_error_fshow(error, stderr);
 				}
+				if (rc)
+					fprintf(stderr, "Retcode: %d\n", retcode);
 				faux_error_free(error);
 				faux_str_free(line);
 			}

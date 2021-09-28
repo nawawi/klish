@@ -11,6 +11,9 @@
 struct options {
 	bool_t verbose;
 	char *unix_socket_path;
+	bool_t stop_on_error;
+	bool_t dry_run;
+	bool_t quiet;
 	faux_list_t *commands;
 	faux_list_t *files;
 };
