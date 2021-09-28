@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int unix_sock = -1;
 	ktp_session_t *ktp = NULL;
+	int retcode = 0;
 
 	// Parse command line options
 	opts = opts_init();
@@ -65,18 +66,23 @@ int main(int argc, char **argv)
 		faux_list_node_t *iter = faux_list_head(opts->commands);
 		while ((line = faux_list_each(&iter))) {
 			faux_error_t *error = faux_error_new();
-			int retcode = -1;
 			bool_t rc = BOOL_FALSE;
+			// Echo command
 			if (!opts->quiet)
 				fprintf(stderr, "%s\n", line);
+			// Request to server
 			rc = ktp_session_req_cmd(ktp, line, &retcode, error);
-			if (!rc || (faux_error_len(error) > 0)) {
+			if (!rc)
+				retcode = -1;
+			if (faux_error_len(error) > 0) {
 				fprintf(stderr, "Error:\n");
 				faux_error_fshow(error, stderr);
 			}
-			if (rc)
-				fprintf(stderr, "Retcode: %d\n", retcode);
 			faux_error_free(error);
+			fprintf(stderr, "Retcode: %d\n", retcode);
+			// Stop-on-error
+			if (opts->stop_on_error && (!rc || retcode != 0))
+				break;
 		}
 
 	// Commands from files
@@ -85,25 +91,34 @@ int main(int argc, char **argv)
 		faux_list_node_t *iter =  faux_list_head(opts->files);
 		while ((filename = (const char *)faux_list_each(&iter))) {
 			char *line = NULL;
-			faux_file_t *fd = NULL;
-			fd = faux_file_open(filename, O_RDONLY, 0);
+			bool_t stop = BOOL_FALSE;
+			faux_file_t *fd = faux_file_open(filename, O_RDONLY, 0);
 			while ((line = faux_file_getline(fd))) {
 				faux_error_t *error = faux_error_new();
-				int retcode = -1;
 				bool_t rc = BOOL_FALSE;
+				// Echo command
 				if (!opts->quiet)
 					fprintf(stderr, "%s\n", line);
+				// Request to server
 				rc = ktp_session_req_cmd(ktp, line, &retcode, error);
-				if (!rc || (faux_error_len(error) > 0)) {
+				if (!rc)
+					retcode = -1;
+				if (faux_error_len(error) > 0) {
 					fprintf(stderr, "Error:\n");
 					faux_error_fshow(error, stderr);
 				}
-				if (rc)
-					fprintf(stderr, "Retcode: %d\n", retcode);
 				faux_error_free(error);
+				fprintf(stderr, "Retcode: %d\n", retcode);
 				faux_str_free(line);
+				// Stop-on-error
+				if (opts->stop_on_error && (!rc || retcode != 0)) {
+					stop = BOOL_TRUE;
+					break;
+				}
 			}
 			faux_file_close(fd);
+			if (stop)
+				break;
 		}
 
 	// Interactive shell
@@ -118,7 +133,10 @@ err:
 	ktp_disconnect(unix_sock);
 	opts_free(opts);
 
-	return retval;
+	if ((retval < 0) || (retcode < 0))
+		return -1;
+
+	return 0;
 }
 
 
