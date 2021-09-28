@@ -49,7 +49,7 @@ static bool_t ktpd_session_read_cb(faux_async_t *async,
 static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
-	int *retcode, faux_error_t *error);
+	int *retcode, faux_error_t *error, bool_t dry_run);
 
 
 ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
@@ -113,6 +113,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 	faux_error_t *error = NULL;
 	bool_t rc = BOOL_FALSE;
+	bool_t dry_run = BOOL_FALSE;
 
 	assert(ktpd);
 	assert(msg);
@@ -123,9 +124,13 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		return BOOL_FALSE;
 	}
 
+	// Get dry-run flag from message
+	if (KTP_STATUS_IS_DRY_RUN(faux_msg_get_status(msg)))
+		dry_run = BOOL_TRUE;
+
 	error = faux_error_new();
 
-	rc = ktpd_session_exec(ktpd, line, &retcode, error);
+	rc = ktpd_session_exec(ktpd, line, &retcode, error, dry_run);
 	faux_str_free(line);
 
 	// Command is scheduled. Eloop will wait for ACTION completion.
@@ -515,7 +520,7 @@ static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
-	int *retcode, faux_error_t *error)
+	int *retcode, faux_error_t *error, bool_t dry_run)
 {
 	kexec_t *exec = NULL;
 
@@ -527,6 +532,9 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	exec = ksession_parse_for_exec(ktpd->session, line, error);
 	if (!exec)
 		return BOOL_FALSE;
+
+	// Set dry-run flag
+	kexec_set_dry_run(exec, dry_run);
 
 	// Session status can be changed while parsing
 	if (ksession_done(ktpd->session)) {

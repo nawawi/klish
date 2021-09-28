@@ -17,8 +17,6 @@ struct kaction_s {
 	char *lock; // Named lock
 	bool_t interrupt;
 	bool_t interactive;
-//	bool_t permanent; // Should it be executed on 'dry-run'
-//	bool_t async;
 	kaction_cond_e exec_on;
 	bool_t update_retcode;
 	tri_t permanent;

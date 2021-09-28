@@ -458,9 +458,10 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 
 
 bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
-	int *retcode, faux_error_t *error)
+	int *retcode, faux_error_t *error, bool_t dry_run)
 {
 	faux_msg_t *req = NULL;
+	ktp_status_e status = KTP_STATUS_NONE;
 
 	assert(ktp);
 	if (!ktp)
@@ -472,7 +473,11 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 		return BOOL_FALSE;
 	}
 
-	req = ktp_msg_preform(KTP_CMD, KTP_STATUS_NONE);
+	// Set dry-run flag
+	if (dry_run)
+		status |= KTP_STATUS_DRY_RUN;
+
+	req = ktp_msg_preform(KTP_CMD, status);
 	faux_msg_add_param(req, KTP_PARAM_LINE, line, strlen(line));
 	faux_msg_send_async(req, ktp->async);
 	faux_msg_free(req);

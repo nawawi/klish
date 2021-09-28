@@ -71,7 +71,8 @@ int main(int argc, char **argv)
 			if (!opts->quiet)
 				fprintf(stderr, "%s\n", line);
 			// Request to server
-			rc = ktp_session_req_cmd(ktp, line, &retcode, error);
+			rc = ktp_session_req_cmd(ktp, line, &retcode,
+				error, opts->dry_run);
 			if (!rc)
 				retcode = -1;
 			if (faux_error_len(error) > 0) {
@@ -100,7 +101,8 @@ int main(int argc, char **argv)
 				if (!opts->quiet)
 					fprintf(stderr, "%s\n", line);
 				// Request to server
-				rc = ktp_session_req_cmd(ktp, line, &retcode, error);
+				rc = ktp_session_req_cmd(ktp, line, &retcode,
+					error, opts->dry_run);
 				if (!rc)
 					retcode = -1;
 				if (faux_error_len(error) > 0) {
