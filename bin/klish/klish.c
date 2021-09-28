@@ -16,6 +16,7 @@
 #include <faux/str.h>
 #include <faux/msg.h>
 #include <faux/list.h>
+#include <faux/file.h>
 
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -35,8 +36,6 @@ int main(int argc, char **argv)
 	struct options *opts = NULL;
 	int unix_sock = -1;
 	ktp_session_t *ktp = NULL;
-	faux_list_node_t *iter = NULL;
-	const char *line = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -60,19 +59,51 @@ int main(int argc, char **argv)
 	ktp_session_set_stdout_cb(ktp, stdout_cb, NULL);
 	ktp_session_set_stderr_cb(ktp, stderr_cb, NULL);
 
-	iter = faux_list_head(opts->commands);
-	while ((line = faux_list_each(&iter))) {
-		faux_error_t *error = faux_error_new();
-		int retcode = -1;
+	// Commands from cmdline
+	if (faux_list_len(opts->commands) > 0) {
+		const char *line = NULL;
+		faux_list_node_t *iter = faux_list_head(opts->commands);
+		while ((line = faux_list_each(&iter))) {
+			faux_error_t *error = faux_error_new();
+			int retcode = -1;
 
-		if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
-			fprintf(stderr, "Retcode: %d\n", retcode);
-		} else {
-			fprintf(stderr, "Error:\n");
-			faux_error_fshow(error, stderr);
+			if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
+				fprintf(stderr, "Retcode: %d\n", retcode);
+			} else {
+				fprintf(stderr, "Error:\n");
+				faux_error_fshow(error, stderr);
+			}
+
+			faux_error_free(error);
 		}
 
-		faux_error_free(error);
+	// Commands from files
+	} else if (faux_list_len(opts->files) > 0) {
+		const char *filename = NULL;
+		faux_list_node_t *iter =  faux_list_head(opts->files);
+		while ((filename = (const char *)faux_list_each(&iter))) {
+			char *line = NULL;
+			faux_file_t *fd = NULL;
+			fd = faux_file_open(filename, O_RDONLY, 0);
+			while ((line = faux_file_getline(fd))) {
+				faux_error_t *error = faux_error_new();
+				int retcode = -1;
+				if (ktp_session_req_cmd(ktp, line, &retcode, error)) {
+					fprintf(stderr, "Retcode: %d\n", retcode);
+				} else {
+					fprintf(stderr, "Error:\n");
+					faux_error_fshow(error, stderr);
+				}
+				faux_error_free(error);
+				faux_str_free(line);
+			}
+			faux_file_close(fd);
+		}
+
+	// Interactive shell
+	} else {
+	
+	
 	}
 
 	retval = 0;
