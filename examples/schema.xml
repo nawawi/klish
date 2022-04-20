@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Test for Juniper-like scheme -->
+
+<KLISH
+	xmlns="http://clish.sourceforge.net/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+<ENTRY name="schema" mode="switch" container="true">
+
+  <ENTRY name="iface" help="Interface">
+    <ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+
+    <ENTRY name="iface_name" help="Interface name">
+      <ENTRY name="IFACE_NAME" purpose="ptype" ref="/IFACE_NAME"/>
+
+      <ENTRY name="mtu" help="MTU">
+        <ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+
+        <ENTRY name="mtu_value" help="MTU">
+              <ENTRY name="MTU" purpose="ptype" ref="/MTU"/>
+        </ENTRY> <!-- mtu_value -->
+
+      </ENTRY> <!-- mtu -->
+
+      <ENTRY name="addr" help="IP address">
+        <ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+
+        <ENTRY name="addr_value" help="IP address">
+              <ENTRY name="IP" purpose="ptype" ref="/IP"/>
+        </ENTRY> <!-- addr_value -->
+
+      </ENTRY> <!-- mtu -->
+
+    </ENTRY> <!-- iface_name -->
+
+  </ENTRY> <!-- iface -->
+
+</ENTRY>
+
+
+<!-- VIEW. Views are not visible for path. Switch because you must choose one of the commands -->
+<ENTRY name="main" mode="switch" ptype="STRING" container="true">
+
+  <!-- COMMAND -->
+  <ENTRY name="cmd" help="Clear settings" mode="sequence">
+    <!-- SWITCH container. Container is not visible while CLI session -->
+    <ENTRY name="opt" help="Switch subcommand" ptype="STRING" mode="switch" container="true">
+      <!-- PARAMs (switched) -->
+      <ENTRY name="o1" ptype="SUBCOMMAND" help="Clear callerid_number_prepend assignment" />
+      <ENTRY name="o2" ptype="SUBCOMMAND" help="Clear record assignment" />
+      <ENTRY name="o3" ptype="SUBCOMMAND" help="Clear callerid assignment" />
+      <ENTRY name="o4" ptype="SUBCOMMAND" help="Clear a schedule">
+        <!-- subPARAM -->
+        <ENTRY name="o5" help="Include number" ptype="UINT" optional="false" completion="${POSSIBLE_TRUNK_GROUP_INCLUDES}">
+        </ENTRY>
+      </ENTRY>
+      <ENTRY name="o6" ptype="SUBCOMMAND" help="Clear callerid_number_remove assignment" />
+      <ENTRY name="o7" ptype="SUBCOMMAND" help="Clear callerid_number_postpend assignment" />
+      <ENTRY name="o8" ptype="SUBCOMMAND" help="Clear callerid_number_replace assignment" />
+
+    </ENTRY>
+
+    <ACTION sym="nop" exec_on="always">
+	ps aux
+    </ACTION>
+  </ENTRY>
+
+
+
+  <!-- Another COMMAND. Sequence means that all subENTRYes can be entered simultaneously -->
+  <ENTRY name="cmd1" help="Clear settings" mode="sequence" ptype="STRING" purpose="common">
+	<!-- PTYPE. Special purpose=ptype. Link to previosly defined "COMMAND" PTYPE -->
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<!-- COND. Conditional expression. Is parent COMMAND visible? -->
+	<ENTRY name="o2" ptype="SUBCOMMAND" purpose="cond"/>
+
+	<ENTRY name="o1" help="Clear callerid_number_prepend assignment">
+		<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	</ENTRY>
+	<ENTRY name="o3" help="Clear callerid_number_prepend assignment">
+		<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	</ENTRY>
+
+    <!-- Conditional ACTIONs -->
+    <ACTION sym="tsym" exec_on="always" ptype="STRING">0</ACTION>
+    <ACTION sym="tsym" exec_on="always" ptype="STRING">1</ACTION>
+    <ACTION sym="tsym" exec_on="fail" ptype="STRING">2</ACTION>
+    <ACTION sym="tsym" exec_on="never" ptype="STRING">3</ACTION>
+    <ACTION sym="tsym" exec_on="always" ptype="STRING" sync="true">4</ACTION>
+    <ACTION sym="tsym" exec_on="always" ptype="STRING"></ACTION>
+    <ACTION sym="tsym" exec_on="success" ptype="STRING">5</ACTION>
+    <ACTION sym="tsym" exec_on="always" ptype="STRING">6</ACTION>
+  </ENTRY>
+
+
+	</ENTRY>
+</KLISH>

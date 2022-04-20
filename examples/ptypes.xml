@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<KLISH
+	xmlns="http://clish.sourceforge.net/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+<!-- PTYPEs -->
+
+<ENTRY name="COMMAND" purpose="ptype">
+	<ACTION sym="COMMAND" exec_on="always"/>
+</ENTRY>
+
+<ENTRY name="SUBCOMMAND" purpose="ptype">
+	<ACTION sym="COMMAND" exec_on="always"/>
+</ENTRY>
+
+</KLISH>
