@@ -1,5 +1,5 @@
 /*
- *
+ * Implementation of standard PTYPEs
  */
 
 #include <assert.h>
