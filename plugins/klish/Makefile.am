@@ -6,6 +6,7 @@ kplugin_klish_la_CFLAGS = $(AM_LDFLAGS)
 kplugin_klish_la_LIBADD = libklish.la
 
 kplugin_klish_la_SOURCES += \
+	plugins/klish/private.h \
 	plugins/klish/plugin_init.c \
 	plugins/klish/ptypes.c \
 	plugins/klish/misc.c \
