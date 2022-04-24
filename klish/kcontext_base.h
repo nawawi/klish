@@ -13,9 +13,13 @@ typedef struct kcontext_s kcontext_t;
 
 typedef enum {
 	KCONTEXT_NONE,
+	// Context for plugin initialization
 	KCONTEXT_PLUGIN_INIT,
+	// Context for plugin finalization
 	KCONTEXT_PLUGIN_FINI,
+	// Context for command's action
 	KCONTEXT_ACTION,
+	// Context for service actions like PTYPE, COND, etc.
 	KCONTEXT_SERVICE_ACTION,
 } kcontext_type_e;
 
