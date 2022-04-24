@@ -39,6 +39,7 @@
 #include <klish/ischeme.h>
 #include <klish/kcontext.h>
 #include <klish/ksession.h>
+#include <klish/ksession_parse.h>
 #include <klish/kdb.h>
 #include <klish/kpargv.h>
 

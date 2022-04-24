@@ -10,6 +10,7 @@
 #include <klish/kcontext_base.h>
 #include <klish/kpargv.h>
 #include <klish/kscheme.h>
+#include <klish/ksession.h>
 
 
 C_DECL_BEGIN
@@ -48,6 +49,9 @@ FAUX_HIDDEN bool_t kcontext_set_stderr(kcontext_t *context, int stderr);
 // PID
 pid_t kcontext_pid(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pid(kcontext_t *context, pid_t pid);
+// Session
+ksession_t *kcontext_session(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_session(kcontext_t *context, ksession_t *session);
 // Done
 bool_t kcontext_done(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_done(kcontext_t *context, bool_t done);

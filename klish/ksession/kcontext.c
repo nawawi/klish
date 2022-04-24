@@ -12,6 +12,7 @@
 #include <klish/kpargv.h>
 #include <klish/kcontext.h>
 #include <klish/kscheme.h>
+#include <klish/ksession.h>
 
 
 struct kcontext_s {
@@ -26,6 +27,7 @@ struct kcontext_s {
 	int stdout;
 	int stderr;
 	pid_t pid;
+	ksession_t *session;
 	bool_t done; // If all actions are done
 };
 
@@ -76,6 +78,10 @@ FAUX_HIDDEN KSET(context, int, stderr);
 KGET(context, pid_t, pid);
 FAUX_HIDDEN KSET(context, pid_t, pid);
 
+// Session
+KGET(context, ksession_t *, session);
+FAUX_HIDDEN KSET(context, ksession_t *, session);
+
 // Done
 KGET_BOOL(context, done);
 FAUX_HIDDEN KSET_BOOL(context, done);
@@ -102,6 +108,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->stdout = -1;
 	context->stderr = -1;
 	context->pid = -1; // PID of currently executed ACTION
+	context->session = NULL; // Don't free
 	context->done = BOOL_FALSE;
 
 	return context;

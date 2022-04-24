@@ -11,7 +11,7 @@
  * * push <view_name> - Push "view_name" view to new level of path and change
  *     current path to it.
  * * pop [num] - Pop up path levels. Optional "num" argument specifies number
- *     of levels to pop.
+ *     of levels to pop. Default is 1.
  * * top - Pop up to first path level.
  * * exit - Exit klish.
  */

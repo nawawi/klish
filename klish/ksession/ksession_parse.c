@@ -4,7 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
+#include <faux/eloop.h>
+#include <faux/buf.h>
 #include <faux/list.h>
 #include <faux/argv.h>
 #include <faux/error.h>
@@ -15,6 +21,7 @@
 #include <klish/kpargv.h>
 #include <klish/kexec.h>
 #include <klish/ksession.h>
+#include <klish/ksession_parse.h>
 
 
 static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
@@ -522,9 +529,11 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		}
 
 		// Fill the kexec_t
-		context = kcontext_new(KCONTEXT_PLUGIN_ACTION);
+		context = kcontext_new(KCONTEXT_ACTION);
 		assert(context);
 		kcontext_set_pargv(context, pargv);
+		// Context for ACTION execution contains session
+		kcontext_set_session(context, session);
 		kexec_add_contexts(exec, context);
 
 		// Next component
@@ -575,13 +584,167 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 		return NULL;
 	}
 
-	context = kcontext_new(KCONTEXT_PLUGIN_ACTION);
+	context = kcontext_new(KCONTEXT_SERVICE_ACTION);
 	assert(context);
 	kcontext_set_pargv(context, pargv);
 	kcontext_set_parent_pargv(context, parent_pargv);
+	// Service ACTIONs like PTYPE, CONDitions etc. doesn't need session
+	// data within context. Else it will be able to change path.
 	kexec_add_contexts(exec, context);
 
 	faux_argv_free(argv);
 
 	return exec;
+}
+
+
+static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	ksession_t *session = (ksession_t *)user_data;
+
+	if (!session)
+		return BOOL_FALSE;
+
+	ksession_set_done(session, BOOL_TRUE); // Stop the whole session
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_FALSE; // Stop Event Loop
+}
+
+
+static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	int wstatus = 0;
+	pid_t child_pid = -1;
+	kexec_t *exec = (kexec_t *)user_data;
+
+	if (!exec)
+		return BOOL_FALSE;
+
+	// Wait for any child process. Doesn't block.
+	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0)
+		kexec_continue_command_execution(exec, child_pid, wstatus);
+
+	// Check if kexec is done now
+	if (kexec_done(exec))
+		return BOOL_FALSE; // To break a loop
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	kexec_t *exec = (kexec_t *)user_data;
+	ssize_t r = -1;
+	faux_buf_t *faux_buf = NULL;
+	void *linear_buf = NULL;
+
+	if (!exec)
+		return BOOL_FALSE;
+
+	faux_buf = kexec_bufout(exec);
+	assert(faux_buf);
+
+	do {
+		ssize_t really_readed = 0;
+		ssize_t linear_len =
+			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
+		// Non-blocked read. The fd became non-blocked while
+		// kexec_prepare().
+		r = read(info->fd, linear_buf, linear_len);
+		if (r > 0)
+			really_readed = r;
+		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
+	} while (r > 0);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
+	kpargv_t *parent_pargv, int *retcode, const char **out)
+{
+	kexec_t *exec = NULL;
+	faux_eloop_t *eloop = NULL;
+	faux_buf_t *buf = NULL;
+	char *cstr = NULL;
+	ssize_t len = 0;
+
+	assert(entry);
+	if (!entry)
+		return BOOL_FALSE;
+
+	// Parsing
+	exec = ksession_parse_for_local_exec(session, entry, parent_pargv);
+	if (!exec)
+		return BOOL_FALSE;
+
+	// Session status can be changed while parsing because it can execute
+	// nested ksession_exec_locally() to check for PTYPEs, CONDitions etc.
+	// So check for 'done' flag to propagate it.
+	if (ksession_done(session)) {
+		kexec_free(exec);
+		return BOOL_FALSE; // Because action is not completed
+	}
+
+	// Execute kexec and then wait for completion using local Eloop
+	if (!kexec_exec(exec)) {
+		kexec_free(exec);
+		return BOOL_FALSE; // Something went wrong
+	}
+	// If kexec contains only non-exec (for example dry-run) ACTIONs then
+	// we don't need event loop and can return here.
+	if (kexec_retcode(exec, retcode)) {
+		kexec_free(exec);
+		return BOOL_TRUE;
+	}
+
+	// Local service loop
+	eloop = faux_eloop_new(NULL);
+	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, session);
+	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
+	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);
+	faux_eloop_add_signal(eloop, SIGCHLD, action_terminated_ev, exec);
+	faux_eloop_add_fd(eloop, kexec_stdout(exec), POLLIN,
+		action_stdout_ev, exec);
+	faux_eloop_loop(eloop);
+	faux_eloop_free(eloop);
+
+	kexec_retcode(exec, retcode);
+
+	if (!out) {
+		kexec_free(exec);
+		return BOOL_TRUE;
+	}
+	buf = kexec_bufout(exec);
+	if ((len = faux_buf_len(buf)) <= 0) {
+		kexec_free(exec);
+		return BOOL_TRUE;
+	}
+	cstr = faux_malloc(len + 1);
+	faux_buf_read(buf, cstr, len);
+	cstr[len] = '\0';
+	*out = cstr;
+
+	kexec_free(exec);
+
+	return BOOL_TRUE;
 }

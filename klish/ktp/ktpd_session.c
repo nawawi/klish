@@ -18,6 +18,7 @@
 #include <faux/msg.h>
 #include <faux/eloop.h>
 #include <klish/ksession.h>
+#include <klish/ksession_parse.h>
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
