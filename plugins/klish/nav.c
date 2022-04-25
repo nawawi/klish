@@ -36,6 +36,10 @@ int klish_nav(kcontext_t *context)
 	const char *value = NULL;
 	const char *command_name = NULL;
 
+	// Navigation is suitable only for command actions but not for
+	// PTYPEs, CONDitions i.e. SERVICE_ACTIONS.
+	assert(kcontext_type(context) == KCONTEXT_ACTION);
+
 	parg = kcontext_candidate_parg(context);
 	entry = kparg_entry(parg);
 	value = kparg_value(parg);
