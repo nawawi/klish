@@ -13,6 +13,7 @@
 #include <klish/kcontext.h>
 #include <klish/kscheme.h>
 #include <klish/ksession.h>
+#include <klish/kaction.h>
 
 
 struct kcontext_s {
@@ -140,4 +141,36 @@ kparg_t *kcontext_candidate_parg(const kcontext_t *context)
 		return NULL;
 
 	return kpargv_candidate_parg(kcontext_parent_pargv(context));
+}
+
+
+const kaction_t *kcontext_action(const kcontext_t *context)
+{
+	faux_list_node_t *node = NULL;
+
+	assert(context);
+	if (!context)
+		return NULL;
+
+	node = kcontext_action_iter(context);
+	if (!node)
+		return NULL;
+
+	return (const kaction_t *)faux_list_data(node);
+}
+
+
+const char *kcontext_script(const kcontext_t *context)
+{
+	const kaction_t *action = NULL;
+
+	assert(context);
+	if (!context)
+		return NULL;
+
+	action = kcontext_action(context);
+	if (!action)
+		return NULL;
+
+	return kaction_script(action);
 }

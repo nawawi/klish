@@ -25,30 +25,119 @@
 
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/conv.h>
 #include <klish/kcontext.h>
 #include <klish/kentry.h>
+#include <klish/ksession.h>
+#include <klish/kpath.h>
+#include <klish/kscheme.h>
 
 
 int klish_nav(kcontext_t *context)
 {
-	kparg_t *parg = NULL;
-	const kentry_t *entry = NULL;
-	const char *value = NULL;
-	const char *command_name = NULL;
+	const char *script = NULL;
+	ksession_t *session = NULL;
+	kpath_t *path = NULL;
+	const char *str = NULL;
+	char *line = NULL;
 
 	// Navigation is suitable only for command actions but not for
 	// PTYPEs, CONDitions i.e. SERVICE_ACTIONS.
 	assert(kcontext_type(context) == KCONTEXT_ACTION);
 
-	parg = kcontext_candidate_parg(context);
-	entry = kparg_entry(parg);
-	value = kparg_value(parg);
+	script = kcontext_script(context);
+	if (!script) // No navigation commands. Probably it's not an error.
+		return 0;
+	session = kcontext_session(context);
+	assert(session);
+	path = ksession_path(session);
 
-	command_name = kentry_value(entry);
-	if (!command_name)
-		command_name = kentry_name(entry);
-	if (!command_name)
-		return -1;
+	// Iterate lines from "script". Each line is navigation command.
+	str = script;
+	while ((line = faux_str_getline(str, &str))) {
+		faux_argv_t *argv = faux_argv_new();
+		ssize_t lnum = faux_argv_parse(argv, line);
+		const char *nav_cmd = NULL;
 
-	return faux_str_casecmp(value, command_name);
+		faux_str_free(line);
+		if (lnum < 1) {
+			faux_argv_free(argv);
+			continue;
+		}
+		nav_cmd = faux_argv_index(argv, 0);
+
+		// exit
+		if (faux_str_casecmp(nav_cmd, "exit") == 0) {
+			ksession_set_done(session, BOOL_TRUE);
+			// "Exit" supposes another navigation commands have no
+			// meaning. So break the loop.
+			faux_argv_free(argv);
+			break;
+
+		// top
+		} else if (faux_str_casecmp(nav_cmd, "top") == 0) {
+			while (kpath_len(path) > 1) {
+				if (!kpath_pop(path)) {
+					faux_argv_free(argv);
+					return -1;
+				}
+			}
+
+		// pop [number_of_levels]
+		} else if (faux_str_casecmp(nav_cmd, "pop") == 0) {
+			size_t i = 0;
+			size_t lnum = 1; // Default levels to pop
+			const char *lnum_str = faux_argv_index(argv, 1);
+			// Level number is specified
+			if (lnum_str) {
+				unsigned char val = 0;
+				// 8 bit unsigned integer is enough
+				if (!faux_conv_atouc(lnum_str, &val, 0)) {
+					faux_argv_free(argv);
+					return -1;
+				}
+				lnum = val;
+			}
+			// Don't pop upper than top level
+			if (lnum > (kpath_len(path) - 1)) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			// Pop levels
+			for (i = 0; i < lnum; i++) {
+				if (!kpath_pop(path)) {
+					faux_argv_free(argv);
+					return -1;
+				}
+			}
+
+		// push <view_name>
+		} else if (faux_str_casecmp(nav_cmd, "push") == 0) {
+			const char *view_name = faux_argv_index(argv, 1);
+			kentry_t *new_view = NULL;
+			if (!view_name) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			new_view = kscheme_find_entry_by_path(
+				ksession_scheme(session), view_name);
+			if (!new_view) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			if (!kpath_push(path, klevel_new(new_view))) {
+				faux_argv_free(argv);
+				return -1;
+			}
+
+		// Unknown command
+		} else {
+			faux_argv_free(argv);
+			return -1;
+		}
+
+		faux_argv_free(argv);
+	}
+
+	return 0;
 }

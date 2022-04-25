@@ -11,6 +11,7 @@
 #include <klish/kpargv.h>
 #include <klish/kscheme.h>
 #include <klish/ksession.h>
+#include <klish/kaction.h>
 
 
 C_DECL_BEGIN
@@ -57,6 +58,9 @@ bool_t kcontext_done(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_done(kcontext_t *context, bool_t done);
 // Wrappers
 kparg_t *kcontext_candidate_parg(const kcontext_t *context);
+const kaction_t *kcontext_action(const kcontext_t *context);
+const char *kcontext_script(const kcontext_t *context);
+
 
 C_DECL_END
 
