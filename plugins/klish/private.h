@@ -23,6 +23,7 @@ int klish_ptype_COMMAND(kcontext_t *context);
 int klish_ptype_COMMAND_CASE(kcontext_t *context);
 int klish_ptype_INT(kcontext_t *context);
 int klish_ptype_UINT(kcontext_t *context);
+int klish_ptype_STRING(kcontext_t *context);
 
 
 C_DECL_END

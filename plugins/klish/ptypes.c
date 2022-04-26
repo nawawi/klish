@@ -18,7 +18,6 @@
 
 
 /** @brief PTYPE: Consider ENTRY's name (or "value" field) as a command
- *
  */
 int klish_ptype_COMMAND(kcontext_t *context)
 {
@@ -40,7 +39,6 @@ int klish_ptype_COMMAND(kcontext_t *context)
 
 
 /** @brief PTYPE: ENTRY's name (or "value" field) as a case sensitive command
- *
  */
 int klish_ptype_COMMAND_CASE(kcontext_t *context)
 {
@@ -61,7 +59,7 @@ int klish_ptype_COMMAND_CASE(kcontext_t *context)
 }
 
 
-/** @brief Signed int with optional range
+/** @brief PTYPE: Signed int with optional range
  *
  * Use long long int for conversion from text.
  *
@@ -113,7 +111,7 @@ int klish_ptype_INT(kcontext_t *context)
 }
 
 
-/** @brief Unsigned int with optional range
+/** @brief PTYPE: Unsigned int with optional range
  *
  * Use unsigned long long int for conversion from text.
  *
@@ -160,6 +158,18 @@ int klish_ptype_UINT(kcontext_t *context)
 
 		faux_argv_free(argv);
 	}
+
+	return 0;
+}
+
+
+/** @brief PTYPE: Arbitrary string
+ */
+int klish_ptype_STRING(kcontext_t *context)
+{
+	// Really any string is a ... (surprise!) string
+
+	context = context; // Happy compiler
 
 	return 0;
 }

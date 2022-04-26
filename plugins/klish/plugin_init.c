@@ -47,6 +47,8 @@ int kplugin_klish_init(kcontext_t *context)
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new_ext("UINT", klish_ptype_UINT,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
+	kplugin_add_syms(plugin, ksym_new_ext("STRING", klish_ptype_STRING,
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 
 	return 0;
 }
