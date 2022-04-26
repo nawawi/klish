@@ -144,6 +144,26 @@ kparg_t *kcontext_candidate_parg(const kcontext_t *context)
 }
 
 
+const kentry_t *kcontext_candidate_entry(const kcontext_t *context)
+{
+	assert(context);
+	if (!context)
+		return NULL;
+
+	return kparg_entry(kcontext_candidate_parg(context));
+}
+
+
+const char *kcontext_candidate_value(const kcontext_t *context)
+{
+	assert(context);
+	if (!context)
+		return NULL;
+
+	return kparg_value(kcontext_candidate_parg(context));
+}
+
+
 const kaction_t *kcontext_action(const kcontext_t *context)
 {
 	faux_list_node_t *node = NULL;

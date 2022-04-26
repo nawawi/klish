@@ -15,12 +15,15 @@ C_DECL_BEGIN
 int klish_nop(kcontext_t *context);
 int klish_tsym(kcontext_t *context);
 
+// Navigation
+int klish_nav(kcontext_t *context);
+
 // PTYPEs
 int klish_ptype_COMMAND(kcontext_t *context);
 int klish_ptype_COMMAND_CASE(kcontext_t *context);
+int klish_ptype_INT(kcontext_t *context);
+int klish_ptype_UINT(kcontext_t *context);
 
-// Navigation
-int klish_nav(kcontext_t *context);
 
 C_DECL_END
 

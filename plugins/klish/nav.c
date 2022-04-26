@@ -46,7 +46,7 @@ int klish_nav(kcontext_t *context)
 	assert(kcontext_type(context) == KCONTEXT_ACTION);
 
 	script = kcontext_script(context);
-	if (!script) // No navigation commands. Probably it's not an error.
+	if (faux_str_is_empty(script)) // No navigation commands. It's not an error.
 		return 0;
 	session = kcontext_session(context);
 	assert(session);
