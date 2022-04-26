@@ -14,6 +14,7 @@ C_DECL_BEGIN
 // Misc
 int klish_nop(kcontext_t *context);
 int klish_tsym(kcontext_t *context);
+int klish_pwd(kcontext_t *context);
 
 // Navigation
 int klish_nav(kcontext_t *context);

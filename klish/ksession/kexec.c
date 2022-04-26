@@ -547,6 +547,11 @@ bool_t kexec_continue_command_execution(kexec_t *exec, pid_t pid, int wstatus)
 
 bool_t kexec_exec(kexec_t *exec)
 {
+	kcontext_t *context = NULL;
+	const kpargv_t *pargv = NULL;
+	const kentry_t *entry = NULL;
+	bool_t restore = BOOL_FALSE;
+
 	assert(exec);
 	if (!exec)
 		return BOOL_FALSE;
@@ -555,6 +560,21 @@ bool_t kexec_exec(kexec_t *exec)
 	// be created for stdin, stdout, stderr of processes.
 	if (!kexec_prepare(exec))
 		return BOOL_FALSE;
+
+	// Pre-change VIEW if command has "restore" flag. Only first command in
+	// line (if many commands are piped) matters. Filters can't change the
+	// VIEW.
+	context = (kcontext_t *)faux_list_data(faux_list_head(exec->contexts));
+	pargv = kcontext_pargv(context);
+	entry = kpargv_command(pargv);
+	if (entry)
+		restore = kentry_restore(entry);
+	if (restore) {
+		size_t level = kpargv_level(pargv);
+		kpath_t *path = ksession_path(kcontext_session(context));
+		while(kpath_len(path) > (level + 1))
+			kpath_pop(path);
+	}
 
 	// Here no ACTIONs are executing, so pass -1 as pid of terminated
 	// ACTION's process.

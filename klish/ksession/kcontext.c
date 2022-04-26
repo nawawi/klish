@@ -19,6 +19,7 @@
 struct kcontext_s {
 	kcontext_type_e type;
 	int retcode;
+	ksession_t *session;
 	kplugin_t *plugin;
 	kpargv_t *pargv;
 	const kpargv_t *parent_pargv; // Parent
@@ -28,7 +29,6 @@ struct kcontext_s {
 	int stdout;
 	int stderr;
 	pid_t pid;
-	ksession_t *session;
 	bool_t done; // If all actions are done
 };
 

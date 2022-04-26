@@ -12,6 +12,8 @@
 #include <faux/str.h>
 #include <faux/list.h>
 #include <klish/kcontext.h>
+#include <klish/ksession.h>
+#include <klish/kpath.h>
 
 
 int klish_nop(kcontext_t *context)
@@ -38,6 +40,23 @@ int klish_tsym(kcontext_t *context)
 	}
 
 	printf("[%s]\n", script);
+
+	return 0;
+}
+
+// Symbol to show current path
+int klish_pwd(kcontext_t *context)
+{
+	kpath_t *path = NULL;
+	kpath_levels_node_t *iter = NULL;
+	klevel_t *level = NULL;
+
+	path = ksession_path(kcontext_session(context));
+	iter = kpath_iter(path);
+	while ((level = kpath_each(&iter))) {
+		printf("/%s", kentry_name(klevel_entry(level)));
+	}
+	printf("\n");
 
 	return 0;
 }

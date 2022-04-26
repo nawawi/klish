@@ -295,7 +295,7 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 	// iterator will be used.
 	path = ksession_path(session);
 	levels_iterr = kpath_iterr(path);
-	level_found = kpath_len(path);
+	level_found = kpath_len(path) - 1; // Levels begin with '0'
 	while ((level = kpath_eachr(&levels_iterr))) {
 		const kentry_t *current_entry = klevel_entry(level);
 		// Ignore entries with non-COMMON purpose. These entries are for
