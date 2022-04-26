@@ -60,6 +60,22 @@ ksym_t *ksym_new(const char *name, ksym_fn function)
 }
 
 
+ksym_t *ksym_new_ext(const char *name, ksym_fn function,
+	tri_t permanent, tri_t sync)
+{
+	ksym_t *sym = NULL;
+
+	sym = ksym_new(name, function);
+	if (!sym)
+		return NULL;
+
+	ksym_set_permanent(sym, permanent);
+	ksym_set_sync(sym, sync);
+
+	return sym;
+}
+
+
 void ksym_free(ksym_t *sym)
 {
 	if (!sym)
