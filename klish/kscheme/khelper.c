@@ -6,7 +6,6 @@
 #include <faux/str.h>
 #include <faux/conv.h>
 #include <klish/khelper.h>
-#include <klish/kptype.h>
 #include <klish/kaction.h>
 
 

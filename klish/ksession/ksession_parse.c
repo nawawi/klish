@@ -15,7 +15,6 @@
 #include <faux/argv.h>
 #include <faux/error.h>
 #include <klish/khelper.h>
-#include <klish/kview.h>
 #include <klish/kscheme.h>
 #include <klish/kpath.h>
 #include <klish/kpargv.h>
