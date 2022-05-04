@@ -9,11 +9,13 @@
 #include <klish/khelper.h>
 #include <klish/kaction.h>
 #include <klish/ksym.h>
+#include <klish/kplugin.h>
 
 
 struct kaction_s {
 	char *sym_ref; // Text reference to symbol
 	ksym_t *sym; // Symbol itself
+	kplugin_t *plugin; // Source of symbol
 	char *lock; // Named lock
 	bool_t interrupt;
 	bool_t interactive;
@@ -67,6 +69,10 @@ KSET_STR(action, script);
 KGET(action, ksym_t *, sym);
 KSET(action, ksym_t *, sym);
 
+// Plugin. Source of sym
+KGET(action, kplugin_t *, plugin);
+KSET(action, kplugin_t *, plugin);
+
 
 kaction_t *kaction_new(void)
 {
@@ -86,6 +92,7 @@ kaction_t *kaction_new(void)
 	action->update_retcode = BOOL_TRUE;
 	action->script = NULL;
 	action->sym = NULL;
+	action->plugin = NULL;
 
 	return action;
 }

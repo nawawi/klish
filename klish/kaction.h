@@ -8,6 +8,7 @@
 
 #include <faux/error.h>
 #include <klish/ksym.h>
+#include <klish/kplugin.h>
 
 
 typedef struct kaction_s kaction_t;
@@ -50,6 +51,9 @@ bool_t kaction_set_script(kaction_t *action, const char *script);
 
 ksym_t *kaction_sym(const kaction_t *action);
 bool_t kaction_set_sym(kaction_t *action, ksym_t *sym);
+
+kplugin_t *kaction_plugin(const kaction_t *action);
+bool_t kaction_set_plugin(kaction_t *action, kplugin_t *plugin);
 
 tri_t kaction_permanent(const kaction_t *action);
 bool_t kaction_set_permanent(kaction_t *action, tri_t permanent);

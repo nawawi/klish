@@ -171,7 +171,8 @@ bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error)
 }
 
 
-ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
+static ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name,
+	kplugin_t **src_plugin)
 {
 	char *saveptr = NULL;
 	const char *delim = "@";
@@ -179,6 +180,7 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 	char *cmd_name = NULL;
 	char *full_name = NULL;
 	ksym_t *sym = NULL;
+	kplugin_t *plugin = NULL; // Source of sym
 
 	assert(scheme);
 	if (!scheme)
@@ -198,7 +200,6 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 
 	// Search for symbol within specified PLUGIN only
 	if (plugin_name) {
-		kplugin_t *plugin = NULL;
 		plugin = kscheme_find_plugin(scheme, plugin_name);
 		if (!plugin) {
 			faux_str_free(full_name);
@@ -209,7 +210,6 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 	// Search for symbol within all PLUGINs
 	} else {
 		kscheme_plugins_node_t *iter = NULL;
-		kplugin_t *plugin = NULL;
 		iter = kscheme_plugins_iter(scheme);
 		while ((plugin = kscheme_plugins_each(&iter))) {
 			sym = kplugin_find_sym(plugin, cmd_name);
@@ -217,6 +217,9 @@ ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name)
 				break;
 		}
 	}
+
+	if (sym && src_plugin)
+		*src_plugin = plugin;
 
 	faux_str_free(full_name);
 
@@ -247,8 +250,9 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 	iter = faux_list_head(action_list);
 	while ((action = (kaction_t *)faux_list_each(&iter))) {
 		ksym_t *sym = NULL;
+		kplugin_t *plugin = NULL;
 		const char *sym_ref = kaction_sym_ref(action);
-		sym = kscheme_find_sym(scheme, sym_ref);
+		sym = kscheme_find_sym(scheme, sym_ref, &plugin);
 		if (!sym) {
 			faux_error_sprintf(error, "Can't find symbol \"%s\"",
 				sym_ref);
@@ -256,6 +260,7 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 			continue;
 		}
 		kaction_set_sym(action, sym);
+		kaction_set_plugin(action, plugin);
 		// Filter can't contain sync symbols.
 		if (kentry_filter(entry) && kaction_is_sync(action)) {
 			faux_error_sprintf(error, "Filter \"%s\" can't contain "
