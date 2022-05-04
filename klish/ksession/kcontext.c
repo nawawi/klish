@@ -14,10 +14,12 @@
 #include <klish/kscheme.h>
 #include <klish/ksession.h>
 #include <klish/kaction.h>
+#include <klish/kscheme.h>
 
 
 struct kcontext_s {
 	kcontext_type_e type;
+	kscheme_t *scheme;
 	int retcode;
 	ksession_t *session;
 	kplugin_t *plugin;
@@ -38,6 +40,10 @@ struct kcontext_s {
 // Type
 KGET(context, kcontext_type_e, type);
 FAUX_HIDDEN KSET(context, kcontext_type_e, type);
+
+// Scheme
+KGET(context, kscheme_t *, scheme);
+KSET(context, kscheme_t *, scheme);
 
 // RetCode
 KGET(context, int, retcode);
@@ -99,6 +105,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 
 	// Initialize
 	context->type = type;
+	context->scheme = NULL;
 	context->retcode = 0;
 	context->plugin = NULL;
 	context->pargv = NULL;
@@ -193,4 +200,25 @@ const char *kcontext_script(const kcontext_t *context)
 		return NULL;
 
 	return kaction_script(action);
+}
+
+
+bool_t kcontext_named_udata_new(kcontext_t *context,
+	const char *name, void *data, kudata_data_free_fn free_fn)
+{
+	assert(context);
+	if (!context)
+		return BOOL_FALSE;
+
+	return kscheme_named_udata_new(context->scheme, name, data, free_fn);
+}
+
+
+void *kcontext_named_udata(kcontext_t *context, const char *name)
+{
+	assert(context);
+	if (!context)
+		return NULL;
+
+	return kscheme_named_udata(context->scheme, name);
 }

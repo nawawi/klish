@@ -57,7 +57,7 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 typedef bool_t (*ktpd_session_stall_cb_fn)(ktpd_session_t *session,
 	void *user_data);
 
-ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
+ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	const char *start_entry, faux_eloop_t *eloop);
 void ktpd_session_free(ktpd_session_t *session);
 bool_t ktpd_session_connected(ktpd_session_t *session);

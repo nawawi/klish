@@ -393,6 +393,7 @@ static kscheme_t *load_all_dbs(const char *dbs,
 
 	// Prepare scheme
 	context = kcontext_new(KCONTEXT_PLUGIN_INIT);
+	kcontext_set_scheme(context, scheme);
 	retcode = kscheme_prepare(scheme, context, error);
 	kcontext_free(context);
 	if (!retcode) {
@@ -428,6 +429,7 @@ static bool_t clear_scheme(kscheme_t *scheme, faux_error_t *error)
 		return BOOL_TRUE; // It's not an error
 
 	context = kcontext_new(KCONTEXT_PLUGIN_FINI);
+	kcontext_set_scheme(context, scheme);
 	kscheme_fini(scheme, context, error);
 	kcontext_free(context);
 	kscheme_free(scheme);

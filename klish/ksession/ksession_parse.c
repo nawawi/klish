@@ -530,6 +530,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		// Fill the kexec_t
 		context = kcontext_new(KCONTEXT_ACTION);
 		assert(context);
+		kcontext_set_scheme(context, ksession_scheme(session));
 		kcontext_set_pargv(context, pargv);
 		// Context for ACTION execution contains session
 		kcontext_set_session(context, session);
@@ -585,6 +586,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 
 	context = kcontext_new(KCONTEXT_SERVICE_ACTION);
 	assert(context);
+	kcontext_set_scheme(context, ksession_scheme(session));
 	kcontext_set_pargv(context, pargv);
 	kcontext_set_parent_pargv(context, parent_pargv);
 	// Service ACTIONs like PTYPE, CONDitions etc. doesn't need session

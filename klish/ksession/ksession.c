@@ -12,14 +12,14 @@
 
 
 struct ksession_s {
-	const kscheme_t *scheme;
+	kscheme_t *scheme;
 	kpath_t *path;
 	bool_t done; // Indicates that session is over and must be closed
 };
 
 
 // Scheme
-KGET(session, const kscheme_t *, scheme);
+KGET(session, kscheme_t *, scheme);
 
 // Path
 KGET(session, kpath_t *, path);
@@ -29,7 +29,7 @@ KGET_BOOL(session, done);
 KSET_BOOL(session, done);
 
 
-ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry)
+ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry)
 {
 	ksession_t *session = NULL;
 	const kentry_t *entry = NULL;

@@ -10,6 +10,7 @@
 #include <klish/kplugin.h>
 #include <klish/kentry.h>
 #include <klish/kcontext_base.h>
+#include <klish/kudata.h>
 
 
 typedef struct kscheme_s kscheme_t;
@@ -42,6 +43,12 @@ kentry_t *kscheme_find_entry(const kscheme_t *scheme, const char *name);
 ssize_t kscheme_entrys_len(const kscheme_t *scheme);
 kscheme_entrys_node_t *kscheme_entrys_iter(const kscheme_t *scheme);
 kentry_t *kscheme_entrys_each(kscheme_entrys_node_t **iter);
+
+// User data store
+bool_t kscheme_named_udata_new(kscheme_t *scheme,
+	const char *name, void *data, kudata_data_free_fn free_fn);
+void *kscheme_named_udata(kscheme_t *scheme, const char *name);
+
 
 C_DECL_END
 

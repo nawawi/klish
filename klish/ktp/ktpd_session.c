@@ -53,7 +53,7 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	int *retcode, faux_error_t *error, bool_t dry_run);
 
 
-ktpd_session_t *ktpd_session_new(int sock, const kscheme_t *scheme,
+ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	const char *start_entry, faux_eloop_t *eloop)
 {
 	ktpd_session_t *ktpd = NULL;

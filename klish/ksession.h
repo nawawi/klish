@@ -16,10 +16,10 @@ typedef struct ksession_s ksession_t;
 
 C_DECL_BEGIN
 
-ksession_t *ksession_new(const kscheme_t *scheme, const char *start_entry);
+ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry);
 void ksession_free(ksession_t *session);
 
-const kscheme_t *ksession_scheme(const ksession_t *session);
+kscheme_t *ksession_scheme(const ksession_t *session);
 kpath_t *ksession_path(const ksession_t *session);
 
 // Done

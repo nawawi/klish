@@ -12,6 +12,7 @@
 #include <klish/kscheme.h>
 #include <klish/ksession.h>
 #include <klish/kaction.h>
+#include <klish/kudata.h>
 
 
 C_DECL_BEGIN
@@ -19,6 +20,9 @@ C_DECL_BEGIN
 // Type
 kcontext_type_e kcontext_type(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_type(kcontext_t *context, kcontext_type_e type);
+// Scheme
+kscheme_t *kcontext_scheme(const kcontext_t *context);
+bool_t kcontext_set_scheme(kcontext_t *context, kscheme_t *scheme);
 // RetCode
 int kcontext_retcode(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_retcode(kcontext_t *context, int retcode);
@@ -63,6 +67,9 @@ const kentry_t *kcontext_candidate_entry(const kcontext_t *context);
 const char *kcontext_candidate_value(const kcontext_t *context);
 const kaction_t *kcontext_action(const kcontext_t *context);
 const char *kcontext_script(const kcontext_t *context);
+bool_t kcontext_named_udata_new(kcontext_t *context,
+	const char *name, void *data, kudata_data_free_fn free_fn);
+void *kcontext_named_udata(kcontext_t *context, const char *name);
 
 
 C_DECL_END

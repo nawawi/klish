@@ -11,11 +11,13 @@
 #include <klish/kentry.h>
 #include <klish/kscheme.h>
 #include <klish/kcontext.h>
+#include <klish/kustore.h>
 
 
 struct kscheme_s {
 	faux_list_t *plugins;
 	faux_list_t *entrys;
+	kustore_t *ustore;
 };
 
 // Simple methods
@@ -63,6 +65,10 @@ kscheme_t *kscheme_new(void)
 		(void (*)(void *))kentry_free);
 	assert(scheme->entrys);
 
+	// User store
+	scheme->ustore = kustore_new();
+	assert(scheme->ustore);
+
 	return scheme;
 }
 
@@ -74,6 +80,7 @@ void kscheme_free(kscheme_t *scheme)
 
 	faux_list_free(scheme->plugins);
 	faux_list_free(scheme->entrys);
+	kustore_free(scheme->ustore);
 
 	faux_free(scheme);
 }
@@ -382,4 +389,33 @@ bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *err
 	}
 
 	return BOOL_TRUE;
+}
+
+
+bool_t kscheme_named_udata_new(kscheme_t *scheme,
+	const char *name, void *data, kudata_data_free_fn free_fn)
+{
+	kudata_t *udata = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->ustore);
+
+	udata = kustore_slot_new(scheme->ustore, name, data, free_fn);
+	if (!udata)
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+void *kscheme_named_udata(kscheme_t *scheme, const char *name)
+{
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->ustore);
+
+	return kustore_slot_data(scheme->ustore, name);
 }

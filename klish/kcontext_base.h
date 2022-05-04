@@ -8,7 +8,6 @@
 
 #include <faux/faux.h>
 
-
 typedef struct kcontext_s kcontext_t;
 
 typedef enum {
