@@ -69,7 +69,7 @@ const kaction_t *kcontext_action(const kcontext_t *context);
 const char *kcontext_script(const kcontext_t *context);
 bool_t kcontext_named_udata_new(kcontext_t *context,
 	const char *name, void *data, kudata_data_free_fn free_fn);
-void *kcontext_named_udata(kcontext_t *context, const char *name);
+void *kcontext_named_udata(const kcontext_t *context, const char *name);
 
 
 C_DECL_END

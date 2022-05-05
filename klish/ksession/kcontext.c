@@ -50,7 +50,6 @@ KGET(context, int, retcode);
 FAUX_HIDDEN KSET(context, int, retcode);
 
 // Plugin
-KGET(context, kplugin_t *, plugin);
 FAUX_HIDDEN KSET(context, kplugin_t *, plugin);
 
 // Sym
@@ -214,11 +213,34 @@ bool_t kcontext_named_udata_new(kcontext_t *context,
 }
 
 
-void *kcontext_named_udata(kcontext_t *context, const char *name)
+void *kcontext_named_udata(const kcontext_t *context, const char *name)
 {
 	assert(context);
 	if (!context)
 		return NULL;
 
 	return kscheme_named_udata(context->scheme, name);
+}
+
+
+kplugin_t *kcontext_plugin(const kcontext_t *context)
+{
+	const kaction_t *action = NULL;
+
+	assert(context);
+	if (!context)
+		return NULL;
+
+	// If plugin field is specified then return it. It is specified for
+	// plugin's init() and fini() functions.
+	if (context->plugin)
+		return context->plugin;
+
+	// If plugin is not explicitly cpecified then return parent plugin for
+	// currently executed sym (ACTION structure contains it).
+	action = kcontext_action(context);
+	if (!action)
+		return NULL;
+
+	return kaction_plugin(action);
 }
