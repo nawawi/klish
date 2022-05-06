@@ -2,12 +2,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>
-#include <string.h>
 #include <sys/wait.h>
-#include <sys/types.h>
 #include <signal.h>
-#include <dlfcn.h>
 #include <assert.h>
 
 #include <klish/kplugin.h>
