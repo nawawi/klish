@@ -7,19 +7,30 @@
 <PLUGIN name="klish"/>
 
 <ENTRY name="COMMAND" purpose="ptype">
-    <ACTION sym="COMMAND"/>
+  <ACTION sym="COMMAND"/>
 </ENTRY>
+
+<ENTRY name="INT" purpose="ptype">
+  <ACTION sym="INT"/>
+</ENTRY>
+
 
 <ENTRY name="main" mode="switch" container="true">
 
   <ENTRY name="cmd" help="Clear settings" mode="sequence">
     <ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+    <ENTRY name="int_val" help="Integer" mode="sequence">
+      <ENTRY name="INT" purpose="ptype" ref="/INT"/>
+    </ENTRY>
     <ACTION sym="lua">
         for i=1,10 do
             print(i)
         end
     </ACTION>
   </ENTRY>
+
 </ENTRY>
+
 <PLUGIN name="lua"/>
+
 </KLISH>
