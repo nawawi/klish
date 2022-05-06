@@ -1,4 +1,7 @@
+if WITH_LUA
 plugin_LTLIBRARIES += kplugin-lua.la
+endif
+
 kplugin_lua_la_SOURCES =
 kplugin_lua_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version -module
 kplugin_lua_la_LIBS =
