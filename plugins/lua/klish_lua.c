@@ -4,48 +4,61 @@
 #include <errno.h>
 #include <time.h>
 #include <string.h>
-
 #include <sys/wait.h>
 #include <sys/types.h>
-
 #include <signal.h>
+#include <dlfcn.h>
+#include <assert.h>
 
 #include <klish/kplugin.h>
 #include <klish/kcontext.h>
-#include "faux/ini.h"
-#include "faux/str.h"
+#include <faux/ini.h>
+#include <faux/str.h>
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 
-#include <dlfcn.h>
-#include <assert.h>
 
 #define LUA_CONTEXT "klish_context"
 #define LUA_AUTORUN_SW "autostart"
 #define LUA_BACKTRACE_SW "backtrace"
 #define LUA_PACKAGE_PATH_SW "package.path"
 
+
 const uint8_t kplugin_lua_major = KPLUGIN_MAJOR;
 const uint8_t kplugin_lua_minor = KPLUGIN_MINOR;
+
 
 struct lua_klish_data {
 	lua_State *L;
 	kcontext_t *context;
 	char *package_path_sw;
 	char *autorun_path_sw;
-	int backtrace_sw; /* show traceback */
+	int backtrace_sw; // show traceback
 };
 
+static lua_State *globalL = NULL;
+
+static int luaB_expand_var(lua_State *L);
+
+static const luaL_Reg base_funcs[] = {
+	{"clish_expand_var", luaB_expand_var},
+	{NULL, NULL}
+};
+
+
 #if LUA_VERSION_NUM >= 502
-static int traceback (lua_State *L) {
+static int traceback (lua_State *L)
+{
 	const char *msg = lua_tostring(L, 1);
+
 	if (msg)
 		luaL_traceback(L, L, msg, 1);
-	else if (!lua_isnoneornil(L, 1)) {  /* is there an error object? */
-		if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
+	else if (!lua_isnoneornil(L, 1)) {  // is there an error object?
+		if (!luaL_callmeta(L, 1, "__tostring"))  // try its 'tostring' metamethod
 		lua_pushliteral(L, "(no error message)");
 	}
+
 	return 1;
 }
 #else
@@ -61,12 +74,15 @@ static int traceback (lua_State *L)
 		lua_pop(L, 2);
 		return 1;
 	}
-	lua_pushvalue(L, 1);  /* pass error message */
-	lua_pushinteger(L, 2);  /* skip this function and traceback */
-	lua_call(L, 2, 1);  /* call debug.traceback */
+	lua_pushvalue(L, 1);  // pass error message
+	lua_pushinteger(L, 2);  // skip this function and traceback
+	lua_call(L, 2, 1);  // call debug.traceback
+
 	return 1;
 }
 #endif
+
+
 static int report (lua_State *L, int status)
 {
 	if (status && !lua_isnil(L, -1)) {
@@ -77,59 +93,75 @@ static int report (lua_State *L, int status)
 		lua_pop(L, 1);
 		status = -1;
 	}
+
 	return status;
 }
+
 
 static int docall(struct lua_klish_data *ctx, int narg)
 {
-	int status;
+	int status = 0;
 	int base = 0;
+
 	if (ctx->backtrace_sw) {
-		base = lua_gettop(ctx->L) - narg;  /* function index */
-		lua_pushcfunction(ctx->L, traceback);  /* push traceback function */
-		lua_insert(ctx->L, base);  /* put it under chunk and args */
+		base = lua_gettop(ctx->L) - narg;  // function index
+		lua_pushcfunction(ctx->L, traceback);  // push traceback function
+		lua_insert(ctx->L, base);  // put it under chunk and args
 	}
 	status = lua_pcall(ctx->L, narg, LUA_MULTRET, base);
 	if (ctx->backtrace_sw)
-		lua_remove(ctx->L, base);  /* remove traceback function */
-	/* force a complete garbage collection in case of errors */
+		lua_remove(ctx->L, base);  // remove traceback function
+	// force a complete garbage collection in case of errors
 	if (status != 0)
 		lua_gc(ctx->L, LUA_GCCOLLECT, 0);
+
 	return status;
 }
 
-static int clear(lua_State *L) {
+
+static int clear(lua_State *L)
+{
 	int N = lua_gettop(L);
 	lua_pop(L, N);
+
 	return 0;
 }
 
+
 static int loadscript(struct lua_klish_data *ctx, const char *path)
 {
-	int status;
+	int status = 0;
+
 	status = luaL_loadfile(ctx->L, path);
 	if (!status) {
 		status = docall(ctx, 0);
 	}
 	status = report(ctx->L, status);
 	clear(ctx->L);
+
 	return status;
 }
+
 
 static int dostring(struct lua_klish_data *ctx, const char *s)
 {
 	int status = luaL_loadstring(ctx->L, s) || docall(ctx, 0);
+
 	return report(ctx->L, status);
 }
+
 
 static struct lua_klish_data *lua_context(lua_State *L)
 {
 	struct lua_klish_data *ctx;
+
 	lua_getglobal(L, LUA_CONTEXT);
 	ctx = lua_touserdata(L, -1);
 	lua_pop(L, 1);
+
 	return ctx;
 }
+
 
 static int luaB_expand_var(lua_State *L)
 {
@@ -138,19 +170,13 @@ static int luaB_expand_var(lua_State *L)
 }
 
 
-static const luaL_Reg base_funcs[] = {
-	{"clish_expand_var", luaB_expand_var},
-	{NULL, NULL}
-};
-
-
 static int clish_env(lua_State *L)
 {
 #if LUA_VERSION_NUM >= 502
 	lua_pushglobaltable(L);
 	lua_pushglobaltable(L);
 	lua_setfield(L, -2, "_G");
-	/* open lib into global table */
+	// open lib into global table
 	luaL_setfuncs(L, base_funcs, 0);
 #else
 	luaL_register(L, "_G", base_funcs);
@@ -158,41 +184,46 @@ static int clish_env(lua_State *L)
 	return 0;
 }
 
+
 static int package_path(struct lua_klish_data *ctx)
 {
-	int rc;
+	int rc = 0;
 	char *str = NULL;
 	char *path = ctx->package_path_sw;
+
 	faux_str_cat(&str, "package.path=\"");
 	faux_str_cat(&str, path);
 	faux_str_cat(&str, "\"");
 	rc = dostring(ctx, str);
 	clear(ctx->L);
 	faux_str_free(str);
+
 	return rc;
 }
 
+
 static void lstop(lua_State *L, lua_Debug *ar)
 {
-	(void)ar;  /* unused arg. */
 	lua_sethook(L, NULL, 0, 0);
-/*	luaL_error(L, "interrupted!"); */
+//	luaL_error(L, "interrupted!");
+	ar = ar;  // Unused arg
 }
 
-static lua_State *globalL = NULL;
 
 static void laction (int i) {
 	if (!globalL)
 		return;
 	lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
-	globalL = NULL; /* run only once */
+	globalL = NULL; // run only once
 }
+
 
 static void locale_set()
 {
-	setlocale(LC_NUMERIC, "C"); /* to avoid . -> , in numbers */
-	setlocale(LC_CTYPE, "C"); /* to avoid lower/upper problems */
+	setlocale(LC_NUMERIC, "C"); // to avoid . -> , in numbers
+	setlocale(LC_CTYPE, "C"); // to avoid lower/upper problems
 }
+
 
 static void locale_reset()
 {
@@ -200,9 +231,10 @@ static void locale_reset()
 	setlocale(LC_CTYPE, "");
 }
 
+
 static lua_State *lua_init(struct lua_klish_data *ctx)
 {
-	lua_State *L;
+	lua_State *L = NULL;
 	locale_set();
 
 #if LUA_VERSION_NUM >= 502
@@ -215,7 +247,7 @@ static lua_State *lua_init(struct lua_klish_data *ctx)
 		locale_reset();
 		return NULL;
 	}
-	ctx->L = L; /* lua state */
+	ctx->L = L; // lua state
 
 	luaL_openlibs(L);
 
@@ -236,12 +268,15 @@ static lua_State *lua_init(struct lua_klish_data *ctx)
 	}
 	globalL = L;
 	locale_reset();
+
 	return L;
 err:
 	lua_close(L);
 	locale_reset();
+
 	return NULL;
 }
+
 
 static int exec_action(struct lua_klish_data *ctx, const char *script)
 {
@@ -259,8 +294,10 @@ static int exec_action(struct lua_klish_data *ctx, const char *script)
 	fflush(stdout);
 	fflush(stderr);
 	clear(L);
+
 	return rc;
 }
+
 
 int klish_plugin_lua_action(kcontext_t *context)
 {
@@ -284,7 +321,7 @@ int klish_plugin_lua_action(kcontext_t *context)
 
 	script = kcontext_script(context);
 
-	if (!script) /* Nothing to do */
+	if (!script) // Nothing to do
 		return 0;
 
 	sigemptyset(&sig_set);
@@ -298,12 +335,13 @@ int klish_plugin_lua_action(kcontext_t *context)
 	status = exec_action(ctx, script);
 	while ( wait(NULL) >= 0 || errno != ECHILD);
 
-	/* Restore SIGINT and SIGQUIT */
+	// Restore SIGINT and SIGQUIT
 	sigaction(SIGINT, &sig_old_int, NULL);
 	sigaction(SIGQUIT, &sig_old_quit, NULL);
 err:
 	return status;
 }
+
 
 static void free_ctx(struct lua_klish_data *ctx)
 {
@@ -314,13 +352,15 @@ static void free_ctx(struct lua_klish_data *ctx)
 	free(ctx);
 }
 
+
 int kplugin_lua_init(kcontext_t *context)
 {
-	faux_ini_t *ini;
-	kplugin_t *plugin;
-	const char *p;
-	struct lua_klish_data *ctx;
-	const char *conf;
+	faux_ini_t *ini = NULL;
+	kplugin_t *plugin = NULL;
+	const char *p = NULL;
+	struct lua_klish_data *ctx = NULL;
+	const char *conf = NULL;
+
 	assert(context);
 	plugin = kcontext_plugin(context);
 	assert(plugin);
@@ -358,11 +398,12 @@ int kplugin_lua_init(kcontext_t *context)
 	return 0;
 }
 
+
 int kplugin_lua_fini(kcontext_t *context)
 {
-	kplugin_t *plugin;
-	lua_State *L;
-	struct lua_klish_data *ctx;
+	kplugin_t *plugin = NULL;
+	lua_State *L = NULL;
+	struct lua_klish_data *ctx = NULL;
 
 	assert(context);
 	plugin = kcontext_plugin(context);
@@ -374,5 +415,6 @@ int kplugin_lua_fini(kcontext_t *context)
 	if (ctx->L)
 		lua_close(ctx->L);
 	free_ctx(ctx);
+
 	return 0;
 }
