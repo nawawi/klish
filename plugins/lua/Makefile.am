@@ -9,4 +9,4 @@ kplugin_lua_la_CFLAGS = $(AM_LDFLAGS) @LUA_INCLUDE@
 kplugin_lua_la_LIBADD = libklish.la @LUA_LIB@
 
 kplugin_lua_la_SOURCES += \
-	plugins/lua/klish_lua.c
+	plugins/lua/klish_lua.c plugins/lua/lua-compat.c

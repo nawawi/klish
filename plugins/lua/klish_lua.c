@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <assert.h>
+#include <string.h>
 
 #include <klish/kplugin.h>
 #include <klish/kcontext.h>
@@ -13,7 +14,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-
+#include "lua-compat.h"
 
 #define LUA_CONTEXT "klish_context"
 #define LUA_AUTORUN_SW "autostart"
@@ -35,13 +36,13 @@ struct lua_klish_data {
 
 static lua_State *globalL = NULL;
 
-static int luaB_expand_var(lua_State *L);
+static int luaB_par(lua_State *L);
 
-static const luaL_Reg base_funcs[] = {
-	{"clish_expand_var", luaB_expand_var},
-	{NULL, NULL}
+
+static const luaL_Reg klish_lib[] = {
+        { "par", luaB_par },
+        { NULL, NULL }
 };
-
 
 #if LUA_VERSION_NUM >= 502
 static int traceback (lua_State *L)
@@ -159,24 +160,60 @@ static struct lua_klish_data *lua_context(lua_State *L)
 }
 
 
-static int luaB_expand_var(lua_State *L)
+static int luaB_par(lua_State *L)
 {
-	// TODO
-	return 0;
+	unsigned int k = 0;
+	kcontext_t *context;
+	kpargv_t *pars;
+	kpargv_pargs_node_t *par_i;
+	kparg_t *p = NULL;
+	struct lua_klish_data *ctx;
+
+	const char *name = luaL_optstring(L, 1, NULL);
+
+	if (!name)
+		lua_newtable(L);
+	ctx = lua_context(L);
+	assert(ctx);
+
+	context = ctx->context;
+	assert(context);
+
+	pars = kcontext_pargv(context);
+	if (!pars)
+		return (name == NULL);
+
+	par_i = kpargv_pargs_iter(pars);
+	if (kpargv_pargs_len(pars) > 0) {
+		while ((p = kpargv_pargs_each(&par_i))) {
+			const char *n = kentry_name(kparg_entry(p));
+			if (!name) {
+				lua_pushnumber(L, ++ k);
+				lua_pushstring(L, n);
+				lua_rawset(L, -3);
+				lua_pushstring(L, n);
+				lua_pushstring(L, kparg_value(p));
+				lua_rawset(L, -3);
+			} else if (!strcmp(n, name)) {
+				lua_pushstring(L, kparg_value(p));
+				return 1;
+			}
+		}
+	}
+	return (name == NULL);
+}
+
+
+static int luaopen_klish(lua_State *L)
+{
+	luaL_newlib(L, klish_lib);
+	return 1;
 }
 
 
 static int clish_env(lua_State *L)
 {
-#if LUA_VERSION_NUM >= 502
-	lua_pushglobaltable(L);
-	lua_pushglobaltable(L);
-	lua_setfield(L, -2, "_G");
-	// open lib into global table
-	luaL_setfuncs(L, base_funcs, 0);
-#else
-	luaL_register(L, "_G", base_funcs);
-#endif
+	luaL_requiref(L, "klish", luaopen_klish, 1);
 	return 0;
 }
 
