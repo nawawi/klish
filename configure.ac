@@ -509,7 +509,6 @@ if test x$use_lua != xno; then
 		CPPFLAGS="${CPPFLAGS} -I$use_lua/include"
 		LDFLAGS="${LDFLAGS} -L$use_lua/lib"
 	fi
-	LUA_VERSION="5.1"
 	AX_LUA_HEADERS()
 	AX_LUA_LIBS()
 fi
