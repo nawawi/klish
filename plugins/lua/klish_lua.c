@@ -37,11 +37,13 @@ struct lua_klish_data {
 static lua_State *globalL = NULL;
 
 static int luaB_par(lua_State *L);
+static int luaB_ppar(lua_State *L);
 
 
 static const luaL_Reg klish_lib[] = {
-        { "par", luaB_par },
-        { NULL, NULL }
+	{ "par", luaB_par },
+	{ "ppar", luaB_ppar },
+	{ NULL, NULL }
 };
 
 #if LUA_VERSION_NUM >= 502
@@ -160,11 +162,11 @@ static struct lua_klish_data *lua_context(lua_State *L)
 }
 
 
-static int luaB_par(lua_State *L)
+static int _luaB_par(lua_State *L, int parent)
 {
 	unsigned int k = 0;
 	kcontext_t *context;
-	kpargv_t *pars;
+	const kpargv_t *pars;
 	kpargv_pargs_node_t *par_i;
 	kparg_t *p = NULL;
 	struct lua_klish_data *ctx;
@@ -179,7 +181,7 @@ static int luaB_par(lua_State *L)
 	context = ctx->context;
 	assert(context);
 
-	pars = kcontext_pargv(context);
+	pars = (parent)?kcontext_parent_pargv(context):kcontext_pargv(context);
 	if (!pars)
 		return (name == NULL);
 
@@ -201,6 +203,18 @@ static int luaB_par(lua_State *L)
 		}
 	}
 	return (name == NULL);
+}
+
+
+static int luaB_par(lua_State *L)
+{
+	return _luaB_par(L, 0);
+}
+
+
+static int luaB_ppar(lua_State *L)
+{
+	return _luaB_par(L, 1);
 }
 
 
