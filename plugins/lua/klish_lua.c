@@ -38,11 +38,12 @@ static lua_State *globalL = NULL;
 
 static int luaB_par(lua_State *L);
 static int luaB_ppar(lua_State *L);
-
+static int luaB_path(lua_State *L);
 
 static const luaL_Reg klish_lib[] = {
 	{ "par", luaB_par },
 	{ "ppar", luaB_ppar },
+	{ "path", luaB_path },
 	{ NULL, NULL }
 };
 
@@ -214,6 +215,38 @@ static int _luaB_par(lua_State *L, int parent)
 			lua_rawset(L, -3);
 		}
 	}
+	return 1;
+}
+
+
+static int luaB_path(lua_State *L)
+{
+	int k = 0;
+	kpath_t *path = NULL;
+	kpath_levels_node_t *iter = NULL;
+	klevel_t *level = NULL;
+
+	struct lua_klish_data *ctx;
+	kcontext_t *context;
+
+	ctx = lua_context(L);
+	assert(ctx);
+
+	context = ctx->context;
+	assert(context);
+
+	path = ksession_path(kcontext_session(context));
+	assert(path);
+
+	iter = kpath_iter(path);
+
+	lua_newtable(L);
+	while ((level = kpath_each(&iter))) {
+		lua_pushnumber(L, ++ k);
+		lua_pushstring(L, kentry_name(klevel_entry(level)));
+		lua_rawset(L, -3);
+	}
+
 	return 1;
 }
 
