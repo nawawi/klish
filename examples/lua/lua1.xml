@@ -19,7 +19,7 @@
 
   <ENTRY name="cmd" help="Clear settings" mode="sequence">
     <ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
-    <ENTRY name="int_val" help="Integer" mode="sequence">
+    <ENTRY name="int_val" help="Integer" mode="sequence" min="1" max="2">
       <ENTRY name="INT" purpose="ptype" ref="/INT"/>
     </ENTRY>
     <ACTION sym="lua">
