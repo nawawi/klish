@@ -164,17 +164,16 @@ static struct lua_klish_data *lua_context(lua_State *L)
 
 static int _luaB_par(lua_State *L, int parent)
 {
-	unsigned int k = 0;
+	unsigned int k = 0, i = 0;
 	kcontext_t *context;
 	const kpargv_t *pars;
 	kpargv_pargs_node_t *par_i;
 	kparg_t *p = NULL;
+	const kentry_t *last_entry = NULL;
 	struct lua_klish_data *ctx;
-
 	const char *name = luaL_optstring(L, 1, NULL);
 
-	if (!name)
-		lua_newtable(L);
+	lua_newtable(L);
 	ctx = lua_context(L);
 	assert(ctx);
 
@@ -183,26 +182,39 @@ static int _luaB_par(lua_State *L, int parent)
 
 	pars = (parent)?kcontext_parent_pargv(context):kcontext_pargv(context);
 	if (!pars)
-		return (name == NULL);
+		return 1;
 
 	par_i = kpargv_pargs_iter(pars);
-	if (kpargv_pargs_len(pars) > 0) {
-		while ((p = kpargv_pargs_each(&par_i))) {
-			const char *n = kentry_name(kparg_entry(p));
-			if (!name) {
-				lua_pushnumber(L, ++ k);
+	if (kpargv_pargs_len(pars) <= 0)
+		return 1;
+
+	while ((p = kpargv_pargs_each(&par_i))) {
+		const kentry_t *entry = kparg_entry(p);
+		const char *n = kentry_name(entry);
+		if (!name) {
+			if (last_entry != entry) {
+				lua_pushnumber(L, ++k);
 				lua_pushstring(L, n);
 				lua_rawset(L, -3);
 				lua_pushstring(L, n);
-				lua_pushstring(L, kparg_value(p));
+				lua_newtable(L);
 				lua_rawset(L, -3);
-			} else if (!strcmp(n, name)) {
-				lua_pushstring(L, kparg_value(p));
-				return 1;
+				i = 0;
 			}
+			lua_pushstring(L, n);
+			lua_rawget(L, -2);
+			lua_pushnumber(L, ++ i);
+			lua_pushstring(L, kparg_value(p));
+			lua_rawset(L, -3);
+			lua_pop(L, 1);
+			last_entry = entry;
+		} else if (!strcmp(n, name)) {
+			lua_pushnumber(L, ++ k);
+			lua_pushstring(L, kparg_value(p));
+			lua_rawset(L, -3);
 		}
 	}
-	return (name == NULL);
+	return 1;
 }
 
 

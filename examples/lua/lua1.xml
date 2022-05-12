@@ -23,9 +23,11 @@
       <ENTRY name="INT" purpose="ptype" ref="/INT"/>
     </ENTRY>
     <ACTION sym="lua">
-        for i=1,10 do
-            print(i)
+        local pars = klish.par()
+        for k, v in ipairs(pars) do
+            print(v..":", pars[v][1])
         end
+        print("int_val = ", klish.par('int_val')[1])
     </ACTION>
   </ENTRY>
 
