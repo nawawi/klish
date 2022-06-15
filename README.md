@@ -33,6 +33,6 @@ Mailing list : http://groups.google.com/group/klish
 
 Dev mailing list : http://groups.google.com/group/klish-dev
 
-Download : Not stable yet
+Download : https://src.libcode.org/download/klish/
 
 Author : Serj Kalichev `serj.kalichev(_at_)libcode.org`
