@@ -41,11 +41,13 @@ nobase_include_HEADERS += \
 nobase_include_HEADERS += \
 	klish/kudata.h \
 	klish/kustore.h \
+	klish/kcontext_base.h \
 	klish/kcontext.h \
 	klish/kpath.h \
 	klish/kexec.h \
 	klish/kpargv.h \
-	klish/ksession.h
+	klish/ksession.h \
+	klish/ksession_parse.h
 
 # XML-helper
 nobase_include_HEADERS += \

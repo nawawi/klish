@@ -24,15 +24,22 @@ nobase_include_HEADERS =
 noinst_HEADERS =
 
 EXTRA_DIST =
-	klish/Makefile.am \
+	bin/Makefile.am \
 	dbs/Makefile.am \
+	docs/Makefile.am \
+	examples/Makefile.am \
+	klish/Makefile.am \
 	plugins/Makefile.am \
-	bin/Makefile.am
+	klish.xsd \
+	LICENCE \
+	README.md
 
-include $(top_srcdir)/klish/Makefile.am
-include $(top_srcdir)/dbs/Makefile.am
-include $(top_srcdir)/plugins/Makefile.am
 include $(top_srcdir)/bin/Makefile.am
+include $(top_srcdir)/dbs/Makefile.am
+include $(top_srcdir)/docs/Makefile.am
+include $(top_srcdir)/examples/Makefile.am
+include $(top_srcdir)/klish/Makefile.am
+include $(top_srcdir)/plugins/Makefile.am
 
 define CONTROL
 PACKAGE: klish
