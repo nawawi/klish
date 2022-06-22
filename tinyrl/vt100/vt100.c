@@ -1,4 +1,3 @@
-#undef __STRICT_ANSI__		/* we need to use fileno() */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -10,34 +9,42 @@
 #include <sys/select.h>
 #include <errno.h>
 
+#include <tinyrl/vt100.h>
+
+struct vt100 {
+	FILE *istream;
+	FILE *ostream;
+	int   timeout; /* Input timeout in seconds */
+};
+
 #include "private.h"
 
 typedef struct {
 	const char* sequence;
-	tinyrl_vt100_escape_e code;
+	vt100_escape_e code;
 } vt100_decode_t;
 
 /* This table maps the vt100 escape codes to an enumeration */
 static vt100_decode_t cmds[] = {
-	{"[A", tinyrl_vt100_CURSOR_UP},
-	{"[B", tinyrl_vt100_CURSOR_DOWN},
-	{"[C", tinyrl_vt100_CURSOR_RIGHT},
-	{"[D", tinyrl_vt100_CURSOR_LEFT},
-	{"[H", tinyrl_vt100_HOME},
-	{"[1~", tinyrl_vt100_HOME},
-	{"[F", tinyrl_vt100_END},
-	{"[4~", tinyrl_vt100_END},
-	{"[2~", tinyrl_vt100_INSERT},
-	{"[3~", tinyrl_vt100_DELETE},
-	{"[5~", tinyrl_vt100_PGUP},
-	{"[6~", tinyrl_vt100_PGDOWN},
+	{"[A", vt100_CURSOR_UP},
+	{"[B", vt100_CURSOR_DOWN},
+	{"[C", vt100_CURSOR_RIGHT},
+	{"[D", vt100_CURSOR_LEFT},
+	{"[H", vt100_HOME},
+	{"[1~", vt100_HOME},
+	{"[F", vt100_END},
+	{"[4~", vt100_END},
+	{"[2~", vt100_INSERT},
+	{"[3~", vt100_DELETE},
+	{"[5~", vt100_PGUP},
+	{"[6~", vt100_PGDOWN},
 };
 
 /*--------------------------------------------------------- */
-tinyrl_vt100_escape_e tinyrl_vt100_escape_decode(const tinyrl_vt100_t *this,
+vt100_escape_e vt100_escape_decode(const vt100_t *this,
 	const char *esc_seq)
 {
-	tinyrl_vt100_escape_e result = tinyrl_vt100_UNKNOWN;
+	vt100_escape_e result = vt100_UNKNOWN;
 	unsigned int i;
 
 	/* Decode the sequence to macros */
@@ -54,7 +61,7 @@ tinyrl_vt100_escape_e tinyrl_vt100_escape_decode(const tinyrl_vt100_t *this,
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_printf(const tinyrl_vt100_t * this, const char *fmt, ...)
+int vt100_printf(const vt100_t * this, const char *fmt, ...)
 {
 	va_list args;
 	int len;
@@ -62,7 +69,7 @@ int tinyrl_vt100_printf(const tinyrl_vt100_t * this, const char *fmt, ...)
 	if (!this->ostream)
 		return 0;
 	va_start(args, fmt);
-	len = tinyrl_vt100_vprintf(this, fmt, args);
+	len = vt100_vprintf(this, fmt, args);
 	va_end(args);
 
 	return len;
@@ -70,7 +77,7 @@ int tinyrl_vt100_printf(const tinyrl_vt100_t * this, const char *fmt, ...)
 
 /*-------------------------------------------------------- */
 int
-tinyrl_vt100_vprintf(const tinyrl_vt100_t * this, const char *fmt, va_list args)
+vt100_vprintf(const vt100_t * this, const char *fmt, va_list args)
 {
 	if (!this->ostream)
 		return 0;
@@ -78,7 +85,7 @@ tinyrl_vt100_vprintf(const tinyrl_vt100_t * this, const char *fmt, va_list args)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
+int vt100_getchar(const vt100_t *this)
 {
 	unsigned char c;
 	int istream_fd;
@@ -127,7 +134,7 @@ int tinyrl_vt100_getchar(const tinyrl_vt100_t *this)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_oflush(const tinyrl_vt100_t * this)
+int vt100_oflush(const vt100_t * this)
 {
 	if (!this->ostream)
 		return 0;
@@ -135,7 +142,7 @@ int tinyrl_vt100_oflush(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_ierror(const tinyrl_vt100_t * this)
+int vt100_ierror(const vt100_t * this)
 {
 	if (!this->istream)
 		return 0;
@@ -143,7 +150,7 @@ int tinyrl_vt100_ierror(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_oerror(const tinyrl_vt100_t * this)
+int vt100_oerror(const vt100_t * this)
 {
 	if (!this->ostream)
 		return 0;
@@ -151,7 +158,7 @@ int tinyrl_vt100_oerror(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_ieof(const tinyrl_vt100_t * this)
+int vt100_ieof(const vt100_t * this)
 {
 	if (!this->istream)
 		return 0;
@@ -159,7 +166,7 @@ int tinyrl_vt100_ieof(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-int tinyrl_vt100_eof(const tinyrl_vt100_t * this)
+int vt100_eof(const vt100_t * this)
 {
 	if (!this->istream)
 		return 0;
@@ -167,7 +174,7 @@ int tinyrl_vt100_eof(const tinyrl_vt100_t * this)
 }
 
 /*-------------------------------------------------------- */
-unsigned int tinyrl_vt100__get_width(const tinyrl_vt100_t *this)
+unsigned int vt100__get_width(const vt100_t *this)
 {
 #ifdef TIOCGWINSZ
 	struct winsize ws;
@@ -189,7 +196,7 @@ unsigned int tinyrl_vt100__get_width(const tinyrl_vt100_t *this)
 }
 
 /*-------------------------------------------------------- */
-unsigned int tinyrl_vt100__get_height(const tinyrl_vt100_t *this)
+unsigned int vt100__get_height(const vt100_t *this)
 {
 #ifdef TIOCGWINSZ
 	struct winsize ws;
@@ -212,7 +219,7 @@ unsigned int tinyrl_vt100__get_height(const tinyrl_vt100_t *this)
 
 /*-------------------------------------------------------- */
 static void
-tinyrl_vt100_init(tinyrl_vt100_t * this, FILE * istream, FILE * ostream)
+vt100_init(vt100_t * this, FILE * istream, FILE * ostream)
 {
 	this->istream = istream;
 	this->ostream = ostream;
@@ -220,188 +227,188 @@ tinyrl_vt100_init(tinyrl_vt100_t * this, FILE * istream, FILE * ostream)
 }
 
 /*-------------------------------------------------------- */
-static void tinyrl_vt100_fini(tinyrl_vt100_t * this)
+static void vt100_fini(vt100_t * this)
 {
 	/* nothing to do yet... */
 	this = this;
 }
 
 /*-------------------------------------------------------- */
-tinyrl_vt100_t *tinyrl_vt100_new(FILE * istream, FILE * ostream)
+vt100_t *vt100_new(FILE * istream, FILE * ostream)
 {
-	tinyrl_vt100_t *this = NULL;
+	vt100_t *this = NULL;
 
-	this = malloc(sizeof(tinyrl_vt100_t));
+	this = malloc(sizeof(vt100_t));
 	if (this) {
-		tinyrl_vt100_init(this, istream, ostream);
+		vt100_init(this, istream, ostream);
 	}
 
 	return this;
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_delete(tinyrl_vt100_t * this)
+void vt100_delete(vt100_t * this)
 {
-	tinyrl_vt100_fini(this);
+	vt100_fini(this);
 	/* release the memory */
 	free(this);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_ding(const tinyrl_vt100_t * this)
+void vt100_ding(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c", KEY_BEL);
-	(void)tinyrl_vt100_oflush(this);
+	vt100_printf(this, "%c", KEY_BEL);
+	(void)vt100_oflush(this);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_reset(const tinyrl_vt100_t * this)
+void vt100_attribute_reset(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[0m", KEY_ESC);
+	vt100_printf(this, "%c[0m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_bright(const tinyrl_vt100_t * this)
+void vt100_attribute_bright(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[1m", KEY_ESC);
+	vt100_printf(this, "%c[1m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_dim(const tinyrl_vt100_t * this)
+void vt100_attribute_dim(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[2m", KEY_ESC);
+	vt100_printf(this, "%c[2m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_underscore(const tinyrl_vt100_t * this)
+void vt100_attribute_underscore(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[4m", KEY_ESC);
+	vt100_printf(this, "%c[4m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_blink(const tinyrl_vt100_t * this)
+void vt100_attribute_blink(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[5m", KEY_ESC);
+	vt100_printf(this, "%c[5m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_reverse(const tinyrl_vt100_t * this)
+void vt100_attribute_reverse(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[7m", KEY_ESC);
+	vt100_printf(this, "%c[7m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_attribute_hidden(const tinyrl_vt100_t * this)
+void vt100_attribute_hidden(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[8m", KEY_ESC);
+	vt100_printf(this, "%c[8m", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_erase_line(const tinyrl_vt100_t * this)
+void vt100_erase_line(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[2K", KEY_ESC);
+	vt100_printf(this, "%c[2K", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_clear_screen(const tinyrl_vt100_t * this)
+void vt100_clear_screen(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[2J", KEY_ESC);
+	vt100_printf(this, "%c[2J", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_save(const tinyrl_vt100_t * this)
+void vt100_cursor_save(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c7", KEY_ESC); /* VT100 */
-/*	tinyrl_vt100_printf(this, "%c[s", KEY_ESC); */ /* ANSI */
+	vt100_printf(this, "%c7", KEY_ESC); /* VT100 */
+/*	vt100_printf(this, "%c[s", KEY_ESC); */ /* ANSI */
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_restore(const tinyrl_vt100_t * this)
+void vt100_cursor_restore(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c8", KEY_ESC); /* VT100 */
-/*	tinyrl_vt100_printf(this, "%c[u", KEY_ESC); */ /* ANSI */
+	vt100_printf(this, "%c8", KEY_ESC); /* VT100 */
+/*	vt100_printf(this, "%c[u", KEY_ESC); */ /* ANSI */
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_forward(const tinyrl_vt100_t * this, unsigned count)
+void vt100_cursor_forward(const vt100_t * this, unsigned count)
 {
-	tinyrl_vt100_printf(this, "%c[%dC", KEY_ESC, count);
+	vt100_printf(this, "%c[%dC", KEY_ESC, count);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_back(const tinyrl_vt100_t * this, unsigned count)
+void vt100_cursor_back(const vt100_t * this, unsigned count)
 {
-	tinyrl_vt100_printf(this, "%c[%dD", KEY_ESC, count);
+	vt100_printf(this, "%c[%dD", KEY_ESC, count);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_up(const tinyrl_vt100_t * this, unsigned count)
+void vt100_cursor_up(const vt100_t * this, unsigned count)
 {
-	tinyrl_vt100_printf(this, "%c[%dA", KEY_ESC, count);
+	vt100_printf(this, "%c[%dA", KEY_ESC, count);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_down(const tinyrl_vt100_t * this, unsigned count)
+void vt100_cursor_down(const vt100_t * this, unsigned count)
 {
-	tinyrl_vt100_printf(this, "%c[%dB", KEY_ESC, count);
+	vt100_printf(this, "%c[%dB", KEY_ESC, count);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_scroll_up(const tinyrl_vt100_t *this)
+void vt100_scroll_up(const vt100_t *this)
 {
-	tinyrl_vt100_printf(this, "%cD", KEY_ESC);
+	vt100_printf(this, "%cD", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_scroll_down(const tinyrl_vt100_t *this)
+void vt100_scroll_down(const vt100_t *this)
 {
-	tinyrl_vt100_printf(this, "%cM", KEY_ESC);
+	vt100_printf(this, "%cM", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_next_line(const tinyrl_vt100_t *this)
+void vt100_next_line(const vt100_t *this)
 {
-	tinyrl_vt100_printf(this, "%cE", KEY_ESC);
+	vt100_printf(this, "%cE", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_cursor_home(const tinyrl_vt100_t * this)
+void vt100_cursor_home(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[H", KEY_ESC);
+	vt100_printf(this, "%c[H", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_erase(const tinyrl_vt100_t * this, unsigned count)
+void vt100_erase(const vt100_t * this, unsigned count)
 {
-	tinyrl_vt100_printf(this, "%c[%dP", KEY_ESC, count);
+	vt100_printf(this, "%c[%dP", KEY_ESC, count);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100__set_timeout(tinyrl_vt100_t *this, int timeout)
+void vt100__set_timeout(vt100_t *this, int timeout)
 {
 	this->timeout = timeout;
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100_erase_down(const tinyrl_vt100_t * this)
+void vt100_erase_down(const vt100_t * this)
 {
-	tinyrl_vt100_printf(this, "%c[J", KEY_ESC);
+	vt100_printf(this, "%c[J", KEY_ESC);
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_vt100__set_istream(tinyrl_vt100_t * this, FILE * istream)
+void vt100__set_istream(vt100_t * this, FILE * istream)
 {
 	this->istream = istream;
 }
 
 /*-------------------------------------------------------- */
-FILE *tinyrl_vt100__get_istream(const tinyrl_vt100_t * this)
+FILE *vt100__get_istream(const vt100_t * this)
 {
 	return this->istream;
 }
 
 /*-------------------------------------------------------- */
-FILE *tinyrl_vt100__get_ostream(const tinyrl_vt100_t * this)
+FILE *vt100__get_ostream(const vt100_t * this)
 {
 	return this->ostream;
 }
