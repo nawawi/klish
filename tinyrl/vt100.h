@@ -13,7 +13,6 @@
 
 typedef struct vt100_s vt100_t;
 
-C_DECL_BEGIN
 
 // Key codes
 #define KEY_NUL	0	// ^@ Null character
@@ -50,6 +49,7 @@ C_DECL_BEGIN
 #define KEY_US	31	// ^_ Unit separator
 #define KEY_DEL	127	// Delete (not a real control character)
 
+
 // Types of escape code
 typedef enum {
 	VT100_UNKNOWN,		// Undefined escape sequence
@@ -65,10 +65,14 @@ typedef enum {
 	VT100_PGDOWN		// No action at the moment
 } vt100_esc_e;
 
+
 // Return values from vt100_getchar()
 #define VT100_RET_EOF -1
 #define VT100_RET_TIMEOUT -2
 #define VT100_RET_ERR -3
+
+
+C_DECL_BEGIN
 
 vt100_t *vt100_new(FILE *istream, FILE *ostream);
 void vt100_free(vt100_t *vt100);
