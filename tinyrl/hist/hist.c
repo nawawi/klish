@@ -47,7 +47,7 @@ hist_t *hist_new(size_t stifle)
 		return NULL;
 
 	// Init
-	hist->list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+	hist->list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		hist_compare, hist_kcompare, (void (*)(void *))faux_str_free);
 	hist->pos = NULL; // It means position is reset
 	hist->stifle = stifle;
@@ -72,6 +72,18 @@ void hist_pos_reset(hist_t *hist)
 		return;
 
 	hist->pos = NULL;
+}
+
+
+const char *hist_pos(hist_t *hist)
+{
+	if (!hist)
+		return NULL;
+
+	if (!hist->pos)
+		return NULL;
+
+	return (const char *)faux_list_data(hist->pos);
 }
 
 
@@ -133,8 +145,8 @@ void hist_clear(hist_t *hist)
 	if (!hist)
 		return;
 
-	hist_pos_reset(hist);
 	faux_list_del_all(hist->list);
+	hist_pos_reset(hist);
 }
 
 
