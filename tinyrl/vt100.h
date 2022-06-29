@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <faux/faux.h>
+
+
 typedef struct vt100_s vt100_t;
 
 C_DECL_BEGIN
@@ -62,10 +65,10 @@ typedef enum {
 	VT100_PGDOWN		// No action at the moment
 } vt100_esc_e;
 
-/* Return values from vt100_getchar() */
-#define VT100_EOF	-1
-#define VT100_TIMEOUT	-2
-#define VT100_ERR	-3
+// Return values from vt100_getchar()
+#define VT100_RET_EOF -1
+#define VT100_RET_TIMEOUT -2
+#define VT100_RET_ERR -3
 
 vt100_t *vt100_new(FILE *istream, FILE *ostream);
 void vt100_free(vt100_t *vt100);
@@ -74,7 +77,7 @@ FILE *vt100_istream(const vt100_t *vt100);
 void vt100_set_istream(vt100_t *vt100, FILE *istream);
 FILE *vt100_ostream(const vt100_t *vt100);
 void vt100_set_ostream(vt100_t *vt100, FILE *ostream);
-void vt100_timeout(vt100_t *vt100, int timeout);
+int  vt100_timeout(vt100_t *vt100);
 void vt100_set_timeout(vt100_t *vt100, int timeout);
 
 size_t vt100_width(const vt100_t *vt100);
@@ -90,13 +93,13 @@ int vt100_getchar(const vt100_t *vt100);
 vt100_esc_e vt100_esc_decode(const vt100_t *vt100, const char *esc_seq);
 
 void vt100_ding(const vt100_t *vt100);
-void vt100_attribute_reset(const vt100_t *vt100);
-void vt100_attribute_bright(const vt100_t *vt100);
-void vt100_attribute_dim(const vt100_t *vt100);
-void vt100_attribute_underscore(const vt100_t *vt100);
-void vt100_attribute_blink(const vt100_t *vt100);
-void vt100_attribute_reverse(const vt100_t *vt100);
-void vt100_attribute_hidden(const vt100_t *vt100);
+void vt100_attr_reset(const vt100_t *vt100);
+void vt100_attr_bright(const vt100_t *vt100);
+void vt100_attr_dim(const vt100_t *vt100);
+void vt100_attr_underscore(const vt100_t *vt100);
+void vt100_attr_blink(const vt100_t *vt100);
+void vt100_attr_reverse(const vt100_t *vt100);
+void vt100_attr_hidden(const vt100_t *vt100);
 void vt100_erase_line(const vt100_t *vt100);
 void vt100_clear_screen(const vt100_t *vt100);
 void vt100_cursor_back(const vt100_t *vt100, size_t count);

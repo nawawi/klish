@@ -29,6 +29,7 @@ EXTRA_DIST =
 	docs/Makefile.am \
 	examples/Makefile.am \
 	klish/Makefile.am \
+	tinyrl/Makefile.am \
 	plugins/Makefile.am \
 	klish.xsd \
 	LICENCE \
@@ -39,6 +40,7 @@ include $(top_srcdir)/dbs/Makefile.am
 include $(top_srcdir)/docs/Makefile.am
 include $(top_srcdir)/examples/Makefile.am
 include $(top_srcdir)/klish/Makefile.am
+include $(top_srcdir)/tinyrl/Makefile.am
 include $(top_srcdir)/plugins/Makefile.am
 
 define CONTROL

@@ -11,406 +11,432 @@
 
 #include <tinyrl/vt100.h>
 
-struct vt100 {
+
+struct vt100_s {
 	FILE *istream;
 	FILE *ostream;
-	int   timeout; /* Input timeout in seconds */
+	int timeout; // Input timeout in seconds
 };
 
-#include "private.h"
 
 typedef struct {
-	const char* sequence;
-	vt100_escape_e code;
+	const char *sequence;
+	vt100_esc_e code;
 } vt100_decode_t;
 
-/* This table maps the vt100 escape codes to an enumeration */
-static vt100_decode_t cmds[] = {
-	{"[A", vt100_CURSOR_UP},
-	{"[B", vt100_CURSOR_DOWN},
-	{"[C", vt100_CURSOR_RIGHT},
-	{"[D", vt100_CURSOR_LEFT},
-	{"[H", vt100_HOME},
-	{"[1~", vt100_HOME},
-	{"[F", vt100_END},
-	{"[4~", vt100_END},
-	{"[2~", vt100_INSERT},
-	{"[3~", vt100_DELETE},
-	{"[5~", vt100_PGUP},
-	{"[6~", vt100_PGDOWN},
+
+// This table maps the vt100 escape codes to an enumeration
+static vt100_decode_t esc_map[] = {
+	{"[A", VT100_CURSOR_UP},
+	{"[B", VT100_CURSOR_DOWN},
+	{"[C", VT100_CURSOR_RIGHT},
+	{"[D", VT100_CURSOR_LEFT},
+	{"[H", VT100_HOME},
+	{"[1~", VT100_HOME},
+	{"[F", VT100_END},
+	{"[4~", VT100_END},
+	{"[2~", VT100_INSERT},
+	{"[3~", VT100_DELETE},
+	{"[5~", VT100_PGUP},
+	{"[6~", VT100_PGDOWN},
 };
 
-/*--------------------------------------------------------- */
-vt100_escape_e vt100_escape_decode(const vt100_t *this,
-	const char *esc_seq)
-{
-	vt100_escape_e result = vt100_UNKNOWN;
-	unsigned int i;
 
-	/* Decode the sequence to macros */
-	for (i = 0; i < (sizeof(cmds) / sizeof(vt100_decode_t)); i++) {
-		if (strcmp(cmds[i].sequence, esc_seq))
+vt100_t *vt100_new(FILE *istream, FILE *ostream)
+{
+	vt100_t *vt100 = NULL;
+
+	vt100 = malloc(sizeof(vt100_t));
+	if (!vt100)
+		return NULL;
+
+	// Initialize
+	vt100->istream = istream;
+	vt100->ostream = ostream;
+	vt100->timeout = -1; // No timeout by default
+
+
+	return vt100;
+}
+
+
+void vt100_free(vt100_t *vt100)
+{
+	free(vt100);
+}
+
+
+FILE *vt100_istream(const vt100_t *vt100)
+{
+	if (!vt100)
+		return NULL;
+
+	return vt100->istream;
+}
+
+
+void vt100_set_istream(vt100_t *vt100, FILE *istream)
+{
+	if (!vt100)
+		return;
+
+	vt100->istream = istream;
+}
+
+
+FILE *vt100_ostream(const vt100_t *vt100)
+{
+	if (!vt100)
+		return NULL;
+
+	return vt100->ostream;
+}
+
+
+void vt100_set_ostream(vt100_t *vt100, FILE *ostream)
+{
+	if (!vt100)
+		return;
+
+	vt100->ostream = ostream;
+}
+
+
+int vt100_timeout(vt100_t *vt100)
+{
+	if (!vt100)
+		return -1;
+
+	return vt100->timeout;
+}
+
+
+void vt100__set_timeout(vt100_t *vt100, int timeout)
+{
+	if (!vt100)
+		return;
+
+	vt100->timeout = timeout;
+}
+
+
+vt100_esc_e vt100_esc_decode(const vt100_t *vt100, const char *esc_seq)
+{
+	vt100_esc_e result = VT100_UNKNOWN;
+	unsigned int i = 0;
+
+	for (i = 0; i < (sizeof(esc_map) / sizeof(vt100_decode_t)); i++) {
+		if (strcmp(esc_map[i].sequence, esc_seq))
 			continue;
-		result = cmds[i].code;
+		result = esc_map[i].code;
 		break;
 	}
 
-	this = this; /* Happy compiler */
+	vt100 = vt100; // Happy compiler
 
 	return result;
 }
 
-/*-------------------------------------------------------- */
-int vt100_printf(const vt100_t * this, const char *fmt, ...)
+
+int vt100_printf(const vt100_t *vt100, const char *fmt, ...)
 {
 	va_list args;
-	int len;
+	int len = 0;
 
-	if (!this->ostream)
+	// If ostream is not set don't consider it as a error. Consider it
+	// as a printf to NULL.
+	if (!vt100 || !vt100->ostream)
 		return 0;
+
 	va_start(args, fmt);
-	len = vt100_vprintf(this, fmt, args);
+	len = vt100_vprintf(vt100, fmt, args);
 	va_end(args);
 
 	return len;
 }
 
-/*-------------------------------------------------------- */
-int
-vt100_vprintf(const vt100_t * this, const char *fmt, va_list args)
+
+int vt100_vprintf(const vt100_t *vt100, const char *fmt, va_list args)
 {
-	if (!this->ostream)
+	if (!vt100 || !vt100->ostream)
 		return 0;
-	return vfprintf(this->ostream, fmt, args);
+
+	return vfprintf(vt100->ostream, fmt, args);
 }
 
-/*-------------------------------------------------------- */
-int vt100_getchar(const vt100_t *this)
+
+int vt100_getchar(const vt100_t *vt100)
 {
-	unsigned char c;
-	int istream_fd;
-	fd_set rfds;
-	struct timeval tv;
-	int retval;
-	ssize_t res;
+	unsigned char c = 0;
+	int istream_fd = -1;
+	fd_set rfds = {};
+	struct timeval tv = {};
+	int retval = 0;
+	ssize_t res = VT100_RET_ERR;
 
-	if (!this->istream)
-		return VT100_ERR;
-	istream_fd = fileno(this->istream);
+	if (!vt100 || !vt100->istream)
+		return VT100_RET_ERR;
 
-	/* Just wait for the input if no timeout */
-	if (this->timeout <= 0) {
+	istream_fd = fileno(vt100->istream);
+
+	// Simple variant
+	// Just wait for the input if no timeout specified
+	if (vt100->timeout <= 0) {
 		while (((res = read(istream_fd, &c, 1)) < 0) &&
 			(EAGAIN == errno));
-		/* EOF or error */
+		// EOF or error
 		if (res < 0)
-			return VT100_ERR;
-		if (!res)
-			return VT100_EOF;
+			return VT100_RET_ERR;
+		if (0 == res)
+			return VT100_RET_EOF;
 		return c;
 	}
 
-	/* Set timeout for the select() */
+	// Variant with timeout
+	// Set timeout for the select()
 	FD_ZERO(&rfds);
 	FD_SET(istream_fd, &rfds);
-	tv.tv_sec = this->timeout;
+	tv.tv_sec = vt100->timeout;
 	tv.tv_usec = 0;
 	while (((retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv)) < 0) &&
 		(EAGAIN == errno));
-	/* Error or timeout */
+	// Error or timeout
 	if (retval < 0)
-		return VT100_ERR;
-	if (!retval)
-		return VT100_TIMEOUT;
+		return VT100_RET_ERR;
+	if (0 == retval)
+		return VT100_RET_TIMEOUT;
 
 	res = read(istream_fd, &c, 1);
-	/* EOF or error */
+	// EOF or error
 	if (res < 0)
-		return VT100_ERR;
-	if (!res)
-		return VT100_EOF;
+		return VT100_RET_ERR;
+	if (0 == res)
+		return VT100_RET_EOF;
 
 	return c;
 }
 
-/*-------------------------------------------------------- */
-int vt100_oflush(const vt100_t * this)
+
+int vt100_oflush(const vt100_t *vt100)
 {
-	if (!this->ostream)
+	if (!vt100 || !vt100->ostream)
 		return 0;
-	return fflush(this->ostream);
+
+	return fflush(vt100->ostream);
 }
 
-/*-------------------------------------------------------- */
-int vt100_ierror(const vt100_t * this)
+
+int vt100_ierror(const vt100_t *vt100)
 {
-	if (!this->istream)
+	if (!vt100 || !vt100->istream)
 		return 0;
-	return ferror(this->istream);
+
+	return ferror(vt100->istream);
 }
 
-/*-------------------------------------------------------- */
-int vt100_oerror(const vt100_t * this)
+
+int vt100_oerror(const vt100_t *vt100)
 {
-	if (!this->ostream)
+	if (!vt100 || !vt100->ostream)
 		return 0;
-	return ferror(this->ostream);
+
+	return ferror(vt100->ostream);
 }
 
-/*-------------------------------------------------------- */
-int vt100_ieof(const vt100_t * this)
+
+int vt100_ieof(const vt100_t *vt100)
 {
-	if (!this->istream)
+	if (!vt100 || !vt100->istream)
 		return 0;
-	return feof(this->istream);
+
+	return feof(vt100->istream);
 }
 
-/*-------------------------------------------------------- */
-int vt100_eof(const vt100_t * this)
+
+int vt100_eof(const vt100_t *vt100)
 {
-	if (!this->istream)
+	if (!vt100 || !vt100->istream)
 		return 0;
-	return feof(this->istream);
+
+	return feof(vt100->istream);
 }
 
-/*-------------------------------------------------------- */
-unsigned int vt100__get_width(const vt100_t *this)
+
+size_t vt100_width(const vt100_t *vt100)
 {
 #ifdef TIOCGWINSZ
-	struct winsize ws;
-	int res;
+	struct winsize ws = {};
+	int res = 0;
 #endif
+	const size_t default_width = 80;
 
-	if(!this->ostream)
-		return 80;
+	if(!vt100 || !vt100->ostream)
+		return default_width;
 
 #ifdef TIOCGWINSZ
 	ws.ws_col = 0;
-	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
-	if (res || !ws.ws_col)
-		return 80;
-	return ws.ws_col;
+	res = ioctl(fileno(vt100->ostream), TIOCGWINSZ, &ws);
+	if (res || (0 == ws.ws_col))
+		return default_width;
+	return (size_t)ws.ws_col;
 #else
-	return 80;
+	return default_width;
 #endif
 }
 
-/*-------------------------------------------------------- */
-unsigned int vt100__get_height(const vt100_t *this)
+
+size_t vt100_height(const vt100_t *vt100)
 {
 #ifdef TIOCGWINSZ
-	struct winsize ws;
-	int res;
+	struct winsize ws = {};
+	int res = 0;
 #endif
+	const size_t default_height = 25;
 
-	if(!this->ostream)
-		return 25;
+	if(!vt100 || !vt100->ostream)
+		return default_height;
 
 #ifdef TIOCGWINSZ
 	ws.ws_row = 0;
-	res = ioctl(fileno(this->ostream), TIOCGWINSZ, &ws);
-	if (res || !ws.ws_row)
-		return 25;
-	return ws.ws_row;
+	res = ioctl(fileno(vt100->ostream), TIOCGWINSZ, &ws);
+	if (res || (0 == ws.ws_row))
+		return default_height;
+	return (size_t)ws.ws_row;
 #else
-	return 25;
+	return default_height;
 #endif
 }
 
-/*-------------------------------------------------------- */
-static void
-vt100_init(vt100_t * this, FILE * istream, FILE * ostream)
+
+void vt100_ding(const vt100_t *vt100)
 {
-	this->istream = istream;
-	this->ostream = ostream;
-	this->timeout = -1; /* No timeout by default */
+	vt100_printf(vt100, "%c", KEY_BEL);
+	vt100_oflush(vt100);
 }
 
-/*-------------------------------------------------------- */
-static void vt100_fini(vt100_t * this)
+
+void vt100_attr_reset(const vt100_t *vt100)
 {
-	/* nothing to do yet... */
-	this = this;
+	vt100_printf(vt100, "%c[0m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-vt100_t *vt100_new(FILE * istream, FILE * ostream)
+
+void vt100_attr_bright(const vt100_t *vt100)
 {
-	vt100_t *this = NULL;
-
-	this = malloc(sizeof(vt100_t));
-	if (this) {
-		vt100_init(this, istream, ostream);
-	}
-
-	return this;
+	vt100_printf(vt100, "%c[1m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_delete(vt100_t * this)
+
+void vt100_attr_dim(const vt100_t *vt100)
 {
-	vt100_fini(this);
-	/* release the memory */
-	free(this);
+	vt100_printf(vt100, "%c[2m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_ding(const vt100_t * this)
+
+void vt100_attr_underscore(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c", KEY_BEL);
-	(void)vt100_oflush(this);
+	vt100_printf(vt100, "%c[4m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_reset(const vt100_t * this)
+
+void vt100_attr_blink(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[0m", KEY_ESC);
+	vt100_printf(vt100, "%c[5m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_bright(const vt100_t * this)
+
+void vt100_attr_reverse(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[1m", KEY_ESC);
+	vt100_printf(vt100, "%c[7m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_dim(const vt100_t * this)
+
+void vt100_attr_hidden(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[2m", KEY_ESC);
+	vt100_printf(vt100, "%c[8m", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_underscore(const vt100_t * this)
+
+void vt100_erase_line(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[4m", KEY_ESC);
+	vt100_printf(vt100, "%c[2K", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_blink(const vt100_t * this)
+
+void vt100_clear_screen(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[5m", KEY_ESC);
+	vt100_printf(vt100, "%c[2J", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_reverse(const vt100_t * this)
+
+void vt100_cursor_save(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[7m", KEY_ESC);
+	vt100_printf(vt100, "%c7", KEY_ESC); // VT100
+//	vt100_printf(vt100, "%c[s", KEY_ESC); // ANSI
 }
 
-/*-------------------------------------------------------- */
-void vt100_attribute_hidden(const vt100_t * this)
+
+void vt100_cursor_restore(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[8m", KEY_ESC);
+	vt100_printf(vt100, "%c8", KEY_ESC); // VT100
+//	vt100_printf(vt100, "%c[u", KEY_ESC); // ANSI
 }
 
-/*-------------------------------------------------------- */
-void vt100_erase_line(const vt100_t * this)
+
+void vt100_cursor_forward(const vt100_t *vt100, size_t count)
 {
-	vt100_printf(this, "%c[2K", KEY_ESC);
+	vt100_printf(vt100, "%c[%dC", KEY_ESC, count);
 }
 
-/*-------------------------------------------------------- */
-void vt100_clear_screen(const vt100_t * this)
+
+void vt100_cursor_back(const vt100_t *vt100, size_t count)
 {
-	vt100_printf(this, "%c[2J", KEY_ESC);
+	vt100_printf(vt100, "%c[%dD", KEY_ESC, count);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_save(const vt100_t * this)
+
+void vt100_cursor_up(const vt100_t *vt100, size_t count)
 {
-	vt100_printf(this, "%c7", KEY_ESC); /* VT100 */
-/*	vt100_printf(this, "%c[s", KEY_ESC); */ /* ANSI */
+	vt100_printf(vt100, "%c[%dA", KEY_ESC, count);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_restore(const vt100_t * this)
+
+void vt100_cursor_down(const vt100_t *vt100, size_t count)
 {
-	vt100_printf(this, "%c8", KEY_ESC); /* VT100 */
-/*	vt100_printf(this, "%c[u", KEY_ESC); */ /* ANSI */
+	vt100_printf(vt100, "%c[%dB", KEY_ESC, count);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_forward(const vt100_t * this, unsigned count)
+
+void vt100_scroll_up(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[%dC", KEY_ESC, count);
+	vt100_printf(vt100, "%cD", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_back(const vt100_t * this, unsigned count)
+
+void vt100_scroll_down(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[%dD", KEY_ESC, count);
+	vt100_printf(vt100, "%cM", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_up(const vt100_t * this, unsigned count)
+
+void vt100_next_line(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[%dA", KEY_ESC, count);
+	vt100_printf(vt100, "%cE", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_cursor_down(const vt100_t * this, unsigned count)
+void vt100_cursor_home(const vt100_t *vt100)
 {
-	vt100_printf(this, "%c[%dB", KEY_ESC, count);
+	vt100_printf(vt100, "%c[H", KEY_ESC);
 }
 
-/*-------------------------------------------------------- */
-void vt100_scroll_up(const vt100_t *this)
+
+void vt100_erase(const vt100_t *vt100, size_t count)
 {
-	vt100_printf(this, "%cD", KEY_ESC);
+	vt100_printf(vt100, "%c[%dP", KEY_ESC, count);
 }
 
-/*-------------------------------------------------------- */
-void vt100_scroll_down(const vt100_t *this)
-{
-	vt100_printf(this, "%cM", KEY_ESC);
-}
 
-/*-------------------------------------------------------- */
-void vt100_next_line(const vt100_t *this)
+void vt100_erase_down(const vt100_t *vt100)
 {
-	vt100_printf(this, "%cE", KEY_ESC);
+	vt100_printf(vt100, "%c[J", KEY_ESC);
 }
-
-/*-------------------------------------------------------- */
-void vt100_cursor_home(const vt100_t * this)
-{
-	vt100_printf(this, "%c[H", KEY_ESC);
-}
-
-/*-------------------------------------------------------- */
-void vt100_erase(const vt100_t * this, unsigned count)
-{
-	vt100_printf(this, "%c[%dP", KEY_ESC, count);
-}
-
-/*-------------------------------------------------------- */
-void vt100__set_timeout(vt100_t *this, int timeout)
-{
-	this->timeout = timeout;
-}
-
-/*-------------------------------------------------------- */
-void vt100_erase_down(const vt100_t * this)
-{
-	vt100_printf(this, "%c[J", KEY_ESC);
-}
-
-/*-------------------------------------------------------- */
-void vt100__set_istream(vt100_t * this, FILE * istream)
-{
-	this->istream = istream;
-}
-
-/*-------------------------------------------------------- */
-FILE *vt100__get_istream(const vt100_t * this)
-{
-	return this->istream;
-}
-
-/*-------------------------------------------------------- */
-FILE *vt100__get_ostream(const vt100_t * this)
-{
-	return this->ostream;
-}
-
-/*-------------------------------------------------------- */
