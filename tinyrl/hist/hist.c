@@ -21,6 +21,25 @@ struct hist_s {
 };
 
 
+static int hist_compare(const void *first, const void *second)
+{
+	const char *f = (const char *)first;
+	const char *s = (const char *)second;
+
+	return strcmp(f, s);
+}
+
+
+static int hist_kcompare(const void *key, const void *list_item)
+{
+	const char *f = (const char *)key;
+	const char *s = (const char *)list_item;
+
+	return strcmp(f, s);
+}
+
+
+
 hist_t *hist_new(size_t stifle)
 {
 	hist_t *hist = faux_zmalloc(sizeof(hist_t));
@@ -28,8 +47,8 @@ hist_t *hist_new(size_t stifle)
 		return NULL;
 
 	// Init
-	hist->list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
-		NULL, NULL, (void (*)(void *))faux_str_free);
+	hist->list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+		hist_compare, hist_kcompare, (void (*)(void *))faux_str_free);
 	hist->pos = NULL; // It means position is reset
 	hist->stifle = stifle;
 
@@ -91,8 +110,21 @@ const char *hist_pos_down(hist_t *hist)
 
 void hist_add(hist_t *hist, const char *line)
 {
+	if (!hist)
+		return;
 
+	hist_pos_reset(hist);
+	// Try to find the same string within history
+	faux_list_kdel(hist->list, line);
+	// Add line to the end of list.
+	// Use (void *)line to make compiler happy about 'const' modifier.
+	faux_list_add(hist->list, (void *)line);
 
+	// Stifle list. Note we add only one element so list length can be
+	// (stifle + 1) but not greater so remove only one element from list.
+	// If stifle = 0 then don't stifle at all (special case).
+	if ((hist->stifle != 0) && (faux_list_len(hist->list) > hist->stifle))
+		faux_list_del(hist->list, faux_list_head(hist->list));
 }
 
 
