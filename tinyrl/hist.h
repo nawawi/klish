@@ -12,7 +12,7 @@ typedef faux_list_node_t hist_node_t;
 
 C_DECL_BEGIN
 
-hist_t *hist_new(size_t stifle);
+hist_t *hist_new(size_t stifle, const char *hist_fname);
 void hist_free(hist_t *hist);
 
 void hist_add(hist_t *hist, const char *line);
@@ -23,8 +23,8 @@ const char *hist_pos(hist_t *hist);
 const char *hist_pos_up(hist_t *hist);
 const char *hist_pos_down(hist_t *hist);
 
-extern int hist_save(const hist_t *hist, const char *fname);
-extern int hist_restore(hist_t *hist, const char *fname);
+extern int hist_save(const hist_t *hist);
+extern int hist_restore(hist_t *hist);
 
 C_DECL_END
 

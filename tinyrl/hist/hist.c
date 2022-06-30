@@ -10,6 +10,7 @@
 #include <faux/faux.h>
 #include <faux/str.h>
 #include <faux/list.h>
+#include <faux/file.h>
 
 #include "tinyrl/hist.h"
 
@@ -18,6 +19,7 @@ struct hist_s {
 	faux_list_t *list;
 	faux_list_node_t *pos;
 	size_t stifle;
+	char *fname;
 };
 
 
@@ -40,7 +42,7 @@ static int hist_kcompare(const void *key, const void *list_item)
 
 
 
-hist_t *hist_new(size_t stifle)
+hist_t *hist_new(size_t stifle, const char *hist_fname)
 {
 	hist_t *hist = faux_zmalloc(sizeof(hist_t));
 	if (!hist)
@@ -51,6 +53,8 @@ hist_t *hist_new(size_t stifle)
 		hist_compare, hist_kcompare, (void (*)(void *))faux_str_free);
 	hist->pos = NULL; // It means position is reset
 	hist->stifle = stifle;
+	if (hist_fname)
+		hist->fname = faux_str_dup(hist_fname);
 
 	return hist;
 }
@@ -61,6 +65,7 @@ void hist_free(hist_t *hist)
 	if (!hist)
 		return;
 
+	faux_str_free(hist->fname);
 	faux_list_free(hist->list);
 	faux_free(hist);
 }
@@ -150,70 +155,55 @@ void hist_clear(hist_t *hist)
 }
 
 
-/*
-int hist_save(const hist_t *hist, const char *fname)
+int hist_save(const hist_t *hist)
 {
-	hist_entry_t *entry;
-	hist_iterator_t iter;
-	FILE *f;
+	faux_file_t *f = NULL;
+	faux_list_node_t *node = NULL;
+	const char *line = NULL;
 
-	if (!fname) {
-		errno = EINVAL;
+	if (!hist)
 		return -1;
-	}
-	if (!(f = fopen(fname, "w")))
+	if (!hist->fname)
+		return 0;
+
+	f = faux_file_open(hist->fname, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	if (!f)
 		return -1;
-	for (entry = hist_getfirst(hist, &iter);
-		entry; entry = hist_getnext(&iter)) {
-		if (fprintf(f, "%s\n", hist_entry__get_line(entry)) < 0)
-			return -1;
+	node = faux_list_head(hist->list);
+	while ((line = (const char *)faux_list_each(&node))) {
+		faux_file_write(f, line, strlen(line));
+		faux_file_write(f, "\n", 1);
 	}
-	fclose(f);
+	faux_file_close(f);
 
 	return 0;
 }
 
-int hist_restore(hist_t *hist, const char *fname)
+
+int hist_restore(hist_t *hist)
 {
-	FILE *f;
-	char *p;
-	int part_len = 300;
-	char *buf;
-	int buf_len = part_len;
-	int res = 0;
+	faux_file_t *f = NULL;
+	char *line = NULL;
+	size_t count = 0;
 
-	if (!fname) {
-		errno = EINVAL;
+	if (!hist)
 		return -1;
-	}
-	if (!(f = fopen(fname, "r")))
-		return 0; // Can't find history file
+	if (!hist->fname)
+		return 0;
 
-	buf = malloc(buf_len);
-	p = buf;
-	while (fgets(p, buf_len - (p - buf), f)) {
-		char *ptmp = NULL;
-		char *el = strchr(buf, '\n');
-		if (el) { // The whole line was readed
-			*el = '\0';
-			hist_add(hist, buf);
-			p = buf;
-			continue;
-		}
-		buf_len += part_len;
-		ptmp = realloc(buf, buf_len);
-		if (!ptmp) {
-			res = -1;
-			goto end;
-		}
-		buf = ptmp;
-		p = buf + buf_len - part_len - 1;
-	}
-end:
-	free(buf);
-	fclose(f);
+	// Remove old entries from list
+	hist_clear(hist);
 
-	return res;
+	f = faux_file_open(hist->fname, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	if (!f)
+		return -1;
+
+	while (((hist->stifle == 0) || (count < hist->stifle)) &&
+		(line = faux_file_getline(f))) {
+		faux_list_add(hist->list, line);
+		count++;
+	}
+	faux_file_close(f);
+
+	return 0;
 }
-
-*/
