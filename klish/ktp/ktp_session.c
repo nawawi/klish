@@ -52,11 +52,14 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 	faux_buf_t *buf, size_t len, void *user_data);
 
 
-ktp_session_t *ktp_session_new(int sock)
+ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 {
 	ktp_session_t *ktp = NULL;
 
 	if (sock < 0)
+		return NULL;
+
+	if (!eloop)
 		return NULL;
 
 	ktp = faux_zmalloc(sizeof(*ktp));
@@ -67,9 +70,7 @@ ktp_session_t *ktp_session_new(int sock)
 	// Init
 	ktp->state = KTP_SESSION_STATE_IDLE;
 	ktp->done = BOOL_FALSE;
-
-	// Event loop
-	ktp->eloop = faux_eloop_new(NULL);
+	ktp->eloop = eloop;
 
 	// Async object
 	ktp->async = faux_async_new(sock);
@@ -82,9 +83,6 @@ ktp_session_t *ktp_session_new(int sock)
 	faux_async_set_stall_cb(ktp->async, ktp_stall_cb, ktp->eloop);
 
 	// Event loop handlers
-	faux_eloop_add_signal(ktp->eloop, SIGINT, stop_loop_ev, ktp);
-	faux_eloop_add_signal(ktp->eloop, SIGTERM, stop_loop_ev, ktp);
-	faux_eloop_add_signal(ktp->eloop, SIGQUIT, stop_loop_ev, ktp);
 	faux_eloop_add_fd(ktp->eloop, ktp_session_fd(ktp), POLLIN,
 		server_ev, ktp);
 
@@ -110,10 +108,10 @@ void ktp_session_free(ktp_session_t *ktp)
 	if (!ktp)
 		return;
 
+	faux_eloop_del_fd(ktp->eloop, ktp_session_fd(ktp));
 	faux_free(ktp->hdr);
 	close(ktp_session_fd(ktp));
 	faux_async_free(ktp->async);
-	faux_eloop_free(ktp->eloop);
 	faux_free(ktp);
 }
 
@@ -207,37 +205,6 @@ int ktp_session_fd(const ktp_session_t *ktp)
 		return BOOL_FALSE;
 
 	return faux_async_fd(ktp->async);
-}
-
-
-#if 0
-static void ktp_session_bad_socket(ktp_session_t *ktp)
-{
-	assert(ktp);
-	if (!ktp)
-		return;
-
-	ktp->state = KTP_SESSION_STATE_DISCONNECTED;
-}
-#endif
-
-
-static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	ktp_session_t *ktp = (ktp_session_t *)user_data;
-
-	if (!ktp)
-		return BOOL_FALSE;
-
-	ktp_session_set_done(ktp, BOOL_TRUE);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-
-	return BOOL_FALSE; // Stop Event Loop
 }
 
 

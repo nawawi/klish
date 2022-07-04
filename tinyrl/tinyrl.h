@@ -1,21 +1,13 @@
- /**
-\ingroup tinyrl
-\defgroup tinyrl_class tinyrl
-@{
-
-\brief This class provides instances which are capable of handling user input
-from a CLI in a "readline" like fashion.
-
-*/
 #ifndef _tinyrl_tinyrl_h
 #define _tinyrl_tinyrl_h
 
 #include <stdio.h>
-#include "lub/types.h"
-#include "lub/c_decl.h"
-#include "tinyrl/history.h"
 
-_BEGIN_C_DECL typedef struct _tinyrl tinyrl_t;
+#include <faux/faux.h>
+
+C_DECL_BEGIN
+
+ typedef struct _tinyrl tinyrl_t;
 typedef enum {
     /**
      * no possible completions were found
@@ -78,7 +70,6 @@ extern int tinyrl_printf(const tinyrl_t * instance, const char *fmt, ...);
 
 extern void tinyrl_delete(tinyrl_t * instance);
 
-extern tinyrl_history_t *tinyrl__get_history(const tinyrl_t * instance);
 
 extern const char *tinyrl__get_prompt(const tinyrl_t * instance);
 extern void tinyrl__set_prompt(tinyrl_t *instance, const char *prompt);
@@ -219,10 +210,7 @@ extern void tinyrl_limit_line_length(
 
 extern unsigned tinyrl__get_width(const tinyrl_t *instance);
 extern unsigned tinyrl__get_height(const tinyrl_t *instance);
-extern int tinyrl__save_history(const tinyrl_t *instance, const char *fname);
-extern int tinyrl__restore_history(tinyrl_t *instance, const char *fname);
-extern void tinyrl__stifle_history(tinyrl_t *instance, unsigned int stifle);
 
-_END_C_DECL
+C_DECL_END
+
 #endif				/* _tinyrl_tinyrl_h */
-/** @} tinyrl_tinyrl */

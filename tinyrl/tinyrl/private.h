@@ -1,7 +1,17 @@
 #include <termios.h>
 
-#include "tinyrl/tinyrl.h"
+#include <faux/faux.h>
+
 #include "tinyrl/vt100.h"
+#include "tinyrl/hist.h"
+#include "tinyrl/tinyrl.h"
+
+
+ssize_t utf8_to_wchar(const char *sp, unsigned long *sym_out);
+bool_t utf8_wchar_is_cjk(unsigned long sym);
+char *utf8_move_left(const char *line, char *cur_pos);
+char *utf8_move_right(const char *line, char *cur_pos);
+
 
 /* define the class member data and virtual methods */
 struct _tinyrl {
@@ -27,9 +37,9 @@ struct _tinyrl {
 	tinyrl_key_func_t *handlers[NUM_HANDLERS];
 	tinyrl_key_func_t *hotkey_fn;
 
-	tinyrl_history_t *history;
-	tinyrl_history_iterator_t hist_iter;
-	tinyrl_vt100_t *term;
+//	tinyrl_history_t *history;
+//	tinyrl_history_iterator_t hist_iter;
+	vt100_t *term;
 	void *context;		/* context supplied by caller
 				 * to tinyrl_readline()
 				 */
