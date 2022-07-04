@@ -32,6 +32,9 @@ static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
 static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
+static bool_t ktp_sync_cmd(ktp_session_t *ktp, const char *line,
+	int *retcode, faux_error_t *error, bool_t dry_run);
+
 
 int main(int argc, char **argv)
 {
@@ -84,7 +87,7 @@ int main(int argc, char **argv)
 			if (!opts->quiet)
 				fprintf(stderr, "%s\n", line);
 			// Request to server
-			rc = ktp_session_req_cmd(ktp, line, &retcode,
+			rc = ktp_sync_cmd(ktp, line, &retcode,
 				error, opts->dry_run);
 			if (!rc)
 				retcode = -1;
@@ -114,7 +117,7 @@ int main(int argc, char **argv)
 				if (!opts->quiet)
 					fprintf(stderr, "%s\n", line);
 				// Request to server
-				rc = ktp_session_req_cmd(ktp, line, &retcode,
+				rc = ktp_sync_cmd(ktp, line, &retcode,
 					error, opts->dry_run);
 				if (!rc)
 					retcode = -1;
@@ -145,6 +148,7 @@ int main(int argc, char **argv)
 	retval = 0;
 err:
 	ktp_session_free(ktp);
+	faux_eloop_free(eloop);
 	ktp_disconnect(unix_sock);
 	opts_free(opts);
 
@@ -152,6 +156,18 @@ err:
 		return -1;
 
 	return 0;
+}
+
+
+static bool_t ktp_sync_cmd(ktp_session_t *ktp, const char *line,
+	int *retcode, faux_error_t *error, bool_t dry_run)
+{
+	if (!ktp_session_cmd(ktp, line, error, dry_run))
+		return BOOL_FALSE;
+
+	faux_eloop_loop(ktp_session_eloop(ktp));
+
+	return ktp_session_retcode(ktp, retcode);
 }
 
 

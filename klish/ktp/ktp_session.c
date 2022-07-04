@@ -30,7 +30,7 @@ struct ktp_session_s {
 	faux_async_t *async;
 	faux_hdr_t *hdr; // Service var: engine will receive header and then msg
 	bool_t done;
-	faux_eloop_t *eloop;
+	faux_eloop_t *eloop; // External eloop object
 	ktp_session_stdout_cb_fn stdout_cb;
 	void *stdout_udata;
 	ktp_session_stdout_cb_fn stderr_cb;
@@ -44,8 +44,6 @@ struct ktp_session_s {
 };
 
 
-static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
 static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktp_session_read_cb(faux_async_t *async,
@@ -108,11 +106,22 @@ void ktp_session_free(ktp_session_t *ktp)
 	if (!ktp)
 		return;
 
+	// Remove socket from eloop but don't free eloop because it's external
 	faux_eloop_del_fd(ktp->eloop, ktp_session_fd(ktp));
 	faux_free(ktp->hdr);
 	close(ktp_session_fd(ktp));
 	faux_async_free(ktp->async);
 	faux_free(ktp);
+}
+
+
+faux_eloop_t *ktp_session_eloop(const ktp_session_t *ktp)
+{
+	assert(ktp);
+	if (!ktp)
+		return NULL;
+
+	return ktp->eloop;
 }
 
 
@@ -323,6 +332,8 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 		faux_str_free(error_str);
 	}
 	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
+	ktp->state = KTP_SESSION_STATE_IDLE;
+	ktp->error = NULL;
 	ktp->request_done = BOOL_TRUE; // Stop the loop
 
 	return BOOL_TRUE;
@@ -344,7 +355,8 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
 	case KTP_CMD_ACK:
-		rc = ktp_session_process_cmd_ack(ktp, msg);
+		if (KTP_SESSION_STATE_WAIT_FOR_CMD == ktp->state)
+			rc = ktp_session_process_cmd_ack(ktp, msg);
 		break;
 	case KTP_STDOUT:
 		rc = ktp_session_process_stdout(ktp, msg);
@@ -424,8 +436,8 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 }
 
 
-bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run)
+static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
+	const char *line, faux_error_t *error, bool_t dry_run)
 {
 	faux_msg_t *req = NULL;
 	ktp_status_e status = KTP_STATUS_NONE;
@@ -436,7 +448,7 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 
 	if (ktp->state != KTP_SESSION_STATE_IDLE) {
 		faux_error_sprintf(error,
-			"Can't execute command. Session state is not suitable");
+			"Can't create request. Session state is not suitable");
 		return BOOL_FALSE;
 	}
 
@@ -444,13 +456,12 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 	if (dry_run)
 		status |= KTP_STATUS_DRY_RUN;
 
-	req = ktp_msg_preform(KTP_CMD, status);
+	req = ktp_msg_preform(cmd, status);
 	faux_msg_add_param(req, KTP_PARAM_LINE, line, strlen(line));
 	faux_msg_send_async(req, ktp->async);
 	faux_msg_free(req);
 
 	// Prepare for loop
-	ktp->state = KTP_SESSION_STATE_WAIT_FOR_CMD;
 	ktp->error = error;
 	ktp->cmd_retcode = -1;
 	ktp->cmd_retcode_available = BOOL_FALSE;
@@ -458,10 +469,26 @@ bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
 	ktp->cmd_features = KTP_STATUS_NONE;
 	ktp->cmd_features_available = BOOL_FALSE;
 
-	faux_eloop_loop(ktp->eloop);
+	return BOOL_TRUE;
+}
 
-	ktp->state = KTP_SESSION_STATE_IDLE;
-	ktp->error = NULL;
+
+bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
+	faux_error_t *error, bool_t dry_run)
+{
+	if (!ktp_session_req(ktp, KTP_CMD, line, error, dry_run))
+		return BOOL_FALSE;
+	ktp->state = KTP_SESSION_STATE_WAIT_FOR_CMD;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode)
+{
+	if (!ktp)
+		return BOOL_FALSE;
+
 	if (ktp->cmd_retcode_available && retcode)
 		*retcode = ktp->cmd_retcode;
 

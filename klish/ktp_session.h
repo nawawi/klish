@@ -36,9 +36,10 @@ bool_t ktp_stall_cb(faux_async_t *async, size_t len, void *user_data);
 typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
 	const char *line, size_t len, void *user_data);
 
-ktp_session_t *ktp_session_new(int sock);
+ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop);
 void ktp_session_free(ktp_session_t *session);
 
+faux_eloop_t *ktp_session_eloop(const ktp_session_t *ktp);
 bool_t ktp_session_done(const ktp_session_t *ktp);
 bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done);
 faux_error_t *ktp_session_error(const ktp_session_t *ktp);
@@ -49,8 +50,9 @@ bool_t ktp_session_set_stderr_cb(ktp_session_t *ktp,
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
 
-bool_t ktp_session_req_cmd(ktp_session_t *ktp, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run);
+bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
+	faux_error_t *error, bool_t dry_run);
+bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode);
 
 
 // Server KTP session
