@@ -73,8 +73,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
-	ktp_session_set_stdout_cb(ktp, stdout_cb, NULL);
-	ktp_session_set_stderr_cb(ktp, stderr_cb, NULL);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, NULL);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, NULL);
 
 	// Commands from cmdline
 	if (faux_list_len(opts->commands) > 0) {

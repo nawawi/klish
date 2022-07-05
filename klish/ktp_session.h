@@ -33,8 +33,32 @@ bool_t ktp_stall_cb(faux_async_t *async, size_t len, void *user_data);
 
 
 // Client KTP session
+
+typedef enum {
+	KTP_SESSION_STATE_ERROR = 'e', // Some unknown error
+	KTP_SESSION_STATE_DISCONNECTED = 'd',
+	KTP_SESSION_STATE_UNAUTHORIZED = 'a',
+	KTP_SESSION_STATE_IDLE = 'i',
+	KTP_SESSION_STATE_WAIT_FOR_COMPLETION = 'v',
+	KTP_SESSION_STATE_WAIT_FOR_HELP = 'h',
+	KTP_SESSION_STATE_WAIT_FOR_CMD = 'c',
+} ktp_session_state_e;
+
+typedef enum {
+	KTP_SESSION_CB_STDOUT,
+	KTP_SESSION_CB_STDERR,
+	KTP_SESSION_CB_CMD_ACK_INCOMPLETED,
+	KTP_SESSION_CB_CMD_ACK,
+	KTP_SESSION_CB_COMPLETION_ACK,
+	KTP_SESSION_CB_HELP_ACK,
+	KTP_SESSION_CB_EXIT,
+	KTP_SESSION_CB_MAX,
+} ktp_session_cb_e;
+
 typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
-	const char *line, size_t len, void *user_data);
+	const char *line, size_t len, void *udata);
+typedef bool_t (*ktp_session_event_cb_fn)(ktp_session_t *ktp,
+	const faux_msg_t *msg, void *udata);
 
 ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop);
 void ktp_session_free(ktp_session_t *session);
@@ -43,12 +67,13 @@ faux_eloop_t *ktp_session_eloop(const ktp_session_t *ktp);
 bool_t ktp_session_done(const ktp_session_t *ktp);
 bool_t ktp_session_set_done(ktp_session_t *ktp, bool_t done);
 faux_error_t *ktp_session_error(const ktp_session_t *ktp);
-bool_t ktp_session_set_stdout_cb(ktp_session_t *ktp,
-	ktp_session_stdout_cb_fn stdout_cb, void *stdout_udata);
-bool_t ktp_session_set_stderr_cb(ktp_session_t *ktp,
-	ktp_session_stdout_cb_fn stderr_cb, void *stderr_udata);
+bool_t ktp_session_set_cb(ktp_session_t *ktp, ktp_session_cb_e cb_id,
+	void *fn, void *udata);
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
+bool_t ktp_session_stop_on_answer(const ktp_session_t *ktp);
+bool_t ktp_session_set_stop_on_answer(ktp_session_t *ktp, bool_t stop_on_answer);
+ktp_session_state_e ktp_session_state(const ktp_session_t *ktp);
 
 bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_t *error, bool_t dry_run);
