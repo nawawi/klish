@@ -38,7 +38,7 @@ int klish_interactive_shell(ktp_session_t *ktp)
 	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
 	fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
 
-	tinyrl = tinyrl_new(stdin, stdout, 0, NULL);
+	tinyrl = tinyrl_new(stdin, stdout, NULL, 0);
 
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;

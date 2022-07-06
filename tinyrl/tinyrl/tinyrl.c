@@ -56,7 +56,6 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->point = 0;
 	tinyrl->end = 0;
 	tinyrl->attempted_completion_function = NULL;
-	tinyrl->keypress_fn = NULL;
 	tinyrl->hotkey_fn = NULL;
 	tinyrl->state = 0;
 	tinyrl->kill_string = NULL;
@@ -65,14 +64,19 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->last_buffer = NULL;
 	tinyrl->last_point = 0;
 	tinyrl->last_line_size = 0;
-	tinyrl->utf8 = BOOL_FALSE;
+	tinyrl->utf8 = BOOL_TRUE;
 
 	// VT100 terminal
 	tinyrl->term = vt100_new(istream, ostream);
+	// To save terminal settings
+	tinyrl_set_istream(tinyrl, istream);
 	tinyrl->width = vt100_width(tinyrl->term);
 
 	// History object
 	tinyrl->hist = hist_new(hist_fname, hist_stifle);
+	tinyrl_hist_restore(tinyrl);
+
+	tty_raw_mode(tinyrl);
 
 	return tinyrl;
 }
@@ -83,6 +87,8 @@ void tinyrl_free(tinyrl_t *tinyrl)
 	assert(tinyrl);
 	if (!tinyrl)
 		return;
+
+	tty_restore_mode(tinyrl);
 
 	hist_free(tinyrl->hist);
 	vt100_free(tinyrl->term);
@@ -96,7 +102,7 @@ void tinyrl_free(tinyrl_t *tinyrl)
 }
 
 
-static void tty_raw_mode(tinyrl_t *tinyrl)
+void tty_raw_mode(tinyrl_t *tinyrl)
 {
 	struct termios new_termios = {};
 	FILE *istream = NULL;
@@ -120,7 +126,7 @@ static void tty_raw_mode(tinyrl_t *tinyrl)
 }
 
 
-static void tty_restore_mode(tinyrl_t *tinyrl)
+void tty_restore_mode(tinyrl_t *tinyrl)
 {
 	FILE *istream = NULL;
 	int fd = -1;
@@ -132,6 +138,217 @@ static void tty_restore_mode(tinyrl_t *tinyrl)
 	// Do the mode switch
 	tcsetattr(fd, TCSADRAIN, &tinyrl->default_termios);
 }
+
+
+bool_t tinyrl_bind_key(tinyrl_t *tinyrl, int key, tinyrl_key_func_t *fn)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return BOOL_FALSE;
+	if ((key < 0) || (key > 255))
+		return BOOL_FALSE;
+
+	tinyrl->handlers[key] = fn;
+
+	return BOOL_TRUE;
+}
+
+
+void tinyrl_set_istream(tinyrl_t *tinyrl, FILE *istream)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	vt100_set_istream(tinyrl->term, istream);
+	// Save terminal settings to restore on exit
+	if (istream)
+		tcgetattr(fileno(istream), &tinyrl->default_termios);
+}
+
+
+FILE *tinyrl_istream(const tinyrl_t *tinyrl)
+{
+	return vt100_istream(tinyrl->term);
+}
+
+
+void tinyrl_set_ostream(tinyrl_t *tinyrl, FILE *ostream)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	vt100_set_ostream(tinyrl->term, ostream);
+}
+
+
+FILE *tinyrl_ostream(const tinyrl_t *tinyrl)
+{
+	return vt100_ostream(tinyrl->term);
+}
+
+
+bool_t tinyrl_utf8(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return BOOL_TRUE;
+
+	return tinyrl->utf8;
+}
+
+
+void tinyrl_set_utf8(tinyrl_t *tinyrl, bool_t utf8)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	tinyrl->utf8 = utf8;
+}
+
+
+bool_t tinyrl_hist_save(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return BOOL_FALSE;
+
+	return hist_save(tinyrl->hist);
+}
+
+
+bool_t tinyrl_hist_restore(tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return BOOL_FALSE;
+
+	return hist_restore(tinyrl->hist);
+}
+
+
+static int process_char(tinyrl_t *tinyrl, unsigned char key)
+{
+#if 0
+	FILE *istream = vt100_istream(tinyrl->term);
+	char *result = NULL;
+	int lerrno = 0;
+
+	tinyrl->done = BOOL_FALSE;
+	tinyrl->point = 0;
+	tinyrl->end = 0;
+	tinyrl->buffer = lub_string_dup("");
+	tinyrl->buffer_size = strlen(tinyrl->buffer);
+	tinyrl->line = tinyrl->buffer;
+	tinyrl->context = context;
+
+		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
+		unsigned int esc_cont = 0; /* Escape sequence continues */
+		char esc_seq[10]; /* Buffer for ESC sequence */
+		char *esc_p = esc_seq;
+
+
+			// Begin of ESC sequence
+			if (!esc_cont && (KEY_ESC == key)) {
+				esc_cont = 1; // Start ESC sequence
+				esc_p = esc_seq;
+				continue;
+			}
+			if (esc_cont) {
+				/* Broken sequence */
+				if (esc_p >= (esc_seq + sizeof(esc_seq) - 1)) {
+					esc_cont = 0;
+					continue;
+				}
+				/* Dump the control sequence into sequence buffer
+				   ANSI standard control sequences will end
+				   with a character between 64 - 126 */
+				*esc_p = key & 0xff;
+				esc_p++;
+				/* tinyrl is an ANSI control sequence terminator code */
+				if ((key != '[') && (key > 63)) {
+					*esc_p = '\0';
+					tinyrl_escape_seq(tinyrl, esc_seq);
+					esc_cont = 0;
+					tinyrl_redisplay(tinyrl);
+				}
+				continue;
+			}
+
+			/* Call the handler for tinyrl key */
+			if (!tinyrl->handlers[key](tinyrl, key))
+				tinyrl_ding(tinyrl);
+			if (tinyrl->done) /* Some handler set the done flag */
+				continue; /* It will break the loop */
+
+			if (tinyrl->utf8) {
+				if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
+					utf8_cont = 0;
+				else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
+					utf8_cont--;
+				else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
+					/* Find out number of char's bytes */
+					int b = key;
+					utf8_cont = 0;
+					while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
+						utf8_cont++;
+						b = b << 1;
+					}
+				}
+			}
+			/* For non UTF-8 encoding the utf8_cont is always 0.
+			   For UTF-8 it's 0 when one-byte symbol or we get
+			   all bytes for the current multibyte character. */
+			if (!utf8_cont)
+				tinyrl_redisplay(tinyrl);
+		}
+		/* If the last character in the line (other than NULL)
+		   is a space remove it. */
+		if (tinyrl->end && tinyrl->line && isspace(tinyrl->line[tinyrl->end - 1]))
+			tinyrl_delete_text(tinyrl, tinyrl->end - 1, tinyrl->end);
+		/* Restores the terminal mode */
+		tty_restore_mode(tinyrl);
+
+	/*
+	 * duplicate the string for return to the client 
+	 * we have to duplicate as we may be referencing a
+	 * history entry or our internal buffer
+	 */
+	result = tinyrl->line ? lub_string_dup(tinyrl->line) : NULL;
+
+	/* free our internal buffer */
+	free(tinyrl->buffer);
+	tinyrl->buffer = NULL;
+
+	if (!result)
+		errno = lerrno; /* get saved errno */
+	return result;
+#endif
+	return 1;
+}
+
+
+int tinyrl_read(tinyrl_t *tinyrl)
+{
+	int rc = 0;
+	unsigned char key = 0;
+	int count = 0;
+
+	assert(tinyrl);
+
+	while ((rc = vt100_getchar(tinyrl->term, &key)) > 0) {
+		count++;
+		process_char(tinyrl, key);
+	}
+
+	if ((rc < 0) && (EAGAIN == errno))
+		return count;
+
+	return rc;
+}
+
 
 #if 0
 
@@ -151,15 +368,6 @@ static void changed_line(tinyrl_t * tinyrl)
 		tinyrl->buffer_size = strlen(tinyrl->buffer);
 		assert(tinyrl->line);
 	}
-}
-
-/*----------------------------------------------------------------------- */
-static int tinyrl_timeout_default(tinyrl_t *tinyrl)
-{
-	tinyrl = tinyrl; /* Happy compiler */
-
-	/* Return -1 to close session on timeout */
-	return -1;
 }
 
 
@@ -213,17 +421,6 @@ int tinyrl_printf(const tinyrl_t * tinyrl, const char *fmt, ...)
 	return len;
 }
 
-
-/*-------------------------------------------------------- */
-
-/*#####################################
- * EXPORTED INTERFACE
- *##################################### */
-/*----------------------------------------------------------------------- */
-int tinyrl_getchar(const tinyrl_t * tinyrl)
-{
-	return tinyrl_vt100_getchar(tinyrl->term);
-}
 
 /*----------------------------------------------------------------------- */
 static void tinyrl_internal_print(const tinyrl_t * tinyrl, const char *text)
@@ -332,20 +529,7 @@ void tinyrl_redisplay(tinyrl_t * tinyrl)
 	tinyrl->last_line_size = line_size;
 }
 
-/*----------------------------------------------------------------------- */
-tinyrl_t *tinyrl_new(FILE * istream, FILE * ostream,
-	unsigned int stifle, tinyrl_completion_func_t * complete_fn)
-{
-	tinyrl_t *tinyrl = NULL;
 
-	tinyrl = malloc(sizeof(tinyrl_t));
-	if (tinyrl)
-		tinyrl_init(tinyrl, istream, ostream, stifle, complete_fn);
-
-	return tinyrl;
-}
-
-/*----------------------------------------------------------------------- */
 static char *internal_insertline(tinyrl_t * tinyrl, char *buffer)
 {
 	char *p;
@@ -388,7 +572,7 @@ static char *internal_readline(tinyrl_t * tinyrl,
 	tinyrl->context = context;
 
 	/* Interactive session */
-	if (tinyrl->isatty && !str) {
+	if (isatty(fileno(tinyrl->istream)) && !str) {
 		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
 		unsigned int esc_cont = 0; /* Escape sequence continues */
 		char esc_seq[10]; /* Buffer for ESC sequence */
@@ -737,19 +921,6 @@ void tinyrl_delete_text(tinyrl_t * tinyrl, unsigned int start, unsigned int end)
 	tinyrl->buffer[tinyrl->end] = '\0';
 }
 
-/*----------------------------------------------------------------------- */
-bool_t tinyrl_bind_key(tinyrl_t * tinyrl, int key, tinyrl_key_func_t * fn)
-{
-	bool_t result = BOOL_FALSE;
-
-	if ((key >= 0) && (key < 256)) {
-		/* set the key handling function */
-		tinyrl->handlers[key] = fn;
-		result = BOOL_TRUE;
-	}
-
-	return result;
-}
 
 /*-------------------------------------------------------- */
 /*
@@ -1025,37 +1196,6 @@ void tinyrl_disable_echo(tinyrl_t * tinyrl, char echo_char)
 	tinyrl->echo_char = echo_char;
 }
 
-/*--------------------------------------------------------- */
-void tinyrl__set_istream(tinyrl_t * tinyrl, FILE * istream)
-{
-	tinyrl_vt100__set_istream(tinyrl->term, istream);
-	if (istream) {
-		int fd;
-		tinyrl->isatty = isatty(fileno(istream)) ? BOOL_TRUE : BOOL_FALSE;
-		/* Save terminal settings to restore on exit */
-		fd = fileno(istream);
-		tcgetattr(fd, &tinyrl->default_termios);
-	} else
-		tinyrl->isatty = BOOL_FALSE;
-}
-
-/*-------------------------------------------------------- */
-bool_t tinyrl__get_isatty(const tinyrl_t * tinyrl)
-{
-	return tinyrl->isatty;
-}
-
-/*-------------------------------------------------------- */
-FILE *tinyrl__get_istream(const tinyrl_t * tinyrl)
-{
-	return tinyrl_vt100__get_istream(tinyrl->term);
-}
-
-/*-------------------------------------------------------- */
-FILE *tinyrl__get_ostream(const tinyrl_t * tinyrl)
-{
-	return tinyrl_vt100__get_ostream(tinyrl->term);
-}
 
 /*-------------------------------------------------------- */
 const char *tinyrl__get_prompt(const tinyrl_t * tinyrl)
@@ -1079,37 +1219,6 @@ void tinyrl__set_prompt(tinyrl_t *tinyrl, const char *prompt)
 	}
 }
 
-/*-------------------------------------------------------- */
-bool_t tinyrl__get_utf8(const tinyrl_t * tinyrl)
-{
-	return tinyrl->utf8;
-}
-
-/*-------------------------------------------------------- */
-void tinyrl__set_utf8(tinyrl_t * tinyrl, bool_t utf8)
-{
-	tinyrl->utf8 = utf8;
-}
-
-/*-------------------------------------------------------- */
-void tinyrl__set_timeout(tinyrl_t *tinyrl, int timeout)
-{
-	tinyrl_vt100__set_timeout(tinyrl->term, timeout);
-}
-
-/*-------------------------------------------------------- */
-void tinyrl__set_timeout_fn(tinyrl_t *tinyrl,
-	tinyrl_timeout_fn_t *fn)
-{
-	tinyrl->timeout_fn = fn;
-}
-
-/*-------------------------------------------------------- */
-void tinyrl__set_keypress_fn(tinyrl_t *tinyrl,
-	tinyrl_keypress_fn_t *fn)
-{
-	tinyrl->keypress_fn = fn;
-}
 
 /*-------------------------------------------------------- */
 void tinyrl__set_hotkey_fn(tinyrl_t *tinyrl,
@@ -1151,35 +1260,5 @@ void tinyrl_limit_line_length(tinyrl_t * tinyrl, unsigned int length)
 	tinyrl->max_line_length = length;
 }
 
-/*--------------------------------------------------------- */
-extern unsigned int tinyrl__get_width(const tinyrl_t *tinyrl)
-{
-	return tinyrl_vt100__get_width(tinyrl->term);
-}
-
-/*--------------------------------------------------------- */
-extern unsigned int tinyrl__get_height(const tinyrl_t *tinyrl)
-{
-	return tinyrl_vt100__get_height(tinyrl->term);
-}
-
-/*----------------------------------------------------------*/
-int tinyrl__save_history(const tinyrl_t *tinyrl, const char *fname)
-{
-	return tinyrl_history_save(tinyrl->history, fname);
-}
-
-/*----------------------------------------------------------*/
-int tinyrl__restore_history(tinyrl_t *tinyrl, const char *fname)
-{
-	return tinyrl_history_restore(tinyrl->history, fname);
-}
-
-/*----------------------------------------------------------*/
-void tinyrl__stifle_history(tinyrl_t *tinyrl, unsigned int stifle)
-{
-	tinyrl_history_stifle(tinyrl->history, stifle);
-}
-/*--------------------------------------------------------- */
 
 #endif

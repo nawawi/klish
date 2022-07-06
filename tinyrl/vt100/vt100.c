@@ -144,24 +144,14 @@ int vt100_vprintf(const vt100_t *vt100, const char *fmt, va_list args)
 }
 
 
-int vt100_getchar(const vt100_t *vt100)
+int vt100_getchar(const vt100_t *vt100, unsigned char *c)
 {
-	unsigned char c = 0;
-	ssize_t res = VT100_RET_ERR;
-
-	if (!vt100 || !vt100->istream)
-		return VT100_RET_ERR;
-
-	res = read(fileno(vt100->istream), &c, 1);
-	if (res < 0) {
-		if (EAGAIN == errno)
-			return VT100_RET_EMPTY; // Non-blocking read
-		return VT100_RET_ERR;
+	if (!vt100 || !vt100->istream || !c) {
+		errno = ENOENT;
+		return -1;
 	}
-	if (0 == res)
-		return VT100_RET_EOF;
 
-	return c;
+	return read(fileno(vt100->istream), &c, 1);
 }
 
 

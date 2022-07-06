@@ -48,7 +48,6 @@ struct _tinyrl {
 	unsigned point;
 	unsigned end;
 	tinyrl_completion_func_t *attempted_completion_function;
-	tinyrl_keypress_fn_t *keypress_fn; /* keypress callback */
 	int state;
 #define RL_STATE_COMPLETING (0x00000001)
 	char *kill_string;
@@ -64,7 +63,6 @@ struct _tinyrl {
 	char echo_char;
 	bool_t echo_enabled;
 	struct termios default_termios;
-	bool_t isatty;
 	char *last_buffer;	/* hold record of the previous
 				buffer for redisplay purposes */
 	unsigned int last_point; /* hold record of the previous

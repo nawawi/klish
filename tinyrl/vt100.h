@@ -66,12 +66,6 @@ typedef enum {
 } vt100_esc_e;
 
 
-// Return values from vt100_getchar()
-#define VT100_RET_EOF -1
-#define VT100_RET_EMPTY -2
-#define VT100_RET_ERR -3
-
-
 C_DECL_BEGIN
 
 vt100_t *vt100_new(FILE *istream, FILE *ostream);
@@ -91,7 +85,7 @@ int vt100_oflush(const vt100_t *vt100);
 int vt100_ierror(const vt100_t *vt100);
 int vt100_oerror(const vt100_t *vt100);
 int vt100_ieof(const vt100_t *vt100);
-int vt100_getchar(const vt100_t *vt100);
+int vt100_getchar(const vt100_t *vt100, unsigned char *c);
 vt100_esc_e vt100_esc_decode(const vt100_t *vt100, const char *esc_seq);
 
 void vt100_ding(const vt100_t *vt100);

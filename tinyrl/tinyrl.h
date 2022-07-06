@@ -49,7 +49,6 @@ typedef char **tinyrl_completion_func_t(tinyrl_t * instance,
 	const char *text, unsigned start, unsigned end);
 
 typedef int tinyrl_timeout_fn_t(tinyrl_t *instance);
-typedef int tinyrl_keypress_fn_t(tinyrl_t *instance, int key);
 
 /**
  * \return
@@ -65,6 +64,18 @@ typedef bool_t tinyrl_key_func_t(tinyrl_t * instance, int key);
 tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	const char *hist_fname, size_t hist_stifle);
 void tinyrl_free(tinyrl_t *tinyrl);
+
+bool_t tinyrl_bind_key(tinyrl_t *tinyrl, int key, tinyrl_key_func_t *fn);
+void tinyrl_set_istream(tinyrl_t *tinyrl, FILE *istream);
+FILE *tinyrl_istream(const tinyrl_t *tinyrl);
+void tinyrl_set_ostream(tinyrl_t *tinyrl, FILE *ostream);
+FILE *tinyrl_ostream(const tinyrl_t *tinyrl);
+void tinyrl_set_utf8(tinyrl_t *tinyrl, bool_t utf8);
+bool_t tinyrl_utf8(const tinyrl_t *tinyrl);
+bool_t tinyrl_hist_save(const tinyrl_t *tinyrl);
+bool_t tinyrl_hist_restore(tinyrl_t *tinyrl);
+void tty_raw_mode(tinyrl_t *tinyrl);
+void tty_restore_mode(tinyrl_t *tinyrl);
 
 
 
@@ -93,24 +104,13 @@ extern void *tinyrl__get_context(const tinyrl_t * instance);
  * instance.
  */
 extern const char *tinyrl__get_line(const tinyrl_t * instance);
-extern void tinyrl__set_istream(tinyrl_t * instance, FILE * istream);
-extern bool_t tinyrl__get_isatty(const tinyrl_t * instance);
-extern FILE *tinyrl__get_istream(const tinyrl_t * instance);
-extern FILE *tinyrl__get_ostream(const tinyrl_t * instance);
 extern bool_t tinyrl__get_utf8(const tinyrl_t * instance);
 extern void tinyrl__set_utf8(tinyrl_t * instance, bool_t utf8);
-extern void tinyrl__set_timeout(tinyrl_t *instance, int timeout);
-extern void tinyrl__set_timeout_fn(tinyrl_t *instance,
-	tinyrl_timeout_fn_t *fn);
-extern void tinyrl__set_keypress_fn(tinyrl_t *instance,
-	tinyrl_keypress_fn_t *fn);
 extern void tinyrl__set_hotkey_fn(tinyrl_t *instance,
 	tinyrl_key_func_t *fn);
 extern char *tinyrl_readline(tinyrl_t *instance, void *context);
 extern char *tinyrl_forceline(tinyrl_t *instance, 
 	void *context, const char *line);
-extern bool_t tinyrl_bind_key(tinyrl_t *instance, int key,
-	tinyrl_key_func_t *fn);
 extern void tinyrl_delete_matches(char **instance);
 extern char **tinyrl_completion(tinyrl_t *instance,
 	const char *line, unsigned start, unsigned end,
