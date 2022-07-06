@@ -10,12 +10,93 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <faux/faux.h>
 #include <faux/str.h>
 
 #include "private.h"
 
 
-static void tty_set_raw_mode(tinyrl_t *tinyrl)
+tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
+	const char *hist_fname, size_t hist_stifle)
+{
+	tinyrl_t *tinyrl = NULL;
+	int i = 0;
+
+	tinyrl = faux_zmalloc(sizeof(tinyrl_t));
+	if (!tinyrl)
+		return NULL;
+
+	// Key handlers
+	for (i = 0; i < NUM_HANDLERS; i++) {
+		tinyrl->handlers[i] = tinyrl_key_default;
+	}
+	tinyrl->handlers[KEY_CR] = tinyrl_key_crlf;
+	tinyrl->handlers[KEY_LF] = tinyrl_key_crlf;
+	tinyrl->handlers[KEY_ETX] = tinyrl_key_interrupt;
+	tinyrl->handlers[KEY_DEL] = tinyrl_key_backspace;
+	tinyrl->handlers[KEY_BS] = tinyrl_key_backspace;
+	tinyrl->handlers[KEY_EOT] = tinyrl_key_delete;
+	tinyrl->handlers[KEY_FF] = tinyrl_key_clear_screen;
+	tinyrl->handlers[KEY_NAK] = tinyrl_key_erase_line;
+	tinyrl->handlers[KEY_SOH] = tinyrl_key_start_of_line;
+	tinyrl->handlers[KEY_ENQ] = tinyrl_key_end_of_line;
+	tinyrl->handlers[KEY_VT] = tinyrl_key_kill;
+	tinyrl->handlers[KEY_EM] = tinyrl_key_yank;
+	tinyrl->handlers[KEY_HT] = tinyrl_key_tab;
+	tinyrl->handlers[KEY_ETB] = tinyrl_key_backword;
+
+	tinyrl->line = NULL;
+	tinyrl->max_line_length = 0;
+	tinyrl->prompt = NULL;
+	tinyrl->prompt_size = 0;
+	tinyrl->buffer = NULL;
+	tinyrl->buffer_size = 0;
+	tinyrl->done = BOOL_FALSE;
+	tinyrl->completion_over = BOOL_FALSE;
+	tinyrl->point = 0;
+	tinyrl->end = 0;
+	tinyrl->attempted_completion_function = NULL;
+	tinyrl->keypress_fn = NULL;
+	tinyrl->hotkey_fn = NULL;
+	tinyrl->state = 0;
+	tinyrl->kill_string = NULL;
+	tinyrl->echo_char = '\0';
+	tinyrl->echo_enabled = BOOL_TRUE;
+	tinyrl->last_buffer = NULL;
+	tinyrl->last_point = 0;
+	tinyrl->last_line_size = 0;
+	tinyrl->utf8 = BOOL_FALSE;
+
+	// VT100 terminal
+	tinyrl->term = vt100_new(istream, ostream);
+	tinyrl->width = vt100_width(tinyrl->term);
+
+	// History object
+	tinyrl->hist = hist_new(hist_fname, hist_stifle);
+
+	return tinyrl;
+}
+
+
+void tinyrl_free(tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	hist_free(tinyrl->hist);
+	vt100_free(tinyrl->term);
+
+	faux_str_free(tinyrl->buffer);
+	faux_str_free(tinyrl->kill_string);
+	faux_str_free(tinyrl->last_buffer);
+	faux_str_free(tinyrl->prompt);
+
+	faux_free(tinyrl);
+}
+
+
+static void tty_raw_mode(tinyrl_t *tinyrl)
 {
 	struct termios new_termios = {};
 	FILE *istream = NULL;
@@ -81,266 +162,6 @@ static int tinyrl_timeout_default(tinyrl_t *tinyrl)
 	return -1;
 }
 
-/*----------------------------------------------------------------------- */
-static bool_t tinyrl_key_default(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (key > 31) {
-		char tmp[2];
-		tmp[0] = (key & 0xFF), tmp[1] = '\0';
-		/* inject tinyrl text into the buffer */
-		result = tinyrl_insert_text(tinyrl, tmp);
-	} else {
-		/* Call the external hotkey analyzer */
-		if (tinyrl->hotkey_fn)
-			tinyrl->hotkey_fn(tinyrl, key);
-	}
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, int key)
-{
-	tinyrl_crlf(tinyrl);
-	tinyrl_delete_text(tinyrl, 0, tinyrl->end);
-	tinyrl->done = BOOL_TRUE;
-	/* keep the compiler happy */
-	key = key;
-
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, int key)
-{
-	/* set the insertion point to the start of the line */
-	tinyrl->point = 0;
-	/* keep the compiler happy */
-	key = key;
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, int key)
-{
-	/* set the insertion point to the end of the line */
-	tinyrl->point = tinyrl->end;
-	/* keep the compiler happy */
-	key = key;
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_kill(tinyrl_t * tinyrl, int key)
-{
-	/* release any old kill string */
-	lub_string_free(tinyrl->kill_string);
-
-	/* store the killed string */
-	tinyrl->kill_string = lub_string_dup(&tinyrl->buffer[tinyrl->point]);
-
-	/* delete the text to the end of the line */
-	tinyrl_delete_text(tinyrl, tinyrl->point, tinyrl->end);
-	/* keep the compiler happy */
-	key = key;
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_yank(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->kill_string) {
-		/* insert the kill string at the current insertion point */
-		result = tinyrl_insert_text(tinyrl, tinyrl->kill_string);
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, int key)
-{
-	tinyrl_crlf(tinyrl);
-	tinyrl->done = BOOL_TRUE;
-	/* keep the compiler happy */
-	key = key;
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_up(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	tinyrl_history_entry_t *entry = NULL;
-	if (tinyrl->line == tinyrl->buffer) {
-		/* go to the last history entry */
-		entry = tinyrl_history_getlast(tinyrl->history, &tinyrl->hist_iter);
-	} else {
-		/* already traversing the history list so get previous */
-		entry = tinyrl_history_getprevious(&tinyrl->hist_iter);
-	}
-	if (entry) {
-		/* display the entry moving the insertion point
-		 * to the end of the line 
-		 */
-		tinyrl->line = tinyrl_history_entry__get_line(entry);
-		tinyrl->point = tinyrl->end = strlen(tinyrl->line);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_down(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->line != tinyrl->buffer) {
-		/* we are not already at the bottom */
-		/* the iterator will have been set up by the key_up() function */
-		tinyrl_history_entry_t *entry =
-		    tinyrl_history_getnext(&tinyrl->hist_iter);
-		if (!entry) {
-			/* nothing more in the history list */
-			tinyrl->line = tinyrl->buffer;
-		} else {
-			tinyrl->line = tinyrl_history_entry__get_line(entry);
-		}
-		/* display the entry moving the insertion point
-		 * to the end of the line 
-		 */
-		tinyrl->point = tinyrl->end = strlen(tinyrl->line);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_left(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->point > 0) {
-		tinyrl->point--;
-		utf8_point_left(tinyrl);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_right(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->point < tinyrl->end) {
-		tinyrl->point++;
-		utf8_point_right(tinyrl);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->point) {
-		unsigned int end = --tinyrl->point;
-		utf8_point_left(tinyrl);
-		tinyrl_delete_text(tinyrl, tinyrl->point, end);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_backword(tinyrl_t *tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-
-    /* remove current whitespace before cursor */
-	while (tinyrl->point > 0 && isspace(tinyrl->line[tinyrl->point - 1]))
-        tinyrl_key_backspace(tinyrl, KEY_BS);
-
-    /* delete word before cusor */
-	while (tinyrl->point > 0 && !isspace(tinyrl->line[tinyrl->point - 1]))
-        tinyrl_key_backspace(tinyrl, KEY_BS);
-
-	result = BOOL_TRUE;
-
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_delete(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	if (tinyrl->point < tinyrl->end) {
-		unsigned int begin = tinyrl->point++;
-		utf8_point_right(tinyrl);
-		tinyrl_delete_text(tinyrl, begin, tinyrl->point - 1);
-		result = BOOL_TRUE;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, int key)
-{
-	tinyrl_vt100_clear_screen(tinyrl->term);
-	tinyrl_vt100_cursor_home(tinyrl->term);
-	tinyrl_reset_line_state(tinyrl);
-
-	/* keep the compiler happy */
-	key = key;
-	tinyrl = tinyrl;
-	return BOOL_TRUE;
-}
-
-/*-------------------------------------------------------- */
-static bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, int key)
-{
-	unsigned int end;
-
-	/* release any old kill string */
-	lub_string_free(tinyrl->kill_string);
-
-	if (!tinyrl->point) {
-		tinyrl->kill_string = NULL;
-		return BOOL_TRUE;
-	}
-
-	end = tinyrl->point - 1;
-
-	/* store the killed string */
-	tinyrl->kill_string = malloc(tinyrl->point + 1);
-	memcpy(tinyrl->kill_string, tinyrl->buffer, tinyrl->point);
-	tinyrl->kill_string[tinyrl->point] = '\0';
-
-	/* delete the text from the start of the line */
-	tinyrl_delete_text(tinyrl, 0, end);
-	tinyrl->point = 0;
-
-	/* keep the compiler happy */
-	key = key;
-	tinyrl = tinyrl;
-
-	return BOOL_TRUE;
-}/*-------------------------------------------------------- */
 
 static bool_t tinyrl_escape_seq(tinyrl_t *tinyrl, const char *esc_seq)
 {
@@ -380,103 +201,6 @@ static bool_t tinyrl_escape_seq(tinyrl_t *tinyrl, const char *esc_seq)
 }
 
 /*-------------------------------------------------------- */
-static bool_t tinyrl_key_tab(tinyrl_t * tinyrl, int key)
-{
-	bool_t result = BOOL_FALSE;
-	tinyrl_match_e status = tinyrl_complete_with_extensions(tinyrl);
-
-	switch (status) {
-	case TINYRL_COMPLETED_MATCH:
-	case TINYRL_MATCH:
-		/* everything is OK with the world... */
-		result = tinyrl_insert_text(tinyrl, " ");
-		break;
-	case TINYRL_NO_MATCH:
-	case TINYRL_MATCH_WITH_EXTENSIONS:
-	case TINYRL_AMBIGUOUS:
-	case TINYRL_COMPLETED_AMBIGUOUS:
-		/* oops don't change the result and let the bell ring */
-		break;
-	}
-	/* keep the compiler happy */
-	key = key;
-	return result;
-}
-
-/*-------------------------------------------------------- */
-static void tinyrl_fini(tinyrl_t * tinyrl)
-{
-	/* delete the history session */
-	tinyrl_history_delete(tinyrl->history);
-
-	/* delete the terminal session */
-	tinyrl_vt100_delete(tinyrl->term);
-
-	/* free up any dynamic strings */
-	lub_string_free(tinyrl->buffer);
-	lub_string_free(tinyrl->kill_string);
-	lub_string_free(tinyrl->last_buffer);
-	lub_string_free(tinyrl->prompt);
-}
-
-/*-------------------------------------------------------- */
-static void tinyrl_init(tinyrl_t * tinyrl, FILE * istream, FILE * ostream,
-	unsigned int stifle, tinyrl_completion_func_t * complete_fn)
-{
-	int i;
-
-	for (i = 0; i < NUM_HANDLERS; i++) {
-		tinyrl->handlers[i] = tinyrl_key_default;
-	}
-	/* Default handlers */
-	tinyrl->handlers[KEY_CR] = tinyrl_key_crlf;
-	tinyrl->handlers[KEY_LF] = tinyrl_key_crlf;
-	tinyrl->handlers[KEY_ETX] = tinyrl_key_interrupt;
-	tinyrl->handlers[KEY_DEL] = tinyrl_key_backspace;
-	tinyrl->handlers[KEY_BS] = tinyrl_key_backspace;
-	tinyrl->handlers[KEY_EOT] = tinyrl_key_delete;
-	tinyrl->handlers[KEY_FF] = tinyrl_key_clear_screen;
-	tinyrl->handlers[KEY_NAK] = tinyrl_key_erase_line;
-	tinyrl->handlers[KEY_SOH] = tinyrl_key_start_of_line;
-	tinyrl->handlers[KEY_ENQ] = tinyrl_key_end_of_line;
-	tinyrl->handlers[KEY_VT] = tinyrl_key_kill;
-	tinyrl->handlers[KEY_EM] = tinyrl_key_yank;
-	tinyrl->handlers[KEY_HT] = tinyrl_key_tab;
-	tinyrl->handlers[KEY_ETB] = tinyrl_key_backword;
-
-	tinyrl->line = NULL;
-	tinyrl->max_line_length = 0;
-	tinyrl->prompt = NULL;
-	tinyrl->prompt_size = 0;
-	tinyrl->buffer = NULL;
-	tinyrl->buffer_size = 0;
-	tinyrl->done = BOOL_FALSE;
-	tinyrl->completion_over = BOOL_FALSE;
-	tinyrl->point = 0;
-	tinyrl->end = 0;
-	tinyrl->attempted_completion_function = complete_fn;
-	tinyrl->timeout_fn = tinyrl_timeout_default;
-	tinyrl->keypress_fn = NULL;
-	tinyrl->hotkey_fn = NULL;
-	tinyrl->state = 0;
-	tinyrl->kill_string = NULL;
-	tinyrl->echo_char = '\0';
-	tinyrl->echo_enabled = BOOL_TRUE;
-	tinyrl->last_buffer = NULL;
-	tinyrl->last_point = 0;
-	tinyrl->last_line_size = 0;
-	tinyrl->utf8 = BOOL_FALSE;
-
-	/* create the vt100 terminal */
-	tinyrl->term = tinyrl_vt100_new(NULL, ostream);
-	tinyrl__set_istream(tinyrl, istream);
-	tinyrl->last_width = tinyrl_vt100__get_width(tinyrl->term);
-
-	/* create the history */
-	tinyrl->history = tinyrl_history_new(stifle);
-}
-
-/*-------------------------------------------------------- */
 int tinyrl_printf(const tinyrl_t * tinyrl, const char *fmt, ...)
 {
 	va_list args;
@@ -489,18 +213,6 @@ int tinyrl_printf(const tinyrl_t * tinyrl, const char *fmt, ...)
 	return len;
 }
 
-/*-------------------------------------------------------- */
-void tinyrl_delete(tinyrl_t * tinyrl)
-{
-	assert(tinyrl);
-	if (tinyrl) {
-		/* let the object tidy itself up */
-		tinyrl_fini(tinyrl);
-
-		/* release the memory associate with tinyrl instance */
-		free(tinyrl);
-	}
-}
 
 /*-------------------------------------------------------- */
 
@@ -558,7 +270,7 @@ void tinyrl_multi_crlf(const tinyrl_t * tinyrl)
 	unsigned int count = utf8_nsyms(tinyrl, tinyrl->last_buffer, tinyrl->last_point);
 
 	tinyrl_internal_position(tinyrl, tinyrl->prompt_len + line_len,
-		- (line_len - count), tinyrl->last_width);
+		- (line_len - count), tinyrl->width);
 	tinyrl_crlf(tinyrl);
 	tinyrl_vt100_oflush(tinyrl->term);
 }
@@ -573,7 +285,7 @@ void tinyrl_redisplay(tinyrl_t * tinyrl)
 	int cols;
 
 	/* Prepare print position */
-	if (tinyrl->last_buffer && (width == tinyrl->last_width)) {
+	if (tinyrl->last_buffer && (width == tinyrl->width)) {
 		unsigned int eq_len = 0;
 		/* If line and last line have the equal chars at begining */
 		eq_chars = lub_string_equal_part(tinyrl->line, tinyrl->last_buffer,
@@ -584,7 +296,7 @@ void tinyrl_redisplay(tinyrl_t * tinyrl)
 			count - eq_len, width);
 	} else {
 		/* Prepare to resize */
-		if (width != tinyrl->last_width) {
+		if (width != tinyrl->width) {
 			tinyrl_vt100_next_line(tinyrl->term);
 			tinyrl_vt100_erase_down(tinyrl->term);
 		}
@@ -616,7 +328,7 @@ void tinyrl_redisplay(tinyrl_t * tinyrl)
 	lub_string_free(tinyrl->last_buffer);
 	tinyrl->last_buffer = lub_string_dup(tinyrl->line);
 	tinyrl->last_point = tinyrl->point;
-	tinyrl->last_width = width;
+	tinyrl->width = width;
 	tinyrl->last_line_size = line_size;
 }
 
@@ -683,7 +395,7 @@ static char *internal_readline(tinyrl_t * tinyrl,
 		char *esc_p = esc_seq;
 
 		/* Set the terminal into raw mode */
-		tty_set_raw_mode(tinyrl);
+		tty_raw_mode(tinyrl);
 		tinyrl_reset_line_state(tinyrl);
 
 		while (!tinyrl->done) {

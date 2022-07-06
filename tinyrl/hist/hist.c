@@ -42,7 +42,7 @@ static int hist_kcompare(const void *key, const void *list_item)
 
 
 
-hist_t *hist_new(size_t stifle, const char *hist_fname)
+hist_t *hist_new(const char *hist_fname, size_t stifle)
 {
 	hist_t *hist = faux_zmalloc(sizeof(hist_t));
 	if (!hist)

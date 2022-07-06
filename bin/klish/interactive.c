@@ -2,16 +2,19 @@
 #include <stdio.h>
 #include <assert.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <faux/faux.h>
 #include <faux/eloop.h>
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
+#include <tinyrl/tinyrl.h>
 
 
 // Context for main loop
 typedef struct ctx_s {
 	ktp_session_t *ktp;
+	tinyrl_t *tinyrl;
 } ctx_t;
 
 
@@ -24,20 +27,34 @@ int klish_interactive_shell(ktp_session_t *ktp)
 {
 	ctx_t ctx = {};
 	faux_eloop_t *eloop = NULL;
+	tinyrl_t *tinyrl = NULL;
+	int stdin_flags = 0;
 
 	assert(ktp);
 	if (!ktp)
 		return -1;
 
-	// Don't stop interactive loop on each answer
-	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
+	// Set stdin to O_NONBLOCK mode
+	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
+
+	tinyrl = tinyrl_new(stdin, stdout, 0, NULL);
 
 	ctx.ktp = ktp;
+	ctx.tinyrl = tinyrl;
 
+	// Don't stop interactive loop on each answer
+	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
 	eloop = ktp_session_eloop(ktp);
 	faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
 	faux_eloop_loop(eloop);
+
+	// Cleanup
+	tinyrl_free(tinyrl);
+
+	// Restore stdin mode
+	fcntl(STDIN_FILENO, F_SETFL, stdin_flags);
 
 	return 0;
 }

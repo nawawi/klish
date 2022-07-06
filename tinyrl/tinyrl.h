@@ -59,17 +59,20 @@ typedef int tinyrl_keypress_fn_t(tinyrl_t *instance, int key);
  */
 typedef bool_t tinyrl_key_func_t(tinyrl_t * instance, int key);
 
-/* exported functions */
-extern tinyrl_t *tinyrl_new(FILE * instream,
-			    FILE * outstream,
-			    unsigned stifle,
-			    tinyrl_completion_func_t * complete_fn);
+
+
+
+tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
+	const char *hist_fname, size_t hist_stifle);
+void tinyrl_free(tinyrl_t *tinyrl);
+
+
+
+
+
 
 /*lint -esym(534,tinyrl_printf)  Ignoring return value of function */
 extern int tinyrl_printf(const tinyrl_t * instance, const char *fmt, ...);
-
-extern void tinyrl_delete(tinyrl_t * instance);
-
 
 extern const char *tinyrl__get_prompt(const tinyrl_t * instance);
 extern void tinyrl__set_prompt(tinyrl_t *instance, const char *prompt);

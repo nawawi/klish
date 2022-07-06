@@ -68,7 +68,7 @@ typedef enum {
 
 // Return values from vt100_getchar()
 #define VT100_RET_EOF -1
-#define VT100_RET_TIMEOUT -2
+#define VT100_RET_EMPTY -2
 #define VT100_RET_ERR -3
 
 
@@ -81,8 +81,6 @@ FILE *vt100_istream(const vt100_t *vt100);
 void vt100_set_istream(vt100_t *vt100, FILE *istream);
 FILE *vt100_ostream(const vt100_t *vt100);
 void vt100_set_ostream(vt100_t *vt100, FILE *ostream);
-int  vt100_timeout(vt100_t *vt100);
-void vt100_set_timeout(vt100_t *vt100, int timeout);
 
 size_t vt100_width(const vt100_t *vt100);
 size_t vt100_height(const vt100_t *vt100);

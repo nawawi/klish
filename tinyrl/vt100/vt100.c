@@ -15,7 +15,6 @@
 struct vt100_s {
 	FILE *istream;
 	FILE *ostream;
-	int timeout; // Input timeout in seconds
 };
 
 
@@ -53,8 +52,6 @@ vt100_t *vt100_new(FILE *istream, FILE *ostream)
 	// Initialize
 	vt100->istream = istream;
 	vt100->ostream = ostream;
-	vt100->timeout = -1; // No timeout by default
-
 
 	return vt100;
 }
@@ -99,24 +96,6 @@ void vt100_set_ostream(vt100_t *vt100, FILE *ostream)
 		return;
 
 	vt100->ostream = ostream;
-}
-
-
-int vt100_timeout(vt100_t *vt100)
-{
-	if (!vt100)
-		return -1;
-
-	return vt100->timeout;
-}
-
-
-void vt100__set_timeout(vt100_t *vt100, int timeout)
-{
-	if (!vt100)
-		return;
-
-	vt100->timeout = timeout;
 }
 
 
@@ -168,48 +147,17 @@ int vt100_vprintf(const vt100_t *vt100, const char *fmt, va_list args)
 int vt100_getchar(const vt100_t *vt100)
 {
 	unsigned char c = 0;
-	int istream_fd = -1;
-	fd_set rfds = {};
-	struct timeval tv = {};
-	int retval = 0;
 	ssize_t res = VT100_RET_ERR;
 
 	if (!vt100 || !vt100->istream)
 		return VT100_RET_ERR;
 
-	istream_fd = fileno(vt100->istream);
-
-	// Simple variant
-	// Just wait for the input if no timeout specified
-	if (vt100->timeout <= 0) {
-		while (((res = read(istream_fd, &c, 1)) < 0) &&
-			(EAGAIN == errno));
-		// EOF or error
-		if (res < 0)
-			return VT100_RET_ERR;
-		if (0 == res)
-			return VT100_RET_EOF;
-		return c;
+	res = read(fileno(vt100->istream), &c, 1);
+	if (res < 0) {
+		if (EAGAIN == errno)
+			return VT100_RET_EMPTY; // Non-blocking read
+		return VT100_RET_ERR;
 	}
-
-	// Variant with timeout
-	// Set timeout for the select()
-	FD_ZERO(&rfds);
-	FD_SET(istream_fd, &rfds);
-	tv.tv_sec = vt100->timeout;
-	tv.tv_usec = 0;
-	while (((retval = select(istream_fd + 1, &rfds, NULL, NULL, &tv)) < 0) &&
-		(EAGAIN == errno));
-	// Error or timeout
-	if (retval < 0)
-		return VT100_RET_ERR;
-	if (0 == retval)
-		return VT100_RET_TIMEOUT;
-
-	res = read(istream_fd, &c, 1);
-	// EOF or error
-	if (res < 0)
-		return VT100_RET_ERR;
 	if (0 == res)
 		return VT100_RET_EOF;
 

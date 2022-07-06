@@ -216,7 +216,7 @@ char *utf8_move_right(const char *line, char *cur_pos)
 
 /** @brief Counts number of printable symbols within UTF-8 string
  *
- * One printable symol can consist of several UTF-8 bytes.
+ * One printable symbol can consist of several UTF-8 bytes.
  * CJK UTF-8 character can occupy 2 printable positions.
  *
  * @param [in] str UTF-8 string.

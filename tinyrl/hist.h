@@ -12,7 +12,7 @@ typedef faux_list_node_t hist_node_t;
 
 C_DECL_BEGIN
 
-hist_t *hist_new(size_t stifle, const char *hist_fname);
+hist_t *hist_new(const char *hist_fname, size_t stifle);
 void hist_free(hist_t *hist);
 
 void hist_add(hist_t *hist, const char *line);

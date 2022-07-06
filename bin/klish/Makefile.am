@@ -8,4 +8,5 @@ bin_klish_klish_SOURCES = \
 	bin/klish/klish.c
 
 bin_klish_klish_LDADD = \
-	libklish.la
+	libklish.la \
+	libtinyrl.la
