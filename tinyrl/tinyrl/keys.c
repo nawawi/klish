@@ -165,33 +165,35 @@ bool_t tinyrl_key_down(tinyrl_t *tinyrl, char key)
 
 bool_t tinyrl_key_left(tinyrl_t *tinyrl, char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->point > 0) {
-		tinyrl->point--;
-		utf8_point_left(tinyrl);
-		result = BOOL_TRUE;
-	}
-	// keep the compiler happy 
+	if (tinyrl->line.pos == 0)
+		return BOOL_TRUE;
+
+	if (tinyrl->utf8)
+		tinyrl->line.pos = utf8_move_left(tinyrl->line.str, tinyrl->line.pos);
+	else
+		tinyrl->line.pos--;
+
+	// Happy compiler
 	key = key;
-*/
-	return result;
+
+	return BOOL_TRUE;
 }
 
 
 bool_t tinyrl_key_right(tinyrl_t *tinyrl, char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->point < tinyrl->end) {
-		tinyrl->point++;
-		utf8_point_right(tinyrl);
-		result = BOOL_TRUE;
-	}
-	// keep the compiler happy 
+	if (tinyrl->line.pos == tinyrl->line.len)
+		return BOOL_TRUE;
+
+	if (tinyrl->utf8)
+		tinyrl->line.pos = utf8_move_right(tinyrl->line.str, tinyrl->line.pos);
+	else
+		tinyrl->line.pos++;
+
+	// Happy compiler
 	key = key;
-*/
-	return result;
+
+	return BOOL_TRUE;
 }
 
 
