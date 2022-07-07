@@ -280,6 +280,7 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 	// Handler (that has no special meaning) will put new char to line buffer
 	if (!tinyrl->handlers[(unsigned char)key](tinyrl, key))
 		vt100_ding(tinyrl->term);
+
 //	if (tinyrl->done) // Some handler set the done flag
 //		continue; // It will break the loop
 
@@ -305,10 +306,10 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 	// For non UTF-8 encoding the utf8_cont is always 0.
 	// For UTF-8 it's 0 when one-byte symbol or we get
 	// all bytes for the current multibyte character
-	if (!tinyrl->utf8_cont) {
-		//tinyrl_redisplay(tinyrl);
-		printf("%s\n", tinyrl->line.str);
-	}
+//	if (!tinyrl->utf8_cont) {
+//		//tinyrl_redisplay(tinyrl);
+//		printf("%s\n", tinyrl->line.str);
+//	}
 
 	return BOOL_TRUE;
 }
@@ -325,6 +326,11 @@ int tinyrl_read(tinyrl_t *tinyrl)
 	while ((rc = vt100_getchar(tinyrl->term, &key)) > 0) {
 		count++;
 		process_char(tinyrl, key);
+	if (!tinyrl->utf8_cont) {
+		//tinyrl_redisplay(tinyrl);
+		printf("%s\n", tinyrl->line.str);
+	}
+printf("key=%u, pos=%lu, len=%lu\n", key, tinyrl->line.pos, tinyrl->line.len);
 	}
 
 	if ((rc < 0) && (EAGAIN == errno))
@@ -421,7 +427,7 @@ bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len)
 	if (tinyrl->line.pos < tinyrl->line.len) {
 		memmove(tinyrl->line.str + tinyrl->line.pos + len,
 			tinyrl->line.str + tinyrl->line.pos,
-			len);
+			tinyrl->line.len - tinyrl->line.pos);
 	}
 
 	memcpy(tinyrl->line.str + tinyrl->line.pos, text, len);

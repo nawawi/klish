@@ -22,7 +22,6 @@ bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key)
 		if (tinyrl->hotkey_fn)
 			tinyrl->hotkey_fn(tinyrl, key);
 	}
-printf("key=%u, pos=%lu, len=%lu\n", (unsigned char)key, tinyrl->line.pos, tinyrl->line.len);
 
 	return BOOL_TRUE;
 }
