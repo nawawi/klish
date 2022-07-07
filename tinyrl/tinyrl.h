@@ -7,7 +7,9 @@
 
 C_DECL_BEGIN
 
- typedef struct _tinyrl tinyrl_t;
+typedef struct tinyrl_s tinyrl_t;
+
+
 typedef enum {
     /**
      * no possible completions were found
@@ -76,6 +78,7 @@ bool_t tinyrl_hist_save(const tinyrl_t *tinyrl);
 bool_t tinyrl_hist_restore(tinyrl_t *tinyrl);
 void tty_raw_mode(tinyrl_t *tinyrl);
 void tty_restore_mode(tinyrl_t *tinyrl);
+int tinyrl_read(tinyrl_t *tinyrl);
 
 
 

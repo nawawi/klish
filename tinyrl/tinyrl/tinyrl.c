@@ -15,6 +15,8 @@
 
 #include "private.h"
 
+#define LINE_CHUNK 80
+
 
 tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	const char *hist_fname, size_t hist_stifle)
@@ -25,6 +27,16 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl = faux_zmalloc(sizeof(tinyrl_t));
 	if (!tinyrl)
 		return NULL;
+
+	// Line
+	faux_bzero(&tinyrl->line, sizeof(tinyrl->line));
+	tinyrl_extend_line(tinyrl, LINE_CHUNK);
+
+	// Input processing vars
+	tinyrl->utf8_cont = 0;
+	tinyrl->esc_cont = BOOL_FALSE;
+	tinyrl->esc_seq[0] = '\0';
+	tinyrl->esc_p = tinyrl->esc_seq;
 
 	// Key handlers
 	for (i = 0; i < NUM_HANDLERS; i++) {
@@ -45,7 +57,6 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->handlers[KEY_HT] = tinyrl_key_tab;
 	tinyrl->handlers[KEY_ETB] = tinyrl_key_backword;
 
-	tinyrl->line = NULL;
 	tinyrl->max_line_length = 0;
 	tinyrl->prompt = NULL;
 	tinyrl->prompt_size = 0;
@@ -53,8 +64,6 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->buffer_size = 0;
 	tinyrl->done = BOOL_FALSE;
 	tinyrl->completion_over = BOOL_FALSE;
-	tinyrl->point = 0;
-	tinyrl->end = 0;
 	tinyrl->attempted_completion_function = NULL;
 	tinyrl->hotkey_fn = NULL;
 	tinyrl->state = 0;
@@ -229,111 +238,78 @@ bool_t tinyrl_hist_restore(tinyrl_t *tinyrl)
 }
 
 
-static int process_char(tinyrl_t *tinyrl, unsigned char key)
+static bool_t process_char(tinyrl_t *tinyrl, char key)
 {
-#if 0
-	FILE *istream = vt100_istream(tinyrl->term);
-	char *result = NULL;
-	int lerrno = 0;
 
-	tinyrl->done = BOOL_FALSE;
-	tinyrl->point = 0;
-	tinyrl->end = 0;
-	tinyrl->buffer = lub_string_dup("");
-	tinyrl->buffer_size = strlen(tinyrl->buffer);
-	tinyrl->line = tinyrl->buffer;
-	tinyrl->context = context;
+	// Begin of ESC sequence
+	if (!tinyrl->esc_cont && (KEY_ESC == key)) {
+		tinyrl->esc_cont = BOOL_TRUE; // Start ESC sequence
+		tinyrl->esc_p = tinyrl->esc_seq;
+		// Note: Don't put ESC symbol itself to buffer
+		return BOOL_TRUE;
+	}
 
-		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
-		unsigned int esc_cont = 0; /* Escape sequence continues */
-		char esc_seq[10]; /* Buffer for ESC sequence */
-		char *esc_p = esc_seq;
-
-
-			// Begin of ESC sequence
-			if (!esc_cont && (KEY_ESC == key)) {
-				esc_cont = 1; // Start ESC sequence
-				esc_p = esc_seq;
-				continue;
-			}
-			if (esc_cont) {
-				/* Broken sequence */
-				if (esc_p >= (esc_seq + sizeof(esc_seq) - 1)) {
-					esc_cont = 0;
-					continue;
-				}
-				/* Dump the control sequence into sequence buffer
-				   ANSI standard control sequences will end
-				   with a character between 64 - 126 */
-				*esc_p = key & 0xff;
-				esc_p++;
-				/* tinyrl is an ANSI control sequence terminator code */
-				if ((key != '[') && (key > 63)) {
-					*esc_p = '\0';
-					tinyrl_escape_seq(tinyrl, esc_seq);
-					esc_cont = 0;
-					tinyrl_redisplay(tinyrl);
-				}
-				continue;
-			}
-
-			/* Call the handler for tinyrl key */
-			if (!tinyrl->handlers[key](tinyrl, key))
-				tinyrl_ding(tinyrl);
-			if (tinyrl->done) /* Some handler set the done flag */
-				continue; /* It will break the loop */
-
-			if (tinyrl->utf8) {
-				if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
-					utf8_cont = 0;
-				else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
-					utf8_cont--;
-				else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
-					/* Find out number of char's bytes */
-					int b = key;
-					utf8_cont = 0;
-					while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
-						utf8_cont++;
-						b = b << 1;
-					}
-				}
-			}
-			/* For non UTF-8 encoding the utf8_cont is always 0.
-			   For UTF-8 it's 0 when one-byte symbol or we get
-			   all bytes for the current multibyte character. */
-			if (!utf8_cont)
-				tinyrl_redisplay(tinyrl);
+	// Continue ESC sequence
+	if (tinyrl->esc_cont) {
+		// Broken sequence. Too long
+		if ((tinyrl->esc_p - tinyrl->esc_seq) >= (sizeof(tinyrl->esc_seq) - 1)) {
+			tinyrl->esc_cont = BOOL_FALSE;
+			return BOOL_FALSE;
 		}
-		/* If the last character in the line (other than NULL)
-		   is a space remove it. */
-		if (tinyrl->end && tinyrl->line && isspace(tinyrl->line[tinyrl->end - 1]))
-			tinyrl_delete_text(tinyrl, tinyrl->end - 1, tinyrl->end);
-		/* Restores the terminal mode */
-		tty_restore_mode(tinyrl);
+		// Save the curren char to sequence buffer
+		*tinyrl->esc_p = key;
+		tinyrl->esc_p++;
+		// ANSI standard control sequences will end
+		// with a character between 64 - 126
+		if ((key != '[') && (key > 63)) {
+			*tinyrl->esc_p = '\0';
+			tinyrl_esc_seq(tinyrl, tinyrl->esc_seq);
+			tinyrl->esc_cont = BOOL_FALSE;
+			//tinyrl_redisplay(tinyrl);
+		}
+		return BOOL_TRUE;
+	}
 
-	/*
-	 * duplicate the string for return to the client 
-	 * we have to duplicate as we may be referencing a
-	 * history entry or our internal buffer
-	 */
-	result = tinyrl->line ? lub_string_dup(tinyrl->line) : NULL;
+	// Call the handler for key
+	// Handler (that has no special meaning) will put new char to line buffer
+	if (!tinyrl->handlers[(unsigned char)key](tinyrl, key))
+		vt100_ding(tinyrl->term);
+//	if (tinyrl->done) // Some handler set the done flag
+//		continue; // It will break the loop
 
-	/* free our internal buffer */
-	free(tinyrl->buffer);
-	tinyrl->buffer = NULL;
+	if (tinyrl->utf8) {
+		 // ASCII char (one byte)
+		if (!(UTF8_7BIT_MASK & key)) {
+			tinyrl->utf8_cont = 0;
+		// First byte of multibyte symbol
+		} else if (UTF8_11 == (key & UTF8_MASK)) {
+			// Find out number of symbol's bytes
+			unsigned int b = (unsigned int)key;
+			tinyrl->utf8_cont = 0;
+			while ((tinyrl->utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
+				tinyrl->utf8_cont++;
+				b = b << 1;
+			}
+		// Continue of multibyte symbol
+		} else if ((tinyrl->utf8_cont > 0) && (UTF8_10 == (key & UTF8_MASK))) {
+			tinyrl->utf8_cont--;
+		}
+	}
 
-	if (!result)
-		errno = lerrno; /* get saved errno */
-	return result;
-#endif
-	return 1;
+	// For non UTF-8 encoding the utf8_cont is always 0.
+	// For UTF-8 it's 0 when one-byte symbol or we get
+	// all bytes for the current multibyte character
+//	if (!utf8_cont)
+//		tinyrl_redisplay(tinyrl);
+
+	return BOOL_TRUE;
 }
 
 
 int tinyrl_read(tinyrl_t *tinyrl)
 {
 	int rc = 0;
-	unsigned char key = 0;
+	char key = 0;
 	int count = 0;
 
 	assert(tinyrl);
@@ -347,6 +323,81 @@ int tinyrl_read(tinyrl_t *tinyrl)
 		return count;
 
 	return rc;
+}
+
+
+/*
+ * Ensure that buffer has enough space to hold len characters,
+ * possibly reallocating it if necessary. The function returns BOOL_TRUE
+ * if the line is successfully extended, BOOL_FALSE if not.
+ */
+bool_t tinyrl_extend_line(tinyrl_t *tinyrl, size_t len)
+{
+	char *new_buf = NULL;
+	size_t new_size = 0;
+	size_t chunk_num = 0;
+
+	if (tinyrl->line.len >= len)
+		return BOOL_TRUE;
+
+	chunk_num = len / LINE_CHUNK;
+	if ((len % LINE_CHUNK) > 0)
+		chunk_num++;
+	new_size = chunk_num * LINE_CHUNK;
+
+	// First initialization
+	if (tinyrl->line.str == NULL) {
+		tinyrl->line.str = faux_zmalloc(new_size);
+		if (!tinyrl->line.str)
+			return BOOL_FALSE;
+		tinyrl->line.size = new_size;
+		return BOOL_TRUE;
+	}
+
+	new_buf = realloc(tinyrl->line.str, new_size);
+	if (!new_buf)
+		return BOOL_FALSE;
+	tinyrl->line.str = new_buf;
+	tinyrl->line.size = new_size;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t tinyrl_esc_seq(tinyrl_t *tinyrl, const char *esc_seq)
+{
+	bool_t result = BOOL_FALSE;
+
+	switch (vt100_esc_decode(tinyrl->term, esc_seq)) {
+	case VT100_CURSOR_UP:
+		result = tinyrl_key_up(tinyrl, 0);
+		break;
+	case VT100_CURSOR_DOWN:
+		result = tinyrl_key_down(tinyrl, 0);
+		break;
+	case VT100_CURSOR_LEFT:
+		result = tinyrl_key_left(tinyrl, 0);
+		break;
+	case VT100_CURSOR_RIGHT:
+		result = tinyrl_key_right(tinyrl, 0);
+		break;
+	case VT100_HOME:
+		result = tinyrl_key_start_of_line(tinyrl, 0);
+		break;
+	case VT100_END:
+		result = tinyrl_key_end_of_line(tinyrl, 0);
+		break;
+	case VT100_DELETE:
+		result = tinyrl_key_delete(tinyrl, 0);
+		break;
+	case VT100_INSERT:
+	case VT100_PGDOWN:
+	case VT100_PGUP:
+	case VT100_UNKNOWN:
+		break;
+	}
+
+	return result;
 }
 
 
@@ -371,42 +422,6 @@ static void changed_line(tinyrl_t * tinyrl)
 }
 
 
-static bool_t tinyrl_escape_seq(tinyrl_t *tinyrl, const char *esc_seq)
-{
-	int key = 0;
-	bool_t result = BOOL_FALSE;
-
-	switch (tinyrl_vt100_escape_decode(tinyrl->term, esc_seq)) {
-	case tinyrl_vt100_CURSOR_UP:
-		result = tinyrl_key_up(tinyrl, key);
-		break;
-	case tinyrl_vt100_CURSOR_DOWN:
-		result = tinyrl_key_down(tinyrl, key);
-		break;
-	case tinyrl_vt100_CURSOR_LEFT:
-		result = tinyrl_key_left(tinyrl, key);
-		break;
-	case tinyrl_vt100_CURSOR_RIGHT:
-		result = tinyrl_key_right(tinyrl, key);
-		break;
-	case tinyrl_vt100_HOME:
-		result = tinyrl_key_start_of_line(tinyrl,key);
-		break;
-	case tinyrl_vt100_END:
-		result = tinyrl_key_end_of_line(tinyrl,key);
-		break;
-	case tinyrl_vt100_DELETE:
-		result = tinyrl_key_delete(tinyrl,key);
-		break;
-	case tinyrl_vt100_INSERT:
-	case tinyrl_vt100_PGDOWN:
-	case tinyrl_vt100_PGUP:
-	case tinyrl_vt100_UNKNOWN:
-		break;
-	}
-
-	return result;
-}
 
 /*-------------------------------------------------------- */
 int tinyrl_printf(const tinyrl_t * tinyrl, const char *fmt, ...)
@@ -732,62 +747,6 @@ char *tinyrl_forceline(tinyrl_t * tinyrl, void *context, const char *line)
 	return internal_readline(tinyrl, context, line);
 }
 
-/*----------------------------------------------------------------------- */
-/*
- * Ensure that buffer has enough space to hold len characters,
- * possibly reallocating it if necessary. The function returns BOOL_TRUE
- * if the line is successfully extended, BOOL_FALSE if not.
- */
-bool_t tinyrl_extend_line_buffer(tinyrl_t * tinyrl, unsigned int len)
-{
-	bool_t result = BOOL_TRUE;
-	char *new_buffer;
-	size_t new_len = len;
-
-	if (tinyrl->buffer_size >= len)
-		return result;
-
-	/*
-	 * What we do depends on whether we are limited by
-	 * memory or a user imposed limit.
-	 */
-	if (tinyrl->max_line_length == 0) {
-		/* make sure we don't realloc too often */
-		if (new_len < tinyrl->buffer_size + 10)
-			new_len = tinyrl->buffer_size + 10;
-		/* leave space for terminator */
-		new_buffer = realloc(tinyrl->buffer, new_len + 1);
-
-		if (!new_buffer) {
-			tinyrl_ding(tinyrl);
-			result = BOOL_FALSE;
-		} else {
-			tinyrl->buffer_size = new_len;
-			tinyrl->line = tinyrl->buffer = new_buffer;
-		}
-	} else {
-		if (new_len < tinyrl->max_line_length) {
-
-			/* Just reallocate once to the max size */
-			new_buffer = realloc(tinyrl->buffer,
-				tinyrl->max_line_length);
-
-			if (!new_buffer) {
-				tinyrl_ding(tinyrl);
-				result = BOOL_FALSE;
-			} else {
-				tinyrl->buffer_size =
-					tinyrl->max_line_length - 1;
-				tinyrl->line = tinyrl->buffer = new_buffer;
-			}
-		} else {
-			tinyrl_ding(tinyrl);
-			result = BOOL_FALSE;
-		}
-	}
-
-	return result;
-}
 
 /*----------------------------------------------------------------------- */
 /*

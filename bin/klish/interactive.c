@@ -80,7 +80,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	ctx_t *ctx = (ctx_t *)udata;
 
-	ktp_session_cmd(ctx->ktp, "cmd", NULL, BOOL_FALSE);
+	tinyrl_read(ctx->tinyrl);
+//	ktp_session_cmd(ctx->ktp, "cmd", NULL, BOOL_FALSE);
 
 	return BOOL_TRUE;
 }
