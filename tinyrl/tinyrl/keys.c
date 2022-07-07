@@ -12,7 +12,7 @@
 #include "private.h"
 
 
-bool_t tinyrl_key_default(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_default(tinyrl_t *tinyrl, char key)
 {
 	if (key > 31) {
 		// Inject new char to the line
@@ -27,44 +27,44 @@ bool_t tinyrl_key_default(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_interrupt(tinyrl_t *tinyrl, char key)
 {
-/*
-	tinyrl_crlf(tinyrl);
-	tinyrl_delete_text(tinyrl, 0, tinyrl->end);
-	tinyrl->done = BOOL_TRUE;
-	// keep the compiler happy 
+//	tinyrl_crlf(tinyrl);
+//	tinyrl->done = BOOL_TRUE;
+	tinyrl_line_delete(tinyrl, 0, tinyrl->line.len);
+
+	// Happy compiler
 	key = key;
-*/
+
 	return BOOL_TRUE;
 }
 
 
-bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_start_of_line(tinyrl_t *tinyrl, char key)
 {
-/*
-	// set the insertion point to the start of the line 
-	tinyrl->point = 0;
-	// keep the compiler happy 
+	// Set current position to the start of the line
+	tinyrl->line.pos = 0;
+
+	// Happy compiler
 	key = key;
-*/
+
 	return BOOL_TRUE;
 }
 
 
-bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_end_of_line(tinyrl_t *tinyrl, char key)
 {
-/*
-	// set the insertion point to the end of the line 
-	tinyrl->point = tinyrl->end;
-	// keep the compiler happy 
+	// Set current position to the end of the line
+	tinyrl->line.pos = tinyrl->line.len;
+
+	// Happy compiler
 	key = key;
-*/
+
 	return BOOL_TRUE;
 }
 
 
-bool_t tinyrl_key_kill(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_kill(tinyrl_t *tinyrl, char key)
 {
 /*
 	// release any old kill string 
@@ -82,7 +82,7 @@ bool_t tinyrl_key_kill(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_yank(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_yank(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -97,7 +97,7 @@ bool_t tinyrl_key_yank(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_crlf(tinyrl_t *tinyrl, char key)
 {
 /*
 	tinyrl_crlf(tinyrl);
@@ -109,7 +109,7 @@ bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_up(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_up(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -136,7 +136,7 @@ bool_t tinyrl_key_up(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_down(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_down(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -163,7 +163,7 @@ bool_t tinyrl_key_down(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_left(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_left(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -179,7 +179,7 @@ bool_t tinyrl_key_left(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_right(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_right(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -197,18 +197,41 @@ bool_t tinyrl_key_right(tinyrl_t * tinyrl, char key)
 
 bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->point) {
-		unsigned int end = --tinyrl->point;
-		utf8_point_left(tinyrl);
-		tinyrl_delete_text(tinyrl, tinyrl->point, end);
-		result = BOOL_TRUE;
+	if (tinyrl->line.pos == 0)
+		return BOOL_TRUE;
+
+	if (tinyrl->utf8) {
+		off_t new_pos = 0;
+		new_pos = utf8_move_left(tinyrl->line.str, tinyrl->line.pos);
+		tinyrl_line_delete(tinyrl, new_pos, tinyrl->line.pos - new_pos);
+	} else {
+		tinyrl_line_delete(tinyrl, tinyrl->line.pos - 1, 1);
 	}
-	// keep the compiler happy 
+
+	// Happy compiler
 	key = key;
-*/
-	return result;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t tinyrl_key_delete(tinyrl_t *tinyrl, char key)
+{
+	if (tinyrl->line.pos == tinyrl->line.len)
+		return BOOL_TRUE;
+
+	if (tinyrl->utf8) {
+		off_t new_pos = 0;
+		new_pos = utf8_move_right(tinyrl->line.str, tinyrl->line.pos);
+		tinyrl_line_delete(tinyrl, tinyrl->line.pos, new_pos - tinyrl->line.pos);
+	} else {
+		tinyrl_line_delete(tinyrl, tinyrl->line.pos, 1);
+	}
+
+	// Happy compiler
+	key = key;
+
+	return BOOL_TRUE;
 }
 
 
@@ -232,24 +255,8 @@ bool_t tinyrl_key_backword(tinyrl_t *tinyrl, char key)
 	return result;
 }
 
-bool_t tinyrl_key_delete(tinyrl_t * tinyrl, char key)
-{
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->point < tinyrl->end) {
-		unsigned int begin = tinyrl->point++;
-		utf8_point_right(tinyrl);
-		tinyrl_delete_text(tinyrl, begin, tinyrl->point - 1);
-		result = BOOL_TRUE;
-	}
-	// keep the compiler happy 
-	key = key;
-*/
-	return result;
-}
 
-
-bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_clear_screen(tinyrl_t *tinyrl, char key)
 {
 /*
 	tinyrl_vt100_clear_screen(tinyrl->term);
@@ -264,7 +271,7 @@ bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_erase_line(tinyrl_t *tinyrl, char key)
 {
 /*	unsigned int end;
 
@@ -295,7 +302,7 @@ bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, char key)
 }
 
 
-bool_t tinyrl_key_tab(tinyrl_t * tinyrl, char key)
+bool_t tinyrl_key_tab(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*

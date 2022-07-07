@@ -168,23 +168,21 @@ bool_t utf8_wchar_is_cjk(unsigned long sym)
  *
  * @param [in] line UTF-8 string.
  * @param [in] cur_pos Current position within UTF-8 string.
- * @return Position (pointer) of previous UTF-8 character or NULL on error.
+ * @return Position of previous UTF-8 character or NULL on error.
  */
-char *utf8_move_left(const char *line, char *cur_pos)
+off_t utf8_move_left(const char *line, off_t cur_pos)
 {
-	char *pos = cur_pos;
+	const char *pos = line + cur_pos;
 
-	if (!line || !pos)
-		return NULL;
-	if (line > pos)
-		return NULL;
+	if (!line)
+		return 0;
 	if (pos == line)
-		return pos; // It's already leftmost position
-	pos--;
-	while ((pos > line) && (UTF8_10 == (*pos & UTF8_MASK)))
+		return cur_pos; // It's already leftmost position
+	do {
 		pos--;
+	} while ((pos > line) && (UTF8_10 == (*pos & UTF8_MASK)));
 
-	return pos;
+	return pos - line;
 }
 
 
@@ -192,25 +190,21 @@ char *utf8_move_left(const char *line, char *cur_pos)
  *
  * @param [in] line UTF-8 string.
  * @param [in] cur_pos Current position within UTF-8 string.
- * @return Position (pointer) of next UTF-8 character or NULL on error.
+ * @return Position of next UTF-8 character or NULL on error.
  */
-
-
-char *utf8_move_right(const char *line, char *cur_pos)
+off_t utf8_move_right(const char *line, off_t cur_pos)
 {
-	char *pos = cur_pos;
+	const char *pos = line + cur_pos;
 
-	if (!line || !pos)
-		return NULL;
-	if (line > pos)
-		return NULL;
+	if (!line)
+		return 0;
 	if (*pos == '\0')
-		return pos; // It's already rightmost position
-	pos++;
-	while ((*pos != '\0') && (UTF8_10 == (*pos & UTF8_MASK)))
+		return cur_pos; // It's already rightmost position
+	do {
 		pos++;
+	} while ((*pos != '\0') && (UTF8_10 == (*pos & UTF8_MASK)));
 
-	return pos;
+	return pos - line;
 }
 
 

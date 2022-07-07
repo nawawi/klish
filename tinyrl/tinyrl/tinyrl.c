@@ -305,9 +305,10 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 	// For non UTF-8 encoding the utf8_cont is always 0.
 	// For UTF-8 it's 0 when one-byte symbol or we get
 	// all bytes for the current multibyte character
-//	if (!utf8_cont)
-//		tinyrl_redisplay(tinyrl);
-printf("%s\n", tinyrl->line.str);
+	if (!tinyrl->utf8_cont) {
+		//tinyrl_redisplay(tinyrl);
+		printf("%s\n", tinyrl->line.str);
+	}
 
 	return BOOL_TRUE;
 }
@@ -426,6 +427,27 @@ bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len)
 	memcpy(tinyrl->line.str + tinyrl->line.pos, text, len);
 	tinyrl->line.pos += len;
 	tinyrl->line.len += len;
+	tinyrl->line.str[tinyrl->line.len] = '\0';
+
+	return BOOL_TRUE;
+}
+
+
+bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len)
+{
+	if (start >= tinyrl->line.len)
+		return BOOL_TRUE;
+
+	if ((start + len) >= tinyrl->line.len) {
+		tinyrl->line.len = start;
+	} else {
+		memmove(tinyrl->line.str + start,
+			tinyrl->line.str + start + len,
+			tinyrl->line.len - (start + len));
+		tinyrl->line.len -= len;
+	}
+
+	tinyrl->line.pos = start;
 	tinyrl->line.str[tinyrl->line.len] = '\0';
 
 	return BOOL_TRUE;
@@ -576,210 +598,6 @@ void tinyrl_redisplay(tinyrl_t * tinyrl)
 }
 
 
-static char *internal_insertline(tinyrl_t * tinyrl, char *buffer)
-{
-	char *p;
-	char *s = buffer;
-
-	/* strip any spurious '\r' or '\n' */
-	if ((p = strchr(buffer, '\r')))
-		*p = '\0';
-	if ((p = strchr(buffer, '\n')))
-		*p = '\0';
-	/* skip any whitespace at the beginning of the line */
-	if (0 == tinyrl->point) {
-		while (*s && isspace(*s))
-			s++;
-	}
-	if (*s) {
-		/* append tinyrl string to the input buffer */
-		(void)tinyrl_insert_text(tinyrl, s);
-	}
-	/* echo the command to the output stream */
-	tinyrl_redisplay(tinyrl);
-
-	return s;
-}
-
-/*----------------------------------------------------------------------- */
-static char *internal_readline(tinyrl_t * tinyrl,
-	void *context, const char *str)
-{
-	FILE *istream = tinyrl_vt100__get_istream(tinyrl->term);
-	char *result = NULL;
-	int lerrno = 0;
-
-	tinyrl->done = BOOL_FALSE;
-	tinyrl->point = 0;
-	tinyrl->end = 0;
-	tinyrl->buffer = lub_string_dup("");
-	tinyrl->buffer_size = strlen(tinyrl->buffer);
-	tinyrl->line = tinyrl->buffer;
-	tinyrl->context = context;
-
-	/* Interactive session */
-	if (isatty(fileno(tinyrl->istream)) && !str) {
-		unsigned int utf8_cont = 0; /* UTF-8 continue bytes */
-		unsigned int esc_cont = 0; /* Escape sequence continues */
-		char esc_seq[10]; /* Buffer for ESC sequence */
-		char *esc_p = esc_seq;
-
-		/* Set the terminal into raw mode */
-		tty_raw_mode(tinyrl);
-		tinyrl_reset_line_state(tinyrl);
-
-		while (!tinyrl->done) {
-			int key;
-
-			key = tinyrl_getchar(tinyrl);
-
-			/* Error || EOF || Timeout */
-			if (key < 0) {
-				if ((VT100_TIMEOUT == key) &&
-					!tinyrl->timeout_fn(tinyrl))
-					continue;
-				/* It's time to finish the session */
-				tinyrl->done = BOOL_TRUE;
-				tinyrl->line = NULL;
-				lerrno = ENOENT;
-				continue;
-			}
-
-			/* Real key pressed */
-			/* Common callback for any key */
-			if (tinyrl->keypress_fn)
-				tinyrl->keypress_fn(tinyrl, key);
-
-			/* Check for ESC sequence. It's a special case. */
-			if (!esc_cont && (key == KEY_ESC)) {
-				esc_cont = 1; /* Start ESC sequence */
-				esc_p = esc_seq;
-				continue;
-			}
-			if (esc_cont) {
-				/* Broken sequence */
-				if (esc_p >= (esc_seq + sizeof(esc_seq) - 1)) {
-					esc_cont = 0;
-					continue;
-				}
-				/* Dump the control sequence into sequence buffer
-				   ANSI standard control sequences will end
-				   with a character between 64 - 126 */
-				*esc_p = key & 0xff;
-				esc_p++;
-				/* tinyrl is an ANSI control sequence terminator code */
-				if ((key != '[') && (key > 63)) {
-					*esc_p = '\0';
-					tinyrl_escape_seq(tinyrl, esc_seq);
-					esc_cont = 0;
-					tinyrl_redisplay(tinyrl);
-				}
-				continue;
-			}
-
-			/* Call the handler for tinyrl key */
-			if (!tinyrl->handlers[key](tinyrl, key))
-				tinyrl_ding(tinyrl);
-			if (tinyrl->done) /* Some handler set the done flag */
-				continue; /* It will break the loop */
-
-			if (tinyrl->utf8) {
-				if (!(UTF8_7BIT_MASK & key)) /* ASCII char */
-					utf8_cont = 0;
-				else if (utf8_cont && (UTF8_10 == (key & UTF8_MASK))) /* Continue byte */
-					utf8_cont--;
-				else if (UTF8_11 == (key & UTF8_MASK)) { /* First byte of multibyte char */
-					/* Find out number of char's bytes */
-					int b = key;
-					utf8_cont = 0;
-					while ((utf8_cont < 6) && (UTF8_10 != (b & UTF8_MASK))) {
-						utf8_cont++;
-						b = b << 1;
-					}
-				}
-			}
-			/* For non UTF-8 encoding the utf8_cont is always 0.
-			   For UTF-8 it's 0 when one-byte symbol or we get
-			   all bytes for the current multibyte character. */
-			if (!utf8_cont)
-				tinyrl_redisplay(tinyrl);
-		}
-		/* If the last character in the line (other than NULL)
-		   is a space remove it. */
-		if (tinyrl->end && tinyrl->line && isspace(tinyrl->line[tinyrl->end - 1]))
-			tinyrl_delete_text(tinyrl, tinyrl->end - 1, tinyrl->end);
-		/* Restores the terminal mode */
-		tty_restore_mode(tinyrl);
-
-	/* Non-interactive session */
-	} else {
-		char *s = NULL, buffer[80];
-		size_t len = sizeof(buffer);
-		char *tmp = NULL;
-
-		/* manually reset the line state without redisplaying */
-		lub_string_free(tinyrl->last_buffer);
-		tinyrl->last_buffer = NULL;
-
-		if (str) {
-			tmp = lub_string_dup(str);
-			internal_insertline(tinyrl, tmp);
-		} else {
-			while (istream && (sizeof(buffer) == len) &&
-				(s = fgets(buffer, sizeof(buffer), istream))) {
-				s = internal_insertline(tinyrl, buffer);
-				len = strlen(buffer) + 1; /* account for the '\0' */
-			}
-			if (!s || ((tinyrl->line[0] == '\0') && feof(istream))) {
-				/* time to finish the session */
-				tinyrl->line = NULL;
-				lerrno = ENOENT;
-			}
-		}
-
-		/*
-		 * check against fgets returning null as either error or end of file.
-		 * tinyrl is a measure to stop potential task spin on encountering an
-		 * error from fgets.
-		 */
-		if (tinyrl->line && !tinyrl->handlers[KEY_LF](tinyrl, KEY_LF)) {
-			/* an issue has occured */
-			tinyrl->line = NULL;
-			lerrno = ENOEXEC;
-		}
-		if (str)
-			lub_string_free(tmp);
-	}
-	/*
-	 * duplicate the string for return to the client 
-	 * we have to duplicate as we may be referencing a
-	 * history entry or our internal buffer
-	 */
-	result = tinyrl->line ? lub_string_dup(tinyrl->line) : NULL;
-
-	/* free our internal buffer */
-	free(tinyrl->buffer);
-	tinyrl->buffer = NULL;
-
-	if (!result)
-		errno = lerrno; /* get saved errno */
-	return result;
-}
-
-/*----------------------------------------------------------------------- */
-char *tinyrl_readline(tinyrl_t * tinyrl, void *context)
-{
-	return internal_readline(tinyrl, context, NULL);
-}
-
-/*----------------------------------------------------------------------- */
-char *tinyrl_forceline(tinyrl_t * tinyrl, void *context, const char *line)
-{
-	return internal_readline(tinyrl, context, line);
-}
-
-
-
 /*----------------------------------------------------------------------- */
 /* 
  * A convenience function for displaying a list of strings in columnar
@@ -821,54 +639,6 @@ void tinyrl_display_matches(const tinyrl_t *tinyrl,
 			tinyrl_crlf(tinyrl);
 		}
 	}
-}
-
-/*----------------------------------------------------------------------- */
-/*
- * Delete the text between start and end in the current line. (inclusive)
- * tinyrl adjusts the rl_point and rl_end indexes appropriately.
- */
-void tinyrl_delete_text(tinyrl_t * tinyrl, unsigned int start, unsigned int end)
-{
-	unsigned int delta;
-
-	/*
-	 * If the client wants to change the line ensure that the line and buffer
-	 * references are in sync
-	 */
-	changed_line(tinyrl);
-
-	/* make sure we play it safe */
-	if (start > end) {
-		unsigned int tmp = end;
-		start = end;
-		end = tmp;
-	}
-	if (end > tinyrl->end)
-		end = tinyrl->end;
-
-	delta = (end - start) + 1;
-
-	/* move any text which is left */
-	memmove(&tinyrl->buffer[start],
-		&tinyrl->buffer[start + delta], tinyrl->end - end);
-
-	/* now adjust the indexs */
-	if (tinyrl->point >= start) {
-		if (tinyrl->point > end) {
-			/* move the insertion point back appropriately */
-			tinyrl->point -= delta;
-		} else {
-			/* move the insertion point to the start */
-			tinyrl->point = start;
-		}
-	}
-	if (tinyrl->end > end)
-		tinyrl->end -= delta;
-	else
-		tinyrl->end = start;
-	/* put a terminator at the end of the buffer */
-	tinyrl->buffer[tinyrl->end] = '\0';
 }
 
 
