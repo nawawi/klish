@@ -144,7 +144,7 @@ int vt100_vprintf(const vt100_t *vt100, const char *fmt, va_list args)
 }
 
 
-int vt100_getchar(const vt100_t *vt100, char *c)
+int vt100_getchar(const vt100_t *vt100, unsigned char *c)
 {
 	if (!vt100 || !vt100->istream || !c) {
 		errno = ENOENT;

@@ -11,6 +11,12 @@
 #include <getopt.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+#ifdef HAVE_LANGINFO_CODESET
+#include <langinfo.h>
+#endif
 
 #include <faux/faux.h>
 #include <faux/str.h>
@@ -45,6 +51,10 @@ int main(int argc, char **argv)
 	int retcode = 0;
 	faux_eloop_t *eloop = NULL;
 
+#ifdef HAVE_LOCALE_H
+	// Set current locale
+	setlocale(LC_ALL, "");
+#endif
 
 	// Parse command line options
 	opts = opts_init();

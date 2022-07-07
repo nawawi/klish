@@ -317,7 +317,7 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 int tinyrl_read(tinyrl_t *tinyrl)
 {
 	int rc = 0;
-	char key = 0;
+	unsigned char key = 0;
 	int count = 0;
 
 	assert(tinyrl);

@@ -85,7 +85,7 @@ int vt100_oflush(const vt100_t *vt100);
 int vt100_ierror(const vt100_t *vt100);
 int vt100_oerror(const vt100_t *vt100);
 int vt100_ieof(const vt100_t *vt100);
-int vt100_getchar(const vt100_t *vt100, char *c);
+int vt100_getchar(const vt100_t *vt100, unsigned char *c);
 vt100_esc_e vt100_esc_decode(const vt100_t *vt100, const char *esc_seq);
 
 void vt100_ding(const vt100_t *vt100);

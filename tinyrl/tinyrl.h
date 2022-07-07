@@ -58,7 +58,7 @@ typedef int tinyrl_timeout_fn_t(tinyrl_t *instance);
  *   been performed successfully
  * - BOOL_FALSE if the action was not successful
  */
-typedef bool_t tinyrl_key_func_t(tinyrl_t *instance, char key);
+typedef bool_t tinyrl_key_func_t(tinyrl_t *instance, unsigned char key);
 
 
 
