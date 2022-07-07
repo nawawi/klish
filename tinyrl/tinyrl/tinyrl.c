@@ -30,7 +30,7 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 
 	// Line
 	faux_bzero(&tinyrl->line, sizeof(tinyrl->line));
-	tinyrl_extend_line(tinyrl, LINE_CHUNK);
+	tinyrl_line_extend(tinyrl, LINE_CHUNK);
 
 	// Input processing vars
 	tinyrl->utf8_cont = 0;
@@ -160,6 +160,12 @@ bool_t tinyrl_bind_key(tinyrl_t *tinyrl, int key, tinyrl_key_func_t *fn)
 	tinyrl->handlers[key] = fn;
 
 	return BOOL_TRUE;
+}
+
+
+void tinyrl_set_hotkey_fn(tinyrl_t *tinyrl, tinyrl_key_func_t *fn)
+{
+	tinyrl->hotkey_fn = fn;
 }
 
 
@@ -301,6 +307,7 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 	// all bytes for the current multibyte character
 //	if (!utf8_cont)
 //		tinyrl_redisplay(tinyrl);
+printf("%s\n", tinyrl->line.str);
 
 	return BOOL_TRUE;
 }
@@ -331,7 +338,7 @@ int tinyrl_read(tinyrl_t *tinyrl)
  * possibly reallocating it if necessary. The function returns BOOL_TRUE
  * if the line is successfully extended, BOOL_FALSE if not.
  */
-bool_t tinyrl_extend_line(tinyrl_t *tinyrl, size_t len)
+bool_t tinyrl_line_extend(tinyrl_t *tinyrl, size_t len)
 {
 	char *new_buf = NULL;
 	size_t new_size = 0;
@@ -398,6 +405,30 @@ bool_t tinyrl_esc_seq(tinyrl_t *tinyrl, const char *esc_seq)
 	}
 
 	return result;
+}
+
+
+bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len)
+{
+	size_t new_size = tinyrl->line.len + len + 1;
+
+	if (len == 0)
+		return BOOL_TRUE;
+
+	tinyrl_line_extend(tinyrl, new_size);
+
+	if (tinyrl->line.pos < tinyrl->line.len) {
+		memmove(tinyrl->line.str + tinyrl->line.pos + len,
+			tinyrl->line.str + tinyrl->line.pos,
+			len);
+	}
+
+	memcpy(tinyrl->line.str + tinyrl->line.pos, text, len);
+	tinyrl->line.pos += len;
+	tinyrl->line.len += len;
+	tinyrl->line.str[tinyrl->line.len] = '\0';
+
+	return BOOL_TRUE;
 }
 
 
@@ -748,46 +779,6 @@ char *tinyrl_forceline(tinyrl_t * tinyrl, void *context, const char *line)
 }
 
 
-/*----------------------------------------------------------------------- */
-/*
- * Insert text into the line at the current cursor position.
- */
-bool_t tinyrl_insert_text(tinyrl_t * tinyrl, const char *text)
-{
-	unsigned int delta = strlen(text);
-
-	/*
-	 * If the client wants to change the line ensure that the line and buffer
-	 * references are in sync
-	 */
-	changed_line(tinyrl);
-
-	if ((delta + tinyrl->end) > (tinyrl->buffer_size)) {
-		/* extend the current buffer */
-		if (BOOL_FALSE ==
-			tinyrl_extend_line_buffer(tinyrl, tinyrl->end + delta))
-			return BOOL_FALSE;
-	}
-
-	if (tinyrl->point < tinyrl->end) {
-		/* move the current text to the right (including the terminator) */
-		memmove(&tinyrl->buffer[tinyrl->point + delta],
-			&tinyrl->buffer[tinyrl->point],
-			(tinyrl->end - tinyrl->point) + 1);
-	} else {
-		/* terminate the string */
-		tinyrl->buffer[tinyrl->end + delta] = '\0';
-	}
-
-	/* insert the new text */
-	strncpy(&tinyrl->buffer[tinyrl->point], text, delta);
-
-	/* now update the indexes */
-	tinyrl->point += delta;
-	tinyrl->end += delta;
-
-	return BOOL_TRUE;
-}
 
 /*----------------------------------------------------------------------- */
 /* 
@@ -1179,12 +1170,6 @@ void tinyrl__set_prompt(tinyrl_t *tinyrl, const char *prompt)
 }
 
 
-/*-------------------------------------------------------- */
-void tinyrl__set_hotkey_fn(tinyrl_t *tinyrl,
-	tinyrl_key_func_t *fn)
-{
-	tinyrl->hotkey_fn = fn;
-}
 
 /*-------------------------------------------------------- */
 bool_t tinyrl_is_quoting(const tinyrl_t * tinyrl)

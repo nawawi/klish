@@ -151,7 +151,7 @@ int vt100_getchar(const vt100_t *vt100, char *c)
 		return -1;
 	}
 
-	return read(fileno(vt100->istream), &c, 1);
+	return read(fileno(vt100->istream), c, 1);
 }
 
 

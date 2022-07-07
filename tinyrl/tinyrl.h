@@ -58,7 +58,7 @@ typedef int tinyrl_timeout_fn_t(tinyrl_t *instance);
  *   been performed successfully
  * - BOOL_FALSE if the action was not successful
  */
-typedef bool_t tinyrl_key_func_t(tinyrl_t * instance, int key);
+typedef bool_t tinyrl_key_func_t(tinyrl_t *instance, char key);
 
 
 
@@ -68,6 +68,7 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 void tinyrl_free(tinyrl_t *tinyrl);
 
 bool_t tinyrl_bind_key(tinyrl_t *tinyrl, int key, tinyrl_key_func_t *fn);
+void tinyrl_set_hotkey_fn(tinyrl_t *tinyrl, tinyrl_key_func_t *fn);
 void tinyrl_set_istream(tinyrl_t *tinyrl, FILE *istream);
 FILE *tinyrl_istream(const tinyrl_t *tinyrl);
 void tinyrl_set_ostream(tinyrl_t *tinyrl, FILE *ostream);

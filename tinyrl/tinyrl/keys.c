@@ -12,26 +12,22 @@
 #include "private.h"
 
 
-bool_t tinyrl_key_default(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_default(tinyrl_t * tinyrl, char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
 	if (key > 31) {
-		char tmp[2];
-		tmp[0] = (key & 0xFF), tmp[1] = '\0';
-		// inject tinyrl text into the buffer 
-		result = tinyrl_insert_text(tinyrl, tmp);
+		// Inject new char to the line
+		tinyrl_line_insert(tinyrl, &key, 1);
 	} else {
-		// Call the external hotkey analyzer 
+		// Call the external hotkey analyzer
 		if (tinyrl->hotkey_fn)
 			tinyrl->hotkey_fn(tinyrl, key);
 	}
-*/
-	return result;
+
+	return BOOL_TRUE;
 }
 
 
-bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, char key)
 {
 /*
 	tinyrl_crlf(tinyrl);
@@ -44,7 +40,7 @@ bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, char key)
 {
 /*
 	// set the insertion point to the start of the line 
@@ -56,7 +52,7 @@ bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, char key)
 {
 /*
 	// set the insertion point to the end of the line 
@@ -68,7 +64,7 @@ bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_kill(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_kill(tinyrl_t * tinyrl, char key)
 {
 /*
 	// release any old kill string 
@@ -86,7 +82,7 @@ bool_t tinyrl_key_kill(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_yank(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_yank(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -101,7 +97,7 @@ bool_t tinyrl_key_yank(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, char key)
 {
 /*
 	tinyrl_crlf(tinyrl);
@@ -113,7 +109,7 @@ bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_up(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_up(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -140,7 +136,7 @@ bool_t tinyrl_key_up(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_down(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_down(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -167,7 +163,7 @@ bool_t tinyrl_key_down(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_left(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_left(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -183,7 +179,7 @@ bool_t tinyrl_key_left(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_right(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_right(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -199,7 +195,7 @@ bool_t tinyrl_key_right(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, int key)
+bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -216,7 +212,7 @@ bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_backword(tinyrl_t *tinyrl, int key)
+bool_t tinyrl_key_backword(tinyrl_t *tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -236,7 +232,7 @@ bool_t tinyrl_key_backword(tinyrl_t *tinyrl, int key)
 	return result;
 }
 
-bool_t tinyrl_key_delete(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_delete(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*
@@ -253,7 +249,7 @@ bool_t tinyrl_key_delete(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, char key)
 {
 /*
 	tinyrl_vt100_clear_screen(tinyrl->term);
@@ -268,7 +264,7 @@ bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, char key)
 {
 /*	unsigned int end;
 
@@ -299,7 +295,7 @@ bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, int key)
 }
 
 
-bool_t tinyrl_key_tab(tinyrl_t * tinyrl, int key)
+bool_t tinyrl_key_tab(tinyrl_t * tinyrl, char key)
 {
 	bool_t result = BOOL_FALSE;
 /*

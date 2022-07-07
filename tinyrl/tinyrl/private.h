@@ -14,26 +14,27 @@ char *utf8_move_left(const char *line, char *cur_pos);
 char *utf8_move_right(const char *line, char *cur_pos);
 
 // Keys
-bool_t tinyrl_key_default(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_kill(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_yank(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_up(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_down(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_left(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_right(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, int key);
-bool_t tinyrl_key_backword(tinyrl_t *tinyrl, int key);
-bool_t tinyrl_key_delete(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, int key);
-bool_t tinyrl_key_tab(tinyrl_t * tinyrl, int key);
+bool_t tinyrl_key_default(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_interrupt(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_start_of_line(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_end_of_line(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_kill(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_yank(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_crlf(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_up(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_down(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_left(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_right(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_backspace(tinyrl_t *tinyrl, char key);
+bool_t tinyrl_key_backword(tinyrl_t *tinyrl, char key);
+bool_t tinyrl_key_delete(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_clear_screen(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_erase_line(tinyrl_t * tinyrl, char key);
+bool_t tinyrl_key_tab(tinyrl_t * tinyrl, char key);
 
 // Tinyrl
-bool_t tinyrl_extend_line(tinyrl_t *tinyrl, size_t len);
+bool_t tinyrl_line_extend(tinyrl_t *tinyrl, size_t len);
+bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len);
 bool_t tinyrl_esc_seq(tinyrl_t *tinyrl, const char *esc_seq);
 
 
