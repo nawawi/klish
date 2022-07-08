@@ -5,6 +5,8 @@
 
 #include <faux/faux.h>
 
+#include "tinyrl/vt100.h"
+
 C_DECL_BEGIN
 
 typedef struct tinyrl_s tinyrl_t;
@@ -75,22 +77,25 @@ void tinyrl_set_ostream(tinyrl_t *tinyrl, FILE *ostream);
 FILE *tinyrl_ostream(const tinyrl_t *tinyrl);
 void tinyrl_set_utf8(tinyrl_t *tinyrl, bool_t utf8);
 bool_t tinyrl_utf8(const tinyrl_t *tinyrl);
+void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt);
+const char *tinyrl_prompt(const tinyrl_t *tinyrl);
+const char *tinyrl_line(const tinyrl_t *tinyrl);
 bool_t tinyrl_hist_save(const tinyrl_t *tinyrl);
 bool_t tinyrl_hist_restore(tinyrl_t *tinyrl);
+void *tinyrl_udata(const tinyrl_t *tinyrl);
+void tinyrl_set_udata(tinyrl_t *tinyrl, void *udata);
 void tty_raw_mode(tinyrl_t *tinyrl);
 void tty_restore_mode(tinyrl_t *tinyrl);
 int tinyrl_read(tinyrl_t *tinyrl);
+void tinyrl_redisplay(tinyrl_t *tinyrl);
+void tinyrl_save_last(tinyrl_t *tinyrl);
+void tinyrl_reset_line_state(tinyrl_t *tinyrl);
+void tinyrl_reset_line(tinyrl_t *tinyrl);
+void tinyrl_crlf(const tinyrl_t *tinyrl);
+void tinyrl_multi_crlf(const tinyrl_t *tinyrl);
 
 
 
-
-
-
-/*lint -esym(534,tinyrl_printf)  Ignoring return value of function */
-extern int tinyrl_printf(const tinyrl_t * instance, const char *fmt, ...);
-
-extern const char *tinyrl__get_prompt(const tinyrl_t * instance);
-extern void tinyrl__set_prompt(tinyrl_t *instance, const char *prompt);
 
 extern void tinyrl_done(tinyrl_t * instance);
 
@@ -100,35 +105,19 @@ extern void tinyrl_completion_error_over(tinyrl_t * instance);
 
 extern bool_t tinyrl_is_completion_error_over(const tinyrl_t * instance);
 
-extern void *tinyrl__get_context(const tinyrl_t * instance);
 
 /**
  * This operation returns the current line in use by the tinyrl instance
  * NB. the pointer will become invalid after any further operation on the 
  * instance.
  */
-extern const char *tinyrl__get_line(const tinyrl_t * instance);
-extern bool_t tinyrl__get_utf8(const tinyrl_t * instance);
-extern void tinyrl__set_utf8(tinyrl_t * instance, bool_t utf8);
-extern void tinyrl__set_hotkey_fn(tinyrl_t *instance,
-	tinyrl_key_func_t *fn);
-extern char *tinyrl_readline(tinyrl_t *instance, void *context);
-extern char *tinyrl_forceline(tinyrl_t *instance, 
-	void *context, const char *line);
 extern void tinyrl_delete_matches(char **instance);
 extern char **tinyrl_completion(tinyrl_t *instance,
 	const char *line, unsigned start, unsigned end,
 	tinyrl_compentry_func_t *generator);
-extern void tinyrl_crlf(const tinyrl_t * instance);
-extern void tinyrl_multi_crlf(const tinyrl_t * instance);
 extern void tinyrl_ding(const tinyrl_t * instance);
 
-extern void tinyrl_reset_line_state(tinyrl_t * instance);
 
-extern bool_t tinyrl_insert_text(tinyrl_t * instance, const char *text);
-extern void
-tinyrl_delete_text(tinyrl_t * instance, unsigned start, unsigned end);
-extern void tinyrl_redisplay(tinyrl_t * instance);
 
 extern void
 tinyrl_replace_line(tinyrl_t * instance, const char *text, int clear_undo);
@@ -214,9 +203,6 @@ extern void tinyrl_limit_line_length(
          * The length to limit to (0) is unlimited
          */
 					    unsigned length);
-
-extern unsigned tinyrl__get_width(const tinyrl_t *instance);
-extern unsigned tinyrl__get_height(const tinyrl_t *instance);
 
 C_DECL_END
 

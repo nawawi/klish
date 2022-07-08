@@ -63,6 +63,7 @@ struct tinyrl_s {
 	char *prompt;
 	size_t prompt_len; // strlen()
 	size_t prompt_chars; // Symbol positions
+	void *udata; // Arbitrary user data
 
 	// Input processing vars. Input is processed char by char so
 	// the current state of processing is necessary.
@@ -82,14 +83,6 @@ struct tinyrl_s {
 	int state;
 #define RL_STATE_COMPLETING (0x00000001)
 	char *kill_string;
-	void *context;		/* context supplied by caller
-				 * to tinyrl_readline()
-				 */
 	char echo_char;
 	bool_t echo_enabled;
-	char *last_buffer;	/* hold record of the previous
-				buffer for redisplay purposes */
-	unsigned int last_point; /* hold record of the previous
-				cursor position for redisplay purposes */
-	unsigned int last_line_size; /* The length of last_buffer */
 };

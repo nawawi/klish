@@ -32,6 +32,9 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	faux_bzero(&tinyrl->line, sizeof(tinyrl->line));
 	tinyrl_line_extend(tinyrl, LINE_CHUNK);
 
+	// Last line
+	tinyrl_reset_line_state(tinyrl);
+
 	// Input processing vars
 	tinyrl->utf8_cont = 0;
 	tinyrl->esc_cont = BOOL_FALSE;
@@ -39,9 +42,7 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->esc_p = tinyrl->esc_seq;
 
 	// Prompt
-	tinyrl->prompt = faux_str_dup("> ");
-	tinyrl->prompt_len = strlen(tinyrl->prompt);
-	tinyrl->prompt_chars = utf8_nsyms(tinyrl->prompt, tinyrl->prompt_len);
+	tinyrl_set_prompt(tinyrl, "> ");
 
 	// Key handlers
 	for (i = 0; i < NUM_HANDLERS; i++) {
@@ -73,9 +74,6 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->kill_string = NULL;
 	tinyrl->echo_char = '\0';
 	tinyrl->echo_enabled = BOOL_TRUE;
-	tinyrl->last_buffer = NULL;
-	tinyrl->last_point = 0;
-	tinyrl->last_line_size = 0;
 	tinyrl->utf8 = BOOL_TRUE;
 
 	// VT100 terminal
@@ -104,12 +102,10 @@ void tinyrl_free(tinyrl_t *tinyrl)
 
 	hist_free(tinyrl->hist);
 	vt100_free(tinyrl->term);
-
 	faux_str_free(tinyrl->prompt);
+	tinyrl_reset_line_state(tinyrl);
 
-	faux_str_free(tinyrl->buffer);
-	faux_str_free(tinyrl->kill_string);
-	faux_str_free(tinyrl->last_buffer);
+//	faux_str_free(tinyrl->kill_string);
 
 	faux_free(tinyrl);
 }
@@ -225,6 +221,56 @@ void tinyrl_set_utf8(tinyrl_t *tinyrl, bool_t utf8)
 		return;
 
 	tinyrl->utf8 = utf8;
+}
+
+
+const char *tinyrl_prompt(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return NULL;
+
+	return tinyrl->prompt;
+}
+
+
+void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	if (tinyrl->prompt)
+		faux_str_free(tinyrl->prompt);
+	tinyrl->prompt = faux_str_dup(prompt);
+	tinyrl->prompt_len = strlen(tinyrl->prompt);
+	tinyrl->prompt_chars = utf8_nsyms(tinyrl->prompt, tinyrl->prompt_len);
+}
+
+
+void *tinyrl_udata(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return NULL;
+
+	return tinyrl->udata;
+}
+
+
+void tinyrl_set_udata(tinyrl_t *tinyrl, void *udata)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return;
+
+	tinyrl->udata = udata;
+}
+
+
+const char *tinyrl_line(const tinyrl_t *tinyrl)
+{
+	return tinyrl->line.str;
 }
 
 
@@ -518,6 +564,27 @@ static size_t str_equal_part(const tinyrl_t *tinyrl,
 }
 
 
+void tinyrl_save_last(tinyrl_t *tinyrl)
+{
+	faux_str_free(tinyrl->last.str);
+	tinyrl->last = tinyrl->line;
+	tinyrl->last.str = faux_str_dup(tinyrl->line.str);
+}
+
+
+void tinyrl_reset_line_state(tinyrl_t *tinyrl)
+{
+	faux_str_free(tinyrl->last.str);
+	faux_bzero(&tinyrl->last, sizeof(tinyrl->last));
+}
+
+
+void tinyrl_reset_line(tinyrl_t *tinyrl)
+{
+	tinyrl_line_delete(tinyrl, 0, tinyrl->line.len);
+}
+
+
 void tinyrl_redisplay(tinyrl_t *tinyrl)
 {
 	size_t width = vt100_width(tinyrl->term);
@@ -556,8 +623,6 @@ void tinyrl_redisplay(tinyrl_t *tinyrl)
 	// Move the cursor to the insertion point
 	if (tinyrl->line.pos < tinyrl->line.len) {
 		size_t pos_chars = utf8_nsyms(tinyrl->line.str, tinyrl->line.pos);
-//		count = utf8_nsyms(tinyrl, tinyrl->line + tinyrl->point,
-//			line_size - tinyrl->point);
 		move_cursor(tinyrl, tinyrl->prompt_chars + line_chars,
 			tinyrl->prompt_chars + pos_chars);
 	}
@@ -566,13 +631,29 @@ void tinyrl_redisplay(tinyrl_t *tinyrl)
 	vt100_oflush(tinyrl->term);
 
 	// Save the last line buffer
-	faux_str_free(tinyrl->last.str);
-	tinyrl->last = tinyrl->line;
-	tinyrl->last.str = faux_str_dup(tinyrl->line.str);
+	tinyrl_save_last(tinyrl);
 
 	tinyrl->width = width;
 }
 
+
+void tinyrl_crlf(const tinyrl_t *tinyrl)
+{
+	vt100_printf(tinyrl->term, "\n");
+}
+
+
+// Jump to first free line after current multiline input
+void tinyrl_multi_crlf(const tinyrl_t *tinyrl)
+{
+	size_t full_chars = utf8_nsyms(tinyrl->last.str, tinyrl->last.len);
+	size_t pos_chars = utf8_nsyms(tinyrl->last.str, tinyrl->last.pos);
+
+	move_cursor(tinyrl, tinyrl->prompt_chars + pos_chars,
+		tinyrl->prompt_chars + full_chars);
+	tinyrl_crlf(tinyrl);
+	vt100_oflush(tinyrl->term);
+}
 
 #if 0
 
@@ -596,19 +677,6 @@ static void changed_line(tinyrl_t * tinyrl)
 
 
 
-/*-------------------------------------------------------- */
-/* Jump to first free line after current multiline input   */
-void tinyrl_multi_crlf(const tinyrl_t * tinyrl)
-{
-	unsigned int line_size = strlen(tinyrl->last_buffer);
-	unsigned int line_len = utf8_nsyms(tinyrl, tinyrl->last_buffer, line_size);
-	unsigned int count = utf8_nsyms(tinyrl, tinyrl->last_buffer, tinyrl->last_point);
-
-	tinyrl_internal_position(tinyrl, tinyrl->prompt_len + line_len,
-		- (line_len - count), tinyrl->width);
-	tinyrl_crlf(tinyrl);
-	tinyrl_vt100_oflush(tinyrl->term);
-}
 
 
 
@@ -733,10 +801,6 @@ void tinyrl_delete_matches(char **tinyrl)
 }
 
 /*-------------------------------------------------------- */
-void tinyrl_crlf(const tinyrl_t * tinyrl)
-{
-	tinyrl_vt100_printf(tinyrl->term, "\n");
-}
 
 /*-------------------------------------------------------- */
 /*
@@ -931,27 +995,6 @@ void tinyrl_disable_echo(tinyrl_t * tinyrl, char echo_char)
 }
 
 
-/*-------------------------------------------------------- */
-const char *tinyrl__get_prompt(const tinyrl_t * tinyrl)
-{
-	return tinyrl->prompt;
-}
-
-/*-------------------------------------------------------- */
-void tinyrl__set_prompt(tinyrl_t *tinyrl, const char *prompt)
-{
-	if (tinyrl->prompt) {
-		lub_string_free(tinyrl->prompt);
-		tinyrl->prompt_size = 0;
-		tinyrl->prompt_len = 0;
-	}
-	tinyrl->prompt = lub_string_dup(prompt);
-	if (tinyrl->prompt) {
-		tinyrl->prompt_size = strlen(tinyrl->prompt);
-		tinyrl->prompt_len = utf8_nsyms(tinyrl, tinyrl->prompt,
-			tinyrl->prompt_size);
-	}
-}
 
 
 

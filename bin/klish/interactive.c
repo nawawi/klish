@@ -22,6 +22,9 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
+// Keys
+static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
+
 
 int klish_interactive_shell(ktp_session_t *ktp)
 {
@@ -39,6 +42,9 @@ int klish_interactive_shell(ktp_session_t *ktp)
 	fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
 
 	tinyrl = tinyrl_new(stdin, stdout, NULL, 0);
+	tinyrl_set_prompt(tinyrl, "$ ");
+	tinyrl_set_udata(tinyrl, &ctx);
+	tinyrl_bind_key(tinyrl, KEY_CR, tinyrl_key_enter);
 
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
@@ -62,14 +68,12 @@ int klish_interactive_shell(ktp_session_t *ktp)
 
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
-	printf("CMD ACK CB\n");
-
 	// Happy compiler
 	ktp = ktp;
 	msg = msg;
 	udata = udata;
 
-	ktp_session_set_done(ktp, BOOL_TRUE);
+//	ktp_session_set_done(ktp, BOOL_TRUE);
 
 	return BOOL_TRUE;
 }
@@ -86,3 +90,22 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	return BOOL_TRUE;
 }
 
+
+static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
+{
+	const char *line = NULL;
+	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
+
+	tinyrl_multi_crlf(tinyrl);
+
+	line = tinyrl_line(tinyrl);
+	if (line) {
+		printf("cmd = %s\n", line);
+		ktp_session_cmd(ctx->ktp, line, NULL, BOOL_FALSE);
+	}
+
+	tinyrl_reset_line_state(tinyrl);
+	tinyrl_reset_line(tinyrl);
+
+	return BOOL_TRUE;
+}
