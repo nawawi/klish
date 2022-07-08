@@ -217,7 +217,7 @@ off_t utf8_move_right(const char *line, off_t cur_pos)
  * @param [in] end End of line position (pointer). Can be NULL - no limit.
  * @param Number of printable symbols or < 0 on error.
  */
-ssize_t utf8_nsyms(const char *str, const char *end)
+ssize_t utf8_nsyms(const char *str, size_t len)
 {
 	const char *pos = str;
 	ssize_t nsym = 0;
@@ -225,7 +225,7 @@ ssize_t utf8_nsyms(const char *str, const char *end)
 	if (!str)
 		return -1;
 
-	while ((pos != end) && (*pos != '\0')) {
+	while ((pos < (str + len)) && (*pos != '\0')) {
 		unsigned long sym = 0;
 
 		// ASCII char

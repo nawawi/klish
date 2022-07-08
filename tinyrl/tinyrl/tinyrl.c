@@ -38,6 +38,11 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->esc_seq[0] = '\0';
 	tinyrl->esc_p = tinyrl->esc_seq;
 
+	// Prompt
+	tinyrl->prompt = faux_str_dup("> ");
+	tinyrl->prompt_len = strlen(tinyrl->prompt);
+	tinyrl->prompt_chars = utf8_nsyms(tinyrl->prompt, tinyrl->prompt_len);
+
 	// Key handlers
 	for (i = 0; i < NUM_HANDLERS; i++) {
 		tinyrl->handlers[i] = tinyrl_key_default;
@@ -58,8 +63,6 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->handlers[KEY_ETB] = tinyrl_key_backword;
 
 	tinyrl->max_line_length = 0;
-	tinyrl->prompt = NULL;
-	tinyrl->prompt_size = 0;
 	tinyrl->buffer = NULL;
 	tinyrl->buffer_size = 0;
 	tinyrl->done = BOOL_FALSE;
@@ -102,10 +105,11 @@ void tinyrl_free(tinyrl_t *tinyrl)
 	hist_free(tinyrl->hist);
 	vt100_free(tinyrl->term);
 
+	faux_str_free(tinyrl->prompt);
+
 	faux_str_free(tinyrl->buffer);
 	faux_str_free(tinyrl->kill_string);
 	faux_str_free(tinyrl->last_buffer);
-	faux_str_free(tinyrl->prompt);
 
 	faux_free(tinyrl);
 }
@@ -326,11 +330,11 @@ int tinyrl_read(tinyrl_t *tinyrl)
 	while ((rc = vt100_getchar(tinyrl->term, &key)) > 0) {
 		count++;
 		process_char(tinyrl, key);
-	if (!tinyrl->utf8_cont) {
-		//tinyrl_redisplay(tinyrl);
-		printf("%s\n", tinyrl->line.str);
-	}
-printf("key=%u, pos=%lu, len=%lu\n", key, tinyrl->line.pos, tinyrl->line.len);
+		if (!tinyrl->utf8_cont) {
+			tinyrl_redisplay(tinyrl);
+	//		printf("%s\n", tinyrl->line.str);
+		}
+//printf("key=%u, pos=%lu, len=%lu\n", key, tinyrl->line.pos, tinyrl->line.len);
 	}
 
 	if ((rc < 0) && (EAGAIN == errno))
@@ -460,6 +464,116 @@ bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len)
 }
 
 
+static void move_cursor(const tinyrl_t *tinyrl, size_t cur_pos, size_t target_pos)
+{
+	int rows = 0;
+	int cols = 0;
+
+	// Note: The '/' is not real math division. It's integer part of division
+	// so we need separate division for two values.
+	rows = (target_pos / tinyrl->width) - (cur_pos / tinyrl->width);
+	cols = (target_pos % tinyrl->width) - (cur_pos % tinyrl->width);
+
+	if (cols > 0)
+		vt100_cursor_forward(tinyrl->term, cols);
+	else if (cols < 0)
+		vt100_cursor_back(tinyrl->term, -cols);
+
+	if (rows > 0)
+		vt100_cursor_down(tinyrl->term, rows);
+	else if (rows < 0)
+		vt100_cursor_up(tinyrl->term, -rows);
+}
+
+
+static size_t str_equal_part(const tinyrl_t *tinyrl,
+	const char *s1, const char *s2)
+{
+	const char *str1 = s1;
+	const char *str2 = s2;
+
+	if (!str1 || !str2)
+		return 0;
+
+	while (*str1 && *str2) {
+		if (*str1 != *str2)
+			break;
+		str1++;
+		str2++;
+	}
+	if (!tinyrl->utf8)
+		return str1 - s1;
+
+	// UTF8
+	// If UTF8_10 byte (intermediate byte of UTF-8 sequence) is not equal
+	// then we need to find starting of this UTF-8 character because whole
+	// UTF-8 character is not equal.
+	if (UTF8_10 == (*str1 & UTF8_MASK)) {
+		// Skip intermediate bytes
+		while ((str1 > s1) && (UTF8_10 == (*str1 & UTF8_MASK)))
+			str1--;
+	}
+
+	return str1 - s1;
+}
+
+
+void tinyrl_redisplay(tinyrl_t *tinyrl)
+{
+	size_t width = vt100_width(tinyrl->term);
+//	unsigned int line_size = strlen(tinyrl->line);
+	unsigned int line_chars = utf8_nsyms(tinyrl->line.str, tinyrl->line.len);
+	size_t cols = 0;
+	size_t eq_bytes = 0;
+
+	// Prepare print position
+	if (tinyrl->last.str && (width == tinyrl->width)) {
+		size_t eq_chars = 0; // Printable symbols
+		size_t last_pos_chars = 0;
+		// If line and last line have the equal chars at begining
+		eq_bytes = str_equal_part(tinyrl, tinyrl->line.str, tinyrl->last.str);
+		eq_chars = utf8_nsyms(tinyrl->last.str, eq_bytes);
+		last_pos_chars = utf8_nsyms(tinyrl->last.str, tinyrl->last.pos);
+		move_cursor(tinyrl, tinyrl->prompt_chars + last_pos_chars,
+			tinyrl->prompt_chars + eq_chars);
+	} else {
+		// Prepare to resize
+		if (width != tinyrl->width) {
+			vt100_next_line(tinyrl->term);
+			vt100_erase_down(tinyrl->term);
+		}
+		vt100_printf(tinyrl->term, "%s", tinyrl->prompt);
+	}
+
+	// Print current line
+	vt100_printf(tinyrl->term, "%s", tinyrl->line.str + eq_bytes);
+	cols = (tinyrl->prompt_chars + line_chars) % width;
+	if ((cols == 0) && (tinyrl->line.len - eq_bytes))
+		vt100_next_line(tinyrl->term);
+	// Erase down if current line is shorter than previous one
+	if (tinyrl->last.len > tinyrl->line.len)
+		vt100_erase_down(tinyrl->term);
+	// Move the cursor to the insertion point
+	if (tinyrl->line.pos < tinyrl->line.len) {
+		size_t pos_chars = utf8_nsyms(tinyrl->line.str, tinyrl->line.pos);
+//		count = utf8_nsyms(tinyrl, tinyrl->line + tinyrl->point,
+//			line_size - tinyrl->point);
+		move_cursor(tinyrl, tinyrl->prompt_chars + line_chars,
+			tinyrl->prompt_chars + pos_chars);
+	}
+
+	// Update the display
+	vt100_oflush(tinyrl->term);
+
+	// Save the last line buffer
+	faux_str_free(tinyrl->last.str);
+	tinyrl->last = tinyrl->line;
+	tinyrl->last.str = faux_str_dup(tinyrl->line.str);
+
+	tinyrl->width = width;
+}
+
+
 #if 0
 
 /*----------------------------------------------------------------------- */
@@ -483,56 +597,6 @@ static void changed_line(tinyrl_t * tinyrl)
 
 
 /*-------------------------------------------------------- */
-int tinyrl_printf(const tinyrl_t * tinyrl, const char *fmt, ...)
-{
-	va_list args;
-	int len;
-
-	va_start(args, fmt);
-	len = tinyrl_vt100_vprintf(tinyrl->term, fmt, args);
-	va_end(args);
-
-	return len;
-}
-
-
-/*----------------------------------------------------------------------- */
-static void tinyrl_internal_print(const tinyrl_t * tinyrl, const char *text)
-{
-	if (tinyrl->echo_enabled) {
-		/* simply echo the line */
-		tinyrl_vt100_printf(tinyrl->term, "%s", text);
-	} else {
-		/* replace the line with echo char if defined */
-		if (tinyrl->echo_char) {
-			unsigned int i = strlen(text);
-			while (i--) {
-				tinyrl_vt100_printf(tinyrl->term, "%c",
-					tinyrl->echo_char);
-			}
-		}
-	}
-}
-
-/*----------------------------------------------------------------------- */
-static void tinyrl_internal_position(const tinyrl_t *tinyrl, int prompt_len,
-	int line_len, unsigned int width)
-{
-	int rows, cols;
-
-	rows = ((line_len + prompt_len) / width) - (prompt_len / width);
-	cols = ((line_len + prompt_len) % width) - (prompt_len % width);
-	if (cols > 0)
-		tinyrl_vt100_cursor_back(tinyrl->term, cols);
-	else if (cols < 0)
-		tinyrl_vt100_cursor_forward(tinyrl->term, -cols);
-	if (rows > 0)
-		tinyrl_vt100_cursor_up(tinyrl->term, rows);
-	else if (rows < 0)
-		tinyrl_vt100_cursor_down(tinyrl->term, -rows);
-}
-
-/*-------------------------------------------------------- */
 /* Jump to first free line after current multiline input   */
 void tinyrl_multi_crlf(const tinyrl_t * tinyrl)
 {
@@ -546,62 +610,6 @@ void tinyrl_multi_crlf(const tinyrl_t * tinyrl)
 	tinyrl_vt100_oflush(tinyrl->term);
 }
 
-/*----------------------------------------------------------------------- */
-void tinyrl_redisplay(tinyrl_t * tinyrl)
-{
-	unsigned int line_size = strlen(tinyrl->line);
-	unsigned int line_len = utf8_nsyms(tinyrl, tinyrl->line, line_size);
-	unsigned int width = tinyrl_vt100__get_width(tinyrl->term);
-	unsigned int count, eq_chars = 0;
-	int cols;
-
-	/* Prepare print position */
-	if (tinyrl->last_buffer && (width == tinyrl->width)) {
-		unsigned int eq_len = 0;
-		/* If line and last line have the equal chars at begining */
-		eq_chars = lub_string_equal_part(tinyrl->line, tinyrl->last_buffer,
-			tinyrl->utf8);
-		eq_len = utf8_nsyms(tinyrl, tinyrl->last_buffer, eq_chars);
-		count = utf8_nsyms(tinyrl, tinyrl->last_buffer, tinyrl->last_point);
-		tinyrl_internal_position(tinyrl, tinyrl->prompt_len + eq_len,
-			count - eq_len, width);
-	} else {
-		/* Prepare to resize */
-		if (width != tinyrl->width) {
-			tinyrl_vt100_next_line(tinyrl->term);
-			tinyrl_vt100_erase_down(tinyrl->term);
-		}
-		tinyrl_vt100_printf(tinyrl->term, "%s", tinyrl->prompt);
-	}
-
-	/* Print current line */
-	tinyrl_internal_print(tinyrl, tinyrl->line + eq_chars);
-	cols = (tinyrl->prompt_len + line_len) % width;
-	if (!cols && (line_size - eq_chars))
-		tinyrl_vt100_next_line(tinyrl->term);
-	/* Erase down if current line is shorter than previous one */
-	if (tinyrl->last_line_size > line_size)
-		tinyrl_vt100_erase_down(tinyrl->term);
-	/* Move the cursor to the insertion point */
-	if (tinyrl->point < line_size) {
-		unsigned int pre_len = utf8_nsyms(tinyrl,
-			tinyrl->line, tinyrl->point);
-		count = utf8_nsyms(tinyrl, tinyrl->line + tinyrl->point,
-			line_size - tinyrl->point);
-		tinyrl_internal_position(tinyrl, tinyrl->prompt_len + pre_len,
-			count, width);
-	}
-
-	/* Update the display */
-	tinyrl_vt100_oflush(tinyrl->term);
-
-	/* Save the last line buffer */
-	lub_string_free(tinyrl->last_buffer);
-	tinyrl->last_buffer = lub_string_dup(tinyrl->line);
-	tinyrl->last_point = tinyrl->point;
-	tinyrl->width = width;
-	tinyrl->last_line_size = line_size;
-}
 
 
 /*----------------------------------------------------------------------- */

@@ -12,6 +12,7 @@ ssize_t utf8_to_wchar(const char *sp, unsigned long *sym_out);
 bool_t utf8_wchar_is_cjk(unsigned long sym);
 off_t utf8_move_left(const char *line, off_t cur_pos);
 off_t utf8_move_right(const char *line, off_t cur_pos);
+ssize_t utf8_nsyms(const char *str, size_t len);
 
 // Keys
 bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key);
@@ -58,6 +59,10 @@ struct tinyrl_s {
 	unsigned int width; // Terminal width
 	bool_t utf8; // Is encoding UTF-8 flag. Default is UTF-8
 	line_t line; // Current line
+	line_t last; // Last (previous) line
+	char *prompt;
+	size_t prompt_len; // strlen()
+	size_t prompt_chars; // Symbol positions
 
 	// Input processing vars. Input is processed char by char so
 	// the current state of processing is necessary.
@@ -68,9 +73,6 @@ struct tinyrl_s {
 
 
 	unsigned max_line_length;
-	char *prompt;
-	size_t prompt_size; /* strlen() */
-	size_t prompt_len; /* Symbol positions */
 	char *buffer;
 	size_t buffer_size;
 	bool_t done;
