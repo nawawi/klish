@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KLISH
+	xmlns="http://clish.sourceforge.net/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+<PLUGIN name="klish"/>
+
+<ENTRY name="COMMAND" purpose="ptype">
+	<ACTION sym="COMMAND"/>
+</ENTRY>
+
+<ENTRY name="main" mode="switch" container="true">
+
+  <ENTRY name="cmd" help="Clear settings" mode="sequence">
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ACTION sym="tsym">test</ACTION>
+  </ENTRY>
+
+  <ENTRY name="exit" help="Exit view">
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ACTION sym="nav">pop</ACTION>
+	<ACTION sym="tsym">Exiting klish session</ACTION>
+  </ENTRY>
+
+</ENTRY>
+
+</KLISH>

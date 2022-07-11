@@ -72,8 +72,8 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	ctx_t *ctx = (ctx_t *)udata;
 
 //	ktp_session_set_done(ktp, BOOL_TRUE);
+	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	tinyrl_redisplay(ctx->tinyrl);
-
 
 	// Happy compiler
 	ktp = ktp;
@@ -105,7 +105,7 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 
 	line = tinyrl_line(tinyrl);
 	if (line) {
-		printf("cmd = %s\n", line);
+//		printf("cmd = %s\n", line);
 		ktp_session_cmd(ctx->ktp, line, NULL, BOOL_FALSE);
 	}
 

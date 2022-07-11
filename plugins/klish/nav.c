@@ -99,9 +99,11 @@ int klish_nav(kcontext_t *context)
 				lnum = val;
 			}
 			// Don't pop upper than top level
+			// Such "pop" means exit
 			if (lnum > (kpath_len(path) - 1)) {
+				ksession_set_done(session, BOOL_TRUE);
 				faux_argv_free(argv);
-				return -1;
+				break;
 			}
 			// Pop levels
 			for (i = 0; i < lnum; i++) {
