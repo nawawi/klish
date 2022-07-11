@@ -5,6 +5,7 @@
 #include <fcntl.h>
 
 #include <faux/faux.h>
+#include <faux/str.h>
 #include <faux/eloop.h>
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
@@ -111,16 +112,18 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 {
 	const char *line = NULL;
 	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
+	faux_error_t *error = faux_error_new();
 
 	tinyrl_multi_crlf(tinyrl);
+	tinyrl_reset_line_state(tinyrl);
 
 	line = tinyrl_line(tinyrl);
-	if (line) {
-		faux_error_t *error = faux_error_new();
-		ktp_session_cmd(ctx->ktp, line, error, BOOL_FALSE);
-	}
+	// Don't do anything on empty line
+	if (faux_str_is_empty(line))
+		return BOOL_TRUE;
 
-	tinyrl_reset_line_state(tinyrl);
+	ktp_session_cmd(ctx->ktp, line, error, BOOL_FALSE);
+
 	tinyrl_reset_line(tinyrl);
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
