@@ -200,7 +200,6 @@ err: // For listen daemon
 	assert(ktpd_session);
 	if (!ktpd_session) {
 		syslog(LOG_ERR, "Can't create KTPd session\n");
-		close(client_fd);
 		goto err_client;
 	}
 
@@ -218,6 +217,7 @@ err_client:
 
 	ktpd_session_free(ktpd_session);
 	faux_eloop_free(eloop);
+	close(client_fd);
 
 	// Free scheme
 	clear_scheme(scheme, error);

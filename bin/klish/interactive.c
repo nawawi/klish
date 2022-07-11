@@ -59,7 +59,11 @@ int klish_interactive_shell(ktp_session_t *ktp)
 	faux_eloop_loop(eloop);
 
 	// Cleanup
-	tinyrl_multi_crlf(tinyrl);
+	if (tinyrl_busy(tinyrl)) {
+		faux_error_free(ktp_session_error(ktp));
+	} else {
+		tinyrl_multi_crlf(tinyrl);
+	}
 	tinyrl_free(tinyrl);
 
 	// Restore stdin mode

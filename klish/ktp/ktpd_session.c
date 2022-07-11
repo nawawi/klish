@@ -49,6 +49,8 @@ static bool_t ktpd_session_read_cb(faux_async_t *async,
 	faux_buf_t *buf, size_t len, void *user_data);
 static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
+bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	int *retcode, faux_error_t *error, bool_t dry_run);
 
@@ -86,7 +88,7 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 
 	// Eloop callbacks
 	faux_eloop_add_fd(ktpd->eloop, ktpd_session_fd(ktpd), POLLIN,
-		ktp_peer_ev, ktpd->async);
+		client_ev, ktpd);
 	faux_eloop_add_signal(ktpd->eloop, SIGCHLD, wait_for_actions_ev, ktpd);
 
 	return ktpd;
@@ -576,6 +578,67 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 		action_stdout_ev, ktpd);
 	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), POLLIN,
 		action_stderr_ev, ktpd);
+
+	return BOOL_TRUE;
+}
+
+
+bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
+	faux_async_t *async = ktpd->async;
+
+	assert(async);
+
+	// Write data
+	if (info->revents & POLLOUT) {
+		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
+		if (faux_async_out(async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async output");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// Read data
+	if (info->revents & POLLIN) {
+		if (faux_async_in(async) < 0) {
+			// Someting went wrong
+			faux_eloop_del_fd(eloop, info->fd);
+			syslog(LOG_ERR, "Problem with async input");
+			return BOOL_FALSE; // Stop event loop
+		}
+	}
+
+	// EOF
+	if (info->revents & POLLHUP) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	// POLLERR
+	if (info->revents & POLLERR) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "POLLERR received %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	// POLLNVAL
+	if (info->revents & POLLNVAL) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "POLLNVAL received %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	type = type; // Happy compiler
+
+	// Session status can be finished here
+	if (ksession_done(ktpd->session))
+		return BOOL_FALSE;
 
 	return BOOL_TRUE;
 }
