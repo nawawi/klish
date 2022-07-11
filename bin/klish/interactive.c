@@ -70,8 +70,20 @@ int klish_interactive_shell(ktp_session_t *ktp)
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
+	int rc = -1;
+	faux_error_t *error = NULL;
 
-//	ktp_session_set_done(ktp, BOOL_TRUE);
+	if (!ktp_session_retcode(ktp, &rc))
+		rc = -1;
+	error = ktp_session_error(ktp);
+	if ((rc < 0) && (faux_error_len(error) > 0)) {
+		faux_error_node_t *err_iter = faux_error_iter(error);
+		const char *err = NULL;
+		while ((err = faux_error_each(&err_iter)))
+			fprintf(stderr, "Error: %s\n", err);
+	}
+	faux_error_free(error);
+
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	tinyrl_redisplay(ctx->tinyrl);
 
@@ -90,7 +102,6 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ctx_t *ctx = (ctx_t *)udata;
 
 	tinyrl_read(ctx->tinyrl);
-//	ktp_session_cmd(ctx->ktp, "cmd", NULL, BOOL_FALSE);
 
 	return BOOL_TRUE;
 }
@@ -105,8 +116,8 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 
 	line = tinyrl_line(tinyrl);
 	if (line) {
-//		printf("cmd = %s\n", line);
-		ktp_session_cmd(ctx->ktp, line, NULL, BOOL_FALSE);
+		faux_error_t *error = faux_error_new();
+		ktp_session_cmd(ctx->ktp, line, error, BOOL_FALSE);
 	}
 
 	tinyrl_reset_line_state(tinyrl);

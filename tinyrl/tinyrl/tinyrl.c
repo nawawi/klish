@@ -104,9 +104,8 @@ void tinyrl_free(tinyrl_t *tinyrl)
 	hist_free(tinyrl->hist);
 	vt100_free(tinyrl->term);
 	faux_str_free(tinyrl->prompt);
-	tinyrl_reset_line_state(tinyrl);
-
-//	faux_str_free(tinyrl->kill_string);
+	tinyrl_reset_line_state(tinyrl); // It's really reset 'last' string
+	faux_str_free(tinyrl->line.str);
 
 	faux_free(tinyrl);
 }
