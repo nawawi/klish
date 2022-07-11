@@ -45,6 +45,7 @@ int klish_interactive_shell(ktp_session_t *ktp)
 	tinyrl_set_prompt(tinyrl, "$ ");
 	tinyrl_set_udata(tinyrl, &ctx);
 	tinyrl_bind_key(tinyrl, KEY_CR, tinyrl_key_enter);
+	tinyrl_redisplay(tinyrl);
 
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
@@ -68,12 +69,16 @@ int klish_interactive_shell(ktp_session_t *ktp)
 
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
+	ctx_t *ctx = (ctx_t *)udata;
+
+//	ktp_session_set_done(ktp, BOOL_TRUE);
+	tinyrl_redisplay(ctx->tinyrl);
+
+
 	// Happy compiler
 	ktp = ktp;
 	msg = msg;
 	udata = udata;
-
-//	ktp_session_set_done(ktp, BOOL_TRUE);
 
 	return BOOL_TRUE;
 }
@@ -106,6 +111,7 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 
 	tinyrl_reset_line_state(tinyrl);
 	tinyrl_reset_line(tinyrl);
+	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
 	return BOOL_TRUE;
 }

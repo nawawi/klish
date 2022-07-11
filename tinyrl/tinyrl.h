@@ -77,6 +77,8 @@ void tinyrl_set_ostream(tinyrl_t *tinyrl, FILE *ostream);
 FILE *tinyrl_ostream(const tinyrl_t *tinyrl);
 void tinyrl_set_utf8(tinyrl_t *tinyrl, bool_t utf8);
 bool_t tinyrl_utf8(const tinyrl_t *tinyrl);
+bool_t tinyrl_busy(const tinyrl_t *tinyrl);
+void tinyrl_set_busy(tinyrl_t *tinyrl, bool_t busy);
 void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt);
 const char *tinyrl_prompt(const tinyrl_t *tinyrl);
 const char *tinyrl_line(const tinyrl_t *tinyrl);

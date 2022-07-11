@@ -64,6 +64,7 @@ struct tinyrl_s {
 	size_t prompt_len; // strlen()
 	size_t prompt_chars; // Symbol positions
 	void *udata; // Arbitrary user data
+	bool_t busy; // Long executed commands set this flag. tinyrl_read() drops it
 
 	// Input processing vars. Input is processed char by char so
 	// the current state of processing is necessary.
