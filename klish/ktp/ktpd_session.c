@@ -391,6 +391,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		return BOOL_TRUE; // Continue
 
 	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
+	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
 
 	kexec_free(ktpd->exec);
 	ktpd->exec = NULL;
@@ -420,6 +421,12 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	char *buf = NULL;
 	ssize_t len = 0;
 	faux_msg_t *ack = NULL;
+
+	// Some errors or fd is closed so remove it from polling
+	if (!(info->revents & POLLIN)) {
+		faux_eloop_del_fd(eloop, info->fd);
+		return BOOL_TRUE;
+	}
 
 	if (!ktpd)
 		return BOOL_TRUE;
@@ -475,6 +482,12 @@ static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	char *buf = NULL;
 	ssize_t len = 0;
 	faux_msg_t *ack = NULL;
+
+	// Some errors or fd is closed so remove it from polling
+	if (!(info->revents & POLLIN)) {
+		faux_eloop_del_fd(eloop, info->fd);
+		return BOOL_TRUE;
+	}
 
 	if (!ktpd)
 		return BOOL_TRUE;

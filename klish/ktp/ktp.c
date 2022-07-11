@@ -155,6 +155,20 @@ bool_t ktp_peer_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		return BOOL_FALSE; // Stop event loop
 	}
 
+	// POLLERR
+	if (info->revents & POLLERR) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "POLLERR received %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
+	// POLLNVAL
+	if (info->revents & POLLNVAL) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "POLLNVAL received %d", info->fd);
+		return BOOL_FALSE; // Stop event loop
+	}
+
 	type = type; // Happy compiler
 
 	return BOOL_TRUE;

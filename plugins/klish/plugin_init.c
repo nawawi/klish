@@ -30,6 +30,7 @@ int kplugin_klish_init(kcontext_t *context)
 	kplugin_add_syms(plugin, ksym_new_ext("nop", klish_nop,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new("tsym", klish_tsym));
+	kplugin_add_syms(plugin, ksym_new("print", klish_print));
 	kplugin_add_syms(plugin, ksym_new_ext("pwd", klish_pwd,
 		KSYM_PERMANENT, KSYM_SYNC));
 

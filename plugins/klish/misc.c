@@ -44,6 +44,25 @@ int klish_tsym(kcontext_t *context)
 	return 0;
 }
 
+
+// Print content of ACTION script
+int klish_print(kcontext_t *context)
+{
+	const kaction_t *action = NULL;
+	const char *script = NULL;
+
+	action = (kaction_t *)faux_list_data(kcontext_action_iter(context));
+
+	script = kaction_script(action);
+	if (faux_str_is_empty(script))
+		script = "";
+
+	printf("%s\n", script);
+
+	return 0;
+}
+
+
 // Symbol to show current path
 int klish_pwd(kcontext_t *context)
 {
