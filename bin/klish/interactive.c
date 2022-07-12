@@ -11,11 +11,14 @@
 #include <klish/ktp_session.h>
 #include <tinyrl/tinyrl.h>
 
+#include "private.h"
+
 
 // Context for main loop
 typedef struct ctx_s {
 	ktp_session_t *ktp;
 	tinyrl_t *tinyrl;
+	struct options *opts;
 } ctx_t;
 
 
@@ -27,7 +30,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
 
 
-int klish_interactive_shell(ktp_session_t *ktp)
+int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 {
 	ctx_t ctx = {};
 	faux_eloop_t *eloop = NULL;
@@ -50,6 +53,7 @@ int klish_interactive_shell(ktp_session_t *ktp)
 
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
+	ctx.opts = opts;
 
 	// Don't stop interactive loop on each answer
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
@@ -127,7 +131,7 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	if (faux_str_is_empty(line))
 		return BOOL_TRUE;
 
-	ktp_session_cmd(ctx->ktp, line, error, BOOL_FALSE);
+	ktp_session_cmd(ctx->ktp, line, error, ctx->opts->dry_run);
 
 	tinyrl_reset_line(tinyrl);
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);

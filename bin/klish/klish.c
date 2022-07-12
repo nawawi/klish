@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	// Interactive shell
 	} else {
 		// Interactive code is complex so move it to separate file
-		retcode = klish_interactive_shell(ktp);
+		retcode = klish_interactive_shell(ktp, opts);
 	}
 
 	retval = 0;

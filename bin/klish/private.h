@@ -26,4 +26,4 @@ void opts_free(struct options *opts);
 int opts_parse(int argc, char *argv[], struct options *opts);
 
 // Interactive shell
-int klish_interactive_shell(ktp_session_t *ktp);
+int klish_interactive_shell(ktp_session_t *ktp, struct options *opts);
