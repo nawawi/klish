@@ -29,9 +29,9 @@ bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_interrupt(tinyrl_t *tinyrl, unsigned char key)
 {
-//	tinyrl_crlf(tinyrl);
-//	tinyrl->done = BOOL_TRUE;
-	tinyrl_line_delete(tinyrl, 0, tinyrl->line.len);
+	tinyrl_crlf(tinyrl);
+	tinyrl_reset_line_state(tinyrl);
+	tinyrl_reset_line(tinyrl);
 
 	// Happy compiler
 	key = key;
