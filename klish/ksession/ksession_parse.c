@@ -506,6 +506,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
 		// All components must be ready for execution
 		if (!pargv) {
+			kexec_free(exec);
 			faux_list_free(split);
 			return NULL;
 		}
@@ -513,6 +514,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 			faux_error_sprintf(error, "%s",
 				kpargv_status_str(pargv));
 			kpargv_free(pargv);
+			kexec_free(exec);
 			faux_list_free(split);
 			return NULL;
 		}
@@ -523,6 +525,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 				"can't be destination of pipe",
 				kentry_name(kpargv_command(pargv)));
 			kpargv_free(pargv);
+			kexec_free(exec);
 			faux_list_free(split);
 			return NULL;
 		}

@@ -54,6 +54,10 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	int *retcode, faux_error_t *error, bool_t dry_run);
+static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 
 
 ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
@@ -183,6 +187,113 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	faux_error_free(error);
 
 	return ret;
+}
+
+
+static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
+	int *retcode, faux_error_t *error, bool_t dry_run)
+{
+	kexec_t *exec = NULL;
+
+	assert(ktpd);
+	if (!ktpd)
+		return BOOL_FALSE;
+
+	// Parsing
+	exec = ksession_parse_for_exec(ktpd->session, line, error);
+	if (!exec)
+		return BOOL_FALSE;
+
+	// Set dry-run flag
+	kexec_set_dry_run(exec, dry_run);
+
+	// Session status can be changed while parsing
+// NOTE: kexec_t is atomic now
+//	if (ksession_done(ktpd->session)) {
+//		kexec_free(exec);
+//		return BOOL_FALSE; // Because action is not completed
+//	}
+
+	// Execute kexec and then wait for completion using global Eloop
+	if (!kexec_exec(exec)) {
+		kexec_free(exec);
+		return BOOL_FALSE; // Something went wrong
+	}
+	// If kexec contains only non-exec (for example dry-run) ACTIONs then
+	// we don't need event loop and can return here.
+	if (kexec_retcode(exec, retcode)) {
+		kexec_free(exec);
+		return BOOL_TRUE;
+	}
+
+	// Save kexec pointer to use later
+	ktpd->state = KTPD_SESSION_STATE_WAIT_FOR_PROCESS;
+	ktpd->exec = exec;
+
+	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), POLLIN,
+		action_stdout_ev, ktpd);
+	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), POLLIN,
+		action_stderr_ev, ktpd);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	int wstatus = 0;
+	pid_t child_pid = -1;
+	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
+	int retcode = -1;
+	uint8_t retcode8bit = 0;
+	faux_msg_t *ack = NULL;
+	ktp_cmd_e cmd = KTP_CMD_ACK;
+	uint32_t status = KTP_STATUS_NONE;
+
+	if (!ktpd)
+		return BOOL_FALSE;
+
+	// Wait for any child process. Doesn't block.
+	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
+		if (ktpd->exec)
+			kexec_continue_command_execution(ktpd->exec, child_pid,
+				wstatus);
+	}
+	if (!ktpd->exec)
+		return BOOL_TRUE;
+
+	// Check if kexec is done now
+	if (!kexec_retcode(ktpd->exec, &retcode))
+		return BOOL_TRUE; // Continue
+
+	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
+	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
+
+	kexec_free(ktpd->exec);
+	ktpd->exec = NULL;
+	ktpd->state = KTPD_SESSION_STATE_IDLE;
+
+	// All kexec_t actions are done so can break the loop if needed.
+	if (ksession_done(ktpd->session)) {
+		ktpd->exit = BOOL_TRUE;
+		status |= KTP_STATUS_EXIT; // Notify client about exiting
+	}
+
+	// Send ACK message
+	ack = ktp_msg_preform(cmd, status);
+	retcode8bit = (uint8_t)(retcode & 0xff);
+	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
+	faux_msg_send_async(ack, ktpd->async);
+	faux_msg_free(ack);
+
+	type = type; // Happy compiler
+	associated_data = associated_data; // Happy compiler
+
+	if (ktpd->exit)
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
 }
 
 
@@ -371,64 +482,6 @@ int ktpd_session_fd(const ktpd_session_t *ktpd)
 }
 
 
-static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	int wstatus = 0;
-	pid_t child_pid = -1;
-	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
-	int retcode = -1;
-	uint8_t retcode8bit = 0;
-	faux_msg_t *ack = NULL;
-	ktp_cmd_e cmd = KTP_CMD_ACK;
-	uint32_t status = KTP_STATUS_NONE;
-
-	if (!ktpd)
-		return BOOL_FALSE;
-
-	// Wait for any child process. Doesn't block.
-	while ((child_pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
-		if (ktpd->exec)
-			kexec_continue_command_execution(ktpd->exec, child_pid,
-				wstatus);
-	}
-	if (!ktpd->exec)
-		return BOOL_TRUE;
-
-	// Check if kexec is done now
-	if (!kexec_retcode(ktpd->exec, &retcode))
-		return BOOL_TRUE; // Continue
-
-	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
-	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
-
-	kexec_free(ktpd->exec);
-	ktpd->exec = NULL;
-	ktpd->state = KTPD_SESSION_STATE_IDLE;
-
-	// All kexec_t actions are done so can break the loop if needed.
-	if (ksession_done(ktpd->session)) {
-		ktpd->exit = BOOL_TRUE;
-		status |= KTP_STATUS_EXIT; // Notify client about exiting
-	}
-
-	// Send ACK message
-	ack = ktp_msg_preform(cmd, status);
-	retcode8bit = (uint8_t)(retcode & 0xff);
-	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
-	faux_msg_send_async(ack, ktpd->async);
-	faux_msg_free(ack);
-
-	type = type; // Happy compiler
-	associated_data = associated_data; // Happy compiler
-
-	if (ktpd->exit)
-		return BOOL_FALSE;
-
-	return BOOL_TRUE;
-}
-
-
 static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -546,55 +599,6 @@ static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Happy compiler
 	eloop = eloop;
 	type = type;
-
-	return BOOL_TRUE;
-}
-
-
-static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run)
-{
-	kexec_t *exec = NULL;
-
-	assert(ktpd);
-	if (!ktpd)
-		return BOOL_FALSE;
-
-	// Parsing
-	exec = ksession_parse_for_exec(ktpd->session, line, error);
-	if (!exec)
-		return BOOL_FALSE;
-
-	// Set dry-run flag
-	kexec_set_dry_run(exec, dry_run);
-
-	// Session status can be changed while parsing
-// NOTE: kexec_t is atomic now
-//	if (ksession_done(ktpd->session)) {
-//		kexec_free(exec);
-//		return BOOL_FALSE; // Because action is not completed
-//	}
-
-	// Execute kexec and then wait for completion using global Eloop
-	if (!kexec_exec(exec)) {
-		kexec_free(exec);
-		return BOOL_FALSE; // Something went wrong
-	}
-	// If kexec contains only non-exec (for example dry-run) ACTIONs then
-	// we don't need event loop and can return here.
-	if (kexec_retcode(exec, retcode)) {
-		kexec_free(exec);
-		return BOOL_TRUE;
-	}
-
-	// Save kexec pointer to use later
-	ktpd->state = KTPD_SESSION_STATE_WAIT_FOR_PROCESS;
-	ktpd->exec = exec;
-
-	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), POLLIN,
-		action_stdout_ev, ktpd);
-	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), POLLIN,
-		action_stderr_ev, ktpd);
 
 	return BOOL_TRUE;
 }
