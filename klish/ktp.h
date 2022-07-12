@@ -24,7 +24,6 @@ typedef enum {
 	KTP_HELP = 'h',
 	KTP_HELP_ACK = 'H',
 	KTP_NOTIFICATION = 'n',
-	KTP_EXIT = 'x',
 	KTP_AUTH = 'a',
 	KTP_AUTH_ACK = 'A',
 	KTP_KEEPALIVE = 'k',
@@ -46,12 +45,14 @@ typedef enum {
 	KTP_STATUS_INCOMPLETED =	(uint32_t)0x00000002,
 	KTP_STATUS_INTERACTIVE =	(uint32_t)0x00000100,
 	KTP_STATUS_DRY_RUN =		(uint32_t)0x00010000,
+	KTP_STATUS_EXIT =		(uint32_t)0x80000000,
 } ktp_status_e;
 
 #define KTP_STATUS_IS_ERROR(status) (status & KTP_STATUS_ERROR)
 #define KTP_STATUS_IS_INCOMPLETED(status) (status & KTP_STATUS_INCOMPLETED)
 #define KTP_STATUS_IS_INTERACTIVE(status) (status & KTP_STATUS_INTERACTIVE)
 #define KTP_STATUS_IS_DRY_RUN(status) (status & KTP_STATUS_DRY_RUN)
+#define KTP_STATUS_IS_EXIT(status) (status & KTP_STATUS_EXIT)
 
 
 #endif // _klish_ktp_h

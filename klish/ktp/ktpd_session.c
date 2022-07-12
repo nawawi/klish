@@ -41,6 +41,7 @@ struct ktpd_session_s {
 	faux_hdr_t *hdr; // Engine will receive header and then msg
 	faux_eloop_t *eloop; // External link, dont's free()
 	kexec_t *exec;
+	bool_t exit;
 };
 
 
@@ -75,6 +76,13 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	ktpd->eloop = eloop;
 	ktpd->session = ksession_new(scheme, start_entry);
 	assert(ktpd->session);
+	ktpd->exec = NULL;
+	// Exit flag. It differs from ksession done flag because KTPD session
+	// can't exit immediately. It must finish current command processing
+	// before really stop the event loop. Note: User defined plugin
+	// function must use ksession done flag. This exit flag is internal
+	// feature of KTPD session.
+	ktpd->exit = BOOL_FALSE;
 
 	// Async object
 	ktpd->async = faux_async_new(sock);
@@ -117,6 +125,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	faux_error_t *error = NULL;
 	bool_t rc = BOOL_FALSE;
 	bool_t dry_run = BOOL_FALSE;
+	uint32_t status = KTP_STATUS_NONE;
 
 	assert(ktpd);
 	assert(msg);
@@ -133,6 +142,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	error = faux_error_new();
 
+	ktpd->exec = NULL;
 	rc = ktpd_session_exec(ktpd, line, &retcode, error, dry_run);
 	faux_str_free(line);
 
@@ -149,16 +159,15 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		return BOOL_TRUE; // Continue and wait for ACTION
 	}
 
-	// Session status can be changed while parsing
+	// Here we don't need to wait for the action. We have retcode already.
 	if (ksession_done(ktpd->session)) {
-		ktp_send_error(ktpd->async, cmd, "Interrupted by system");
-		faux_error_free(error);
-		return BOOL_FALSE;
+		ktpd->exit = BOOL_TRUE;
+		status |= KTP_STATUS_EXIT;
 	}
 
 	if (rc) {
 		uint8_t retcode8bit = 0;
-		faux_msg_t *ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+		faux_msg_t *ack = ktp_msg_preform(cmd, status);
 		retcode8bit = (uint8_t)(retcode & 0xff);
 		faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
 		faux_msg_send_async(ack, ktpd->async);
@@ -335,10 +344,6 @@ static bool_t ktpd_session_read_cb(faux_async_t *async,
 	ktpd_session_dispatch(ktpd, completed_msg);
 	faux_msg_free(completed_msg);
 
-	// Session status can be changed while parsing
-	if (ksession_done(ktpd->session))
-		return BOOL_FALSE;
-
 	return BOOL_TRUE;
 }
 
@@ -375,6 +380,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	uint8_t retcode8bit = 0;
 	faux_msg_t *ack = NULL;
 	ktp_cmd_e cmd = KTP_CMD_ACK;
+	uint32_t status = KTP_STATUS_NONE;
 
 	if (!ktpd)
 		return BOOL_FALSE;
@@ -399,8 +405,14 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ktpd->exec = NULL;
 	ktpd->state = KTPD_SESSION_STATE_IDLE;
 
+	// All kexec_t actions are done so can break the loop if needed.
+	if (ksession_done(ktpd->session)) {
+		ktpd->exit = BOOL_TRUE;
+		status |= KTP_STATUS_EXIT; // Notify client about exiting
+	}
+
 	// Send ACK message
-	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+	ack = ktp_msg_preform(cmd, status);
 	retcode8bit = (uint8_t)(retcode & 0xff);
 	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
 	faux_msg_send_async(ack, ktpd->async);
@@ -408,6 +420,9 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	type = type; // Happy compiler
 	associated_data = associated_data; // Happy compiler
+
+	if (ktpd->exit)
+		return BOOL_FALSE;
 
 	return BOOL_TRUE;
 }
@@ -553,10 +568,11 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	kexec_set_dry_run(exec, dry_run);
 
 	// Session status can be changed while parsing
-	if (ksession_done(ktpd->session)) {
-		kexec_free(exec);
-		return BOOL_FALSE; // Because action is not completed
-	}
+// NOTE: kexec_t is atomic now
+//	if (ksession_done(ktpd->session)) {
+//		kexec_free(exec);
+//		return BOOL_FALSE; // Because action is not completed
+//	}
 
 	// Execute kexec and then wait for completion using global Eloop
 	if (!kexec_exec(exec)) {
@@ -636,8 +652,10 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	type = type; // Happy compiler
 
-	// Session status can be finished here
-	if (ksession_done(ktpd->session))
+	// Session can be really finished here. Note KTPD session can't be
+	// stopped immediately so it's only two places within code to really
+	// break the loop. This one and within wait_for_action_ev().
+	if (ktpd->exit)
 		return BOOL_FALSE;
 
 	return BOOL_TRUE;

@@ -337,7 +337,7 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 				ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].fn)(
 				ktp, msg,
 				ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].udata);
-
+printf("INCOMPLETED\n");
 		return BOOL_TRUE;
 	}
 
@@ -349,6 +349,7 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 		faux_error_add(ktp->error, error_str);
 		faux_str_free(error_str);
 	}
+printf("COMPLETED %d %s\n", ktp->cmd_retcode, error_str);
 	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
 	ktp->request_done = BOOL_TRUE;
 	ktp->state = KTP_SESSION_STATE_IDLE;
@@ -362,7 +363,7 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 	return BOOL_TRUE;
 }
 
-
+/*
 static bool_t ktp_session_process_exit(ktp_session_t *ktp, const faux_msg_t *msg)
 {
 	assert(ktp);
@@ -378,7 +379,7 @@ static bool_t ktp_session_process_exit(ktp_session_t *ktp, const faux_msg_t *msg
 
 	return BOOL_TRUE;
 }
-
+*/
 
 static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 {
@@ -414,9 +415,6 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 			break;
 		}
 		rc = ktp_session_process_stderr(ktp, msg);
-		break;
-	case KTP_EXIT: // Async event
-		rc = ktp_session_process_exit(ktp, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd); // Ignore

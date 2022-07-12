@@ -701,10 +701,11 @@ bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
 	// Session status can be changed while parsing because it can execute
 	// nested ksession_exec_locally() to check for PTYPEs, CONDitions etc.
 	// So check for 'done' flag to propagate it.
-	if (ksession_done(session)) {
-		kexec_free(exec);
-		return BOOL_FALSE; // Because action is not completed
-	}
+// NOTE: Don't interrupt single kexec_t. Let's it to complete.
+//	if (ksession_done(session)) {
+//		kexec_free(exec);
+//		return BOOL_FALSE; // Because action is not completed
+//	}
 
 	// Execute kexec and then wait for completion using local Eloop
 	if (!kexec_exec(exec)) {
