@@ -101,7 +101,9 @@ void tinyrl_free(tinyrl_t *tinyrl)
 
 	tty_restore_mode(tinyrl);
 
+	hist_save(tinyrl->hist);
 	hist_free(tinyrl->hist);
+
 	vt100_free(tinyrl->term);
 	faux_str_free(tinyrl->prompt);
 	tinyrl_reset_line_state(tinyrl); // It's really reset 'last' string
@@ -535,6 +537,27 @@ bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len)
 }
 
 
+bool_t tinyrl_line_replace(tinyrl_t *tinyrl, const char *text)
+{
+	size_t len = 0;
+
+	if (faux_str_is_empty(text)) {
+		tinyrl_reset_line(tinyrl);
+		return BOOL_TRUE;
+	}
+
+	len = strlen(text);
+	tinyrl_line_extend(tinyrl, len + 1);
+
+	memcpy(tinyrl->line.str, text, len);
+	tinyrl->line.pos = len;
+	tinyrl->line.len = len;
+	tinyrl->line.str[tinyrl->line.len] = '\0';
+
+	return BOOL_TRUE;
+}
+
+
 static void move_cursor(const tinyrl_t *tinyrl, size_t cur_pos, size_t target_pos)
 {
 	int rows = 0;
@@ -680,6 +703,22 @@ void tinyrl_multi_crlf(const tinyrl_t *tinyrl)
 	vt100_oflush(tinyrl->term);
 }
 
+
+void tinyrl_line_to_hist(tinyrl_t *tinyrl)
+{
+	if (tinyrl->line.len == 0)
+		return;
+
+	hist_add(tinyrl->hist, tinyrl->line.str, BOOL_FALSE);
+}
+
+
+void tinyrl_reset_hist_pos(tinyrl_t *tinyrl)
+{
+	hist_pos_reset(tinyrl->hist);
+}
+
+
 #if 0
 
 /*----------------------------------------------------------------------- */
@@ -699,10 +738,6 @@ static void changed_line(tinyrl_t * tinyrl)
 		assert(tinyrl->line);
 	}
 }
-
-
-
-
 
 
 /*----------------------------------------------------------------------- */
@@ -826,27 +861,6 @@ void tinyrl_delete_matches(char **tinyrl)
 }
 
 /*-------------------------------------------------------- */
-
-/*-------------------------------------------------------- */
-/*
- * Ring the terminal bell, obeying the setting of bell-style.
- */
-void tinyrl_ding(const tinyrl_t * tinyrl)
-{
-	tinyrl_vt100_ding(tinyrl->term);
-}
-
-/*-------------------------------------------------------- */
-void tinyrl_reset_line_state(tinyrl_t * tinyrl)
-{
-	lub_string_free(tinyrl->last_buffer);
-	tinyrl->last_buffer = NULL;
-	tinyrl->last_line_size = 0;
-
-	tinyrl_redisplay(tinyrl);
-}
-
-/*-------------------------------------------------------- */
 void tinyrl_replace_line(tinyrl_t * tinyrl, const char *text, int clear_undo)
 {
 	size_t new_len = strlen(text);
@@ -964,24 +978,6 @@ tinyrl_match_e tinyrl_complete(tinyrl_t * tinyrl)
 	return tinyrl_do_complete(tinyrl, BOOL_FALSE);
 }
 
-/*-------------------------------------------------------- */
-void *tinyrl__get_context(const tinyrl_t * tinyrl)
-{
-	return tinyrl->context;
-}
-
-/*--------------------------------------------------------- */
-const char *tinyrl__get_line(const tinyrl_t * tinyrl)
-{
-	return tinyrl->line;
-}
-
-/*--------------------------------------------------------- */
-tinyrl_history_t *tinyrl__get_history(const tinyrl_t * tinyrl)
-{
-	return tinyrl->history;
-}
-
 /*--------------------------------------------------------- */
 void tinyrl_completion_over(tinyrl_t * tinyrl)
 {
@@ -999,62 +995,5 @@ bool_t tinyrl_is_completion_error_over(const tinyrl_t * tinyrl)
 {
 	return tinyrl->completion_error_over;
 }
-
-/*--------------------------------------------------------- */
-void tinyrl_done(tinyrl_t * tinyrl)
-{
-	tinyrl->done = BOOL_TRUE;
-}
-
-/*--------------------------------------------------------- */
-void tinyrl_enable_echo(tinyrl_t * tinyrl)
-{
-	tinyrl->echo_enabled = BOOL_TRUE;
-}
-
-/*--------------------------------------------------------- */
-void tinyrl_disable_echo(tinyrl_t * tinyrl, char echo_char)
-{
-	tinyrl->echo_enabled = BOOL_FALSE;
-	tinyrl->echo_char = echo_char;
-}
-
-
-
-
-
-/*-------------------------------------------------------- */
-bool_t tinyrl_is_quoting(const tinyrl_t * tinyrl)
-{
-	bool_t result = BOOL_FALSE;
-	/* count the quotes upto the current insertion point */
-	unsigned int i = 0;
-	while (i < tinyrl->point) {
-		if (result && (tinyrl->line[i] == '\\')) {
-			i++;
-			if (i >= tinyrl->point)
-				break;
-			i++;
-			continue;
-		}
-		if (tinyrl->line[i++] == '"') {
-			result = result ? BOOL_FALSE : BOOL_TRUE;
-		}
-	}
-	return result;
-}
-
-/*-------------------------------------------------------- */
-bool_t tinyrl_is_empty(const tinyrl_t *tinyrl)
-{
-	return (tinyrl->point == 0) ? BOOL_TRUE : BOOL_FALSE;
-}
-
-/*--------------------------------------------------------- */
-void tinyrl_limit_line_length(tinyrl_t * tinyrl, unsigned int length)
-{
-	tinyrl->max_line_length = length;
-}
-
 
 #endif

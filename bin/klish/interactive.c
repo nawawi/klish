@@ -121,6 +121,7 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
 	faux_error_t *error = faux_error_new();
 
+	tinyrl_line_to_hist(tinyrl);
 	tinyrl_multi_crlf(tinyrl);
 	tinyrl_reset_line_state(tinyrl);
 

@@ -32,6 +32,7 @@ bool_t tinyrl_key_interrupt(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_multi_crlf(tinyrl);
 	tinyrl_reset_line_state(tinyrl);
 	tinyrl_reset_line(tinyrl);
+	tinyrl_reset_hist_pos(tinyrl);
 
 	// Happy compiler
 	key = key;
@@ -104,6 +105,7 @@ bool_t tinyrl_key_crlf(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_multi_crlf(tinyrl);
 	tinyrl_reset_line_state(tinyrl);
 	tinyrl_reset_line(tinyrl);
+	tinyrl_reset_hist_pos(tinyrl);
 
 	key = key; // Happy compiler
 
@@ -113,55 +115,37 @@ bool_t tinyrl_key_crlf(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_up(tinyrl_t *tinyrl, unsigned char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	tinyrl_history_entry_t *entry = NULL;
-	if (tinyrl->line == tinyrl->buffer) {
-		// go to the last history entry 
-		entry = tinyrl_history_getlast(tinyrl->history, &tinyrl->hist_iter);
-	} else {
-		// already traversing the history list so get previous 
-		entry = tinyrl_history_getprevious(&tinyrl->hist_iter);
+	const char *str = NULL;
+
+	str = hist_pos(tinyrl->hist);
+	// Up key is pressed for the first time and current line is new typed one
+	if (!str) {
+		hist_add(tinyrl->hist, tinyrl->line.str, BOOL_TRUE); // Temp entry
+		hist_pos_up(tinyrl->hist); // Skip newly added temp entry
 	}
-	if (entry) {
-		// display the entry moving the insertion point
-		 * to the end of the line 
-		 
-		tinyrl->line = tinyrl_history_entry__get_line(entry);
-		tinyrl->point = tinyrl->end = strlen(tinyrl->line);
-		result = BOOL_TRUE;
-	}
-	// keep the compiler happy 
-	key = key;
-*/
-	return result;
+	hist_pos_up(tinyrl->hist);
+	str = hist_pos(tinyrl->hist);
+	// Empty history
+	if (!str)
+		return BOOL_TRUE;
+	tinyrl_line_replace(tinyrl, str);
+
+	return BOOL_TRUE;
 }
 
 
 bool_t tinyrl_key_down(tinyrl_t *tinyrl, unsigned char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->line != tinyrl->buffer) {
-		// we are not already at the bottom 
-		// the iterator will have been set up by the key_up() function 
-		tinyrl_history_entry_t *entry =
-		    tinyrl_history_getnext(&tinyrl->hist_iter);
-		if (!entry) {
-			// nothing more in the history list 
-			tinyrl->line = tinyrl->buffer;
-		} else {
-			tinyrl->line = tinyrl_history_entry__get_line(entry);
-		}
-		// display the entry moving the insertion point
-		// to the end of the line 
-		tinyrl->point = tinyrl->end = strlen(tinyrl->line);
-		result = BOOL_TRUE;
-	}
-	// keep the compiler happy 
-	key = key;
-*/
-	return result;
+	const char *str = NULL;
+
+	hist_pos_down(tinyrl->hist);
+	str = hist_pos(tinyrl->hist);
+	// Empty history
+	if (!str)
+		return BOOL_TRUE;
+	tinyrl_line_replace(tinyrl, str);
+
+	return BOOL_TRUE;
 }
 
 

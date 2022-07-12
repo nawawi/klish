@@ -38,6 +38,7 @@ bool_t tinyrl_esc_seq(tinyrl_t *tinyrl, const char *esc_seq);
 bool_t tinyrl_line_extend(tinyrl_t *tinyrl, size_t len);
 bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len);
 bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len);
+bool_t tinyrl_line_replace(tinyrl_t *tinyrl, const char *text);
 
 
 typedef struct line_s {
