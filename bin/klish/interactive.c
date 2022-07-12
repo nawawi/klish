@@ -36,6 +36,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	faux_eloop_t *eloop = NULL;
 	tinyrl_t *tinyrl = NULL;
 	int stdin_flags = 0;
+	char *hist_path = NULL;
 
 	assert(ktp);
 	if (!ktp)
@@ -45,7 +46,9 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
 	fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
 
-	tinyrl = tinyrl_new(stdin, stdout, NULL, 0);
+	hist_path = faux_expand_tilde("~/.klish_history");
+	tinyrl = tinyrl_new(stdin, stdout, hist_path, 100);
+	faux_str_free(hist_path);
 	tinyrl_set_prompt(tinyrl, "$ ");
 	tinyrl_set_udata(tinyrl, &ctx);
 	tinyrl_bind_key(tinyrl, KEY_CR, tinyrl_key_enter);
