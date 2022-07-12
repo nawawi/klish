@@ -29,7 +29,7 @@ bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_interrupt(tinyrl_t *tinyrl, unsigned char key)
 {
-	tinyrl_crlf(tinyrl);
+	tinyrl_multi_crlf(tinyrl);
 	tinyrl_reset_line_state(tinyrl);
 	tinyrl_reset_line(tinyrl);
 
@@ -97,14 +97,16 @@ bool_t tinyrl_key_yank(tinyrl_t *tinyrl, unsigned char key)
 }
 
 
+// Default handler for crlf
 bool_t tinyrl_key_crlf(tinyrl_t *tinyrl, unsigned char key)
 {
-/*
-	tinyrl_crlf(tinyrl);
-	tinyrl->done = BOOL_TRUE;
-	// keep the compiler happy 
-	key = key;
-*/
+
+	tinyrl_multi_crlf(tinyrl);
+	tinyrl_reset_line_state(tinyrl);
+	tinyrl_reset_line(tinyrl);
+
+	key = key; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
@@ -260,15 +262,12 @@ bool_t tinyrl_key_backword(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_clear_screen(tinyrl_t *tinyrl, unsigned char key)
 {
-/*
-	tinyrl_vt100_clear_screen(tinyrl->term);
-	tinyrl_vt100_cursor_home(tinyrl->term);
+	vt100_clear_screen(tinyrl->term);
+	vt100_cursor_home(tinyrl->term);
 	tinyrl_reset_line_state(tinyrl);
 
-	// keep the compiler happy 
-	key = key;
-	tinyrl = tinyrl;
-*/
+	key = key; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
