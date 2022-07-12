@@ -501,7 +501,7 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 			continue; // Skip action, try next one
 
 		// Check for dry-run flag and 'permanent' feature of ACTION.
-		if (kexec_dry_run(exec) && !kaction_permanent(action)) {
+		if (kexec_dry_run(exec) && !kaction_is_permanent(action)) {
 			is_sync = BOOL_TRUE; // Simulate sync action
 			exitstatus = 0; // Exit status while dry-run is always 0
 		 } else { // Normal execution
