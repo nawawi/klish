@@ -208,7 +208,7 @@ int hist_restore(hist_t *hist)
 	// Remove old entries from list
 	hist_clear(hist);
 
-	f = faux_file_open(hist->fname, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	f = faux_file_open(hist->fname, O_RDONLY, 0);
 	if (!f)
 		return -1;
 

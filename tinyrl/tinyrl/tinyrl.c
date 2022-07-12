@@ -101,7 +101,7 @@ void tinyrl_free(tinyrl_t *tinyrl)
 
 	tty_restore_mode(tinyrl);
 
-	hist_save(tinyrl->hist);
+	tinyrl_hist_save(tinyrl);
 	hist_free(tinyrl->hist);
 
 	vt100_free(tinyrl->term);
