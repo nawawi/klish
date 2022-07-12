@@ -63,11 +63,8 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	faux_eloop_loop(eloop);
 
 	// Cleanup
-	if (tinyrl_busy(tinyrl)) {
+	if (tinyrl_busy(tinyrl))
 		faux_error_free(ktp_session_error(ktp));
-	} else {
-		tinyrl_multi_crlf(tinyrl);
-	}
 	tinyrl_free(tinyrl);
 
 	// Restore stdin mode
@@ -95,7 +92,8 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	faux_error_free(error);
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
-	tinyrl_redisplay(ctx->tinyrl);
+	if (!ktp_session_done(ktp))
+		tinyrl_redisplay(ctx->tinyrl);
 
 	// Happy compiler
 	ktp = ktp;

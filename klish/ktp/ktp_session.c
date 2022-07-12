@@ -337,7 +337,6 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 				ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].fn)(
 				ktp, msg,
 				ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].udata);
-printf("INCOMPLETED\n");
 		return BOOL_TRUE;
 	}
 
@@ -349,10 +348,14 @@ printf("INCOMPLETED\n");
 		faux_error_add(ktp->error, error_str);
 		faux_str_free(error_str);
 	}
-printf("COMPLETED %d %s\n", ktp->cmd_retcode, error_str);
+
 	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
 	ktp->request_done = BOOL_TRUE;
 	ktp->state = KTP_SESSION_STATE_IDLE;
+	// Get exit flag from message
+	if (KTP_STATUS_IS_EXIT(faux_msg_get_status(msg)))
+		ktp->done = BOOL_TRUE;
+
 	// Execute external callback
 	if (ktp->cb[KTP_SESSION_CB_CMD_ACK].fn)
 		((ktp_session_event_cb_fn)
