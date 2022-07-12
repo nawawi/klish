@@ -126,6 +126,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	bool_t rc = BOOL_FALSE;
 	bool_t dry_run = BOOL_FALSE;
 	uint32_t status = KTP_STATUS_NONE;
+	bool_t ret = BOOL_TRUE;
 
 	assert(ktpd);
 	assert(msg);
@@ -176,12 +177,12 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		char *err = faux_error_cstr(error);
 		ktp_send_error(ktpd->async, cmd, err);
 		faux_str_free(err);
-		return BOOL_FALSE;
+		ret = BOOL_FALSE;
 	}
 
 	faux_error_free(error);
 
-	return BOOL_TRUE;
+	return ret;
 }
 
 
