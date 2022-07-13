@@ -304,6 +304,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	kpargv_t *pargv = NULL;
 	ktp_cmd_e cmd = KTP_COMPLETION_ACK;
 	uint32_t status = KTP_STATUS_NONE;
+	const char *prefix = NULL;
 
 	assert(ktpd);
 	assert(msg);
@@ -323,8 +324,6 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	}
 	kpargv_debug(pargv);
 
-	kpargv_free(pargv);
-
 	if (ksession_done(ktpd->session)) {
 		ktpd->exit = BOOL_TRUE;
 		status |= KTP_STATUS_EXIT; // Notify client about exiting
@@ -332,8 +331,13 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 
 	// Send ACK message
 	ack = ktp_msg_preform(cmd, status);
+	prefix = kpargv_last_arg(pargv);
+	if (!faux_str_is_empty(prefix))
+		faux_msg_add_param(ack, KTP_PARAM_PREFIX, prefix, strlen(prefix));
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
+
+	kpargv_free(pargv);
 
 	return BOOL_TRUE;
 }
