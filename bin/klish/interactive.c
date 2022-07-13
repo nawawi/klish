@@ -23,11 +23,13 @@ typedef struct ctx_s {
 
 
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
+bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
+static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key);
 
 
 int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
@@ -51,7 +53,9 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	faux_str_free(hist_path);
 	tinyrl_set_prompt(tinyrl, "$ ");
 	tinyrl_set_udata(tinyrl, &ctx);
-	tinyrl_bind_key(tinyrl, KEY_CR, tinyrl_key_enter);
+	tinyrl_bind_key(tinyrl, '\n', tinyrl_key_enter);
+	tinyrl_bind_key(tinyrl, '\r', tinyrl_key_enter);
+	tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
 	tinyrl_redisplay(tinyrl);
 
 	ctx.ktp = ktp;
@@ -61,6 +65,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	// Don't stop interactive loop on each answer
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_COMPLETION_ACK, completion_ack_cb, &ctx);
 	eloop = ktp_session_eloop(ktp);
 	faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
 	faux_eloop_loop(eloop);
@@ -99,9 +104,7 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		tinyrl_redisplay(ctx->tinyrl);
 
 	// Happy compiler
-	ktp = ktp;
 	msg = msg;
-	udata = udata;
 
 	return BOOL_TRUE;
 }
@@ -139,6 +142,36 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 
 	tinyrl_reset_line(tinyrl);
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
+{
+	const char *line = NULL;
+	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
+
+	line = tinyrl_line(tinyrl);
+	ktp_session_completion(ctx->ktp, line, ctx->opts->dry_run);
+
+	tinyrl_set_busy(tinyrl, BOOL_TRUE);
+
+	return BOOL_TRUE;
+}
+
+
+bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+
+	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
+
+	printf("\nCOMPLETION\n");
+
+	// Happy compiler
+	ktp = ktp;
+	msg = msg;
 
 	return BOOL_TRUE;
 }
