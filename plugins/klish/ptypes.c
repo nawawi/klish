@@ -38,6 +38,27 @@ int klish_ptype_COMMAND(kcontext_t *context)
 }
 
 
+/** @brief COMPLETION: Consider ENTRY's name (or "value" field) as a command
+ */
+int klish_completion_COMMAND(kcontext_t *context)
+{
+	const kentry_t *entry = NULL;
+	const char *value = NULL;
+	const char *command_name = NULL;
+
+	entry = kcontext_candidate_entry(context);
+	value = kcontext_candidate_value(context);
+
+	command_name = kentry_value(entry);
+	if (!command_name)
+		command_name = kentry_name(entry);
+	if (!command_name)
+		return -1;
+
+	return faux_str_casecmp(value, command_name);
+}
+
+
 /** @brief PTYPE: ENTRY's name (or "value" field) as a case sensitive command
  */
 int klish_ptype_COMMAND_CASE(kcontext_t *context)
