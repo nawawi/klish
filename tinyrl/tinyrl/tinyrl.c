@@ -580,7 +580,7 @@ static void move_cursor(const tinyrl_t *tinyrl, size_t cur_pos, size_t target_po
 }
 
 
-static size_t str_equal_part(const tinyrl_t *tinyrl,
+size_t tinyrl_equal_part(const tinyrl_t *tinyrl,
 	const char *s1, const char *s2)
 {
 	const char *str1 = s1;
@@ -646,7 +646,7 @@ void tinyrl_redisplay(tinyrl_t *tinyrl)
 		size_t eq_chars = 0; // Printable symbols
 		size_t last_pos_chars = 0;
 		// If line and last line have the equal chars at begining
-		eq_bytes = str_equal_part(tinyrl, tinyrl->line.str, tinyrl->last.str);
+		eq_bytes = tinyrl_equal_part(tinyrl, tinyrl->line.str, tinyrl->last.str);
 		eq_chars = utf8_nsyms(tinyrl->last.str, eq_bytes);
 		last_pos_chars = utf8_nsyms(tinyrl->last.str, tinyrl->last.pos);
 		move_cursor(tinyrl, tinyrl->prompt_chars + last_pos_chars,

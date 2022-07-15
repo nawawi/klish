@@ -228,15 +228,46 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	}
 
 	completions_num = faux_list_len(completions);
+
+	// Single possible completion
 	if (1 == completions_num) {
 		char *compl = (char *)faux_list_data(faux_list_head(completions));
 		tinyrl_line_insert(ctx->tinyrl, compl, strlen(compl));
 		tinyrl_redisplay(ctx->tinyrl);
+
+	// Multi possible completions
 	} else if (completions_num > 1) {
-		tinyrl_multi_crlf(ctx->tinyrl);
-		tinyrl_reset_line_state(ctx->tinyrl);
-		display_completions(ctx->tinyrl, completions, prefix, max_compl_len);
-		tinyrl_redisplay(ctx->tinyrl);
+		faux_list_node_t *eq_iter = NULL;
+		size_t eq_part = 0;
+		char *str = NULL;
+		char *compl = NULL;
+
+		// Try to find equal part for all possible completions
+		eq_iter = faux_list_head(completions);
+		str = (char *)faux_list_data(eq_iter);
+		eq_part = strlen(str);
+		eq_iter = faux_list_next_node(eq_iter);
+
+		while ((compl = (char *)faux_list_each(&eq_iter)) && (eq_part > 0)) {
+			size_t cur_eq = 0;
+			cur_eq = tinyrl_equal_part(ctx->tinyrl, str, compl);
+			if (cur_eq < eq_part)
+				eq_part = cur_eq;
+		}
+
+		// The equal part was found
+		if (eq_part > 0) {
+			tinyrl_line_insert(ctx->tinyrl, str, eq_part);
+			tinyrl_redisplay(ctx->tinyrl);
+
+		// There is no equal part for all completions
+		} else {
+			tinyrl_multi_crlf(ctx->tinyrl);
+			tinyrl_reset_line_state(ctx->tinyrl);
+			display_completions(ctx->tinyrl, completions,
+				prefix, max_compl_len);
+			tinyrl_redisplay(ctx->tinyrl);
+		}
 	}
 
 	faux_list_free(completions);
