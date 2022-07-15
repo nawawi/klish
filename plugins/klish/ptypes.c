@@ -39,23 +39,31 @@ int klish_ptype_COMMAND(kcontext_t *context)
 
 
 /** @brief COMPLETION: Consider ENTRY's name (or "value" field) as a command
+ *
+ * This completion function has main ENTRY that is a child of COMMAND ptype
+ * ENTRY. The PTYPE entry has specific ENTRY (with name and possible value)
+ * as a parent.
+ *
+ * command (COMMON ENTRY) with name or value
+ *     ptype (PTYPE ENTRY)
+ *         completion (COMPLETION ENTRY) - start point
  */
 int klish_completion_COMMAND(kcontext_t *context)
 {
 	const kentry_t *entry = NULL;
-	const char *value = NULL;
 	const char *command_name = NULL;
 
 	entry = kcontext_candidate_entry(context);
-	value = kcontext_candidate_value(context);
 
 	command_name = kentry_value(entry);
 	if (!command_name)
 		command_name = kentry_name(entry);
 	if (!command_name)
-		return -1;
+		return 0;
 
-	return faux_str_casecmp(value, command_name);
+	printf("%s\n", command_name);
+
+	return 0;
 }
 
 

@@ -223,6 +223,16 @@ void *kcontext_named_udata(const kcontext_t *context, const char *name)
 }
 
 
+const kentry_t *kcontext_command(const kcontext_t *context)
+{
+	assert(context);
+	if (!context)
+		return NULL;
+
+	return kpargv_command(kcontext_pargv(context));
+}
+
+
 kplugin_t *kcontext_plugin(const kcontext_t *context)
 {
 	const kaction_t *action = NULL;

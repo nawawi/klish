@@ -25,7 +25,7 @@
 
 static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
 {
-	const char *out = NULL;
+	char *out = NULL;
 	int retcode = -1;
 	const kentry_t *ptype_entry = NULL;
 	kparg_t *candidate = NULL;
@@ -684,7 +684,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 
 bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
-	kpargv_t *parent_pargv, int *retcode, const char **out)
+	kpargv_t *parent_pargv, int *retcode, char **out)
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;

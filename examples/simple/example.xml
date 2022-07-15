@@ -20,6 +20,16 @@
 	<ACTION sym="print">test</ACTION>
   </ENTRY>
 
+  <ENTRY name="cmd2" help="Clear settings" mode="sequence">
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ACTION sym="print">test cmd2</ACTION>
+  </ENTRY>
+
+  <ENTRY name="command" value="comm" help="Clear settings" mode="sequence">
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ACTION sym="print">test2</ACTION>
+  </ENTRY>
+
   <ENTRY name="exit" help="Exit view">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<ACTION sym="nav">pop</ACTION>

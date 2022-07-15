@@ -305,6 +305,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	ktp_cmd_e cmd = KTP_COMPLETION_ACK;
 	uint32_t status = KTP_STATUS_NONE;
 	const char *prefix = NULL;
+	size_t prefix_len = 0;
 
 	assert(ktpd);
 	assert(msg);
@@ -329,11 +330,73 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 		status |= KTP_STATUS_EXIT; // Notify client about exiting
 	}
 
-	// Send ACK message
+	// Prepare ACK message
 	ack = ktp_msg_preform(cmd, status);
+
+	// Last unfinished word. Common prefix for all completions
 	prefix = kpargv_last_arg(pargv);
-	if (!faux_str_is_empty(prefix))
-		faux_msg_add_param(ack, KTP_PARAM_PREFIX, prefix, strlen(prefix));
+	if (!faux_str_is_empty(prefix)) {
+		prefix_len = strlen(prefix);
+		faux_msg_add_param(ack, KTP_PARAM_PREFIX, prefix, prefix_len);
+	}
+
+	// Fill msg with possible completions
+	if (!kpargv_completions_is_empty(pargv)) {
+		const kentry_t *candidate = NULL;
+		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
+		while ((candidate = kpargv_completions_each(&citer))) {
+			const kentry_t *completion = NULL;
+			kparg_t *parg = NULL;
+			int rc = -1;
+			char *out = NULL;
+			bool_t res = BOOL_FALSE;
+			char *l = NULL; // One line of completion
+			const char *str = NULL;
+
+			// Get completion entry from candidate entry
+			completion = kentry_nested_by_purpose(candidate,
+				KENTRY_PURPOSE_COMPLETION);
+			// If candidate entry doesn't contain completion then try
+			// to get completion from entry's PTYPE
+			if (!completion) {
+				const kentry_t *ptype = NULL;
+				ptype = kentry_nested_by_purpose(candidate,
+					KENTRY_PURPOSE_PTYPE);
+				if (!ptype)
+					continue;
+				completion = kentry_nested_by_purpose(ptype,
+					KENTRY_PURPOSE_COMPLETION);
+			}
+			if (!completion)
+				continue;
+			parg = kparg_new(candidate, prefix);
+			kpargv_set_candidate_parg(pargv, parg);
+			res = ksession_exec_locally(ktpd->session, completion,
+				pargv, &rc, &out);
+			kparg_free(parg);
+			if (!res || (rc < 0) || !out)
+				continue;
+
+			// Get all completions one by one
+			str = out;
+			while ((l = faux_str_getline(str, &str))) {
+				char *compl_str = l;
+				// Compare prefix
+				if ((prefix_len > 0) &&
+					(faux_str_cmpn(prefix, l, prefix_len) != 0)) {
+					faux_str_free(l);
+					continue;
+				}
+				compl_str = l + prefix_len;
+				faux_msg_add_param(ack, KTP_PARAM_LINE,
+					compl_str, strlen(compl_str));
+				faux_str_free(l);
+			}
+
+			faux_str_free(out);
+		}
+	}
+
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
