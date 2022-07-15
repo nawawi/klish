@@ -165,17 +165,33 @@ static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 static void display_completions(const tinyrl_t *tinyrl, faux_list_t *completions,
 	const char *prefix, size_t max)
 {
-//	size_t width = tinyrl_width(tinyrl);
+	size_t width = tinyrl_width(tinyrl);
 	size_t cols = 0;
 	faux_list_node_t *iter = NULL;
-	char *compl = NULL;
+	faux_list_node_t *node = NULL;
+	size_t prefix_len = 0;
+	size_t cols_filled = 0;
 
-/*
+	if (prefix)
+		prefix_len = strlen(prefix);
+
+	// Find out column and rows number
+	if (max < width)
+		cols = (width + 1) / (prefix_len + max + 1); // For a space between words
+	else
+		cols = 1;
+
 	iter = faux_list_head(completions);
-	while ((compl = (char *)faux_list_each(&iter))) {
-		printf("%s%s\n", prefix ? prefix : "", compl);
+	while ((node = faux_list_each_node(&iter))) {
+		char *compl = (char *)faux_list_data(node);
+		printf("%s%s ", prefix ? prefix : "", compl);
+		cols_filled++;
+		if ((cols_filled >= cols) || (node == faux_list_tail(completions))) {
+			cols_filled = 0;
+			printf("\n");
+		}
 	}
-*/
+
 /*
 	// Find out column and rows number
 	if (max < width)

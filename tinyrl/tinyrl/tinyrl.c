@@ -717,3 +717,13 @@ void tinyrl_reset_hist_pos(tinyrl_t *tinyrl)
 {
 	hist_pos_reset(tinyrl->hist);
 }
+
+
+size_t tinyrl_width(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return 80;
+
+	return tinyrl->width;
+}
