@@ -727,3 +727,17 @@ size_t tinyrl_width(const tinyrl_t *tinyrl)
 
 	return tinyrl->width;
 }
+
+
+// Because terminal is in raw mode and standard libc printf() can don't flush()
+int tinyrl_printf(const tinyrl_t *tinyrl, const char *fmt, ...)
+{
+	va_list args;
+	int len = 0;
+
+	va_start(args, fmt);
+	len = vt100_vprintf(tinyrl->term, fmt, args);
+	va_end(args);
+
+	return len;
+}

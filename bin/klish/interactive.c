@@ -184,42 +184,16 @@ static void display_completions(const tinyrl_t *tinyrl, faux_list_t *completions
 	iter = faux_list_head(completions);
 	while ((node = faux_list_each_node(&iter))) {
 		char *compl = (char *)faux_list_data(node);
-		printf("%s%s ", prefix ? prefix : "", compl);
+		tinyrl_printf(tinyrl, "%*s%s",
+			(prefix_len + max + 1 - strlen(compl)),
+			prefix ? prefix : "",
+			compl);
 		cols_filled++;
 		if ((cols_filled >= cols) || (node == faux_list_tail(completions))) {
 			cols_filled = 0;
-			printf("\n");
+			tinyrl_crlf(tinyrl);
 		}
 	}
-
-/*
-	// Find out column and rows number
-	if (max < width)
-		cols = (width + 1) / (max + 1); // For a space between words
-	else
-		cols = 1;
-	rows = len / cols + 1;
-
-	assert(matches);
-	if (matches) {
-		unsigned int r, c;
-		len--, matches++; // skip the subtitution string
-		// Print out a table of completions
-		for (r = 0; r < rows && len; r++) {
-			for (c = 0; c < cols && len; c++) {
-				const char *match = *matches++;
-				len--;
-				if ((c + 1) == cols) // Last str in row
-					tinyrl_vt100_printf(this->term, "%s",
-						match);
-				else
-					tinyrl_vt100_printf(this->term, "%-*s ",
-						max, match);
-			}
-			tinyrl_crlf(this);
-		}
-	}
-*/
 }
 
 

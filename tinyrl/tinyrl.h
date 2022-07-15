@@ -98,6 +98,8 @@ void tinyrl_reset_line(tinyrl_t *tinyrl);
 void tinyrl_crlf(const tinyrl_t *tinyrl);
 void tinyrl_multi_crlf(const tinyrl_t *tinyrl);
 size_t tinyrl_width(const tinyrl_t *tinyrl);
+int tinyrl_printf(const tinyrl_t *tinyrl, const char *fmt, ...);
+
 
 bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len);
 bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len);
