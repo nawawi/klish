@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
@@ -161,13 +162,95 @@ static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 }
 
 
+static void display_completions(const tinyrl_t *tinyrl, faux_list_t *completions,
+	const char *prefix, size_t max)
+{
+//	size_t width = tinyrl_width(tinyrl);
+	size_t cols = 0;
+	faux_list_node_t *iter = NULL;
+	char *compl = NULL;
+
+/*
+	iter = faux_list_head(completions);
+	while ((compl = (char *)faux_list_each(&iter))) {
+		printf("%s%s\n", prefix ? prefix : "", compl);
+	}
+*/
+/*
+	// Find out column and rows number
+	if (max < width)
+		cols = (width + 1) / (max + 1); // For a space between words
+	else
+		cols = 1;
+	rows = len / cols + 1;
+
+	assert(matches);
+	if (matches) {
+		unsigned int r, c;
+		len--, matches++; // skip the subtitution string
+		// Print out a table of completions
+		for (r = 0; r < rows && len; r++) {
+			for (c = 0; c < cols && len; c++) {
+				const char *match = *matches++;
+				len--;
+				if ((c + 1) == cols) // Last str in row
+					tinyrl_vt100_printf(this->term, "%s",
+						match);
+				else
+					tinyrl_vt100_printf(this->term, "%-*s ",
+						max, match);
+			}
+			tinyrl_crlf(this);
+		}
+	}
+*/
+}
+
+
 bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
+	faux_list_node_t *iter = NULL;
+	uint32_t param_len = 0;
+	char *param_data = NULL;
+	uint16_t param_type = 0;
+	char *prefix = NULL;
+	faux_list_t *completions = NULL;
+	size_t completions_num = 0;
+	size_t max_compl_len = 0;
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 
-	printf("\nCOMPLETION\n");
+	prefix = faux_msg_get_str_param_by_type(msg, KTP_PARAM_PREFIX);
+
+	completions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, (void (*)(void *))faux_str_free);
+
+	iter = faux_msg_init_param_iter(msg);
+	while (faux_msg_get_param_each(&iter, &param_type, (void **)&param_data, &param_len)) {
+		char *compl = NULL;
+		if (KTP_PARAM_LINE != param_type)
+			continue;
+		compl = faux_str_dupn(param_data, param_len);
+		faux_list_add(completions, compl);
+		if (param_len > max_compl_len)
+			max_compl_len = param_len;
+	}
+
+	completions_num = faux_list_len(completions);
+	if (1 == completions_num) {
+		char *compl = (char *)faux_list_data(faux_list_head(completions));
+		tinyrl_line_insert(ctx->tinyrl, compl, strlen(compl));
+		tinyrl_redisplay(ctx->tinyrl);
+	} else if (completions_num > 1) {
+		tinyrl_multi_crlf(ctx->tinyrl);
+		tinyrl_reset_line_state(ctx->tinyrl);
+		display_completions(ctx->tinyrl, completions, prefix, max_compl_len);
+		tinyrl_redisplay(ctx->tinyrl);
+	}
+
+	faux_list_free(completions);
+	faux_str_free(prefix);
 
 	// Happy compiler
 	ktp = ktp;
