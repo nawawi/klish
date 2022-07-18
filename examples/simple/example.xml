@@ -15,26 +15,29 @@
 
 <ENTRY name="main" mode="switch" container="true">
 
-  <ENTRY name="cmd" help="Clear settings" mode="sequence">
+<ENTRY name="cmd" help="Clear settings" mode="sequence">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ENTRY name="first" help="Clear settings">
+		<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+		</ENTRY>
 	<ACTION sym="print">test</ACTION>
-  </ENTRY>
+</ENTRY>
 
-  <ENTRY name="cmd2" help="Clear settings" mode="sequence">
+<ENTRY name="cmd2" help="Clear settings" mode="sequence">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<ACTION sym="print">test cmd2</ACTION>
-  </ENTRY>
+</ENTRY>
 
-  <ENTRY name="command" value="comm" help="Clear settings" mode="sequence">
+<ENTRY name="comm" value="command" help="Clear settings" mode="sequence">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<ACTION sym="print">test2</ACTION>
-  </ENTRY>
+</ENTRY>
 
-  <ENTRY name="exit" help="Exit view">
+<ENTRY name="exit" help="Exit view">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<ACTION sym="nav">pop</ACTION>
 	<ACTION sym="print">Exiting klish session</ACTION>
-  </ENTRY>
+</ENTRY>
 
 </ENTRY>
 
