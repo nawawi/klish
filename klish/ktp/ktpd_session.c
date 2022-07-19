@@ -363,6 +363,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 		const kentry_t *candidate = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
 		faux_list_t *completions = NULL;
+		char *compl_str = NULL;
 
 		completions = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 			compl_compare, compl_kcompare,
@@ -403,7 +404,6 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 			// Get all completions one by one
 			str = out;
 			while ((l = faux_str_getline(str, &str))) {
-				char *compl_str = l;
 				// Compare prefix
 				if ((prefix_len > 0) &&
 					(faux_str_cmpn(prefix, l, prefix_len) != 0)) {
@@ -411,13 +411,17 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 					continue;
 				}
 				compl_str = l + prefix_len;
-				faux_msg_add_param(ack, KTP_PARAM_LINE,
-					compl_str, strlen(compl_str));
 				faux_list_add(completions, faux_str_dup(compl_str));
 				faux_str_free(l);
 			}
-
 			faux_str_free(out);
+		}
+
+		// Put completion list to message
+		citer = faux_list_head(completions);
+		while ((compl_str = faux_list_each(&citer))) {
+			faux_msg_add_param(ack, KTP_PARAM_LINE,
+				compl_str, strlen(compl_str));
 		}
 		faux_list_free(completions);
 	}
