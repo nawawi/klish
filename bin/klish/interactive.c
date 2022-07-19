@@ -31,6 +31,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
 static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key);
+static bool_t tinyrl_key_help(tinyrl_t *tinyrl, unsigned char key);
 
 
 int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
@@ -57,6 +58,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	tinyrl_bind_key(tinyrl, '\n', tinyrl_key_enter);
 	tinyrl_bind_key(tinyrl, '\r', tinyrl_key_enter);
 	tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
+	tinyrl_bind_key(tinyrl, '?', tinyrl_key_help);
 	tinyrl_redisplay(tinyrl);
 
 	ctx.ktp = ktp;
@@ -155,6 +157,20 @@ static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 
 	line = tinyrl_line(tinyrl);
 	ktp_session_completion(ctx->ktp, line, ctx->opts->dry_run);
+
+	tinyrl_set_busy(tinyrl, BOOL_TRUE);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t tinyrl_key_help(tinyrl_t *tinyrl, unsigned char key)
+{
+	const char *line = NULL;
+	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
+
+	line = tinyrl_line(tinyrl);
+	ktp_session_help(ctx->ktp, line);
 
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 

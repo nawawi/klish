@@ -79,6 +79,7 @@ bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_t *error, bool_t dry_run);
 bool_t ktp_session_completion(ktp_session_t *ktp, const char *line,
 	bool_t dry_run);
+bool_t ktp_session_help(ktp_session_t *ktp, const char *line);
 bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode);
 
 

@@ -579,6 +579,16 @@ bool_t ktp_session_completion(ktp_session_t *ktp, const char *line, bool_t dry_r
 }
 
 
+bool_t ktp_session_help(ktp_session_t *ktp, const char *line)
+{
+	if (!ktp_session_req(ktp, KTP_HELP, line, NULL, BOOL_TRUE))
+		return BOOL_FALSE;
+	ktp->state = KTP_SESSION_STATE_WAIT_FOR_HELP;
+
+	return BOOL_TRUE;
+}
+
+
 bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode)
 {
 	if (!ktp)
