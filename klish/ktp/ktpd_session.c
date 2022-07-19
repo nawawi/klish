@@ -297,6 +297,24 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static int compl_compare(const void *first, const void *second)
+{
+	const char *f = (const char *)first;
+	const char *s = (const char *)second;
+
+	return strcmp(f, s);
+}
+
+
+static int compl_kcompare(const void *key, const void *list_item)
+{
+	const char *f = (const char *)key;
+	const char *s = (const char *)list_item;
+
+	return strcmp(f, s);
+}
+
+
 static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -344,6 +362,11 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	if (!kpargv_completions_is_empty(pargv)) {
 		const kentry_t *candidate = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
+		faux_list_t *completions = NULL;
+
+		completions = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+			compl_compare, compl_kcompare,
+			(void (*)(void *))faux_str_free);
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *completion = NULL;
 			kparg_t *parg = NULL;
@@ -390,11 +413,13 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 				compl_str = l + prefix_len;
 				faux_msg_add_param(ack, KTP_PARAM_LINE,
 					compl_str, strlen(compl_str));
+				faux_list_add(completions, faux_str_dup(compl_str));
 				faux_str_free(l);
 			}
 
 			faux_str_free(out);
 		}
+		faux_list_free(completions);
 	}
 
 	faux_msg_send_async(ack, ktpd->async);
