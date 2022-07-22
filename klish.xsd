@@ -159,6 +159,7 @@
 			<xs:enumeration value="prompt"/>
 			<xs:enumeration value="cond"/>
 			<xs:enumeration value="completion"/>
+			<xs:enumeration value="help"/>
 		</xs:restriction>
 	</xs:simpleType>
 

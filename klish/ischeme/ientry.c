@@ -68,6 +68,8 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 			purpose = KENTRY_PURPOSE_COND;
 		else if (!faux_str_casecmp(info->purpose, "completion"))
 			purpose = KENTRY_PURPOSE_COMPLETION;
+		else if (!faux_str_casecmp(info->purpose, "help"))
+			purpose = KENTRY_PURPOSE_HELP;
 		if ((KENTRY_PURPOSE_NONE == purpose) || !kentry_set_purpose(entry, purpose)) {
 			faux_error_add(error, TAG": Illegal 'purpose' attribute");
 			retcode = BOOL_FALSE;
@@ -324,6 +326,9 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 			break;
 		case KENTRY_PURPOSE_COMPLETION:
 			purpose = "completion";
+			break;
+		case KENTRY_PURPOSE_HELP:
+			purpose = "help";
 			break;
 		default:
 			purpose = NULL;

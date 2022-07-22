@@ -362,12 +362,177 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	if (!kpargv_completions_is_empty(pargv)) {
 		const kentry_t *candidate = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
+		faux_list_node_t *compl_iter = NULL;
 		faux_list_t *completions = NULL;
 		char *compl_str = NULL;
 
 		completions = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 			compl_compare, compl_kcompare,
 			(void (*)(void *))faux_str_free);
+		while ((candidate = kpargv_completions_each(&citer))) {
+			const kentry_t *completion = NULL;
+			kparg_t *parg = NULL;
+			int rc = -1;
+			char *out = NULL;
+			bool_t res = BOOL_FALSE;
+			char *l = NULL; // One line of completion
+			const char *str = NULL;
+
+			// Get completion entry from candidate entry
+			completion = kentry_nested_by_purpose(candidate,
+				KENTRY_PURPOSE_COMPLETION);
+			// If candidate entry doesn't contain completion then try
+			// to get completion from entry's PTYPE
+			if (!completion) {
+				const kentry_t *ptype = NULL;
+				ptype = kentry_nested_by_purpose(candidate,
+					KENTRY_PURPOSE_PTYPE);
+				if (!ptype)
+					continue;
+				completion = kentry_nested_by_purpose(ptype,
+					KENTRY_PURPOSE_COMPLETION);
+			}
+			if (!completion)
+				continue;
+			parg = kparg_new(candidate, prefix);
+			kpargv_set_candidate_parg(pargv, parg);
+			res = ksession_exec_locally(ktpd->session, completion,
+				pargv, &rc, &out);
+			kparg_free(parg);
+			if (!res || (rc < 0) || !out)
+				continue;
+
+			// Get all completions one by one
+			str = out;
+			while ((l = faux_str_getline(str, &str))) {
+				// Compare prefix
+				if ((prefix_len > 0) &&
+					(faux_str_cmpn(prefix, l, prefix_len) != 0)) {
+					faux_str_free(l);
+					continue;
+				}
+				compl_str = l + prefix_len;
+				faux_list_add(completions, faux_str_dup(compl_str));
+				faux_str_free(l);
+			}
+			faux_str_free(out);
+		}
+
+		// Put completion list to message
+		compl_iter = faux_list_head(completions);
+		while ((compl_str = faux_list_each(&compl_iter))) {
+			faux_msg_add_param(ack, KTP_PARAM_LINE,
+				compl_str, strlen(compl_str));
+		}
+		faux_list_free(completions);
+	}
+
+	faux_msg_send_async(ack, ktpd->async);
+	faux_msg_free(ack);
+
+	kpargv_free(pargv);
+
+	return BOOL_TRUE;
+}
+
+
+typedef struct help_s {
+	char *prefix;
+	char *line;
+} help_t;
+
+
+static int help_compare(const void *first, const void *second)
+{
+	const help_t *f = (const help_t *)first;
+	const help_t *s = (const help_t *)second;
+
+	return strcmp(f->prefix, s->prefix);
+}
+
+
+static int help_kcompare(const void *key, const void *list_item)
+{
+	const char *f = (const char *)key;
+	const help_t *s = (const help_t *)list_item;
+
+	return strcmp(f, s->prefix);
+}
+
+
+static help_t *help_new(char *prefix, char *line)
+{
+	help_t *help = NULL;
+
+	help = faux_zmalloc(sizeof(*help));
+	help->prefix = prefix;
+	help->line = line;
+
+	return help;
+}
+
+
+static void help_free(void *ptr)
+{
+	help_t *help = (help_t *)ptr;
+
+	faux_free(help->prefix);
+	faux_free(help->line);
+}
+
+
+static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	char *line = NULL;
+	faux_msg_t *ack = NULL;
+	kpargv_t *pargv = NULL;
+	ktp_cmd_e cmd = KTP_HELP_ACK;
+	uint32_t status = KTP_STATUS_NONE;
+	const char *prefix = NULL;
+	size_t prefix_len = 0;
+
+	assert(ktpd);
+	assert(msg);
+
+	// Get line from message
+	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
+		ktp_send_error(ktpd->async, cmd, NULL);
+		return BOOL_FALSE;
+	}
+
+	// Parsing
+	pargv = ksession_parse_for_completion(ktpd->session, line);
+	faux_str_free(line);
+	if (!pargv) {
+		ktp_send_error(ktpd->async, cmd, NULL);
+		return BOOL_FALSE;
+	}
+
+	if (ksession_done(ktpd->session)) {
+		ktpd->exit = BOOL_TRUE;
+		status |= KTP_STATUS_EXIT; // Notify client about exiting
+	}
+
+	// Prepare ACK message
+	ack = ktp_msg_preform(cmd, status);
+
+	// Last unfinished word. Common prefix for all entries
+	prefix = kpargv_last_arg(pargv);
+	if (!faux_str_is_empty(prefix)) {
+		prefix_len = strlen(prefix);
+//		faux_msg_add_param(ack, KTP_PARAM_PREFIX, prefix, prefix_len);
+	}
+/*
+	// Fill msg with possible completions
+	if (!kpargv_completions_is_empty(pargv)) {
+		const kentry_t *candidate = NULL;
+		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
+		faux_list_node_t *help_iter = NULL;
+		faux_list_t *help_list = NULL;
+		char *compl_str = NULL;
+
+		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+			help_compare, help_kcompare, help_free);
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *completion = NULL;
 			kparg_t *parg = NULL;
@@ -430,37 +595,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 	faux_msg_free(ack);
 
 	kpargv_free(pargv);
-
-	return BOOL_TRUE;
-}
-
-
-static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
-{
-	char *line = NULL;
-	faux_msg_t *ack = NULL;
-//	kpargv_t *pargv = NULL;
-	ktp_cmd_e cmd = KTP_HELP_ACK;
-
-	assert(ktpd);
-	assert(msg);
-
-	// Get line from message
-	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
-		ktp_send_error(ktpd->async, cmd, NULL);
-		return BOOL_FALSE;
-	}
-
-/*	// Parsing
-	pargv = ksession_parse_line(ktpd->session, line, KPURPOSE_HELP);
-	faux_str_free(line);
-	kpargv_free(pargv);
 */
-	// Send ACK message
-	ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
-	faux_msg_send_async(ack, ktpd->async);
-	faux_msg_free(ack);
-
 	return BOOL_TRUE;
 }
 
