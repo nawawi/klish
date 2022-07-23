@@ -399,8 +399,11 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 			res = ksession_exec_locally(ktpd->session, completion,
 				pargv, &rc, &out);
 			kparg_free(parg);
-			if (!res || (rc < 0) || !out)
+			if (!res || (rc < 0) || !out) {
+				if (out)
+					faux_str_free(out);
 				continue;
+			}
 
 			// Get all completions one by one
 			str = out;
@@ -481,6 +484,18 @@ static void help_free(void *ptr)
 }
 
 
+// Now help generation is simple. The 'prefix' (first help field) is generated
+// by PTYPE's help function. It can be something like 'ip', 'filter' i.e.
+// subcommand or '3..89', '<STRING>' i.e. description of type. The second
+// field is description of current parameter. For example 'Interface IP
+// address'. So the full help can be:
+// AAA.BBB.CCC.DDD Interface IP address
+// [ first field ] [ second field     ]
+//
+// Not all possible parameters can conform currently partly-typed line but it's
+// not clear how to filter them. Completions can be solution but completions are
+// not mandatory so parameter with non completed completion list can be filtered
+// out.
 static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -489,7 +504,6 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 	ktp_cmd_e cmd = KTP_HELP_ACK;
 	uint32_t status = KTP_STATUS_NONE;
 	const char *prefix = NULL;
-	size_t prefix_len = 0;
 
 	assert(ktpd);
 	assert(msg);
@@ -518,84 +532,83 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	// Last unfinished word. Common prefix for all entries
 	prefix = kpargv_last_arg(pargv);
-	if (!faux_str_is_empty(prefix)) {
-		prefix_len = strlen(prefix);
-//		faux_msg_add_param(ack, KTP_PARAM_PREFIX, prefix, prefix_len);
-	}
-/*
+
 	// Fill msg with possible completions
 	if (!kpargv_completions_is_empty(pargv)) {
 		const kentry_t *candidate = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
 		faux_list_node_t *help_iter = NULL;
 		faux_list_t *help_list = NULL;
-		char *compl_str = NULL;
+		help_t *help_struct = NULL;
 
 		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
 			help_compare, help_kcompare, help_free);
 		while ((candidate = kpargv_completions_each(&citer))) {
-			const kentry_t *completion = NULL;
-			kparg_t *parg = NULL;
-			int rc = -1;
-			char *out = NULL;
-			bool_t res = BOOL_FALSE;
-			char *l = NULL; // One line of completion
-			const char *str = NULL;
+			const kentry_t *help = NULL;
+			const kentry_t *ptype = NULL;
+			char *prefix_str = NULL;
+			char *line_str = NULL;
 
-			// Get completion entry from candidate entry
-			completion = kentry_nested_by_purpose(candidate,
-				KENTRY_PURPOSE_COMPLETION);
-			// If candidate entry doesn't contain completion then try
-			// to get completion from entry's PTYPE
-			if (!completion) {
-				const kentry_t *ptype = NULL;
-				ptype = kentry_nested_by_purpose(candidate,
-					KENTRY_PURPOSE_PTYPE);
-				if (!ptype)
-					continue;
-				completion = kentry_nested_by_purpose(ptype,
-					KENTRY_PURPOSE_COMPLETION);
+			// Get help from PTYPE for 'prefix'
+			ptype = kentry_nested_by_purpose(candidate,
+				KENTRY_PURPOSE_PTYPE);
+			if (!ptype) // Can't get help for ENTRY w/o PTYPE
+				continue;
+			help = kentry_nested_by_purpose(ptype,
+				KENTRY_PURPOSE_HELP);
+			if (help) {
+				kparg_t *parg = NULL;
+				int rc = -1;
+				parg = kparg_new(candidate, prefix);
+				kpargv_set_candidate_parg(pargv, parg);
+				ksession_exec_locally(ktpd->session,
+					help, pargv, &rc, &prefix_str);
+				kparg_free(parg);
 			}
-			if (!completion)
-				continue;
-			parg = kparg_new(candidate, prefix);
-			kpargv_set_candidate_parg(pargv, parg);
-			res = ksession_exec_locally(ktpd->session, completion,
-				pargv, &rc, &out);
-			kparg_free(parg);
-			if (!res || (rc < 0) || !out)
-				continue;
+			if (!prefix_str) {
+				// If help is not defined use name of PTYPE.
+				// It can be informative enough.
+				prefix_str = faux_str_dup(kentry_name(ptype));
+			}
 
-			// Get all completions one by one
-			str = out;
-			while ((l = faux_str_getline(str, &str))) {
-				// Compare prefix
-				if ((prefix_len > 0) &&
-					(faux_str_cmpn(prefix, l, prefix_len) != 0)) {
-					faux_str_free(l);
-					continue;
-				}
-				compl_str = l + prefix_len;
-				faux_list_add(completions, faux_str_dup(compl_str));
-				faux_str_free(l);
+			// Get completion entry from candidate entry for 'line'
+			help = kentry_nested_by_purpose(candidate,
+				KENTRY_PURPOSE_HELP);
+			if (help) {
+				kparg_t *parg = NULL;
+				int rc = -1;
+				parg = kparg_new(candidate, prefix);
+				kpargv_set_candidate_parg(pargv, parg);
+				ksession_exec_locally(ktpd->session,
+					help, pargv, &rc, &line_str);
+				kparg_free(parg);
 			}
-			faux_str_free(out);
+			if (!line_str) {
+				// If help is not defined use name of ENTRY.
+				// It can be informative enough.
+				line_str = faux_str_dup(kentry_name(candidate));
+			}
+
+			help_struct = help_new(prefix_str, line_str);
+			faux_list_add(help_list, help_struct);
 		}
 
-		// Put completion list to message
-		citer = faux_list_head(completions);
-		while ((compl_str = faux_list_each(&citer))) {
+		// Put help list to message
+		help_iter = faux_list_head(help_list);
+		while ((help_struct = (help_t *)faux_list_each(&help_iter))) {
+			faux_msg_add_param(ack, KTP_PARAM_PREFIX,
+				help_struct->prefix, strlen(help_struct->prefix));
 			faux_msg_add_param(ack, KTP_PARAM_LINE,
-				compl_str, strlen(compl_str));
+				help_struct->line, strlen(help_struct->line));
 		}
-		faux_list_free(completions);
+		faux_list_free(help_list);
 	}
 
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
 	kpargv_free(pargv);
-*/
+
 	return BOOL_TRUE;
 }
 
