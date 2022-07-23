@@ -31,6 +31,17 @@ bool_t ktp_peer_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 bool_t ktp_stall_cb(faux_async_t *async, size_t len, void *user_data);
 
+// Help structure
+typedef struct help_s {
+	char *prefix;
+	char *line;
+} help_t;
+
+int help_compare(const void *first, const void *second);
+int help_kcompare(const void *key, const void *list_item);
+help_t *help_new(char *prefix, char *line);
+void help_free(void *ptr);
+
 
 // Client KTP session
 

@@ -439,51 +439,6 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 }
 
 
-typedef struct help_s {
-	char *prefix;
-	char *line;
-} help_t;
-
-
-static int help_compare(const void *first, const void *second)
-{
-	const help_t *f = (const help_t *)first;
-	const help_t *s = (const help_t *)second;
-
-	return strcmp(f->prefix, s->prefix);
-}
-
-
-static int help_kcompare(const void *key, const void *list_item)
-{
-	const char *f = (const char *)key;
-	const help_t *s = (const help_t *)list_item;
-
-	return strcmp(f, s->prefix);
-}
-
-
-static help_t *help_new(char *prefix, char *line)
-{
-	help_t *help = NULL;
-
-	help = faux_zmalloc(sizeof(*help));
-	help->prefix = prefix;
-	help->line = line;
-
-	return help;
-}
-
-
-static void help_free(void *ptr)
-{
-	help_t *help = (help_t *)ptr;
-
-	faux_free(help->prefix);
-	faux_free(help->line);
-}
-
-
 // Now help generation is simple. The 'prefix' (first help field) is generated
 // by PTYPE's help function. It can be something like 'ip', 'filter' i.e.
 // subcommand or '3..89', '<STRING>' i.e. description of type. The second
