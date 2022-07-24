@@ -518,12 +518,25 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 				kpargv_set_candidate_parg(pargv, parg);
 				ksession_exec_locally(ktpd->session,
 					help, pargv, &rc, &prefix_str);
+				// Remove \n
+				if (prefix_str) {
+					char *eol = NULL;
+					eol = faux_str_chars(prefix_str, "\n\r");
+					if (eol)
+						*eol = '\0';
+				}
 				kparg_free(parg);
 			}
 			if (!prefix_str) {
+				const char *str = NULL;
 				// If help is not defined use name of PTYPE.
 				// It can be informative enough.
-				prefix_str = faux_str_dup(kentry_name(ptype));
+				str = kentry_help(ptype);
+				if (!str)
+					str = kentry_value(ptype);
+				if (!str)
+					str = kentry_name(ptype);
+				prefix_str = faux_str_dup(str);
 			}
 
 			// Get completion entry from candidate entry for 'line'
@@ -536,12 +549,25 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 				kpargv_set_candidate_parg(pargv, parg);
 				ksession_exec_locally(ktpd->session,
 					help, pargv, &rc, &line_str);
+				// Remove \n
+				if (line_str) {
+					char *eol = NULL;
+					eol = faux_str_chars(line_str, "\n\r");
+					if (eol)
+						*eol = '\0';
+				}
 				kparg_free(parg);
 			}
 			if (!line_str) {
+				const char *str = NULL;
 				// If help is not defined use name of ENTRY.
 				// It can be informative enough.
-				line_str = faux_str_dup(kentry_name(candidate));
+				str = kentry_help(candidate);
+				if (!str)
+					str = kentry_value(candidate);
+				if (!str)
+					str = kentry_name(candidate);
+				line_str = faux_str_dup(str);
 			}
 
 			help_struct = help_new(prefix_str, line_str);

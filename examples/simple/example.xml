@@ -10,10 +10,19 @@
 	<ENTRY name="completion" purpose="completion">
 		<ACTION sym="completion_COMMAND"/>
 	</ENTRY>
+	<ENTRY name="help" purpose="help">
+		<ACTION sym="completion_COMMAND"/>
+	</ENTRY>
 	<ACTION sym="COMMAND"/>
 </ENTRY>
 
 <ENTRY name="main" mode="switch" container="true">
+
+<ENTRY name="exit" help="Exit view">
+	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
+	<ACTION sym="nav">pop</ACTION>
+	<ACTION sym="print">Exiting klish session</ACTION>
+</ENTRY>
 
 <ENTRY name="cmd" help="Clear settings" mode="sequence">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
@@ -31,12 +40,6 @@
 <ENTRY name="comm" value="command" help="Clear settings" mode="sequence">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<ACTION sym="print">test2</ACTION>
-</ENTRY>
-
-<ENTRY name="exit" help="Exit view">
-	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
-	<ACTION sym="nav">pop</ACTION>
-	<ACTION sym="print">Exiting klish session</ACTION>
 </ENTRY>
 
 </ENTRY>

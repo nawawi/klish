@@ -43,4 +43,6 @@ void help_free(void *ptr)
 
 	faux_free(help->prefix);
 	faux_free(help->line);
+
+	faux_free(help);
 }
