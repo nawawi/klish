@@ -496,7 +496,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_list_t *help_list = NULL;
 		help_t *help_struct = NULL;
 
-		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_NONUNIQUE,
 			help_compare, help_kcompare, help_free);
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *help = NULL;

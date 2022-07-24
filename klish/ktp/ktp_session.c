@@ -389,6 +389,28 @@ static bool_t ktp_session_process_completion_ack(ktp_session_t *ktp, const faux_
 }
 
 
+static bool_t ktp_session_process_help_ack(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	assert(ktp);
+	assert(msg);
+
+	ktp->request_done = BOOL_TRUE;
+	ktp->state = KTP_SESSION_STATE_IDLE;
+	// Get exit flag from message
+	if (KTP_STATUS_IS_EXIT(faux_msg_get_status(msg)))
+		ktp->done = BOOL_TRUE;
+
+	// Execute external callback
+	if (ktp->cb[KTP_SESSION_CB_HELP_ACK].fn)
+		((ktp_session_event_cb_fn)
+			ktp->cb[KTP_SESSION_CB_HELP_ACK].fn)(
+			ktp, msg,
+			ktp->cb[KTP_SESSION_CB_HELP_ACK].udata);
+
+	return BOOL_TRUE;
+}
+
+
 /*
 static bool_t ktp_session_process_exit(ktp_session_t *ktp, const faux_msg_t *msg)
 {
@@ -434,6 +456,13 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 			break;
 		}
 		rc = ktp_session_process_completion_ack(ktp, msg);
+		break;
+	case KTP_HELP_ACK:
+		if (ktp->state != KTP_SESSION_STATE_WAIT_FOR_HELP) {
+			syslog(LOG_WARNING, "Unexpected KTP_HELP_ACK was received\n");
+			break;
+		}
+		rc = ktp_session_process_help_ack(ktp, msg);
 		break;
 	case KTP_STDOUT:
 		if (ktp->state != KTP_SESSION_STATE_WAIT_FOR_CMD) {
