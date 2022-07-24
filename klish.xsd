@@ -81,6 +81,7 @@
 	<xs:complexType name="ptype_t">
 		<xs:sequence>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="required"/>
@@ -165,8 +166,14 @@
 
 	<xs:group name="entry_group_t">
 		<xs:choice>
-			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
 
