@@ -300,37 +300,19 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 }
 
 
-static void display_help(const tinyrl_t *tinyrl, faux_list_t *completions,
-	const char *prefix, size_t max)
+static void display_help(const tinyrl_t *tinyrl, faux_list_t *help_list,
+	size_t max)
 {
-	size_t width = tinyrl_width(tinyrl);
-	size_t cols = 0;
 	faux_list_node_t *iter = NULL;
 	faux_list_node_t *node = NULL;
-	size_t prefix_len = 0;
-	size_t cols_filled = 0;
 
-	if (prefix)
-		prefix_len = strlen(prefix);
-
-	// Find out column and rows number
-	if (max < width)
-		cols = (width + 1) / (prefix_len + max + 1); // For a space between words
-	else
-		cols = 1;
-
-	iter = faux_list_head(completions);
+	iter = faux_list_head(help_list);
 	while ((node = faux_list_each_node(&iter))) {
-		char *compl = (char *)faux_list_data(node);
-		tinyrl_printf(tinyrl, "%*s%s",
-			(prefix_len + max + 1 - strlen(compl)),
-			prefix ? prefix : "",
-			compl);
-		cols_filled++;
-		if ((cols_filled >= cols) || (node == faux_list_tail(completions))) {
-			cols_filled = 0;
-			tinyrl_crlf(tinyrl);
-		}
+		help_t *help = (help_t *)faux_list_data(node);
+		tinyrl_printf(tinyrl, "%s%*s\n",
+			help->prefix,
+			(max + 1 - strlen(help->prefix)),
+			help->line);
 	}
 }
 
