@@ -185,8 +185,8 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="container" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="mode" type="param_mode_t" use="optional" default="switch"/>
-		<xs:attribute name="purpose" type="param_purpose_t" use="optional" default="common"/>
+		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="switch"/>
+		<xs:attribute name="purpose" type="entry_purpose_t" use="optional" default="common"/>
 		<xs:attribute name="min" type="xs:string" use="optional" default="1"/>
 		<xs:attribute name="max" type="xs:string" use="optional" default="1"/>
 		<xs:attribute name="ptype" type="xs:string" use="optional"/>
@@ -335,7 +335,7 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="required"/>
 		<xs:attribute name="ptype" type="xs:string" use="required"/>
-		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="common"/>
+		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="sequence"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 	</xs:complexType>
@@ -373,7 +373,7 @@
 *	by current ACTION's return code or ACTION's return code can be ignored.
 *	Default is "true".
 *
-* [permanent="true/false"] - The klish can be invoked with --dry-run option. In
+* [permanent="true/false"] - The klish can be invoked with dry-run option. In
 *	this case all ACTIONs will be not actually executed but will always
 *	return success. But some actions like navigation is necessary to be
 *	executed in any case. Permanent flag will inform engine to always
