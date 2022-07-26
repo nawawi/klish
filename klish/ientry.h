@@ -20,7 +20,6 @@ struct ientry_s {
 	char *purpose;
 	char *min;
 	char *max;
-	char *ptype;
 	char *ref;
 	char *value;
 	char *restore;

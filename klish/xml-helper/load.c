@@ -327,7 +327,6 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ptype = NULL;
 	ientry.ref = NULL;
 	ientry.value = NULL;
 	ientry.restore = "false";
@@ -399,7 +398,6 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ptype = NULL;
 	ientry.ref = NULL;
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
@@ -513,7 +511,6 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
-	ientry.ptype = kxml_node_attr(element, "ptype");
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
@@ -568,7 +565,6 @@ err:
 	kxml_node_attr_free(ientry.mode);
 	kxml_node_attr_free(ientry.min);
 	kxml_node_attr_free(ientry.max);
-	kxml_node_attr_free(ientry.ptype);
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.order);
@@ -598,7 +594,6 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ptype = kxml_node_attr(element, "ptype");
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
@@ -634,7 +629,6 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 err:
 	kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
-	kxml_node_attr_free(ientry.ptype);
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
@@ -727,7 +721,6 @@ static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	ientry.purpose = kxml_node_attr(element, "common");;
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
-	ientry.ptype = kxml_node_attr(element, "ptype");
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
@@ -768,7 +761,6 @@ err:
 	kxml_node_attr_free(ientry.mode);
 	kxml_node_attr_free(ientry.min);
 	kxml_node_attr_free(ientry.max);
-	kxml_node_attr_free(ientry.ptype);
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
@@ -800,7 +792,6 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.purpose = kxml_node_attr(element, "purpose");
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
-	ientry.ptype = kxml_node_attr(element, "ptype");
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
@@ -872,7 +863,6 @@ err:
 	kxml_node_attr_free(ientry.purpose);
 	kxml_node_attr_free(ientry.min);
 	kxml_node_attr_free(ientry.max);
-	kxml_node_attr_free(ientry.ptype);
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
