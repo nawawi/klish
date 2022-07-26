@@ -799,7 +799,10 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.filter = kxml_node_attr(element, "filter");
 
 	// Parent must be a KLISH or ENTRY tag
-	if ((parent_tag != KTAG_KLISH) && (parent_tag != KTAG_ENTRY)) {
+	if ((parent_tag == KTAG_ACTION) ||
+		(parent_tag == KTAG_PLUGIN) ||
+//		(parent_tag == KTAG_HOTKEY) ||
+		(parent_tag == KTAG_NSPACE)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ENTRY tag",
 			kxml_tag_name(parent_tag));

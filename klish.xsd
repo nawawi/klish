@@ -30,7 +30,7 @@
 	<xs:element name="DETAIL" type="detail_t"/>
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
-	<xs:element name="NAMESPACE" type="namespace_t"/> <!-- Wrapper -->
+	<xs:element name="NSPACE" type="nspace_t"/> <!-- Wrapper -->
 	<xs:element name="VAR" type="var_t"/>
 	<xs:element name="WATCHDOG" type="wdog_t"/>
 	<xs:element name="HOTKEY" type="hotkey_t"/>
@@ -168,7 +168,7 @@
 		<xs:choice>
 			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
@@ -216,7 +216,7 @@
 -->
 	<xs:complexType name="view_t">
 		<xs:sequence>
-			<xs:element ref="NAMESPACE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
@@ -511,7 +511,7 @@
 
 <!--
 *******************************************************
-* <NAMESPACE> import commands from specific view to current view.
+* <NSPACE> import commands from specific view to current view.
 *
 * ref - the view to import commands from
 *
@@ -535,7 +535,7 @@
 *
 ********************************************************
 -->
-	<xs:complexType name="namespace_t">
+	<xs:complexType name="nspace_t">
 		<xs:attribute name="ref" type="xs:string" use="required"/>
 		<xs:attribute name="prefix" type="xs:string" use="optional"/>
 		<xs:attribute name="prefix_help" type="xs:string" use="optional"/>
