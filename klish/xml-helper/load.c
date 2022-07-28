@@ -51,6 +51,9 @@ typedef enum {
 	KTAG_NSPACE,
 	KTAG_KLISH,
 	KTAG_ENTRY,
+	KTAG_COND,
+	KTAG_COMPL,
+	KTAG_HELP,
 	KTAG_MAX,
 } ktags_e;
 
@@ -68,6 +71,9 @@ static const char * const kxml_tags[] = {
 	"NSPACE",
 	"KLISH",
 	"ENTRY",
+	"COND",
+	"COMPL",
+	"HELP",
 };
 
 static kxml_process_fn *kxml_handlers[] = {
@@ -84,6 +90,9 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_nspace,
 	process_klish,
 	process_entry,
+	process_command,
+	process_command,
+	process_command,
 };
 
 
@@ -334,6 +343,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
+	// TODO: VIEW or scheme can be a parent
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
@@ -398,14 +408,16 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ref = NULL;
+	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
 	ientry.order = "true";
 	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
-	if (parent_tag != KTAG_KLISH) {
+	// TODO: Add to scheme or to entry
+	if ((parent_tag != KTAG_KLISH) &&
+		(KTAG_VIEW != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PTYPE tag",
 			kxml_tag_name(parent_tag));
@@ -523,7 +535,14 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 
 	if ((KTAG_COMMAND != parent_tag) &&
 		(KTAG_PARAM != parent_tag) &&
-		(KTAG_ENTRY != parent_tag)) {
+		(KTAG_ENTRY != parent_tag) &&
+		(KTAG_SWITCH != parent_tag) &&
+		(KTAG_SUBCOMMAND != parent_tag) &&
+		(KTAG_MULTI != parent_tag) &&
+		(KTAG_COND != parent_tag) &&
+		(KTAG_COMPL != parent_tag) &&
+		(KTAG_HELP != parent_tag) &&
+		(KTAG_PTYPE != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain PARAM tag",
 			kxml_tag_name(parent_tag));
@@ -590,14 +609,14 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	}
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "false";
-	ientry.mode = "switch";
+	ientry.mode = "sequence";
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = kxml_node_attr(element, "restore");
-	ientry.order = kxml_node_attr(element, "order");
+	ientry.order = "false";
 	ientry.filter = kxml_node_attr(element, "filter");
 
 	entry = ientry_load(&ientry, error);
@@ -632,7 +651,6 @@ err:
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.restore);
-	kxml_node_attr_free(ientry.order);
 	kxml_node_attr_free(ientry.filter);
 
 	return res;
@@ -662,9 +680,15 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	if (!action)
 		goto err;
 
-	if ((parent_tag != KTAG_ENTRY) &&
-		(parent_tag != KTAG_COMMAND) &&
-		(parent_tag != KTAG_PTYPE)) {
+	if ((KTAG_ENTRY != parent_tag) &&
+		(KTAG_COMMAND != parent_tag) &&
+		(KTAG_SWITCH != parent_tag) &&
+		(KTAG_SUBCOMMAND != parent_tag) &&
+		(KTAG_MULTI != parent_tag) &&
+		(KTAG_COND != parent_tag) &&
+		(KTAG_COMPL != parent_tag) &&
+		(KTAG_HELP != parent_tag) &&
+		(KTAG_PTYPE != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",
 			kxml_tag_name(parent_tag));
@@ -734,6 +758,9 @@ static bool_t process_nspace(const kxml_node_t *element, void *parent,
 	if ((KTAG_COMMAND != parent_tag) &&
 		(KTAG_VIEW != parent_tag) &&
 		(KTAG_PARAM != parent_tag) &&
+		(KTAG_SWITCH != parent_tag) &&
+		(KTAG_SUBCOMMAND != parent_tag) &&
+		(KTAG_MULTI != parent_tag) &&
 		(KTAG_ENTRY != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain NSPACE tag",
@@ -798,7 +825,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.order = kxml_node_attr(element, "order");
 	ientry.filter = kxml_node_attr(element, "filter");
 
-	// Parent must be a KLISH or ENTRY tag
+	// Check for parent tag type
 	if ((parent_tag == KTAG_ACTION) ||
 		(parent_tag == KTAG_PLUGIN) ||
 //		(parent_tag == KTAG_HOTKEY) ||
