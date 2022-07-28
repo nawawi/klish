@@ -23,6 +23,9 @@
 	<xs:element name="ENTRY" type="entry_t"/>
 	<xs:element name="VIEW" type="view_t"/> <!-- Wrapper -->
 	<xs:element name="COMMAND" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="COND" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="COMPL" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="HELP" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="STARTUP" type="startup_t"/>
 	<xs:element name="ACTION" type="action_t"/>
@@ -30,6 +33,9 @@
 	<xs:element name="DETAIL" type="detail_t"/>
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="SWITCH" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="MULTI" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="NSPACE" type="nspace_t"/> <!-- Wrapper -->
 	<xs:element name="VAR" type="var_t"/>
 	<xs:element name="WATCHDOG" type="wdog_t"/>
