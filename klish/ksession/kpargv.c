@@ -58,7 +58,9 @@ KADD_NESTED(pargv, kparg_t *, pargs);
 KNESTED_LEN(pargv, pargs);
 KNESTED_IS_EMPTY(pargv, pargs);
 KNESTED_ITER(pargv, pargs);
+KNESTED_ITERR(pargv, pargs);
 KNESTED_EACH(pargv, kparg_t *, pargs);
+KNESTED_EACHR(pargv, kparg_t *, pargs);
 
 // Completions
 KGET(pargv, faux_list_t *, completions);

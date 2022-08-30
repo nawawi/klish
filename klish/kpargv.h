@@ -88,7 +88,9 @@ ssize_t kpargv_pargs_len(const kpargv_t *pargv);
 bool_t kpargv_pargs_is_empty(const kpargv_t *pargv);
 bool_t kpargv_add_pargs(kpargv_t *pargv, kparg_t *parg);
 kpargv_pargs_node_t *kpargv_pargs_iter(const kpargv_t *pargv);
+kpargv_pargs_node_t *kpargv_pargs_iterr(const kpargv_t *pargv);
 kparg_t *kpargv_pargs_each(kpargv_pargs_node_t **iter);
+kparg_t *kpargv_pargs_eachr(kpargv_pargs_node_t **iter);
 kparg_t *kpargv_pargs_last(const kpargv_t *pargv);
 kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry);
 
