@@ -233,7 +233,6 @@ static int entry_name_kcompare(const void *key, const void *list_item)
 {
 	const char *f = (const char *)key;
 	const kparg_t *s = (const kparg_t *)list_item;
-syslog(LOG_DEBUG, "Compare %s %s\n", f, kentry_name(kparg_entry(s)));
 
 	return strcmp(f, kentry_name(kparg_entry(s)));
 }
@@ -250,17 +249,16 @@ faux_list_t *kpargv_find_multi(const kpargv_t *pargv, const char *entry_name)
 {
 	faux_list_t *list = NULL;
 	kparg_t *parg = NULL;
-	faux_list_node_t *saveptr = NULL;
+	faux_list_node_t *iter = NULL;
 
 	list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, NULL, NULL);
 	assert(list);
 
+	iter = faux_list_head(pargv->pargs);
 	while ((parg = (kparg_t *)faux_list_match(pargv->pargs,
-		entry_name_kcompare, entry_name, &saveptr))) {
-syslog(LOG_DEBUG, "Add %s\n", kentry_name(kparg_entry(parg)));
+		entry_name_kcompare, entry_name, &iter)))
 		faux_list_add(list, parg);
-	}
 
 	return list;
 }
