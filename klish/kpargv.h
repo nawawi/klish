@@ -93,6 +93,8 @@ kparg_t *kpargv_pargs_each(kpargv_pargs_node_t **iter);
 kparg_t *kpargv_pargs_eachr(kpargv_pargs_node_t **iter);
 kparg_t *kpargv_pargs_last(const kpargv_t *pargv);
 kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry);
+kparg_t *kpargv_find(const kpargv_t *pargv, const char *entry_name);
+faux_list_t *kpargv_find_multi(const kpargv_t *pargv, const char *entry_name);
 
 // Completions
 faux_list_t *kpargv_completions(const kpargv_t *pargv);

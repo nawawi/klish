@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 #include <faux/list.h>
 #include <faux/error.h>
@@ -225,6 +226,43 @@ bool_t kpargv_decline_candidate_parg(kpargv_t *pargv)
 	pargv->candidate_parg = NULL;
 
 	return BOOL_TRUE;
+}
+
+
+static int entry_name_kcompare(const void *key, const void *list_item)
+{
+	const char *f = (const char *)key;
+	const kparg_t *s = (const kparg_t *)list_item;
+syslog(LOG_DEBUG, "Compare %s %s\n", f, kentry_name(kparg_entry(s)));
+
+	return strcmp(f, kentry_name(kparg_entry(s)));
+}
+
+
+kparg_t *kpargv_find(const kpargv_t *pargv, const char *entry_name)
+{
+	return (kparg_t *)faux_list_find(pargv->pargs, entry_name_kcompare,
+		entry_name);
+}
+
+
+faux_list_t *kpargv_find_multi(const kpargv_t *pargv, const char *entry_name)
+{
+	faux_list_t *list = NULL;
+	kparg_t *parg = NULL;
+	faux_list_node_t *saveptr = NULL;
+
+	list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
+		NULL, NULL, NULL);
+	assert(list);
+
+	while ((parg = (kparg_t *)faux_list_match(pargv->pargs,
+		entry_name_kcompare, entry_name, &saveptr))) {
+syslog(LOG_DEBUG, "Add %s\n", kentry_name(kparg_entry(parg)));
+		faux_list_add(list, parg);
+	}
+
+	return list;
 }
 
 
