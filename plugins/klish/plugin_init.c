@@ -46,6 +46,8 @@ int kplugin_klish_init(kcontext_t *context)
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new_ext("completion_COMMAND", klish_completion_COMMAND,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
+	kplugin_add_syms(plugin, ksym_new_ext("help_COMMAND", klish_help_COMMAND,
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new_ext("COMMAND_CASE", klish_ptype_COMMAND_CASE,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new_ext("INT", klish_ptype_INT,

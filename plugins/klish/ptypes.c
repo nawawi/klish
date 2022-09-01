@@ -67,6 +67,42 @@ int klish_completion_COMMAND(kcontext_t *context)
 }
 
 
+/** @brief HELP: Consider ENTRY's name (or "value" field) as a command
+ *
+ * This help function has main ENTRY that is a child of COMMAND ptype
+ * ENTRY. The PTYPE entry has specific ENTRY (with name and possible value)
+ * as a parent.
+ *
+ * command (COMMON ENTRY) with name or value
+ *     ptype (PTYPE ENTRY)
+ *         help (HELP ENTRY) - start point
+ */
+int klish_help_COMMAND(kcontext_t *context)
+{
+	const kentry_t *entry = NULL;
+	const char *command_name = NULL;
+	const char *help_text = NULL;
+
+	entry = kcontext_candidate_entry(context);
+
+	command_name = kentry_value(entry);
+	if (!command_name)
+		command_name = kentry_name(entry);
+	assert(command_name);
+
+	help_text = kentry_help(entry);
+	if (!help_text)
+		help_text = kentry_value(entry);
+	if (!help_text)
+		help_text = kentry_name(entry);
+	assert(help_text);
+
+	printf("%s\n%s\n", command_name, help_text);
+
+	return 0;
+}
+
+
 /** @brief PTYPE: ENTRY's name (or "value" field) as a case sensitive command
  */
 int klish_ptype_COMMAND_CASE(kcontext_t *context)
