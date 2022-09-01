@@ -439,18 +439,31 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 }
 
 
-// Now help generation is simple. The 'prefix' (first help field) is generated
-// by PTYPE's help function. It can be something like 'ip', 'filter' i.e.
-// subcommand or '3..89', '<STRING>' i.e. description of type. The second
+// The most priority source of help is candidate's help ACTION output. Next
+// source is candidate's PTYPE help ACTION output.
+// Function generates two lines for one resulting help line. The first
+// component is a 'prefix' and the second component is 'text'.
+// The 'prefix' can be something like 'ip', 'filter' i.e.
+// subcommand or '3..89', '<STRING>' i.e. description of type. The 'text'
 // field is description of current parameter. For example 'Interface IP
 // address'. So the full help can be:
 // AAA.BBB.CCC.DDD Interface IP address
 // [ first field ] [ second field     ]
 //
-// Not all possible parameters can conform currently partly-typed line but it's
-// not clear how to filter them. Completions can be solution but completions are
-// not mandatory so parameter with non completed completion list can be filtered
-// out.
+// If not candidate parameter nor PTYPE contains the help functions the engine
+// tries to construct help itself.
+//
+// It uses the following sources for 'prefix':
+//  * 'help' field of PTYPE
+//  * 'value' field of PTYPE
+//  * 'name' field of PTYPE
+//  * 'value' field of parameter
+//  * 'name' field of parameter
+//
+// Engine uses the following sources for 'text':
+//  * 'help' field of parameter
+//  * 'value' field of parameter
+//  * 'name' field of parameter
 static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -501,77 +514,85 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *help = NULL;
 			const kentry_t *ptype = NULL;
-			char *prefix_str = NULL;
-			char *line_str = NULL;
+			bool_t help_added = BOOL_FALSE;
 
-			// Get help from PTYPE for 'prefix'
+
+			// Get PTYPE of parameter
 			ptype = kentry_nested_by_purpose(candidate,
 				KENTRY_PURPOSE_PTYPE);
-			if (!ptype) // Can't get help for ENTRY w/o PTYPE
-				continue;
-			help = kentry_nested_by_purpose(ptype,
-				KENTRY_PURPOSE_HELP);
-			if (help) {
-				kparg_t *parg = NULL;
-				int rc = -1;
-				parg = kparg_new(candidate, prefix);
-				kpargv_set_candidate_parg(pargv, parg);
-				ksession_exec_locally(ktpd->session,
-					help, pargv, &rc, &prefix_str);
-				// Remove \n
-				if (prefix_str) {
-					char *eol = NULL;
-					eol = faux_str_chars(prefix_str, "\n\r");
-					if (eol)
-						*eol = '\0';
-				}
-				kparg_free(parg);
-			}
-			if (!prefix_str) {
-				const char *str = NULL;
-				// If help is not defined use name of PTYPE.
-				// It can be informative enough.
-				str = kentry_help(ptype);
-				if (!str)
-					str = kentry_value(ptype);
-				if (!str)
-					str = kentry_name(ptype);
-				prefix_str = faux_str_dup(str);
-			}
-
-			// Get completion entry from candidate entry for 'line'
+			// Try to get help fn from parameter itself
 			help = kentry_nested_by_purpose(candidate,
 				KENTRY_PURPOSE_HELP);
+			if (!help && ptype)
+				help = kentry_nested_by_purpose(ptype,
+					KENTRY_PURPOSE_HELP);
+
+			// Generate help with found ACTION
 			if (help) {
+				char *out = NULL;
+				const char *str = NULL;
 				kparg_t *parg = NULL;
 				int rc = -1;
+				char *prefix_str = NULL;
+				char *line_str = NULL;
+
 				parg = kparg_new(candidate, prefix);
 				kpargv_set_candidate_parg(pargv, parg);
 				ksession_exec_locally(ktpd->session,
-					help, pargv, &rc, &line_str);
-				// Remove \n
-				if (line_str) {
-					char *eol = NULL;
-					eol = faux_str_chars(line_str, "\n\r");
-					if (eol)
-						*eol = '\0';
-				}
+					help, pargv, &rc, &out);
 				kparg_free(parg);
-			}
-			if (!line_str) {
-				const char *str = NULL;
-				// If help is not defined use name of ENTRY.
-				// It can be informative enough.
-				str = kentry_help(candidate);
-				if (!str)
-					str = kentry_value(candidate);
-				if (!str)
-					str = kentry_name(candidate);
-				line_str = faux_str_dup(str);
+
+				str = out;
+				do {
+					prefix_str = faux_str_getline(str, &str);
+					if (!prefix_str)
+						break;
+					line_str = faux_str_getline(str, &str);
+					if (!line_str) {
+						faux_str_free(prefix_str);
+						break;
+					}
+					help_struct = help_new(prefix_str, line_str);
+					faux_list_add(help_list, help_struct);
+					help_added = BOOL_TRUE;
+				} while (line_str);
+				faux_str_free(out);
 			}
 
-			help_struct = help_new(prefix_str, line_str);
-			faux_list_add(help_list, help_struct);
+
+			// Generate help with available information
+			if (!help_added) {
+				const char *prefix_str = NULL;
+				const char *line_str = NULL;
+
+				// Prefix_str
+				if (ptype) {
+					prefix_str = kentry_help(ptype);
+					if (!prefix_str)
+						prefix_str = kentry_value(ptype);
+					if (!prefix_str)
+						prefix_str = kentry_name(ptype);
+				} else {
+					prefix_str = kentry_value(candidate);
+					if (!prefix_str)
+						prefix_str = kentry_name(candidate);
+				}
+				assert(prefix_str);
+
+				// Line_str
+				line_str = kentry_help(candidate);
+				if (!line_str)
+					line_str = kentry_value(candidate);
+				if (!line_str)
+					line_str = kentry_name(candidate);
+				assert(line_str);
+
+				help_struct = help_new(
+					faux_str_dup(prefix_str),
+					faux_str_dup(line_str));
+				faux_list_add(help_list, help_struct);
+				help_added = BOOL_TRUE;
+			}
 		}
 
 		// Put help list to message
