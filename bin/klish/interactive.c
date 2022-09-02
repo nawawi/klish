@@ -88,11 +88,32 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 }
 
 
+static bool_t process_prompt_param(tinyrl_t *tinyrl, const faux_msg_t *msg)
+{
+	char *prompt = NULL;
+
+	if (!tinyrl)
+		return BOOL_FALSE;
+	if (!msg)
+		return BOOL_FALSE;
+
+	prompt = faux_msg_get_str_param_by_type(msg, KTP_PARAM_PROMPT);
+	if (prompt) {
+		tinyrl_set_prompt(tinyrl, prompt);
+		faux_str_free(prompt);
+	}
+
+	return BOOL_TRUE;
+}
+
+
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
 	int rc = -1;
 	faux_error_t *error = NULL;
+
+	process_prompt_param(ctx->tinyrl, msg);
 
 	if (!ktp_session_retcode(ktp, &rc))
 		rc = -1;
@@ -230,6 +251,8 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 
+	process_prompt_param(ctx->tinyrl, msg);
+
 	prefix = faux_msg_get_str_param_by_type(msg, KTP_PARAM_PREFIX);
 
 	completions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -329,6 +352,8 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	size_t max_prefix_len = 0;
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
+
+	process_prompt_param(ctx->tinyrl, msg);
 
 	help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_NONUNIQUE,
 		help_compare, help_kcompare, help_free);

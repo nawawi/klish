@@ -46,7 +46,7 @@ int klish_tsym(kcontext_t *context)
 
 
 // Print content of ACTION script
-int klish_print(kcontext_t *context)
+int klish_printl(kcontext_t *context)
 {
 	const kaction_t *action = NULL;
 	const char *script = NULL;
@@ -58,6 +58,24 @@ int klish_print(kcontext_t *context)
 		script = "";
 
 	printf("%s\n", script);
+
+	return 0;
+}
+
+
+// Print content of ACTION script. Without additional '/n'
+int klish_print(kcontext_t *context)
+{
+	const kaction_t *action = NULL;
+	const char *script = NULL;
+
+	action = (kaction_t *)faux_list_data(kcontext_action_iter(context));
+
+	script = kaction_script(action);
+	if (faux_str_is_empty(script))
+		script = "";
+
+	printf("%s", script);
 
 	return 0;
 }
