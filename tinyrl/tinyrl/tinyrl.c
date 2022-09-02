@@ -258,6 +258,8 @@ const char *tinyrl_prompt(const tinyrl_t *tinyrl)
 
 void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt)
 {
+	const char *last_cr = NULL;
+
 	assert(tinyrl);
 	if (!tinyrl)
 		return;
@@ -266,7 +268,15 @@ void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt)
 		faux_str_free(tinyrl->prompt);
 	tinyrl->prompt = faux_str_dup(prompt);
 	tinyrl->prompt_len = strlen(tinyrl->prompt);
-	tinyrl->prompt_chars = utf8_nsyms(tinyrl->prompt, tinyrl->prompt_len);
+
+	// Prompt can contain '\n' characters so let prompt_chars count symbols
+	// of last line only.
+	last_cr = strrchr(tinyrl->prompt, '\n');
+	if (!last_cr)
+		last_cr = tinyrl->prompt;
+	else
+		last_cr++; // Skip '\n' itself
+	tinyrl->prompt_chars = utf8_nsyms(last_cr, tinyrl->prompt_len);
 }
 
 
