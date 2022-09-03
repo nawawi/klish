@@ -121,6 +121,47 @@ void ktpd_session_free(ktpd_session_t *ktpd)
 }
 
 
+static char *generate_prompt(ktpd_session_t *ktpd)
+{
+	kpath_levels_node_t *iter = NULL;
+	klevel_t *level = NULL;
+	char *prompt = NULL;
+
+	iter = kpath_iterr(ksession_path(ktpd->session));
+	while ((level = kpath_eachr(&iter))) {
+		const kentry_t *view = klevel_entry(level);
+		kentry_t *prompt_entry = kentry_nested_by_purpose(view,
+				KENTRY_PURPOSE_PROMPT);
+
+		if (!prompt_entry)
+			continue;
+
+		if (kentry_actions_len(prompt_entry) > 0) {
+			int rc = -1;
+			bool_t res = BOOL_FALSE;
+
+			res = ksession_exec_locally(ktpd->session,
+				prompt_entry, NULL, &rc, &prompt);
+			if (!res || (rc < 0) || !prompt) {
+				if (prompt)
+					faux_str_free(prompt);
+				prompt = NULL;
+			}
+		}
+
+		if (!prompt) {
+			if (kentry_value(prompt_entry))
+				prompt = faux_str_dup(kentry_value(prompt_entry));
+		}
+
+		if (prompt)
+			break;
+	}
+
+	return prompt;
+}
+
+
 static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -131,8 +172,6 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	bool_t dry_run = BOOL_FALSE;
 	uint32_t status = KTP_STATUS_NONE;
 	bool_t ret = BOOL_TRUE;
-	kpath_levels_node_t *iter = NULL;
-	klevel_t *level = NULL;
 	char *prompt = NULL;
 
 	assert(ktpd);
@@ -173,38 +212,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		status |= KTP_STATUS_EXIT;
 	}
 
-	// Generate prompt
-	iter = kpath_iterr(ksession_path(ktpd->session));
-	while ((level = kpath_eachr(&iter))) {
-		const kentry_t *view = klevel_entry(level);
-		kentry_t *prompt_entry = kentry_nested_by_purpose(view,
-				KENTRY_PURPOSE_PROMPT);
-
-		if (!prompt_entry)
-			continue;
-
-		if (kentry_actions_len(prompt_entry) > 0) {
-			int rc = -1;
-			bool_t res = BOOL_FALSE;
-
-			res = ksession_exec_locally(ktpd->session,
-				prompt_entry, NULL, &rc, &prompt);
-			if (!res || (rc < 0) || !prompt) {
-				if (prompt)
-					faux_str_free(prompt);
-				prompt = NULL;
-			}
-		}
-
-		if (!prompt) {
-			if (kentry_value(prompt_entry))
-				prompt = faux_str_dup(kentry_value(prompt_entry));
-		}
-
-		if (prompt)
-			break;
-	}
-
+	// Prepare ACK message
 	faux_msg_t *ack = ktp_msg_preform(cmd, status);
 	if (rc) {
 		uint8_t retcode8bit = 0;
@@ -217,6 +225,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_str_free(err);
 		ret = BOOL_FALSE;
 	}
+	// Generate prompt
+	prompt = generate_prompt(ktpd);
 	if (prompt) {
 		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
 		faux_str_free(prompt);
@@ -290,6 +300,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	faux_msg_t *ack = NULL;
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 	uint32_t status = KTP_STATUS_NONE;
+	char *prompt = NULL;
 
 	if (!ktpd)
 		return BOOL_FALSE;
@@ -324,6 +335,12 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ack = ktp_msg_preform(cmd, status);
 	retcode8bit = (uint8_t)(retcode & 0xff);
 	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
+	// Generate prompt
+	prompt = generate_prompt(ktpd);
+	if (prompt) {
+		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
+		faux_str_free(prompt);
+	}
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
