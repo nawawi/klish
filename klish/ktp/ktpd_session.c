@@ -162,6 +162,34 @@ static char *generate_prompt(ktpd_session_t *ktpd)
 }
 
 
+// Now it's not really an auth function. Just a hand-shake with client and
+// passing prompt to client.
+static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	ktp_cmd_e cmd = KTP_AUTH_ACK;
+	uint32_t status = KTP_STATUS_NONE;
+	char *prompt = NULL;
+	uint8_t retcode8bit = 0;
+
+	assert(ktpd);
+	assert(msg);
+
+	// Prepare ACK message
+	faux_msg_t *ack = ktp_msg_preform(cmd, status);
+	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
+	// Generate prompt
+	prompt = generate_prompt(ktpd);
+	if (prompt) {
+		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
+		faux_str_free(prompt);
+	}
+	faux_msg_send_async(ack, ktpd->async);
+	faux_msg_free(ack);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -685,6 +713,9 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
+	case KTP_AUTH:
+		ktpd_session_process_auth(ktpd, msg);
+		break;
 	case KTP_CMD:
 		ktpd_session_process_cmd(ktpd, msg);
 		break;

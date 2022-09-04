@@ -314,6 +314,44 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 }
 
 
+static bool_t ktp_session_process_auth_ack(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	uint8_t *retcode8bit = NULL;
+	ktp_status_e status = KTP_STATUS_NONE;
+	char *error_str = NULL;
+
+	assert(ktp);
+	assert(msg);
+
+	status = faux_msg_get_status(msg);
+
+	if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
+		(void **)&retcode8bit, NULL))
+		ktp->cmd_retcode = (int)(*retcode8bit);
+	error_str = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
+	if (error_str) {
+		faux_error_add(ktp->error, error_str);
+		faux_str_free(error_str);
+	}
+
+	ktp->cmd_retcode_available = BOOL_TRUE; // Answer from server was received
+	ktp->request_done = BOOL_TRUE;
+	ktp->state = KTP_SESSION_STATE_IDLE;
+	// Get exit flag from message
+	if (KTP_STATUS_IS_EXIT(status))
+		ktp->done = BOOL_TRUE;
+
+	// Execute external callback
+	if (ktp->cb[KTP_SESSION_CB_AUTH_ACK].fn)
+		((ktp_session_event_cb_fn)
+			ktp->cb[KTP_SESSION_CB_AUTH_ACK].fn)(
+			ktp, msg,
+			ktp->cb[KTP_SESSION_CB_AUTH_ACK].udata);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *msg)
 {
 	uint8_t *retcode8bit = NULL;
@@ -443,6 +481,13 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
+	case KTP_AUTH_ACK:
+		if (ktp->state != KTP_SESSION_STATE_UNAUTHORIZED) {
+			syslog(LOG_WARNING, "Unexpected KTP_AUTH_ACK was received\n");
+			break;
+		}
+		rc = ktp_session_process_auth_ack(ktp, msg);
+		break;
 	case KTP_CMD_ACK:
 		if (ktp->state != KTP_SESSION_STATE_WAIT_FOR_CMD) {
 			syslog(LOG_WARNING, "Unexpected KTP_CMD_ACK was received\n");
@@ -571,7 +616,8 @@ static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 		status |= KTP_STATUS_DRY_RUN;
 
 	req = ktp_msg_preform(cmd, status);
-	faux_msg_add_param(req, KTP_PARAM_LINE, line, strlen(line));
+	if (line)
+		faux_msg_add_param(req, KTP_PARAM_LINE, line, strlen(line));
 	faux_msg_send_async(req, ktp->async);
 	faux_msg_free(req);
 
@@ -593,6 +639,16 @@ bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	if (!ktp_session_req(ktp, KTP_CMD, line, error, dry_run))
 		return BOOL_FALSE;
 	ktp->state = KTP_SESSION_STATE_WAIT_FOR_CMD;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error)
+{
+	if (!ktp_session_req(ktp, KTP_AUTH, NULL, error, BOOL_FALSE))
+		return BOOL_FALSE;
+	ktp->state = KTP_SESSION_STATE_UNAUTHORIZED;
 
 	return BOOL_TRUE;
 }

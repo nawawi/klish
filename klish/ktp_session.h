@@ -58,6 +58,7 @@ typedef enum {
 typedef enum {
 	KTP_SESSION_CB_STDOUT,
 	KTP_SESSION_CB_STDERR,
+	KTP_SESSION_CB_AUTH_ACK,
 	KTP_SESSION_CB_CMD_ACK_INCOMPLETED,
 	KTP_SESSION_CB_CMD_ACK,
 	KTP_SESSION_CB_COMPLETION_ACK,
@@ -88,6 +89,7 @@ ktp_session_state_e ktp_session_state(const ktp_session_t *ktp);
 
 bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_t *error, bool_t dry_run);
+bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error);
 bool_t ktp_session_completion(ktp_session_t *ktp, const char *line,
 	bool_t dry_run);
 bool_t ktp_session_help(ktp_session_t *ktp, const char *line);

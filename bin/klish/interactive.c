@@ -23,11 +23,14 @@ typedef struct ctx_s {
 } ctx_t;
 
 
+bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
+static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
+	faux_error_t *error);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
@@ -42,6 +45,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	tinyrl_t *tinyrl = NULL;
 	int stdin_flags = 0;
 	char *hist_path = NULL;
+	int auth_rc = -1;
 
 	assert(ktp);
 	if (!ktp)
@@ -60,11 +64,19 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	tinyrl_bind_key(tinyrl, '\r', tinyrl_key_enter);
 	tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
 	tinyrl_bind_key(tinyrl, '?', tinyrl_key_help);
-	tinyrl_redisplay(tinyrl);
 
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
 	ctx.opts = opts;
+
+	// Now AUTH command is used only for starting hand-shake and getting
+	// prompt from the server. Generally it must be necessary for
+	// non-interactive session too but for now is not implemented.
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_AUTH_ACK, auth_ack_cb, &ctx);
+	if (!ktp_sync_auth(ktp, &auth_rc, ktp_session_error(ktp)))
+		goto cleanup;
+	if (auth_rc < 0)
+		goto cleanup;
 
 	// Don't stop interactive loop on each answer
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
@@ -72,10 +84,14 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_COMPLETION_ACK, completion_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_HELP_ACK, help_ack_cb, &ctx);
+
+	tinyrl_redisplay(tinyrl);
+
 	eloop = ktp_session_eloop(ktp);
 	faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
 	faux_eloop_loop(eloop);
 
+cleanup:
 	// Cleanup
 	if (tinyrl_busy(tinyrl))
 		faux_error_free(ktp_session_error(ktp));
@@ -102,6 +118,32 @@ static bool_t process_prompt_param(tinyrl_t *tinyrl, const faux_msg_t *msg)
 		tinyrl_set_prompt(tinyrl, prompt);
 		faux_str_free(prompt);
 	}
+
+	return BOOL_TRUE;
+}
+
+
+bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+	int rc = -1;
+	faux_error_t *error = NULL;
+
+	process_prompt_param(ctx->tinyrl, msg);
+
+	if (!ktp_session_retcode(ktp, &rc))
+		rc = -1;
+	error = ktp_session_error(ktp);
+	if ((rc < 0) && (faux_error_len(error) > 0)) {
+		faux_error_node_t *err_iter = faux_error_iter(error);
+		const char *err = NULL;
+		while ((err = faux_error_each(&err_iter)))
+			fprintf(stderr, "Error: %s\n", err);
+	}
+	faux_error_free(error);
+
+	// Happy compiler
+	msg = msg;
 
 	return BOOL_TRUE;
 }
@@ -400,4 +442,16 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	ktp = ktp; // happy compiler
 
 	return BOOL_TRUE;
+}
+
+
+static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
+	faux_error_t *error)
+{
+	if (!ktp_session_auth(ktp, error))
+		return BOOL_FALSE;
+
+	faux_eloop_loop(ktp_session_eloop(ktp));
+
+	return ktp_session_retcode(ktp, retcode);
 }
