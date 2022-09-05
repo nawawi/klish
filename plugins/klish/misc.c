@@ -76,6 +76,7 @@ int klish_print(kcontext_t *context)
 		script = "";
 
 	printf("%s", script);
+	fflush(stdout);
 
 	return 0;
 }

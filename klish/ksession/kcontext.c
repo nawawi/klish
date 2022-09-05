@@ -246,7 +246,7 @@ kplugin_t *kcontext_plugin(const kcontext_t *context)
 	if (context->plugin)
 		return context->plugin;
 
-	// If plugin is not explicitly cpecified then return parent plugin for
+	// If plugin is not explicitly specified then return parent plugin for
 	// currently executed sym (ACTION structure contains it).
 	action = kcontext_action(context);
 	if (!action)
