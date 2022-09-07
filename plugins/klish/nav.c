@@ -13,6 +13,7 @@
  * * pop [num] - Pop up path levels. Optional "num" argument specifies number
  *     of levels to pop. Default is 1.
  * * top - Pop up to first path level.
+ * * replace <view_name> - Replace current view by the specified one.
  * * exit - Exit klish.
  */
 
@@ -124,6 +125,29 @@ int klish_nav(kcontext_t *context)
 			new_view = kscheme_find_entry_by_path(
 				ksession_scheme(session), view_name);
 			if (!new_view) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			if (!kpath_push(path, klevel_new(new_view))) {
+				faux_argv_free(argv);
+				return -1;
+			}
+
+		// replace <view_name>
+		} else if (faux_str_casecmp(nav_cmd, "replace") == 0) {
+			const char *view_name = faux_argv_index(argv, 1);
+			kentry_t *new_view = NULL;
+			if (!view_name) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			new_view = kscheme_find_entry_by_path(
+				ksession_scheme(session), view_name);
+			if (!new_view) {
+				faux_argv_free(argv);
+				return -1;
+			}
+			if (!kpath_pop(path)) {
 				faux_argv_free(argv);
 				return -1;
 			}
