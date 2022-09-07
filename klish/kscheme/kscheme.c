@@ -252,6 +252,7 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 		ksym_t *sym = NULL;
 		kplugin_t *plugin = NULL;
 		const char *sym_ref = kaction_sym_ref(action);
+
 		sym = kscheme_find_sym(scheme, sym_ref, &plugin);
 		if (!sym) {
 			faux_error_sprintf(error, "Can't find symbol \"%s\"",
@@ -335,6 +336,8 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	// Firstly if ENTRY is link to another ENTRY then make a copy
 	if (kentry_ref_str(entry)) {
 		ref_entry = entry;
+		// Find the most deep real (non-link) object to reference to it
+		// i.e. the link can't reference a link.
 		while ((ref = kentry_ref_str(ref_entry))) {
 			ref_entry = kscheme_find_entry_by_path(scheme, ref);
 			if (!ref_entry) {
@@ -346,6 +349,7 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 			faux_error_sprintf(error, "Can't create link to ENTRY \"%s\"", ref);
 			return BOOL_FALSE;
 		}
+		return BOOL_TRUE;
 	}
 
 	// ACTIONs
