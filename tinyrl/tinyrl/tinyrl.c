@@ -340,7 +340,7 @@ static bool_t process_char(tinyrl_t *tinyrl, char key)
 	// Continue ESC sequence
 	if (tinyrl->esc_cont) {
 		// Broken sequence. Too long
-		if ((tinyrl->esc_p - tinyrl->esc_seq) >= (sizeof(tinyrl->esc_seq) - 1)) {
+		if ((tinyrl->esc_p - tinyrl->esc_seq) >= (long int)(sizeof(tinyrl->esc_seq) - 1)) {
 			tinyrl->esc_cont = BOOL_FALSE;
 			return BOOL_FALSE;
 		}
@@ -526,7 +526,7 @@ bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len)
 }
 
 
-bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len)
+bool_t tinyrl_line_delete(tinyrl_t *tinyrl, size_t start, size_t len)
 {
 	if (start >= tinyrl->line.len)
 		return BOOL_TRUE;

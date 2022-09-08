@@ -186,6 +186,11 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	tinyrl_read(ctx->tinyrl);
 
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
 	return BOOL_TRUE;
 }
 
@@ -212,6 +217,8 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_reset_line(tinyrl);
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
+	key = key; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
@@ -226,6 +233,8 @@ static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
+	key = key; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
@@ -239,6 +248,8 @@ static bool_t tinyrl_key_help(tinyrl_t *tinyrl, unsigned char key)
 	ktp_session_help(ctx->ktp, line);
 
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
+
+	key = key; // Happy compiler
 
 	return BOOL_TRUE;
 }

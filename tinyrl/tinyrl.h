@@ -104,7 +104,7 @@ size_t tinyrl_equal_part(const tinyrl_t *tinyrl,
 
 
 bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len);
-bool_t tinyrl_line_delete(tinyrl_t *tinyrl, off_t start, size_t len);
+bool_t tinyrl_line_delete(tinyrl_t *tinyrl, size_t start, size_t len);
 bool_t tinyrl_line_replace(tinyrl_t *tinyrl, const char *text);
 
 

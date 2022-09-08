@@ -42,7 +42,7 @@ typedef struct line_s {
 	char *str;
 	size_t size; // Size of buffer
 	size_t len; // Length of string
-	off_t pos;
+	size_t pos;
 } line_t;
 
 #define NUM_HANDLERS 256

@@ -76,9 +76,11 @@ bool_t tinyrl_key_kill(tinyrl_t *tinyrl, unsigned char key)
 
 	// delete the text to the end of the line 
 	tinyrl_delete_text(tinyrl, tinyrl->point, tinyrl->end);
-	// keep the compiler happy 
-	key = key;
 */
+	// Happy compiler
+	tinyrl = tinyrl;
+	key = key;
+
 	return BOOL_TRUE;
 }
 
@@ -91,9 +93,11 @@ bool_t tinyrl_key_yank(tinyrl_t *tinyrl, unsigned char key)
 		// insert the kill string at the current insertion point 
 		result = tinyrl_insert_text(tinyrl, tinyrl->kill_string);
 	}
-	// keep the compiler happy 
-	key = key;
 */
+	// Happy compiler
+	tinyrl = tinyrl;
+	key = key;
+
 	return result;
 }
 
@@ -130,6 +134,8 @@ bool_t tinyrl_key_up(tinyrl_t *tinyrl, unsigned char key)
 		return BOOL_TRUE;
 	tinyrl_line_replace(tinyrl, str);
 
+	key = key; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
@@ -144,6 +150,8 @@ bool_t tinyrl_key_down(tinyrl_t *tinyrl, unsigned char key)
 	if (!str)
 		return BOOL_TRUE;
 	tinyrl_line_replace(tinyrl, str);
+
+	key = key; // Happy compiler
 
 	return BOOL_TRUE;
 }
@@ -236,10 +244,11 @@ bool_t tinyrl_key_backword(tinyrl_t *tinyrl, unsigned char key)
         tinyrl_key_backspace(tinyrl, KEY_BS);
 
 	result = BOOL_TRUE;
-
-	// keep the compiler happy 
-	key = key;
 */
+	// Happy compiler
+	tinyrl = tinyrl;
+	key = key;
+
 	return result;
 }
 
@@ -278,11 +287,11 @@ bool_t tinyrl_key_erase_line(tinyrl_t *tinyrl, unsigned char key)
 	// delete the text from the start of the line 
 	tinyrl_delete_text(tinyrl, 0, end);
 	tinyrl->point = 0;
-
-	// keep the compiler happy 
-	key = key;
-	tinyrl = tinyrl;
 */
+	// Happy compiler
+	tinyrl = tinyrl;
+	key = key;
+
 	return BOOL_TRUE;
 }
 
@@ -306,8 +315,10 @@ bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 		// oops don't change the result and let the bell ring 
 		break;
 	}
-	// keep the compiler happy 
-	key = key;
 */
+	// Happy compiler
+	tinyrl = tinyrl;
+	key = key;
+
 	return result;
 }
