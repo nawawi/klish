@@ -70,6 +70,7 @@ const char *kcontext_script(const kcontext_t *context);
 bool_t kcontext_named_udata_new(kcontext_t *context,
 	const char *name, void *data, kudata_data_free_fn free_fn);
 void *kcontext_named_udata(const kcontext_t *context, const char *name);
+void *kcontext_udata(const kcontext_t *context);
 const kentry_t *kcontext_command(const kcontext_t *context);
 
 

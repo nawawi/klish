@@ -223,6 +223,22 @@ void *kcontext_named_udata(const kcontext_t *context, const char *name)
 }
 
 
+void *kcontext_udata(const kcontext_t *context)
+{
+	kplugin_t *plugin = NULL;
+
+	assert(context);
+	if (!context)
+		return NULL;
+
+	plugin = kcontext_plugin(context);
+	if (!plugin)
+		return NULL;
+
+	return kplugin_udata(plugin);
+}
+
+
 const kentry_t *kcontext_command(const kcontext_t *context)
 {
 	assert(context);
