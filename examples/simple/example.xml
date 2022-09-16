@@ -18,7 +18,9 @@
 
 <ENTRY name="main" mode="switch" container="true">
 
-<ENTRY name="prompt" purpose="prompt" value="&gt; "/>
+<ENTRY name="prompt" purpose="prompt">
+	<ACTION sym="prompt">%u@%h&gt; </ACTION>
+</ENTRY>
 
 <ENTRY name="exit" help="Exit view">
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
