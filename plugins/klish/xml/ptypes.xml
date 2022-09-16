@@ -8,12 +8,12 @@
 
 <ENTRY name="COMMAND" purpose="ptype">
 	<ENTRY name="completion" purpose="completion">
-		<ACTION sym="completion_COMMAND"/>
+		<ACTION sym="completion_COMMAND@klish"/>
 	</ENTRY>
 	<ENTRY name="help" purpose="help">
-		<ACTION sym="help_COMMAND"/>
+		<ACTION sym="help_COMMAND@klish"/>
 	</ENTRY>
-	<ACTION sym="COMMAND"/>
+	<ACTION sym="COMMAND@klish"/>
 </ENTRY>
 
 <ENTRY name="SUBCOMMAND" purpose="ptype" ref="/COMMAND"/>
