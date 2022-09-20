@@ -387,7 +387,7 @@ static void display_help(const tinyrl_t *tinyrl, faux_list_t *help_list,
 		help_t *help = (help_t *)faux_list_data(node);
 		tinyrl_printf(tinyrl, "  %s%*s%s\n",
 			help->prefix,
-			(max + 1 - strlen(help->prefix)),
+			(max + 2 - strlen(help->prefix)),
 			" ",
 			help->line);
 	}
