@@ -394,7 +394,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	kscheme_t *scheme = (kscheme_t *)parent;
+	bool_t rc = BOOL_FALSE;
 
 	// Mandatory PTYPE name
 	ientry.name = kxml_node_attr(element, "name");
@@ -414,8 +414,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.order = "true";
 	ientry.filter = "false";
 
-	// Parent must be a KLISH tag
-	// TODO: Add to scheme or to entry
+	// Parent must be a KLISH tag or VIEW
 	if ((parent_tag != KTAG_KLISH) &&
 		(KTAG_VIEW != parent_tag)) {
 		faux_error_sprintf(error,
@@ -423,7 +422,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 			kxml_tag_name(parent_tag));
 		goto err;
 	}
-	if (!scheme) {
+	if (!parent) {
 		faux_error_sprintf(error,
 			TAG": Broken parent object for PTYPE \"%s\"",
 			ientry.name);
@@ -434,7 +433,14 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	entry = ientry_load(&ientry, error);
 	if (!entry)
 		goto err;
-	if (!kscheme_add_entrys(scheme, entry)) {
+	if (KTAG_KLISH == parent_tag) {
+		kscheme_t *scheme = (kscheme_t *)parent;
+		rc = kscheme_add_entrys(scheme, entry);
+	} else {
+		kentry_t *pentry = (kentry_t *)parent;
+		rc = kentry_add_entrys(pentry, entry);
+	}
+	if (!rc) {
 		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\". "
 			"Probably duplication",
 			kentry_name(entry));
@@ -449,6 +455,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 err:
 	kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 
 	return res;
