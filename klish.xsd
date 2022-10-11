@@ -204,49 +204,44 @@
 *
 * name - A text name for entry.
 *
-* help - A text string which describes the purpose of the entry.
+* [help] - A text string which describes the purpose of the entry.
 *
-* ptype - Reference to a PTYPE name. This parameter will be 
-*	validated against the syntax specified for that type.
-*	The special value of "" indicates the parameter is a boolean flag.
-*	The verbatim presence of the texual name on the command line
-*	simply controls the conditional variable expansion for this 
-*	parameter.
+* [container="true/false"] - If entry is container. Container entry can't
+*	have parsable argument i.e. only container's children can be considered
+*	as a candidates to be a appropriate instance for parsed argument.
+*	For example VIEW is a container. It just structurizes commands but
+*	are not commands itself. Another example of container is a SWITCH.
+*	It describes parsing of child elements but has no special keyword
+*	while user typing.
 *
-* [mode] - Parameter mode. It can be "common", "switch", "subcommand", "multi".
+* [mode] - Entry mode. It can be "sequence", "switch", "empty". Default is
+*	"sequence".
 *
-* [prefix] - defines the prefix for an optional parameter. A prefix
-*	with this value on the command line will signify the presence
-*	of an additional argument which will be validated as the
-*	value of this parameter.
+* [purpose] - Purpose of entry. It can be "common", "ptype", "prompt", "cond",
+*	"completion", "help". Default is "common". Another "purposes" are
+*	processed in a special ways.
 *
-* [optional] - Specify whether parameter is optional. The allowed values
-*	is "true" or "false". It's false by default.
+* [min="<num>"] - Min number of entry occurence while user input parsing.
+*	Default is 1.
 *
-* [order] - Used only together with "optional=true" field.
-*	If order="true" then user can't enter previously declared
-*	optional parameters after current validated parameter.
-*	The allowed values is "true" or "false". It's false by default.
+* [max="<num>"] - Max number of entry occurence while user input parsing.
+*	Default is 1.
 *
-* [default] - defines a default value for a parameter. Any parameters
-*	at the end of command line which have default values need 
-*	not explicitly be entered.
+* [ref="<reference>"] - Entry can reference another entry.
 *
-* [value] - defines the user's value for subcommand. If this option
+* [value="<val>"] - defines the user's value for subcommand. If this option
 *	is defined the entered parameter will be compared to this
 *	value instead the "name" field. If this field is defined
 *	the mode of PARAM will be forced to "subcommand". The
 *	feature is implemented to support subcommands with the
 *	same names.
 *
-* [hidden] - define the visibility of the parameter while ${__line}
-*	and ${__params} auto variables expanding. The allowed values
-*	is "true" and "false".
+* [restore="true/false"] - Restore (or not) hierarchy level of executed
+*	entry. Default is "false".
 *
-* [test] - define the condition (see the description of 'test'
-*	utility) to process this parameter.
-*
-* [access]  - access rights
+* [order="true/false"] - If order="true" then user can't enter previously declared
+*	optional parameters after current validated parameter.
+*	The allowed values is "true" or "false". It's false by default.
 *
 * [filter="true/false"] - Developer can define 'filter' command to filter stdout
 *	of piped ("|") commands. Filter can't contain 'sync' ACTIONs. It will be
@@ -276,14 +271,21 @@
 
 	<xs:group name="entry_group_t">
 		<xs:choice>
+			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SUBCOMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
 
@@ -299,13 +301,13 @@
 		<xs:attribute name="purpose" type="entry_purpose_t" use="optional" default="common"/>
 		<xs:attribute name="min" type="xs:string" use="optional" default="1"/>
 		<xs:attribute name="max" type="xs:string" use="optional" default="1"/>
-		<xs:attribute name="ptype" type="xs:string" use="optional"/>
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="filter" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
+
 
 <!--
 *******************************************************
