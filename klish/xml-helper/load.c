@@ -32,7 +32,6 @@ static kxml_process_fn
 	process_view,
 	process_ptype,
 	process_plugin,
-	process_nspace,
 	process_klish,
 	process_entry;
 
@@ -49,7 +48,6 @@ typedef enum {
 	KTAG_VIEW,
 	KTAG_PTYPE,
 	KTAG_PLUGIN,
-	KTAG_NSPACE,
 	KTAG_KLISH,
 	KTAG_ENTRY,
 	KTAG_COND,
@@ -70,7 +68,6 @@ static const char * const kxml_tags[] = {
 	"VIEW",
 	"PTYPE",
 	"PLUGIN",
-	"NSPACE",
 	"KLISH",
 	"ENTRY",
 	"COND",
@@ -90,7 +87,6 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_view,
 	process_ptype,
 	process_plugin,
-	process_nspace,
 	process_klish,
 	process_entry,
 	process_command,
@@ -578,14 +574,15 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.purpose = "common";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ref = NULL;
+	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = NULL;
 	ientry.restore = "false";
 	ientry.order = "false";
 	ientry.filter = "false";
 
-	// Parent must be a KLISH tag
-	if (parent_tag != KTAG_KLISH) {
+	if ((parent_tag == KTAG_ACTION) ||
+//		(parent_tag == KTAG_HOTKEY) ||
+		(parent_tag == KTAG_PLUGIN)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
 			kxml_tag_name(parent_tag));
@@ -602,69 +599,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 err:
 	kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
-
-	return res;
-}
-
-
-// It's a namespace for really different objects but not for VIEWs only.
-static bool_t process_nspace(const kxml_node_t *element, void *parent,
-       faux_error_t *error)
-{
-	ientry_t ientry = {};
-	kentry_t *entry = NULL;
-	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-
-	// Mandatory NSPACE name
-	ientry.name = kxml_node_attr(element, "name");
-	if (!ientry.name) {
-		faux_error_sprintf(error, TAG": NSPACE without name");
-		return BOOL_FALSE;
-	}
-	ientry.help = kxml_node_attr(element, "help");
-	ientry.container = kxml_node_attr(element, "container");
-	ientry.mode = "common";
-	ientry.purpose = kxml_node_attr(element, "common");;
-	ientry.min = kxml_node_attr(element, "min");
-	ientry.max = kxml_node_attr(element, "max");
-	ientry.ref = kxml_node_attr(element, "ref");
-	if (!ientry.ref) {
-		faux_error_sprintf(error, TAG": NSPACE without reference");
-		return BOOL_FALSE;
-	}
-	ientry.value = kxml_node_attr(element, "value");
-	ientry.restore = kxml_node_attr(element, "restore");
-	ientry.order = kxml_node_attr(element, "order");
-	ientry.filter = "false";
-
-	if (	(KTAG_PLUGIN == parent_tag) ||
-//		(KTAG_HOTKEY == parent_tag) ||
-		(KTAG_ACTION == parent_tag)
-		) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain NSPACE tag",
-			kxml_tag_name(parent_tag));
-		kentry_free(entry);
-		goto err;
-	}
-
-	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
-		goto err;
-
-	// Don't process NSPACE child elements
-
-	res = BOOL_TRUE;
-err:
-	kxml_node_attr_free(ientry.name);
-	kxml_node_attr_free(ientry.help);
-	kxml_node_attr_free(ientry.container);
-	kxml_node_attr_free(ientry.min);
-	kxml_node_attr_free(ientry.max);
 	kxml_node_attr_free(ientry.ref);
-	kxml_node_attr_free(ientry.value);
-	kxml_node_attr_free(ientry.restore);
-	kxml_node_attr_free(ientry.order);
 
 	return res;
 }

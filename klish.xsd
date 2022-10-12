@@ -25,7 +25,6 @@
 	<xs:element name="ACTION" type="action_t"/>
 	<xs:element name="ENTRY" type="entry_t"/>
 	<xs:element name="VIEW" type="view_t"/> <!-- Wrapper -->
-	<xs:element name="NSPACE" type="nspace_t"/> <!-- Wrapper -->
 	<xs:element name="COMMAND" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
@@ -276,7 +275,6 @@
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
@@ -325,7 +323,6 @@
 		<xs:choice>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
@@ -338,6 +335,8 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
+		<xs:attribute name="ref" type="xs:string" use="optional"/>
+		<xs:attribute name="value" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 
@@ -357,16 +356,32 @@
 *
 ********************************************************
 -->
-	<xs:complexType name="view_t">
-		<xs:sequence>
-			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+
+	<xs:group name="view_group_t">
+		<xs:choice>
 			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SUBCOMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:choice>
+	</xs:group>
+
+	<xs:complexType name="view_t">
+		<xs:sequence>
+			<xs:group ref="view_group_t" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="prompt" type="xs:string" use="optional"/>
-		<xs:attribute name="access" type="xs:string" use="optional"/>
+		<xs:attribute name="help" type="xs:string" use="optional"/>
+		<xs:attribute name="ref" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 
@@ -500,145 +515,6 @@
 		<xs:attribute name="args" type="xs:string" use="optional"/>
 		<xs:attribute name="args_help" type="xs:string" use="optional"/>
 		<xs:attribute name="escape_chars" type="xs:string" use="optional"/>
-	</xs:complexType>
-
-
-<!--
-********************************************************
-* <OVERVIEW> specifies a textual description of the shell.
-*
-* This should provide instructions about key bindings and
-* escape sequences which can be used in the CLI.
-*
-********************************************************
--->
-	<xs:simpleType name="overview_t">
-		<xs:restriction base="xs:string">
-			<xs:whiteSpace value="preserve"/>
-		</xs:restriction>
-	</xs:simpleType>
-
-
-<!--
-********************************************************
-* <DETAIL> specifies a textual description.
-*
-* This may be used within the scope of a <COMMAND> 
-* element, in which case it would typically contain 
-* detailed usage instructions including examples.
-*
-* This may also be used within the scope of a <STARTUP>
-* element, in which case the text is used as the banner
-* details which are displayed on shell startup. This is
-* shown before any specified <ACTION> is executed.
-*
-* This text may also be used in the production of user manuals.
-********************************************************
--->
-	<xs:simpleType name="detail_t">
-		<xs:restriction base="xs:string">
-			<xs:whiteSpace value="preserve"/>
-		</xs:restriction>
-	</xs:simpleType>
-
-
-<!--
-*******************************************************
-* <NSPACE> import commands from specific view to current view.
-*
-* ref - the view to import commands from
-*
-* [prefix] - the prefix for imported commands
-*
-* [prefix_help] - the help for namespace prefix
-*
-* [help] - a boolean flag to use imported
-*	commands while help
-*
-* [completion] - a boolean flag to use imported
-*	commands while completion
-*
-* [context_help] - a boolean flag to use imported
-*	commands while context help
-*
-* [inherit] - a boolean flag to inherit nested
-*	namespace commands recursively
-*
-* [access] - access rights
-*
-********************************************************
--->
-	<xs:complexType name="nspace_t">
-		<xs:attribute name="ref" type="xs:string" use="required"/>
-		<xs:attribute name="prefix" type="xs:string" use="optional"/>
-		<xs:attribute name="prefix_help" type="xs:string" use="optional"/>
-		<xs:attribute name="help" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="completion" type="xs:boolean" use="optional" default="true"/>
-		<xs:attribute name="context_help" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="inherit" type="xs:boolean" use="optional" default="true"/>
-		<xs:attribute name="access" type="xs:string" use="optional"/>
-	</xs:complexType>
-
-
-<!--
-*******************************************************
-* <VAR> Specify the variable.
-*
-*
-*
-********************************************************
--->
-	<xs:complexType name="var_t">
-		<xs:sequence>
-			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="help" type="xs:string" use="optional"/>
-		<xs:attribute name="value" type="xs:string" use="optional"/>
-		<xs:attribute name="dynamic" type="xs:boolean" use="optional" default="false"/>
-	</xs:complexType>
-
-
-<!--
-*******************************************************
-* <WATCHDOG> is used to recover system after errors.
-*
-********************************************************
--->
-	<xs:complexType name="wdog_t">
-		<xs:sequence>
-			<xs:element ref="ACTION" minOccurs="1" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-
-
-
-
-
-
-<!--
-*******************************************************
-* <HOOK> is used to redefine internal hooks
-*
-* name - The name of internal hook (init, fini, access, log).
-*
-* [builtin] - specify the name of an internally registered
-*	function.
-*
-********************************************************
--->
-	<xs:simpleType name="hook_list_e">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="init"/>
-			<xs:enumeration value="fini"/>
-			<xs:enumeration value="access"/>
-			<xs:enumeration value="log"/>
-		</xs:restriction>
-	</xs:simpleType>
-
-	<xs:complexType name="hook_t">
-		<xs:attribute name="name" type="hook_list_e"/>
-		<xs:attribute name="builtin" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 </xs:schema>
