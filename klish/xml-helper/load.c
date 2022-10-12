@@ -426,10 +426,12 @@ err:
 }
 
 
-static kentry_t *add_entry_to_hierarchy(ktags_e parent_tag, void *parent,
+static kentry_t *add_entry_to_hierarchy(const kxml_node_t *element, void *parent,
 	ientry_t *ientry, faux_error_t *error)
 {
 	kentry_t *entry = NULL;
+	ktags_e tag = kxml_node_tag(element);
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
 	assert(ientry);
 
@@ -438,6 +440,16 @@ static kentry_t *add_entry_to_hierarchy(ktags_e parent_tag, void *parent,
 		faux_error_sprintf(error,
 			TAG": Broken parent object for entry \"%s\"",
 			ientry->name);
+		return NULL;
+	}
+
+	if ((parent_tag == KTAG_ACTION) ||
+//		(parent_tag == KTAG_HOTKEY) ||
+		(parent_tag == KTAG_PLUGIN)) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain %s tag \"%s\"",
+			kxml_tag_name(parent_tag),
+			kxml_tag_name(tag), ientry->name);
 		return NULL;
 	}
 
@@ -498,7 +510,6 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
 	// Mandatory entry name
 	ientry.name = kxml_node_attr(element, "name");
@@ -506,7 +517,6 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 		faux_error_sprintf(error, TAG": entry without name");
 		return BOOL_FALSE;
 	}
-
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = kxml_node_attr(element, "container");
 	ientry.mode = kxml_node_attr(element, "mode");
@@ -519,17 +529,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 	ientry.order = kxml_node_attr(element, "order");
 	ientry.filter = kxml_node_attr(element, "filter");
 
-	// Check for parent tag type. All other types really are entries too.
-	if ((parent_tag == KTAG_ACTION) ||
-//		(parent_tag == KTAG_HOTKEY) ||
-		(parent_tag == KTAG_PLUGIN)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain ENTRY tag",
-			kxml_tag_name(parent_tag));
-		goto err;
-	}
-
-	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
+	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
 
 	if (!process_children(element, entry, error))
@@ -560,7 +560,6 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
 	// Mandatory VIEW name
 	ientry.name = kxml_node_attr(element, "name");
@@ -580,16 +579,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.order = "false";
 	ientry.filter = "false";
 
-	if ((parent_tag == KTAG_ACTION) ||
-//		(parent_tag == KTAG_HOTKEY) ||
-		(parent_tag == KTAG_PLUGIN)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain VIEW tag",
-			kxml_tag_name(parent_tag));
-		goto err;
-	}
-
-	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
+	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
 
 	if (!process_children(element, entry, error))
@@ -611,7 +601,6 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
 
 	// Mandatory PTYPE name
 	ientry.name = kxml_node_attr(element, "name");
@@ -631,16 +620,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.order = "true";
 	ientry.filter = "false";
 
-	// Parent must be a KLISH tag or VIEW
-	if ((parent_tag != KTAG_KLISH) &&
-		(KTAG_VIEW != parent_tag)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain PTYPE tag",
-			kxml_tag_name(parent_tag));
-		goto err;
-	}
-
-	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
+	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
 
 	if (!process_children(element, entry, error))
