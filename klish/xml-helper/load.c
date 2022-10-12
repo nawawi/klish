@@ -430,9 +430,11 @@ err:
 }
 
 
-static bool_t add_entry_to_hierarchy(ktags_e parent_tag, void *parent,
+static kentry_t *add_entry_to_hierarchy(ktags_e parent_tag, void *parent,
 	ientry_t *ientry, faux_error_t *error)
 {
+	kentry_t *entry = NULL;
+
 	assert(ientry);
 
 	// Parent is mandatory field
@@ -440,59 +442,57 @@ static bool_t add_entry_to_hierarchy(ktags_e parent_tag, void *parent,
 		faux_error_sprintf(error,
 			TAG": Broken parent object for entry \"%s\"",
 			ientry->name);
-		return BOOL_FALSE;
+		return NULL;
 	}
 
 	// High level ENTRY
 	if (KTAG_KLISH == parent_tag) {
-		kentry_t *entry = NULL;
 		kscheme_t *scheme = (kscheme_t *)parent;
 
 		// Does such ENTRY already exist
 		entry = kscheme_find_entry(scheme, ientry->name);
 		if (entry) {
 			if (!ientry_parse(ientry, entry, error))
-				return BOOL_FALSE;
+				return NULL;
 
 		} else { // New entry object
 			entry = ientry_load(ientry, error);
 			if (!entry)
-				return BOOL_FALSE;
+				return NULL;
 			if (!kscheme_add_entrys(scheme, entry)) {
 				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
 					"Probably duplication",
 					kentry_name(entry));
 				kentry_free(entry);
-				return BOOL_FALSE;
+				return NULL;
 			}
 		}
 
 	// ENTRY within ENTRY
 	} else {
-		kentry_t *entry = NULL;
 		kentry_t *parent_entry = (kentry_t *)parent;
 
 		// Does such ENTRY already exist
 		entry = kentry_find_entry(parent_entry, ientry->name);
 		if (entry) {
 			if (!ientry_parse(ientry, entry, error))
-				return BOOL_FALSE;
+				return NULL;
 		} else { // New entry object
 			entry = ientry_load(ientry, error);
 			if (!entry)
-				return BOOL_FALSE;
+				return NULL;
 			kentry_set_parent(entry, parent_entry);
 			if (!kentry_add_entrys(parent_entry, entry)) {
 				faux_error_sprintf(error, TAG": Can't add entry \"%s\". "
 					"Probably duplication",
 					kentry_name(entry));
 				kentry_free(entry);
-				return BOOL_FALSE;
+				return NULL;
 			}
 		}
 	}
 
-	return BOOL_TRUE;
+	return entry;
 }
 
 
@@ -533,7 +533,7 @@ static bool_t process_entry(const kxml_node_t *element, void *parent,
 		goto err;
 	}
 
-	if (!add_entry_to_hierarchy(parent_tag, parent, &ientry, error))
+	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
 		goto err;
 
 	if (!process_children(element, entry, error))
@@ -592,7 +592,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 		goto err;
 	}
 
-	if (!add_entry_to_hierarchy(parent_tag, parent, &ientry, error))
+	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
 		goto err;
 
 	if (!process_children(element, entry, error))
@@ -614,7 +614,6 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	bool_t rc = BOOL_FALSE;
 
 	// Mandatory PTYPE name
 	ientry.name = kxml_node_attr(element, "name");
@@ -642,31 +641,9 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 			kxml_tag_name(parent_tag));
 		goto err;
 	}
-	if (!parent) {
-		faux_error_sprintf(error,
-			TAG": Broken parent object for PTYPE \"%s\"",
-			ientry.name);
-		goto err;
-	}
 
-	// Create and add object
-	entry = ientry_load(&ientry, error);
-	if (!entry)
+	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
 		goto err;
-	if (KTAG_KLISH == parent_tag) {
-		kscheme_t *scheme = (kscheme_t *)parent;
-		rc = kscheme_add_entrys(scheme, entry);
-	} else {
-		kentry_t *pentry = (kentry_t *)parent;
-		rc = kentry_add_entrys(pentry, entry);
-	}
-	if (!rc) {
-		faux_error_sprintf(error, TAG": Can't add PTYPE \"%s\". "
-			"Probably duplication",
-			kentry_name(entry));
-		kentry_free(entry);
-		goto err;
-	}
 
 	if (!process_children(element, entry, error))
 		goto err;
@@ -680,8 +657,6 @@ err:
 
 	return res;
 }
-
-
 
 
 static bool_t process_param(const kxml_node_t *element, void *parent,
