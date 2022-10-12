@@ -565,7 +565,6 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
 	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	kscheme_t *scheme = (kscheme_t *)parent;
 
 	// Mandatory VIEW name
 	ientry.name = kxml_node_attr(element, "name");
@@ -586,37 +585,15 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
-	// TODO: VIEW or scheme can be a parent
 	if (parent_tag != KTAG_KLISH) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain VIEW tag",
 			kxml_tag_name(parent_tag));
 		goto err;
 	}
-	if (!scheme) {
-		faux_error_sprintf(error,
-			TAG": Broken parent object for VIEW \"%s\"",
-			ientry.name);
-		goto err;
-	}
 
-	// Does VIEW already exist
-	entry = kscheme_find_entry(scheme, ientry.name);
-	if (entry) {
-		if (!ientry_parse(&ientry, entry, error))
-			goto err;
-	} else { // New VIEW object
-		entry = ientry_load(&ientry, error);
-		if (!entry)
-			goto err;
-		if (!kscheme_add_entrys(scheme, entry)) {
-			faux_error_sprintf(error, TAG": Can't add VIEW \"%s\". "
-				"Probably duplication",
-				kentry_name(entry));
-			kentry_free(entry);
-			goto err;
-		}
-	}
+	if (!add_entry_to_hierarchy(parent_tag, parent, &ientry, error))
+		goto err;
 
 	if (!process_children(element, entry, error))
 		goto err;
