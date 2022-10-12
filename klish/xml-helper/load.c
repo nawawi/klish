@@ -581,7 +581,7 @@ static bool_t process_view(const kxml_node_t *element, void *parent,
 	ientry.ref = NULL;
 	ientry.value = NULL;
 	ientry.restore = "false";
-	ientry.order = "true";
+	ientry.order = "false";
 	ientry.filter = "false";
 
 	// Parent must be a KLISH tag
@@ -607,6 +607,69 @@ err:
 }
 
 
+// It's a namespace for really different objects but not for VIEWs only.
+static bool_t process_nspace(const kxml_node_t *element, void *parent,
+       faux_error_t *error)
+{
+	ientry_t ientry = {};
+	kentry_t *entry = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+
+	// Mandatory NSPACE name
+	ientry.name = kxml_node_attr(element, "name");
+	if (!ientry.name) {
+		faux_error_sprintf(error, TAG": NSPACE without name");
+		return BOOL_FALSE;
+	}
+	ientry.help = kxml_node_attr(element, "help");
+	ientry.container = kxml_node_attr(element, "container");
+	ientry.mode = "common";
+	ientry.purpose = kxml_node_attr(element, "common");;
+	ientry.min = kxml_node_attr(element, "min");
+	ientry.max = kxml_node_attr(element, "max");
+	ientry.ref = kxml_node_attr(element, "ref");
+	if (!ientry.ref) {
+		faux_error_sprintf(error, TAG": NSPACE without reference");
+		return BOOL_FALSE;
+	}
+	ientry.value = kxml_node_attr(element, "value");
+	ientry.restore = kxml_node_attr(element, "restore");
+	ientry.order = kxml_node_attr(element, "order");
+	ientry.filter = "false";
+
+	if (	(KTAG_PLUGIN == parent_tag) ||
+//		(KTAG_HOTKEY == parent_tag) ||
+		(KTAG_ACTION == parent_tag)
+		) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain NSPACE tag",
+			kxml_tag_name(parent_tag));
+		kentry_free(entry);
+		goto err;
+	}
+
+	if (!(entry = add_entry_to_hierarchy(parent_tag, parent, &ientry, error)))
+		goto err;
+
+	// Don't process NSPACE child elements
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(ientry.name);
+	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.container);
+	kxml_node_attr_free(ientry.min);
+	kxml_node_attr_free(ientry.max);
+	kxml_node_attr_free(ientry.ref);
+	kxml_node_attr_free(ientry.value);
+	kxml_node_attr_free(ientry.restore);
+	kxml_node_attr_free(ientry.order);
+
+	return res;
+}
+
+
 static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
@@ -624,7 +687,7 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "true";
 	ientry.mode = "sequence";
-	ientry.purpose = "common";
+	ientry.purpose = "ptype";
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ref = kxml_node_attr(element, "ref");
@@ -815,78 +878,5 @@ err:
 }
 
 
-
-
-static bool_t process_nspace(const kxml_node_t *element, void *parent,
-	faux_error_t *error)
-{
-	ientry_t ientry = {};
-	kentry_t *entry = NULL;
-	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	kentry_t *parent_entry = (kentry_t *)parent;
-
-	// Mandatory NSPACE name
-	ientry.name = kxml_node_attr(element, "name");
-	if (!ientry.name) {
-		faux_error_sprintf(error, TAG": NSPACE without name");
-		return BOOL_FALSE;
-	}
-	ientry.help = kxml_node_attr(element, "help");
-	ientry.container = kxml_node_attr(element, "container");
-	ientry.mode = kxml_node_attr(element, "mode");;
-	ientry.purpose = kxml_node_attr(element, "common");;
-	ientry.min = kxml_node_attr(element, "min");
-	ientry.max = kxml_node_attr(element, "max");
-	ientry.ref = kxml_node_attr(element, "ref");
-	ientry.value = kxml_node_attr(element, "value");
-	ientry.restore = kxml_node_attr(element, "restore");
-	ientry.order = kxml_node_attr(element, "order");
-	ientry.filter = "false";
-
-	entry = ientry_load(&ientry, error);
-	if (!entry)
-		goto err;
-
-	if ((KTAG_COMMAND != parent_tag) &&
-		(KTAG_VIEW != parent_tag) &&
-		(KTAG_PARAM != parent_tag) &&
-		(KTAG_SWITCH != parent_tag) &&
-		(KTAG_SUBCOMMAND != parent_tag) &&
-		(KTAG_MULTI != parent_tag) &&
-		(KTAG_ENTRY != parent_tag)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain NSPACE tag",
-			kxml_tag_name(parent_tag));
-		kentry_free(entry);
-		goto err;
-	}
-	if (!kentry_add_entrys(parent_entry, entry)) {
-		faux_error_sprintf(error,
-			TAG": Can't add NSPACE \"%s\" to ENTRY \"%s\". "
-			"Probably duplication",
-			kentry_name(entry), kentry_name(parent_entry));
-		kentry_free(entry);
-		goto err;
-	}
-
-	if (!process_children(element, entry, error))
-		goto err;
-
-	res = BOOL_TRUE;
-err:
-	kxml_node_attr_free(ientry.name);
-	kxml_node_attr_free(ientry.help);
-	kxml_node_attr_free(ientry.container);
-	kxml_node_attr_free(ientry.mode);
-	kxml_node_attr_free(ientry.min);
-	kxml_node_attr_free(ientry.max);
-	kxml_node_attr_free(ientry.ref);
-	kxml_node_attr_free(ientry.value);
-	kxml_node_attr_free(ientry.restore);
-	kxml_node_attr_free(ientry.order);
-
-	return res;
-}
 
 

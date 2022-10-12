@@ -25,17 +25,17 @@
 	<xs:element name="ACTION" type="action_t"/>
 	<xs:element name="ENTRY" type="entry_t"/>
 	<xs:element name="VIEW" type="view_t"/> <!-- Wrapper -->
+	<xs:element name="NSPACE" type="nspace_t"/> <!-- Wrapper -->
 	<xs:element name="COMMAND" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="COND" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="COMPL" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="HELP" type="command_t"/> <!-- Wrapper -->
-	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="SWITCH" type="param_t"/> <!-- Wrapper -->
-	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="MULTI" type="param_t"/> <!-- Wrapper -->
-	<xs:element name="NSPACE" type="nspace_t"/> <!-- Wrapper -->
 
 
 <!--
@@ -316,19 +316,29 @@
 * name="<string>" - A textual name for this type. This name can be used to
 *	reference this type within a PARAM's ptype attribute.
 *
-* help="<string>" - Help string.
+* [help="<string>"] - Help string.
 *
 ********************************************************
 -->
-	<xs:complexType name="ptype_t">
-		<xs:sequence>
+
+	<xs:group name="ptype_group_t">
+		<xs:choice>
 			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="NSPACE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:choice>
+	</xs:group>
+
+	<xs:complexType name="ptype_t">
+		<xs:sequence>
+			<xs:group ref="ptype_group_t" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="help" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="optional"/>
 	</xs:complexType>
-
 
 
 <!--
