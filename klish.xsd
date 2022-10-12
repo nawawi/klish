@@ -333,7 +333,7 @@
 		<xs:sequence>
 			<xs:group ref="ptype_group_t" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="name" type="xs:string" use="optional"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>

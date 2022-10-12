@@ -601,12 +601,20 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
+	bool_t is_name = BOOL_FALSE;
 
-	// Mandatory PTYPE name
+	// Mandatory PTYPE name or reference
 	ientry.name = kxml_node_attr(element, "name");
-	if (!ientry.name) {
-		faux_error_sprintf(error, TAG": PTYPE without name");
-		return BOOL_FALSE;
+	ientry.ref = kxml_node_attr(element, "ref");
+	if (ientry.name) {
+		is_name = BOOL_TRUE;
+	} else {
+		if (!ientry.ref) {
+			faux_error_sprintf(error,
+				TAG": PTYPE without name or reference");
+			return BOOL_FALSE;
+		}
+		ientry.name = "__ptype";
 	}
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "true";
@@ -614,7 +622,6 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 	ientry.purpose = "ptype";
 	ientry.min = "1";
 	ientry.max = "1";
-	ientry.ref = kxml_node_attr(element, "ref");
 	ientry.value = kxml_node_attr(element, "value");
 	ientry.restore = "false";
 	ientry.order = "true";
@@ -628,7 +635,8 @@ static bool_t process_ptype(const kxml_node_t *element, void *parent,
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(ientry.name);
+	if (is_name)
+		kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
