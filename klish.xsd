@@ -440,8 +440,18 @@
 -->
 	<xs:group name="param_group_t">
 		<xs:choice>
-			<xs:element ref="PARAM"/>
-			<xs:element ref="ENTRY"/>
+			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ENTRY" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PTYPE" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="VIEW" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="FILTER" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
 
@@ -451,13 +461,15 @@
 			<xs:group ref="param_group_t" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="help" type="xs:string" use="required"/>
-		<xs:attribute name="ptype" type="xs:string" use="required"/>
+		<xs:attribute name="help" type="xs:string" use="optional"/>
+		<xs:attribute name="ptype" type="xs:string" use="optional"/>
 		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="sequence"/>
-		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="min" type="xs:string" use="optional" default="1"/>
+		<xs:attribute name="max" type="xs:string" use="optional" default="1"/>
+		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
+		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
-
 
 
 <!--
@@ -506,6 +518,7 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="optional"/>
 		<xs:attribute name="help" type="xs:string" use="optional"/>
+		<xs:attribute name="mode" type="entry_mode_t" use="optional" default="sequence"/>
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>

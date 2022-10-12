@@ -652,9 +652,8 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	kentry_t *parent_entry = (kentry_t *)parent;
-	kentry_t *entry_add_to = parent_entry;
+	ktags_e tag = kxml_node_tag(element);
+	bool_t is_mode = BOOL_FALSE;
 
 	// Mandatory PARAM name
 	ientry.name = kxml_node_attr(element, "name");
@@ -663,8 +662,27 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		return BOOL_FALSE;
 	}
 	ientry.help = kxml_node_attr(element, "help");
-	ientry.container = kxml_node_attr(element, "container");
-	ientry.mode = kxml_node_attr(element, "mode");
+	// Container
+	if (KTAG_PARAM == tag)
+		ientry.container = "false";
+	else
+		ientry.container = "true"; // SWITCH, SEQ
+	// Mode
+	switch (tag) {
+	case KTAG_PARAM:
+		ientry.mode = kxml_node_attr(element, "mode");
+		is_mode = BOOL_TRUE;
+		break;
+	case KTAG_SWITCH:
+		ientry.mode = "switch";
+		break;
+	case KTAG_SEQ:
+		ientry.mode = "sequence";
+		break;
+	default:
+		ientry.mode = "empty";
+		break;
+	}
 	ientry.purpose = "common";
 	ientry.min = kxml_node_attr(element, "min");
 	ientry.max = kxml_node_attr(element, "max");
@@ -674,29 +692,12 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	ientry.order = kxml_node_attr(element, "order");
 	ientry.filter = "false";
 
-	entry = ientry_load(&ientry, error);
-	if (!entry)
+	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
-
-	if ((KTAG_COMMAND != parent_tag) &&
-		(KTAG_PARAM != parent_tag) &&
-		(KTAG_ENTRY != parent_tag) &&
-		(KTAG_SWITCH != parent_tag) &&
-		(KTAG_SEQ != parent_tag) &&
-		(KTAG_COND != parent_tag) &&
-		(KTAG_COMPL != parent_tag) &&
-		(KTAG_HELP != parent_tag) &&
-		(KTAG_PTYPE != parent_tag)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain PARAM tag",
-			kxml_tag_name(parent_tag));
-		kentry_free(entry);
-		goto err;
-	}
 
 	// Add newly created entry to special container in 'sequence' mode if
 	// parent entry can has 'switch' mode.
-	if (kentry_mode(parent_entry) == KENTRY_MODE_SWITCH) {
+/*	if (kentry_mode(parent_entry) == KENTRY_MODE_SWITCH) {
 		const char *seq_entry_name = "__sequence";
 		kentry_t *seq_entry = kentry_find_entry(parent_entry, seq_entry_name);
 		if (!seq_entry) {
@@ -708,15 +709,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		}
 		entry_add_to = seq_entry;
 	}
-	if (!kentry_add_entrys(entry_add_to, entry)) {
-		faux_error_sprintf(error,
-			TAG": Can't add PARAM \"%s\" to ENTRY \"%s\". "
-			"Probably duplication",
-			kentry_name(entry_add_to), kentry_name(entry_add_to));
-		kentry_free(entry);
-		goto err;
-	}
-
+*/
 	if (!process_children(element, entry, error))
 		goto err;
 
@@ -724,8 +717,8 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 err:
 	kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
-	kxml_node_attr_free(ientry.container);
-	kxml_node_attr_free(ientry.mode);
+	if (is_mode)
+		kxml_node_attr_free(ientry.mode);
 	kxml_node_attr_free(ientry.min);
 	kxml_node_attr_free(ientry.max);
 	kxml_node_attr_free(ientry.ref);
@@ -775,7 +768,7 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	}
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "false";
-	ientry.mode = "sequence";
+	ientry.mode = kxml_node_attr(element, "mode");
 	// Purpose
 	switch (tag) {
 	case KTAG_COND:
@@ -822,6 +815,7 @@ err:
 	if (is_name)
 		kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
+	kxml_node_attr_free(ientry.mode);
 	kxml_node_attr_free(ientry.ref);
 	if ((KTAG_FILTER == tag) || (KTAG_COMMAND == tag)) {
 		kxml_node_attr_free(ientry.value);
