@@ -30,6 +30,7 @@
 	<xs:element name="COND" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="COMPL" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="HELP" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="PROMPT" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="SWITCH" type="param_t"/> <!-- Wrapper -->
@@ -280,6 +281,7 @@
 			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
@@ -367,6 +369,7 @@
 			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
@@ -497,21 +500,15 @@
 ********************************************************
 -->
 	<xs:complexType name="command_t">
+		<!--  Any order of tags and any number -->
 		<xs:sequence>
-			<!--  Any order of PARAM tags and any number -->
-			<xs:group ref="param_group_t" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="ACTION" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="COMMAND" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:group ref="entry_group_t" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="help" type="xs:string" use="required"/>
+		<xs:attribute name="name" type="xs:string" use="optional"/>
+		<xs:attribute name="help" type="xs:string" use="optional"/>
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
-		<xs:attribute name="view" type="xs:string" use="optional"/>
-		<xs:attribute name="viewid" type="xs:string" use="optional"/>
-		<xs:attribute name="access" type="xs:string" use="optional"/>
-		<xs:attribute name="args" type="xs:string" use="optional"/>
-		<xs:attribute name="args_help" type="xs:string" use="optional"/>
-		<xs:attribute name="escape_chars" type="xs:string" use="optional"/>
+		<xs:attribute name="value" type="xs:string" use="optional"/>
+		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 </xs:schema>

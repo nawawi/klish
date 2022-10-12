@@ -41,7 +41,6 @@ typedef enum {
 	KTAG_ACTION,
 	KTAG_PARAM,
 	KTAG_SWITCH, // PARAM alias
-	KTAG_SUBCOMMAND, // PARAM alias
 	KTAG_MULTI, // PARAM alias
 	KTAG_COMMAND,
 	KTAG_FILTER,
@@ -53,6 +52,7 @@ typedef enum {
 	KTAG_COND,
 	KTAG_COMPL,
 	KTAG_HELP,
+	KTAG_PROMPT,
 	KTAG_MAX,
 } ktags_e;
 
@@ -61,7 +61,6 @@ static const char * const kxml_tags[] = {
 	"ACTION",
 	"PARAM",
 	"SWITCH",
-	"SUBCOMMAND",
 	"MULTI",
 	"COMMAND",
 	"FILTER",
@@ -73,6 +72,7 @@ static const char * const kxml_tags[] = {
 	"COND",
 	"COMPL",
 	"HELP",
+	"PROMPT",
 };
 
 static kxml_process_fn *kxml_handlers[] = {
@@ -80,7 +80,6 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_action,
 	process_param,
 	process_param,
-	process_command,
 	process_param,
 	process_command,
 	process_command,
@@ -89,6 +88,7 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_plugin,
 	process_klish,
 	process_entry,
+	process_command,
 	process_command,
 	process_command,
 	process_command,
@@ -385,11 +385,11 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 
 	if (	(KTAG_ENTRY != parent_tag) &&
 		(KTAG_COMMAND != parent_tag) &&
-		(KTAG_SUBCOMMAND != parent_tag) &&
 		(KTAG_FILTER != parent_tag) &&
 		(KTAG_COND != parent_tag) &&
 		(KTAG_COMPL != parent_tag) &&
 		(KTAG_HELP != parent_tag) &&
+		(KTAG_PROMPT != parent_tag) &&
 		(KTAG_PTYPE != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",
@@ -673,7 +673,6 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		(KTAG_PARAM != parent_tag) &&
 		(KTAG_ENTRY != parent_tag) &&
 		(KTAG_SWITCH != parent_tag) &&
-		(KTAG_SUBCOMMAND != parent_tag) &&
 		(KTAG_MULTI != parent_tag) &&
 		(KTAG_COND != parent_tag) &&
 		(KTAG_COMPL != parent_tag) &&
@@ -728,32 +727,80 @@ err:
 }
 
 
+// COMMAND, FILTER, COND, COMPL, HELP, PROMPT
 static bool_t process_command(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
 	ientry_t ientry = {};
 	kentry_t *entry = NULL;
 	bool_t res = BOOL_FALSE;
-	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
-	kentry_t *parent_entry = (kentry_t *)parent;
+	ktags_e tag = kxml_node_tag(element);
+	bool_t is_name = BOOL_FALSE;
 
 	// Mandatory COMMAND name
 	ientry.name = kxml_node_attr(element, "name");
-	if (!ientry.name) {
-		faux_error_sprintf(error, TAG": COMMAND without name");
-		return BOOL_FALSE;
+	if (ientry.name) {
+		is_name = BOOL_TRUE;
+	} else {
+		switch (tag) {
+		case KTAG_COMMAND:
+		case KTAG_FILTER:
+			faux_error_sprintf(error, TAG": COMMAND without name");
+			return BOOL_FALSE;
+		case KTAG_COND:
+			ientry.name = "__cond";
+			break;
+		case KTAG_COMPL:
+			ientry.name = "__compl";
+			break;
+		case KTAG_HELP:
+			ientry.name = "__help";
+			break;
+		case KTAG_PROMPT:
+			ientry.name = "__prompt";
+			break;
+		default:
+			faux_error_sprintf(error, TAG": Unknown tag");
+			return BOOL_FALSE;
+		}
 	}
 	ientry.help = kxml_node_attr(element, "help");
 	ientry.container = "false";
 	ientry.mode = "sequence";
-	ientry.purpose = "common";
+	// Purpose
+	switch (tag) {
+	case KTAG_COND:
+		ientry.purpose = "cond";
+		break;
+	case KTAG_COMPL:
+		ientry.purpose = "completion";
+		break;
+	case KTAG_HELP:
+		ientry.purpose = "help";
+		break;
+	case KTAG_PROMPT:
+		ientry.purpose = "prompt";
+		break;
+	default:
+		ientry.purpose = "common";
+		break;
+	}
 	ientry.min = "1";
 	ientry.max = "1";
 	ientry.ref = kxml_node_attr(element, "ref");
-	ientry.value = kxml_node_attr(element, "value");
-	ientry.restore = kxml_node_attr(element, "restore");
+	if ((KTAG_FILTER == tag) || (KTAG_COMMAND == tag)) {
+		ientry.value = kxml_node_attr(element, "value");
+		ientry.restore = kxml_node_attr(element, "restore");
+	} else {
+		ientry.value = NULL;
+		ientry.restore = "false";
+	}
 	ientry.order = "false";
-	ientry.filter = kxml_node_attr(element, "filter");
+	// Filter
+	if (KTAG_FILTER == tag)
+		ientry.filter = "true";
+	else
+		ientry.filter = "false";
 
 	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
@@ -763,12 +810,14 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 
 	res = BOOL_TRUE;
 err:
-	kxml_node_attr_free(ientry.name);
+	if (is_name)
+		kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
 	kxml_node_attr_free(ientry.ref);
-	kxml_node_attr_free(ientry.value);
-	kxml_node_attr_free(ientry.restore);
-	kxml_node_attr_free(ientry.filter);
+	if ((KTAG_FILTER == tag) || (KTAG_COMMAND == tag)) {
+		kxml_node_attr_free(ientry.value);
+		kxml_node_attr_free(ientry.restore);
+	}
 
 	return res;
 }
