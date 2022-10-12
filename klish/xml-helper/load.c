@@ -41,7 +41,7 @@ typedef enum {
 	KTAG_ACTION,
 	KTAG_PARAM,
 	KTAG_SWITCH, // PARAM alias
-	KTAG_MULTI, // PARAM alias
+	KTAG_SEQ, // PARAM alias
 	KTAG_COMMAND,
 	KTAG_FILTER,
 	KTAG_VIEW,
@@ -61,7 +61,7 @@ static const char * const kxml_tags[] = {
 	"ACTION",
 	"PARAM",
 	"SWITCH",
-	"MULTI",
+	"SEQ",
 	"COMMAND",
 	"FILTER",
 	"VIEW",
@@ -645,6 +645,7 @@ err:
 }
 
 
+// PARAM, SWITCH, SEQ
 static bool_t process_param(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
@@ -681,7 +682,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 		(KTAG_PARAM != parent_tag) &&
 		(KTAG_ENTRY != parent_tag) &&
 		(KTAG_SWITCH != parent_tag) &&
-		(KTAG_MULTI != parent_tag) &&
+		(KTAG_SEQ != parent_tag) &&
 		(KTAG_COND != parent_tag) &&
 		(KTAG_COMPL != parent_tag) &&
 		(KTAG_HELP != parent_tag) &&

@@ -34,7 +34,7 @@
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="SWITCH" type="param_t"/> <!-- Wrapper -->
-	<xs:element name="MULTI" type="param_t"/> <!-- Wrapper -->
+	<xs:element name="SEQ" type="param_t"/> <!-- Wrapper -->
 
 
 <!--
@@ -283,7 +283,7 @@
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
 
@@ -371,7 +371,7 @@
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
 
