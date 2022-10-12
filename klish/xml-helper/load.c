@@ -80,7 +80,7 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_action,
 	process_param,
 	process_param,
-	process_param,
+	process_command,
 	process_param,
 	process_command,
 	process_command,
@@ -755,27 +755,8 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	ientry.order = "false";
 	ientry.filter = kxml_node_attr(element, "filter");
 
-	entry = ientry_load(&ientry, error);
-	if (!entry)
+	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
-
-	if ((KTAG_COMMAND != parent_tag) &&
-		(KTAG_VIEW != parent_tag) &&
-		(KTAG_ENTRY != parent_tag)) {
-		faux_error_sprintf(error,
-			TAG": Tag \"%s\" can't contain COMMAND tag",
-			kxml_tag_name(parent_tag));
-		kentry_free(entry);
-		goto err;
-	}
-	if (!kentry_add_entrys(parent_entry, entry)) {
-		faux_error_sprintf(error,
-			TAG": Can't add PARAM \"%s\" to ENTRY \"%s\". "
-			"Probably duplication",
-			kentry_name(entry), kentry_name(parent_entry));
-		kentry_free(entry);
-		goto err;
-	}
 
 	if (!process_children(element, entry, error))
 		goto err;

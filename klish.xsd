@@ -26,7 +26,6 @@
 	<xs:element name="ENTRY" type="entry_t"/>
 	<xs:element name="VIEW" type="view_t"/> <!-- Wrapper -->
 	<xs:element name="COMMAND" type="command_t"/> <!-- Wrapper -->
-	<xs:element name="SUBCOMMAND" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="FILTER" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="COND" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="COMPL" type="command_t"/> <!-- Wrapper -->
@@ -282,7 +281,6 @@
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="SUBCOMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
@@ -370,7 +368,6 @@
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="SUBCOMMAND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="MULTI" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
