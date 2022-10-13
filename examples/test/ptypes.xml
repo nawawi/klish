@@ -6,17 +6,15 @@
 	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
 
 
-<ENTRY name="COMMAND" purpose="ptype">
-	<ENTRY name="completion" purpose="completion">
-		<ACTION sym="completion_COMMAND"/>
-	</ENTRY>
-	<ENTRY name="help" purpose="help">
-		<ACTION sym="help_COMMAND"/>
-	</ENTRY>
-	<ACTION sym="COMMAND"/>
-</ENTRY>
-
-<ENTRY name="SUBCOMMAND" purpose="ptype" ref="/COMMAND"/>
+<PTYPE name="COMMAND">
+	<COMPL>
+		<ACTION sym="completion_COMMAND@klish"/>
+	</COMPL>
+	<HELP>
+		<ACTION sym="help_COMMAND@klish"/>
+	</HELP>
+	<ACTION sym="COMMAND@klish"/>
+</PTYPE>
 
 
 </KLISH>
