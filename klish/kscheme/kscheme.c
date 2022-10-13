@@ -228,7 +228,8 @@ static ksym_t *kscheme_find_sym(const kscheme_t *scheme, const char *name,
 
 
 bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
-	faux_error_t *error) {
+	faux_error_t *error)
+{
 	faux_list_node_t *iter = NULL;
 	kaction_t *action = NULL;
 	bool_t retcode = BOOL_TRUE;

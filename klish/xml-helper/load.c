@@ -645,6 +645,58 @@ err:
 }
 
 
+static kentry_t *create_ptype(const char *ptype,
+	const char *compl, const char *help)
+{
+	kentry_t *ptype_entry = NULL;
+	kaction_t *ptype_action = NULL;
+
+	if (!ptype)
+		return NULL;
+
+	ptype_action = kaction_new();
+	assert(ptype_action);
+	kaction_set_sym_ref(ptype_action, ptype);
+	kaction_set_permanent(ptype_action, TRI_TRUE);
+	ptype_entry = kentry_new("__ptype");
+	assert(ptype_entry);
+	kentry_set_purpose(ptype_entry, KENTRY_PURPOSE_PTYPE);
+	kentry_add_actions(ptype_entry, ptype_action);
+
+	if (compl) {
+		kentry_t *compl_entry = NULL;
+		kaction_t *compl_action = NULL;
+
+		compl_action = kaction_new();
+		assert(compl_action);
+		kaction_set_sym_ref(compl_action, compl);
+		kaction_set_permanent(compl_action, TRI_TRUE);
+		compl_entry = kentry_new("__compl");
+		assert(compl_entry);
+		kentry_set_purpose(compl_entry, KENTRY_PURPOSE_COMPLETION);
+		kentry_add_actions(compl_entry, compl_action);
+		kentry_add_entrys(ptype_entry, compl_entry);
+	}
+
+	if (help) {
+		kentry_t *help_entry = NULL;
+		kaction_t *help_action = NULL;
+
+		help_action = kaction_new();
+		assert(help_action);
+		kaction_set_sym_ref(help_action, help);
+		kaction_set_permanent(help_action, TRI_TRUE);
+		help_entry = kentry_new("__help");
+		assert(help_entry);
+		kentry_set_purpose(help_entry, KENTRY_PURPOSE_HELP);
+		kentry_add_actions(help_entry, help_action);
+		kentry_add_entrys(ptype_entry, help_entry);
+	}
+
+	return ptype_entry;
+}
+
+
 // PARAM, SWITCH, SEQ
 static bool_t process_param(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
@@ -738,6 +790,9 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e tag = kxml_node_tag(element);
 	bool_t is_name = BOOL_FALSE;
+	kentry_entrys_node_t *iter = NULL;
+	kentry_t *nested_entry = NULL;
+	bool_t ptype_exists = BOOL_FALSE;
 
 	// Mandatory COMMAND name
 	ientry.name = kxml_node_attr(element, "name");
@@ -810,6 +865,26 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	if (!process_children(element, entry, error))
 		goto err;
 
+	// Add special PTYPE for command. It uses symbol from internal klish
+	// plugin.
+	// Iterate child entries to find out is there PTYPE entry already. We
+	// can't use kentry_nested_by_purpose() because it's not calculated yet.
+	iter = kentry_entrys_iter(entry);
+	while ((nested_entry = kentry_entrys_each(&iter))) {
+		if (kentry_purpose(nested_entry) == KENTRY_PURPOSE_PTYPE) {
+			ptype_exists = BOOL_TRUE;
+			break;
+		}
+	}
+	if (!ptype_exists) {
+		kentry_t *ptype_entry = create_ptype(
+			"COMMAND@klish",
+			"completion_COMMAND@klish",
+			"help_COMMAND@klish");
+		assert(ptype_entry);
+		kentry_add_entrys(entry, ptype_entry);
+	}
+
 	res = BOOL_TRUE;
 err:
 	if (is_name)
@@ -824,7 +899,3 @@ err:
 
 	return res;
 }
-
-
-
-
