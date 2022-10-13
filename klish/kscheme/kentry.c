@@ -29,6 +29,8 @@ struct kentry_s {
 	faux_list_t *actions; // Nested ACTIONs
 	// Fast links to nested entries with special purposes.
 	kentry_t** nested_by_purpose;
+	void *udata;
+	kentry_udata_free_fn udata_free_fn;
 };
 
 
@@ -130,6 +132,8 @@ kentry_t *kentry_new(const char *name)
 	entry->restore = BOOL_FALSE;
 	entry->order = BOOL_FALSE;
 	entry->filter = BOOL_FALSE;
+	entry->udata = NULL;
+	entry->udata_free_fn = NULL;
 
 	// ENTRY list
 	entry->entrys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
@@ -169,6 +173,8 @@ static void kentry_free_common(kentry_t *entry)
 	faux_str_free(entry->value);
 	faux_str_free(entry->help);
 	faux_str_free(entry->ref_str);
+	if (entry->udata && entry->udata_free_fn)
+		entry->udata_free_fn(entry->udata);
 }
 
 
@@ -219,6 +225,8 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;
 	dst->nested_by_purpose = src->nested_by_purpose;
+	// udata - orig
+	// udata_free_fn - orig
 
 	return BOOL_TRUE;
 }
@@ -242,6 +250,37 @@ bool_t kentry_set_nested_by_purpose(kentry_t *entry, kentry_purpose_e purpose,
 		return BOOL_FALSE;
 
 	entry->nested_by_purpose[purpose] = nested;
+
+	return BOOL_TRUE;
+}
+
+
+void *kentry_udata(const kentry_t *entry)
+{
+	assert(entry);
+	if (!entry)
+		return NULL;
+
+	return entry->udata;
+}
+
+
+bool_t kentry_set_udata(kentry_t *entry, void *data, kentry_udata_free_fn free_fn)
+{
+	assert(entry);
+	if (!entry)
+		return BOOL_FALSE;
+
+	// Free old udata value
+	if (entry->udata) {
+		if (entry->udata_free_fn)
+			entry->udata_free_fn(entry->udata);
+		else if (free_fn)
+			free_fn(entry->udata);
+	}
+
+	entry->udata = data;
+	entry->udata_free_fn = free_fn;
 
 	return BOOL_TRUE;
 }

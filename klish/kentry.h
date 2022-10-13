@@ -41,6 +41,9 @@ typedef enum {
 } kentry_occurs_e;
 
 
+typedef bool_t (*kentry_udata_free_fn)(void *data);
+
+
 C_DECL_BEGIN
 
 kentry_t *kentry_new(const char *name);
@@ -86,6 +89,9 @@ bool_t kentry_set_order(kentry_t *entry, bool_t order);
 // Filter
 bool_t kentry_filter(const kentry_t *entry);
 bool_t kentry_set_filter(kentry_t *entry, bool_t filter);
+// User data
+void *kentry_udata(const kentry_t *entry);
+bool_t kentry_set_udata(kentry_t *entry, void *data, kentry_udata_free_fn udata_free_fn);
 
 // Nested ENTRY list
 faux_list_t *kentry_entrys(const kentry_t *entry);
