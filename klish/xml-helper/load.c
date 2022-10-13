@@ -646,22 +646,28 @@ err:
 
 
 static kentry_t *create_ptype(const char *ptype,
-	const char *compl, const char *help)
+	const char *compl, const char *help, const char *ref)
 {
 	kentry_t *ptype_entry = NULL;
-	kaction_t *ptype_action = NULL;
 
-	if (!ptype)
+	if (!ptype && !ref)
 		return NULL;
 
-	ptype_action = kaction_new();
-	assert(ptype_action);
-	kaction_set_sym_ref(ptype_action, ptype);
-	kaction_set_permanent(ptype_action, TRI_TRUE);
 	ptype_entry = kentry_new("__ptype");
 	assert(ptype_entry);
 	kentry_set_purpose(ptype_entry, KENTRY_PURPOSE_PTYPE);
-	kentry_add_actions(ptype_entry, ptype_action);
+
+	if (ref) {
+		kentry_set_ref_str(ptype_entry, ref);
+		// If ptype is reference then another actions is not needed.
+		return ptype_entry;
+	} else {
+		kaction_t *ptype_action = kaction_new();
+		assert(ptype_action);
+		kaction_set_sym_ref(ptype_action, ptype);
+		kaction_set_permanent(ptype_action, TRI_TRUE);
+		kentry_add_actions(ptype_entry, ptype_action);
+	}
 
 	if (compl) {
 		kentry_t *compl_entry = NULL;
@@ -706,6 +712,7 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e tag = kxml_node_tag(element);
 	bool_t is_mode = BOOL_FALSE;
+	char *ptype_str = NULL;
 
 	// Mandatory PARAM name
 	ientry.name = kxml_node_attr(element, "name");
@@ -747,21 +754,15 @@ static bool_t process_param(const kxml_node_t *element, void *parent,
 	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
 
-	// Add newly created entry to special container in 'sequence' mode if
-	// parent entry can has 'switch' mode.
-/*	if (kentry_mode(parent_entry) == KENTRY_MODE_SWITCH) {
-		const char *seq_entry_name = "__sequence";
-		kentry_t *seq_entry = kentry_find_entry(parent_entry, seq_entry_name);
-		if (!seq_entry) {
-			seq_entry = kentry_new(seq_entry_name);
-			assert(seq_entry);
-			kentry_set_container(seq_entry, BOOL_TRUE);
-			kentry_set_mode(seq_entry, KENTRY_MODE_SEQUENCE);
-			kentry_add_entrys(parent_entry, seq_entry);
-		}
-		entry_add_to = seq_entry;
+	// Special attribute "ptype". It exists for more simple XML only. It
+	// just links existing PTYPE. User can to don't specify nested tag PTYPE.
+	ptype_str = kxml_node_attr(element, "ptype");
+	if (ptype_str) {
+		kentry_t *ptype_entry = create_ptype(NULL, NULL, NULL, ptype_str);
+		assert(ptype_entry);
+		kentry_add_entrys(entry, ptype_entry);
 	}
-*/
+
 	if (!process_children(element, entry, error))
 		goto err;
 
@@ -776,6 +777,8 @@ err:
 	kxml_node_attr_free(ientry.ref);
 	kxml_node_attr_free(ientry.value);
 	kxml_node_attr_free(ientry.order);
+
+	kxml_node_attr_free(ptype_str);
 
 	return res;
 }
@@ -880,7 +883,8 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		kentry_t *ptype_entry = create_ptype(
 			"COMMAND@klish",
 			"completion_COMMAND@klish",
-			"help_COMMAND@klish");
+			"help_COMMAND@klish",
+			NULL);
 		assert(ptype_entry);
 		kentry_add_entrys(entry, ptype_entry);
 	}
