@@ -27,6 +27,7 @@ nobase_include_HEADERS += \
 	klish/kentry.h \
 	klish/kplugin.h \
 	klish/kaction.h \
+	klish/khotkey.h \
 	klish/ksym.h \
 	klish/kdb.h
 
@@ -35,6 +36,7 @@ nobase_include_HEADERS += \
 	klish/ischeme.h \
 	klish/iplugin.h \
 	klish/iaction.h \
+	klish/ihotkey.h \
 	klish/ientry.h
 
 # Session
