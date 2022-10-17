@@ -311,10 +311,7 @@
 *******************************************************
 * <PTYPE> is used to define the syntax for a parameter type.
 *
-* name="<string>" - A textual name for this type. This name can be used to
-*	reference this type within a PARAM's ptype attribute.
-*
-* [help="<string>"] - Help string.
+* See ENTRY tag for attributes description.
 *
 ********************************************************
 -->
@@ -344,15 +341,7 @@
 *******************************************************
 * <VIEW> defines the contents of a specific CLI view.
 *
-* name - a textual name for the view
-*
-* prompt - a textual definition of the prompt to be
-*	used whilst in this view.
-*	NB. The prompt may contain environment
-*	or dynamic variables which are expanded
-*	before display.
-*
-* [access] - access rights
+* See ENTRY tag for attributes description.
 *
 ********************************************************
 -->
@@ -389,52 +378,7 @@
 *******************************************************
 * <PARAM> This tag is used to define a parameter for a command.
 *
-* name - a textual name for this parameter. 
-*
-* help - a textual string which describes the purpose of the
-*	parameter.
-*
-* ptype - Reference to a PTYPE name. This parameter will be 
-*	validated against the syntax specified for that type.
-*	The special value of "" indicates the parameter is a boolean flag.
-*	The verbatim presence of the texual name on the command line
-*	simply controls the conditional variable expansion for this 
-*	parameter.
-*
-* [mode] - Parameter mode. It can be "common", "switch", "subcommand", "multi".
-*
-* [prefix] - defines the prefix for an optional parameter. A prefix
-*	with this value on the command line will signify the presence
-*	of an additional argument which will be validated as the
-*	value of this parameter.
-*
-* [optional] - Specify whether parameter is optional. The allowed values
-*	is "true" or "false". It's false by default.
-*
-* [order] - Used only together with "optional=true" field.
-*	If order="true" then user can't enter previously declared
-*	optional parameters after current validated parameter.
-*	The allowed values is "true" or "false". It's false by default.
-*
-* [default] - defines a default value for a parameter. Any parameters
-*	at the end of command line which have default values need 
-*	not explicitly be entered.
-*
-* [value] - defines the user's value for subcommand. If this option
-*	is defined the entered parameter will be compared to this
-*	value instead the "name" field. If this field is defined
-*	the mode of PARAM will be forced to "subcommand". The
-*	feature is implemented to support subcommands with the
-*	same names.
-*
-* [hidden] - define the visibility of the parameter while ${__line}
-*	and ${__params} auto variables expanding. The allowed values
-*	is "true" and "false".
-*
-* [test] - define the condition (see the description of 'test'
-*	utility) to process this parameter.
-*
-* [access]  - access rights
+* See ENTRY tag for attributes description.
 *
 ********************************************************
 -->
@@ -476,38 +420,7 @@
 *******************************************************
 * <COMMAND> is used to define a command within the CLI.
 *
-* name="<string>" - A textual name for this command. (This may contain
-*	spaces e.g. "display acl")
-*
-* help="<string>" - Help for command.
-*
-* [view] - defines the view which will be transitioned to, on 
-*	successful execution of any <ACTION> tag. By default the
-*	current view stays in scope.
-*
-* [viewid] - defined the new value of the ${VIEWID} variable to
-*	be used if a transition to a new view occurs. By default
-*	the viewid will retain it's current value.
-*
-* [access] - defines the user group/level to which execution of this 
-*	command is restricted. By default there is no restriction.
-*	The exact interpretation of this field is dependant on the
-*	client of libclish but for example the clish and tclish 
-*	applications map this to the UNIX user groups.
-*
-* [escape_chars] - defines the characters which will be escaped (e.g. \$) before
-*	being expanded as a variable. By default the following
-*	characters will be escaped `|$<>&()#
-*
-* [args] - defines a parameter name to be used to gather the rest of the
-*	command line after the formally defined parameters 
-*	(PARAM elements). The formatting of this parameter is a raw
-*	string containing as many words as there are on the rest of the
-*	command line.
-*
-* [args_help] - a textual string which describes the purpose of the 'args' 
-*	parameter. If the "args" attribute is given then this MUST be
-*	given also.
+* See ENTRY tag for attributes description.
 *
 ********************************************************
 -->
