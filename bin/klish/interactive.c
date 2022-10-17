@@ -328,6 +328,8 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	if (1 == completions_num) {
 		char *compl = (char *)faux_list_data(faux_list_head(completions));
 		tinyrl_line_insert(ctx->tinyrl, compl, strlen(compl));
+		// Add space after completion
+		tinyrl_line_insert(ctx->tinyrl, " ", 1);
 		tinyrl_redisplay(ctx->tinyrl);
 
 	// Multi possible completions
