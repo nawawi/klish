@@ -35,6 +35,7 @@ typedef enum {
 	KTP_PARAM_LINE = 'L',
 	KTP_PARAM_PREFIX = 'P', // Same as line but differ by meaning
 	KTP_PARAM_PROMPT = '$', // Same as line but differ by meaning
+	KTP_PARAM_HOTKEY = 'H', // key '\0' cmd
 	KTP_PARAM_ERROR = 'E',
 	KTP_PARAM_RETCODE = 'R',
 } ktp_param_e;

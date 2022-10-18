@@ -45,3 +45,30 @@ void klevel_free(klevel_t *level)
 
 	faux_free(level);
 }
+
+
+klevel_t *klevel_clone(const klevel_t *level)
+{
+	klevel_t *new_level = NULL;
+
+	assert(level);
+	if (!level)
+		return NULL;
+
+	new_level = klevel_new(klevel_entry(level));
+
+	return new_level;
+}
+
+
+bool_t klevel_is_equal(const klevel_t *f, const klevel_t *s)
+{
+	if (!f && !s)
+		return BOOL_TRUE;
+	if (!f || !s)
+		return BOOL_FALSE;
+	if (klevel_entry(f) == klevel_entry(s))
+		return BOOL_TRUE;
+
+	return BOOL_FALSE;
+}

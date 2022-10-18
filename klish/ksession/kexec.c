@@ -13,6 +13,7 @@
 #include <faux/eloop.h>
 #include <klish/khelper.h>
 #include <klish/kcontext.h>
+#include <klish/kpath.h>
 #include <klish/kexec.h>
 
 // Declaration of grabber. Implementation is in the grabber.c
@@ -27,6 +28,7 @@ struct kexec_s {
 	faux_buf_t *bufin;
 	faux_buf_t *bufout;
 	faux_buf_t *buferr;
+	kpath_t *saved_path;
 };
 
 // Dry-run
@@ -75,6 +77,7 @@ kexec_t *kexec_new()
 		return NULL;
 
 	exec->dry_run = BOOL_FALSE;
+	exec->saved_path = NULL;
 
 	// List of execute contexts
 	exec->contexts = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -111,6 +114,8 @@ void kexec_free(kexec_t *exec)
 	faux_buf_free(exec->bufin);
 	faux_buf_free(exec->bufout);
 	faux_buf_free(exec->buferr);
+
+	kpath_free(exec->saved_path);
 
 	free(exec);
 }
@@ -174,6 +179,24 @@ bool_t kexec_retcode(const kexec_t *exec, int *status)
 	if (status)
 		*status = kcontext_retcode(
 			(kcontext_t *)faux_list_data(faux_list_head(exec->contexts)));
+
+	return BOOL_TRUE;
+}
+
+
+bool_t kexec_path_is_changed(const kexec_t *exec)
+{
+	kpath_t *path = NULL;
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	context = (kcontext_t *)faux_list_data(faux_list_head(exec->contexts));
+	path = ksession_path(kcontext_session(context));
+	if (kpath_is_equal(exec->saved_path, path))
+		return BOOL_FALSE;
 
 	return BOOL_TRUE;
 }
@@ -245,6 +268,13 @@ static bool_t kexec_prepare(kexec_t *exec)
 		iter = faux_list_next_node(iter)) {
 		faux_list_node_t *next = faux_list_next_node(iter);
 		kcontext_t *context = (kcontext_t *)faux_list_data(iter);
+
+		// The first context is a context of main command. The other
+		// contexts are contexts of filters. So save current path from
+		// first context.
+		if (iter == faux_list_head(exec->contexts))
+			exec->saved_path = kpath_clone(
+				ksession_path(kcontext_session(context)));
 
 		// Set the same STDERR to all contexts
 		kcontext_set_stderr(context, global_stderr);

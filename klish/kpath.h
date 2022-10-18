@@ -23,6 +23,8 @@ klevel_t *klevel_new(const kentry_t *entry);
 void klevel_free(klevel_t *level);
 
 const kentry_t *klevel_entry(const klevel_t *level);
+klevel_t *klevel_clone(const klevel_t *level);
+bool_t klevel_is_equal(const klevel_t *f, const klevel_t *s);
 
 // Path
 
@@ -38,6 +40,9 @@ kpath_levels_node_t *kpath_iterr(const kpath_t *path);
 klevel_t *kpath_eachr(kpath_levels_node_t **iterr);
 kpath_levels_node_t *kpath_iter(const kpath_t *path);
 klevel_t *kpath_each(kpath_levels_node_t **iter);
+kpath_t *kpath_clone(const kpath_t *path);
+bool_t kpath_is_equal(const kpath_t *f, const kpath_t *s);
+
 
 C_DECL_END
 

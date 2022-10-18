@@ -131,3 +131,47 @@ klevel_t *kpath_each(kpath_levels_node_t **iter)
 {
 	return (klevel_t *)faux_list_each((faux_list_node_t **)iter);
 }
+
+
+kpath_t *kpath_clone(const kpath_t *path)
+{
+	kpath_t *new_path = NULL;
+	kpath_levels_node_t *iter = NULL;
+	klevel_t *level = NULL;
+
+	assert(path);
+	if (!path)
+		return NULL;
+
+	new_path = kpath_new();
+	iter = kpath_iter(path);
+	while ((level = kpath_each(&iter)))
+		kpath_push(new_path, klevel_clone(level));
+
+	return new_path;
+}
+
+
+bool_t kpath_is_equal(const kpath_t *f, const kpath_t *s)
+{
+	kpath_levels_node_t *iter_f = NULL;
+	kpath_levels_node_t *iter_s = NULL;
+	klevel_t *level_f = NULL;
+	klevel_t *level_s = NULL;
+
+	if (!f && !s)
+		return BOOL_TRUE;
+	if (!f || !s)
+		return BOOL_FALSE;
+
+	iter_f = kpath_iterr(f);
+	iter_s = kpath_iterr(s);
+	do {
+		level_f = kpath_eachr(&iter_f);
+		level_s = kpath_eachr(&iter_s);
+		if (!klevel_is_equal(level_f, level_s))
+			return BOOL_FALSE;
+	} while(level_f);
+
+	return BOOL_TRUE;
+}
