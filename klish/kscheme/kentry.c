@@ -9,6 +9,7 @@
 #include <klish/khelper.h>
 #include <klish/kaction.h>
 #include <klish/kentry.h>
+#include <klish/khotkey.h>
 
 
 struct kentry_s {
@@ -27,6 +28,7 @@ struct kentry_s {
 	bool_t filter; // Is entry filter. Filter can't have inline actions.
 	faux_list_t *entrys; // Nested ENTRYs
 	faux_list_t *actions; // Nested ACTIONs
+	faux_list_t *hotkeys; // Hotkeys
 	// Fast links to nested entries with special purposes.
 	kentry_t** nested_by_purpose;
 	void *udata;
@@ -105,6 +107,14 @@ KNESTED_LEN(entry, actions);
 KNESTED_ITER(entry, actions);
 KNESTED_EACH(entry, kaction_t *, actions);
 
+// HOTKEY list
+KGET(entry, faux_list_t *, hotkeys);
+static KCMP_NESTED(entry, hotkey, key);
+KADD_NESTED(entry, khotkey_t *, hotkeys);
+KNESTED_LEN(entry, hotkeys);
+KNESTED_ITER(entry, hotkeys);
+KNESTED_EACH(entry, khotkey_t *, hotkeys);
+
 
 kentry_t *kentry_new(const char *name)
 {
@@ -145,6 +155,11 @@ kentry_t *kentry_new(const char *name)
 	entry->actions = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, NULL, (void (*)(void *))kaction_free);
 	assert(entry->actions);
+
+	// HOTKEY list
+	entry->hotkeys = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+		kentry_hotkey_compare, NULL, (void (*)(void *))khotkey_free);
+	assert(entry->hotkeys);
 
 	entry->nested_by_purpose = faux_zmalloc(
 		KENTRY_PURPOSE_MAX * sizeof(*(entry->nested_by_purpose)));

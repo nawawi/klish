@@ -15,6 +15,10 @@
 #define END_ACTION_LIST NULL }
 #define ACTION &(iaction_t)
 
+#define HOTKEY_LIST .hotkeys = &(ihotkey_t * []) {
+#define END_HOTKEY_LIST NULL }
+#define HOTKEY &(ihotkey_t)
+
 #define PLUGIN_LIST .plugins = &(iplugin_t * []) {
 #define END_PLUGIN_LIST NULL }
 #define PLUGIN &(iplugin_t)

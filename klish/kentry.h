@@ -8,11 +8,13 @@
 
 #include <faux/list.h>
 #include <klish/kaction.h>
+#include <klish/khotkey.h>
 
 typedef struct kentry_s kentry_t;
 
 typedef faux_list_node_t kentry_entrys_node_t;
 typedef faux_list_node_t kentry_actions_node_t;
+typedef faux_list_node_t kentry_hotkeys_node_t;
 
 // Mode of nested entrys list
 typedef enum {
@@ -108,6 +110,13 @@ bool_t kentry_add_actions(kentry_t *entry, kaction_t *action);
 ssize_t kentry_actions_len(const kentry_t *entry);
 kentry_actions_node_t *kentry_actions_iter(const kentry_t *entry);
 kaction_t *kentry_actions_each(kentry_actions_node_t **iter);
+
+// HOTKEYs
+faux_list_t *kentry_hotkeys(const kentry_t *entry);
+bool_t kentry_add_hotkeys(kentry_t *entry, khotkey_t *hotkey);
+ssize_t kentry_hotkeys_len(const kentry_t *entry);
+kentry_hotkeys_node_t *kentry_hotkeys_iter(const kentry_t *entry);
+khotkey_t *kentry_hotkeys_each(kentry_hotkeys_node_t **iter);
 
 // Fast access for nested entries with special purposes
 kentry_t *kentry_nested_by_purpose(const kentry_t *entry, kentry_purpose_e purpose);

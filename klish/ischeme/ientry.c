@@ -227,6 +227,29 @@ bool_t ientry_parse_nested(const ientry_t *ientry, kentry_t *kentry,
 		}
 	}
 
+	// HOTKEY list
+	if (ientry->hotkeys) {
+		ihotkey_t **p_ihotkey = NULL;
+		for (p_ihotkey = *ientry->hotkeys; *p_ihotkey; p_ihotkey++) {
+			khotkey_t *khotkey = NULL;
+			ihotkey_t *ihotkey = *p_ihotkey;
+
+			khotkey = ihotkey_load(ihotkey, error);
+			if (!khotkey) {
+				retval = BOOL_FALSE;
+				continue;
+			}
+			if (!kentry_add_hotkeys(kentry, khotkey)) {
+				faux_error_sprintf(error,
+					TAG": Can't add HOTKEY \"%s\"",
+					khotkey_key(khotkey));
+				khotkey_free(khotkey);
+				retval = BOOL_FALSE;
+				continue;
+			}
+		}
+	}
+
 	if (!retval)
 		faux_error_sprintf(error, TAG" \"%s\": Illegal nested elements",
 			kentry_name(kentry));
@@ -278,6 +301,7 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 	char *purpose = NULL;
 	kentry_entrys_node_t *entrys_iter = NULL;
 	kentry_actions_node_t *actions_iter = NULL;
+	kentry_hotkeys_node_t *hotkeys_iter = NULL;
 	char *num = NULL;
 
 	tmp = faux_str_sprintf("%*cENTRY {\n", level, ' ');
@@ -391,6 +415,27 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 			faux_str_cat(&str, tmp);
 			faux_str_free(tmp);
 		}
+
+		// HOTKEY list
+		hotkeys_iter = kentry_hotkeys_iter(kentry);
+		if (hotkeys_iter) {
+			khotkey_t *hotkey = NULL;
+
+			tmp = faux_str_sprintf("\n%*cHOTKEY_LIST\n\n", level + 1, ' ');
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+
+			while ((hotkey = kentry_hotkeys_each(&hotkeys_iter))) {
+				tmp = ihotkey_deploy(hotkey, level + 2);
+				faux_str_cat(&str, tmp);
+				faux_str_free(tmp);
+			}
+
+			tmp = faux_str_sprintf("%*cEND_HOTKEY_LIST,\n", level + 1, ' ');
+			faux_str_cat(&str, tmp);
+			faux_str_free(tmp);
+		}
+
 	} // ref_str
 
 	tmp = faux_str_sprintf("%*c},\n\n", level, ' ');

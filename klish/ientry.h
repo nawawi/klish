@@ -8,6 +8,7 @@
 
 #include <faux/error.h>
 #include <klish/iaction.h>
+#include <klish/ihotkey.h>
 #include <klish/kentry.h>
 
 typedef struct ientry_s ientry_t;
@@ -27,6 +28,7 @@ struct ientry_s {
 	char *filter;
 	ientry_t * (*entrys)[]; // Nested entrys
 	iaction_t * (*actions)[];
+	ihotkey_t * (*hotkeys)[];
 };
 
 C_DECL_BEGIN
