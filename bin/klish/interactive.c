@@ -20,6 +20,7 @@ typedef struct ctx_s {
 	ktp_session_t *ktp;
 	tinyrl_t *tinyrl;
 	struct options *opts;
+	char *hotkeys[VT100_HOTKEY_MAP_LEN];
 } ctx_t;
 
 
@@ -31,6 +32,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
 	faux_error_t *error);
+static void reset_hotkey_table(ctx_t *ctx);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
@@ -68,6 +70,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
 	ctx.opts = opts;
+	faux_bzero(ctx.hotkeys, sizeof(ctx.hotkeys));
 
 	// Now AUTH command is used only for starting hand-shake and getting
 	// prompt from the server. Generally it must be necessary for
@@ -93,6 +96,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 
 cleanup:
 	// Cleanup
+	reset_hotkey_table(&ctx);
 	if (tinyrl_busy(tinyrl))
 		faux_error_free(ktp_session_error(ktp));
 	tinyrl_free(tinyrl);
@@ -123,6 +127,65 @@ static bool_t process_prompt_param(tinyrl_t *tinyrl, const faux_msg_t *msg)
 }
 
 
+static void reset_hotkey_table(ctx_t *ctx)
+{
+	size_t i = 0;
+
+	assert(ctx);
+
+	for (i = 0; i < VT100_HOTKEY_MAP_LEN; i++)
+		faux_str_free(ctx->hotkeys[i]);
+	faux_bzero(ctx->hotkeys, sizeof(ctx->hotkeys));
+}
+
+
+static bool_t process_hotkey_param(ctx_t *ctx, const faux_msg_t *msg)
+{
+	faux_list_node_t *iter = NULL;
+	uint32_t param_len = 0;
+	char *param_data = NULL;
+	uint16_t param_type = 0;
+
+	if (!ctx)
+		return BOOL_FALSE;
+	if (!msg)
+		return BOOL_FALSE;
+
+	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_HOTKEY,
+		(void **)&param_data, &param_len))
+		return BOOL_TRUE;
+
+	// If there is HOTKEY parameter then reinitialize whole hotkey table
+	reset_hotkey_table(ctx);
+
+	iter = faux_msg_init_param_iter(msg);
+	while (faux_msg_get_param_each(
+		&iter, &param_type, (void **)&param_data, &param_len)) {
+		char *cmd = NULL;
+		ssize_t code = -1;
+		size_t key_len = 0;
+
+		if (param_len < 3) // <key>'\0'<cmd>
+			continue;
+		if (KTP_PARAM_HOTKEY != param_type)
+			continue;
+		key_len = strlen(param_data); // Length of <key>
+		if (key_len < 1)
+			continue;
+		code = vt100_hotkey_decode(param_data);
+		if ((code < 0) || (code > VT100_HOTKEY_MAP_LEN))
+			continue;
+		cmd = faux_str_dupn(param_data + key_len + 1,
+			param_len - key_len - 1);
+		if (!cmd)
+			continue;
+		ctx->hotkeys[code] = cmd;
+	}
+
+	return BOOL_TRUE;
+}
+
+
 bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
@@ -130,6 +193,7 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	faux_error_t *error = NULL;
 
 	process_prompt_param(ctx->tinyrl, msg);
+	process_hotkey_param(ctx, msg);
 
 	if (!ktp_session_retcode(ktp, &rc))
 		rc = -1;
@@ -156,6 +220,7 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	faux_error_t *error = NULL;
 
 	process_prompt_param(ctx->tinyrl, msg);
+	process_hotkey_param(ctx, msg);
 
 	if (!ktp_session_retcode(ktp, &rc))
 		rc = -1;

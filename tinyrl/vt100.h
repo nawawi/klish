@@ -14,6 +14,9 @@
 typedef struct vt100_s vt100_t;
 
 
+#define VT100_HOTKEY_MAP_LEN 32
+
+
 // Key codes
 #define KEY_NUL	0	// ^@ Null character
 #define KEY_SOH	1	// ^A Start of heading, = console interrupt
@@ -86,7 +89,8 @@ int vt100_ierror(const vt100_t *vt100);
 int vt100_oerror(const vt100_t *vt100);
 int vt100_ieof(const vt100_t *vt100);
 int vt100_getchar(const vt100_t *vt100, unsigned char *c);
-vt100_esc_e vt100_esc_decode(const vt100_t *vt100, const char *esc_seq);
+vt100_esc_e vt100_esc_decode(const char *esc_seq);
+ssize_t vt100_hotkey_decode(const char *hotkey);
 
 void vt100_ding(const vt100_t *vt100);
 void vt100_attr_reset(const vt100_t *vt100);

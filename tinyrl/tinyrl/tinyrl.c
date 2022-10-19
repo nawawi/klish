@@ -469,7 +469,7 @@ bool_t tinyrl_esc_seq(tinyrl_t *tinyrl, const char *esc_seq)
 {
 	bool_t result = BOOL_FALSE;
 
-	switch (vt100_esc_decode(tinyrl->term, esc_seq)) {
+	switch (vt100_esc_decode(esc_seq)) {
 	case VT100_CURSOR_UP:
 		result = tinyrl_key_up(tinyrl, 0);
 		break;

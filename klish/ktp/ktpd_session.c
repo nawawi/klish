@@ -175,7 +175,7 @@ static bool_t add_hotkey(faux_msg_t *msg, khotkey_t *hotkey)
 	key = khotkey_key(hotkey);
 	key_s = strlen(key);
 	cmd = khotkey_cmd(hotkey);
-	cmd_s = strlen(key);
+	cmd_s = strlen(cmd);
 
 	whole_str = faux_zmalloc(key_s + 1 + cmd_s);
 	memcpy(whole_str, key, key_s);
