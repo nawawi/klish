@@ -117,6 +117,7 @@ bool_t kentry_add_hotkeys(kentry_t *entry, khotkey_t *hotkey);
 ssize_t kentry_hotkeys_len(const kentry_t *entry);
 kentry_hotkeys_node_t *kentry_hotkeys_iter(const kentry_t *entry);
 khotkey_t *kentry_hotkeys_each(kentry_hotkeys_node_t **iter);
+int kentry_hotkey_compare(const void *first, const void *second);
 
 // Fast access for nested entries with special purposes
 kentry_t *kentry_nested_by_purpose(const kentry_t *entry, kentry_purpose_e purpose);

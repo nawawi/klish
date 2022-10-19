@@ -53,7 +53,8 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run);
+	int *retcode, faux_error_t *error,
+	bool_t dry_run, bool_t *view_was_changed);
 static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -162,6 +163,79 @@ static char *generate_prompt(ktpd_session_t *ktpd)
 }
 
 
+// Format: <key>'\0'<cmd>
+static bool_t add_hotkey(faux_msg_t *msg, khotkey_t *hotkey)
+{
+	const char *key = NULL;
+	const char *cmd = NULL;
+	char *whole_str = NULL;
+	size_t key_s = 0;
+	size_t cmd_s = 0;
+
+	key = khotkey_key(hotkey);
+	key_s = strlen(key);
+	cmd = khotkey_cmd(hotkey);
+	cmd_s = strlen(key);
+
+	whole_str = faux_zmalloc(key_s + 1 + cmd_s);
+	memcpy(whole_str, key, key_s);
+	memcpy(whole_str + key_s + 1, cmd, cmd_s);
+
+	faux_msg_add_param(msg, KTP_PARAM_HOTKEY, whole_str, key_s + 1 + cmd_s);
+	faux_free(whole_str);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t add_hotkeys_to_msg(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	faux_list_t *list = NULL;
+	kpath_t *path = NULL;
+	kentry_hotkeys_node_t *l_iter = NULL;
+	khotkey_t *hotkey = NULL;
+
+	assert(ktpd);
+	assert(msg);
+
+	path = ksession_path(ktpd->session);
+	assert(path);
+	if (kpath_len(path) == 1) {
+		// We don't need additional list because there is only one
+		// VIEW in the path so hotkey's list is only one too. Get it.
+		list = kentry_hotkeys(klevel_entry(
+			(klevel_t *)faux_list_data(kpath_iter(path))));
+	} else {
+		faux_list_node_t *iterr = NULL;
+		klevel_t *level = NULL;
+		// Create temp hotkeys list to add hotkeys from all VIEWs in
+		// the path and exclude duplications. Don't free elements
+		// because they are just a references.
+		list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_UNIQUE,
+			kentry_hotkey_compare, NULL, NULL);
+		// Begin with the end. Because hotkeys from nested VIEWs has
+		// higher priority.
+		iterr = kpath_iterr(path);
+		while ((level = kpath_eachr(&iterr))) {
+			const kentry_t *entry = klevel_entry(level);
+			kentry_hotkeys_node_t *hk_iter = kentry_hotkeys_iter(entry);
+			while ((hotkey = kentry_hotkeys_each(&hk_iter)))
+				faux_list_add(list, hotkey);
+		}
+	}
+
+	// Add found hotkeys to msg
+	l_iter = faux_list_head(list);
+	while ((hotkey = (khotkey_t *)faux_list_each(&l_iter)))
+		add_hotkey(msg, hotkey);
+
+	if (kpath_len(path) != 1)
+		faux_list_free(list);
+
+	return BOOL_TRUE;
+}
+
+
 // Now it's not really an auth function. Just a hand-shake with client and
 // passing prompt to client.
 static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
@@ -183,6 +257,7 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
 		faux_str_free(prompt);
 	}
+	add_hotkeys_to_msg(ktpd, ack);
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
@@ -201,6 +276,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	uint32_t status = KTP_STATUS_NONE;
 	bool_t ret = BOOL_TRUE;
 	char *prompt = NULL;
+	bool_t view_was_changed = BOOL_FALSE;
 
 	assert(ktpd);
 	assert(msg);
@@ -218,7 +294,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	error = faux_error_new();
 
 	ktpd->exec = NULL;
-	rc = ktpd_session_exec(ktpd, line, &retcode, error, dry_run);
+	rc = ktpd_session_exec(ktpd, line, &retcode, error,
+		dry_run, &view_was_changed);
 	faux_str_free(line);
 
 	// Command is scheduled. Eloop will wait for ACTION completion.
@@ -259,6 +336,9 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
 		faux_str_free(prompt);
 	}
+	// Add hotkeys
+	if (view_was_changed)
+		add_hotkeys_to_msg(ktpd, ack);
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 
@@ -269,7 +349,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run)
+	int *retcode, faux_error_t *error,
+	bool_t dry_run, bool_t *view_was_changed_p)
 {
 	kexec_t *exec = NULL;
 
@@ -300,6 +381,10 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	// If kexec contains only non-exec (for example dry-run) ACTIONs then
 	// we don't need event loop and can return here.
 	if (kexec_retcode(exec, retcode)) {
+		if (view_was_changed_p)
+			*view_was_changed_p = !kpath_is_equal(
+				ksession_path(ktpd->session),
+				kexec_saved_path(exec));
 		kexec_free(exec);
 		return BOOL_TRUE;
 	}
@@ -329,6 +414,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ktp_cmd_e cmd = KTP_CMD_ACK;
 	uint32_t status = KTP_STATUS_NONE;
 	char *prompt = NULL;
+	bool_t view_was_changed = BOOL_FALSE;
 
 	if (!ktpd)
 		return BOOL_FALSE;
@@ -348,6 +434,9 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
+
+	view_was_changed = !kpath_is_equal(
+		ksession_path(ktpd->session), kexec_saved_path(ktpd->exec));
 
 	kexec_free(ktpd->exec);
 	ktpd->exec = NULL;
@@ -369,6 +458,9 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
 		faux_str_free(prompt);
 	}
+	// Add hotkeys
+	if (view_was_changed)
+		add_hotkeys_to_msg(ktpd, ack);
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
 

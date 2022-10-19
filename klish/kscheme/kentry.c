@@ -12,6 +12,7 @@
 #include <klish/khotkey.h>
 
 
+// WARNING: Changing this structure don't forget to update kentry_link()
 struct kentry_s {
 	char *name; // Mandatory name (identifier within entries tree)
 	char *help; // Help for the entry
@@ -109,7 +110,7 @@ KNESTED_EACH(entry, kaction_t *, actions);
 
 // HOTKEY list
 KGET(entry, faux_list_t *, hotkeys);
-static KCMP_NESTED(entry, hotkey, key);
+KCMP_NESTED(entry, hotkey, key);
 KADD_NESTED(entry, khotkey_t *, hotkeys);
 KNESTED_LEN(entry, hotkeys);
 KNESTED_ITER(entry, hotkeys);
@@ -175,6 +176,7 @@ static void kentry_free_non_link(kentry_t *entry)
 
 	faux_list_free(entry->entrys);
 	faux_list_free(entry->actions);
+	faux_list_free(entry->hotkeys);
 	faux_free(entry->nested_by_purpose);
 }
 
@@ -239,6 +241,7 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	dst->filter = src->filter;
 	dst->entrys = src->entrys;
 	dst->actions = src->actions;
+	dst->hotkeys = src->hotkeys;
 	dst->nested_by_purpose = src->nested_by_purpose;
 	// udata - orig
 	// udata_free_fn - orig

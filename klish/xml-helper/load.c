@@ -33,7 +33,8 @@ static kxml_process_fn
 	process_ptype,
 	process_plugin,
 	process_klish,
-	process_entry;
+	process_entry,
+	process_hotkey;
 
 // Different TAGs types
 typedef enum {
@@ -53,6 +54,7 @@ typedef enum {
 	KTAG_COMPL,
 	KTAG_HELP,
 	KTAG_PROMPT,
+	KTAG_HOTKEY,
 	KTAG_MAX,
 } ktags_e;
 
@@ -73,6 +75,7 @@ static const char * const kxml_tags[] = {
 	"COMPL",
 	"HELP",
 	"PROMPT",
+	"HOTKEY",
 };
 
 static kxml_process_fn *kxml_handlers[] = {
@@ -92,6 +95,7 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_command,
 	process_command,
 	process_command,
+	process_hotkey,
 };
 
 
@@ -900,6 +904,59 @@ err:
 		kxml_node_attr_free(ientry.value);
 		kxml_node_attr_free(ientry.restore);
 	}
+
+	return res;
+}
+
+
+static bool_t process_hotkey(const kxml_node_t *element, void *parent,
+	faux_error_t *error)
+{
+	ihotkey_t ihotkey = {};
+	khotkey_t *hotkey = NULL;
+	bool_t res = BOOL_FALSE;
+	ktags_e parent_tag = kxml_node_tag(kxml_node_parent(element));
+	kentry_t *parent_entry = (kentry_t *)parent;
+
+	ihotkey.key = kxml_node_attr(element, "key");
+	if (!ihotkey.key) {
+		faux_error_sprintf(error, TAG": hotkey without \"key\" attribute");
+		return BOOL_FALSE;
+	}
+	ihotkey.cmd = kxml_node_attr(element, "cmd");
+	if (!ihotkey.cmd) {
+		faux_error_sprintf(error, TAG": hotkey without \"cmd\" attribute");
+		return BOOL_FALSE;
+	}
+
+	hotkey = ihotkey_load(&ihotkey, error);
+	if (!hotkey)
+		goto err;
+
+	if (	(KTAG_ENTRY != parent_tag) &&
+		(KTAG_VIEW != parent_tag)) {
+		faux_error_sprintf(error,
+			TAG": Tag \"%s\" can't contain HOTKEY tag",
+			kxml_tag_name(parent_tag));
+		khotkey_free(hotkey);
+		goto err;
+	}
+	if (!kentry_add_hotkeys(parent_entry, hotkey)) {
+		faux_error_sprintf(error,
+			TAG": Can't add HOTKEY \"%s\" to ENTRY \"%s\". "
+			"Probably duplication",
+			khotkey_key(hotkey),
+			kentry_name(parent_entry));
+		khotkey_free(hotkey);
+		goto err;
+	}
+
+	// HOTKEY doesn't have children
+
+	res = BOOL_TRUE;
+err:
+	kxml_node_attr_free(ihotkey.key);
+	kxml_node_attr_free(ihotkey.cmd);
 
 	return res;
 }

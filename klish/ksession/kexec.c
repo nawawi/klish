@@ -59,6 +59,9 @@ KSET(exec, faux_buf_t *, bufout);
 KGET(exec, faux_buf_t *, buferr);
 KSET(exec, faux_buf_t *, buferr);
 
+// Saved path
+KGET(exec, kpath_t *, saved_path);
+
 // CONTEXT list
 KADD_NESTED(exec, kcontext_t *, contexts);
 KNESTED_LEN(exec, contexts);
@@ -272,9 +275,12 @@ static bool_t kexec_prepare(kexec_t *exec)
 		// The first context is a context of main command. The other
 		// contexts are contexts of filters. So save current path from
 		// first context.
-		if (iter == faux_list_head(exec->contexts))
-			exec->saved_path = kpath_clone(
-				ksession_path(kcontext_session(context)));
+		if (iter == faux_list_head(exec->contexts)) {
+			ksession_t *session = kcontext_session(context);
+			if (session && ksession_path(session))
+				exec->saved_path = kpath_clone(
+					ksession_path(session));
+		}
 
 		// Set the same STDERR to all contexts
 		kcontext_set_stderr(context, global_stderr);

@@ -44,6 +44,8 @@ bool_t kexec_set_buferr(kexec_t *exec, faux_buf_t *buferr);
 // Return code
 bool_t kexec_done(const kexec_t *exec);
 bool_t kexec_retcode(const kexec_t *exec, int *status);
+// Saved path
+kpath_t *kexec_saved_path(const kexec_t *exec);
 // CONTEXTs
 bool_t kexec_add_contexts(kexec_t *exec, kcontext_t *context);
 ssize_t kexec_contexts_len(const kexec_t *exec);
