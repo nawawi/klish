@@ -16,9 +16,9 @@
 struct options {
 	char *pidfile;
 	char *cfgfile;
+	bool_t cfgfile_userdefined;
 	char *unix_socket_path;
 	char *dbs;
-	bool_t cfgfile_userdefined;
 	bool_t foreground; // Don't daemonize
 	bool_t verbose;
 	int log_facility;

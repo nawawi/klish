@@ -63,12 +63,12 @@ void opts_free(struct options *opts)
  */
 int opts_parse(int argc, char *argv[], struct options *opts)
 {
-	static const char *shortopts = "hp:c:fl:v";
+	static const char *shortopts = "hp:f:dl:v";
 	static const struct option longopts[] = {
 		{"help",		0, NULL, 'h'},
 		{"pid",			1, NULL, 'p'},
-		{"conf",		1, NULL, 'c'},
-		{"foreground",		0, NULL, 'f'},
+		{"conf",		1, NULL, 'f'},
+		{"foreground",		0, NULL, 'd'},
 		{"verbose",		0, NULL, 'v'},
 		{"facility",		1, NULL, 'l'},
 		{NULL,			0, NULL, 0}
@@ -86,12 +86,12 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 			faux_str_free(opts->pidfile);
 			opts->pidfile = faux_str_dup(optarg);
 			break;
-		case 'c':
+		case 'f':
 			faux_str_free(opts->cfgfile);
 			opts->cfgfile = faux_str_dup(optarg);
 			opts->cfgfile_userdefined = BOOL_TRUE;
 			break;
-		case 'f':
+		case 'd':
 			opts->foreground = BOOL_TRUE;
 			break;
 		case 'v':
@@ -142,11 +142,11 @@ void help(int status, const char *argv0)
 		printf("Klish daemon\n");
 		printf("Options :\n");
 		printf("\t-h, --help Print this help.\n");
-		printf("\t-f, --foreground Don't daemonize.\n");
+		printf("\t-d, --foreground Don't daemonize.\n");
 		printf("\t-v, --verbose Be verbose.\n");
 		printf("\t-p <path>, --pid=<path> File to save daemon's PID to ("
 			DEFAULT_PIDFILE ").\n");
-		printf("\t-c <path>, --conf=<path> Config file ("
+		printf("\t-f <path>, --conf=<path> Config file ("
 			DEFAULT_CFGFILE ").\n");
 		printf("\t-l, --facility Syslog facility (DAEMON).\n");
 	}

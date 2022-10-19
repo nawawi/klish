@@ -63,6 +63,17 @@ int main(int argc, char **argv)
 		goto err;
 	}
 
+	// Parse config file
+	if (!access(opts->cfgfile, R_OK)) {
+		if (!config_parse(opts->cfgfile, opts))
+			goto err;
+	} else if (opts->cfgfile_userdefined) {
+		// User defined config must be found
+		fprintf(stderr, "Error: Can't find config file %s\n",
+			opts->cfgfile);
+		goto err;
+	}
+
 	// Connect to server
 	unix_sock = ktp_connect_unix(opts->unix_socket_path);
 	if (unix_sock < 0) {
