@@ -38,6 +38,7 @@ static void reset_hotkey_table(ctx_t *ctx);
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
 static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key);
 static bool_t tinyrl_key_help(tinyrl_t *tinyrl, unsigned char key);
+static bool_t tinyrl_key_hotkey(tinyrl_t *tinyrl, unsigned char key);
 
 
 int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
@@ -62,6 +63,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	faux_str_free(hist_path);
 	tinyrl_set_prompt(tinyrl, "$ ");
 	tinyrl_set_udata(tinyrl, &ctx);
+	tinyrl_set_hotkey_fn(tinyrl, tinyrl_key_hotkey);
 	tinyrl_bind_key(tinyrl, '\n', tinyrl_key_enter);
 	tinyrl_bind_key(tinyrl, '\r', tinyrl_key_enter);
 	tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
@@ -283,6 +285,31 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
 	key = key; // Happy compiler
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t tinyrl_key_hotkey(tinyrl_t *tinyrl, unsigned char key)
+{
+	const char *line = NULL;
+	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
+	faux_error_t *error = NULL;
+
+	if (key >= VT100_HOTKEY_MAP_LEN)
+		return BOOL_TRUE;
+	line = ctx->hotkeys[key];
+	if (faux_str_is_empty(line))
+		return BOOL_TRUE;
+
+	error = faux_error_new();
+	tinyrl_multi_crlf(tinyrl);
+	tinyrl_reset_line_state(tinyrl);
+	tinyrl_reset_line(tinyrl);
+
+	ktp_session_cmd(ctx->ktp, line, error, ctx->opts->dry_run);
+
+	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
 	return BOOL_TRUE;
 }
