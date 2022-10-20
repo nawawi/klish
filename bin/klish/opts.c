@@ -38,6 +38,7 @@ struct options *opts_init(void)
 	opts->cfgfile_userdefined = BOOL_FALSE;
 	opts->unix_socket_path = faux_str_dup(KLISH_DEFAULT_UNIX_SOCKET_PATH);
 	opts->pager = faux_str_dup(DEFAULT_PAGER);
+	opts->pager_enabled = BOOL_TRUE;
 
 	// Don't free command list because elements are the pointers to
 	// command line options and don't need to be freed().
@@ -202,10 +203,18 @@ bool_t config_parse(const char *cfgfile, struct options *opts)
 		opts->unix_socket_path = faux_str_dup(tmp);
 	}
 
-	// DBs
+	// Pager
 	if ((tmp = faux_ini_find(ini, "Pager"))) {
 		faux_str_free(opts->pager);
 		opts->pager = faux_str_dup(tmp);
+	}
+
+	// Use pager: y/n
+	if ((tmp = faux_ini_find(ini, "UsePager"))) {
+		if (strcmp(tmp, "y") == 0)
+			opts->pager_enabled = BOOL_TRUE;
+		else
+			opts->pager_enabled = BOOL_FALSE;
 	}
 
 	faux_ini_free(ini);

@@ -94,6 +94,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
+	// These callback functions is only for batch mode. Interactive
+	// mode can reassign them.
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, NULL);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, NULL);
 

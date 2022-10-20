@@ -33,6 +33,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
 	faux_error_t *error);
 static void reset_hotkey_table(ctx_t *ctx);
+static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *user_data);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
@@ -73,6 +75,9 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	ctx.tinyrl = tinyrl;
 	ctx.opts = opts;
 	faux_bzero(ctx.hotkeys, sizeof(ctx.hotkeys));
+
+	// Replace common stdout callback by interactive-specific one.
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, interactive_stdout_cb, &ctx);
 
 	// Now AUTH command is used only for starting hand-shake and getting
 	// prompt from the server. Generally it must be necessary for
@@ -559,4 +564,18 @@ static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
 	faux_eloop_loop(ktp_session_eloop(ktp));
 
 	return ktp_session_retcode(ktp, retcode);
+}
+
+
+static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+	void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+
+	if (write(STDOUT_FILENO, line, len) < 0)
+		return BOOL_FALSE;
+
+	ktp = ktp; // Happy compiler
+
+	return BOOL_TRUE;
 }

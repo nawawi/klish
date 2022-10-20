@@ -17,6 +17,7 @@ struct options {
 	bool_t cfgfile_userdefined;
 	char *unix_socket_path;
 	char *pager;
+	bool_t pager_enabled;
 	bool_t stop_on_error;
 	bool_t dry_run;
 	bool_t quiet;
