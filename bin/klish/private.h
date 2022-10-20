@@ -7,7 +7,7 @@
 #endif
 
 #define DEFAULT_CFGFILE "/etc/klish/klish.conf"
-#define DEFAULT_PAGER "/usr/bin/less -I -F -e -X -K -d"
+#define DEFAULT_PAGER "/usr/bin/less -I -F -e -X -K -d -r"
 
 /** @brief Command line and config file options
  */

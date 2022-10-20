@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
@@ -21,6 +23,8 @@ typedef struct ctx_s {
 	tinyrl_t *tinyrl;
 	struct options *opts;
 	char *hotkeys[VT100_HOTKEY_MAP_LEN];
+	tri_t pager_working;
+	FILE *pager_pipe;
 } ctx_t;
 
 
@@ -75,9 +79,8 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	ctx.tinyrl = tinyrl;
 	ctx.opts = opts;
 	faux_bzero(ctx.hotkeys, sizeof(ctx.hotkeys));
-
-	// Replace common stdout callback by interactive-specific one.
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, interactive_stdout_cb, &ctx);
+	ctx.pager_working = TRI_UNDEFINED;
+	ctx.pager_pipe = NULL;
 
 	// Now AUTH command is used only for starting hand-shake and getting
 	// prompt from the server. Generally it must be necessary for
@@ -87,6 +90,10 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 		goto cleanup;
 	if (auth_rc < 0)
 		goto cleanup;
+
+	// Replace common stdout callback by interactive-specific one.
+	// Place it after auth to make auth use standard stdout callback.
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, interactive_stdout_cb, &ctx);
 
 	// Don't stop interactive loop on each answer
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
@@ -239,6 +246,13 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 			fprintf(stderr, "Error: %s\n", err);
 	}
 	faux_error_free(error);
+
+	// Wait for pager
+	if (ctx->pager_working == TRI_TRUE) {
+		pclose(ctx->pager_pipe);
+		ctx->pager_working = TRI_UNDEFINED;
+		ctx->pager_pipe = NULL;
+	}
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	if (!ktp_session_done(ktp))
@@ -572,10 +586,35 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 {
 	ctx_t *ctx = (ctx_t *)udata;
 
-	if (write(STDOUT_FILENO, line, len) < 0)
-		return BOOL_FALSE;
+	assert(ctx);
 
-	ktp = ktp; // Happy compiler
+	// Start pager if necessary
+	if (
+		ctx->opts->pager_enabled && // Pager enabled within config file
+		(ctx->pager_working == TRI_UNDEFINED) && // Pager is not working
+		!(ktp_session_cmd_features(ktp) & KTP_STATUS_INTERACTIVE) // Non interactive command
+		) {
+
+		ctx->pager_pipe = popen(ctx->opts->pager, "we");
+		if (!ctx->pager_pipe)
+			ctx->pager_working = BOOL_FALSE; // Indicates can't start
+		else
+			ctx->pager_working = BOOL_TRUE;
+	}
+
+	// Write to pager's pipe if pager is really working
+	if (ctx->pager_working == TRI_TRUE) {
+		if (fwrite(line, 1, len, ctx->pager_pipe) == 0) {
+			// If we can't write to pager pipe then try stdout.
+			if (write(STDOUT_FILENO, line, len) < 0)
+				return BOOL_FALSE;
+			return BOOL_TRUE; // Don't break the loop
+		}
+		fflush(ctx->pager_pipe);
+	} else {
+		if (write(STDOUT_FILENO, line, len) < 0)
+			return BOOL_FALSE;
+	}
 
 	return BOOL_TRUE;
 }
