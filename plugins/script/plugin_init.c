@@ -13,11 +13,11 @@
 #include "private.h"
 
 
-const uint8_t kplugin_shell_major = KPLUGIN_MAJOR;
-const uint8_t kplugin_shell_minor = KPLUGIN_MINOR;
+const uint8_t kplugin_script_major = KPLUGIN_MAJOR;
+const uint8_t kplugin_script_minor = KPLUGIN_MINOR;
 
 
-int kplugin_shell_init(kcontext_t *context)
+int kplugin_script_init(kcontext_t *context)
 {
 	kplugin_t *plugin = NULL;
 	ksym_t *sym = NULL;
@@ -26,15 +26,15 @@ int kplugin_shell_init(kcontext_t *context)
 	plugin = kcontext_plugin(context);
 	assert(plugin);
 
-	kplugin_add_syms(plugin, ksym_new("shell", shell_shell));
+	kplugin_add_syms(plugin, ksym_new("script", script_script));
 
 	return 0;
 }
 
 
-int kplugin_shell_fini(kcontext_t *context)
+int kplugin_script_fini(kcontext_t *context)
 {
-//	fprintf(stderr, "Plugin 'shell' fini\n");
+//	fprintf(stderr, "Plugin 'script' fini\n");
 	context = context;
 
 	return 0;

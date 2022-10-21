@@ -20,7 +20,7 @@
 #include <klish/ksession.h>
 
 
-static char *shell_mkfifo(void)
+static char *script_mkfifo(void)
 {
 	int res = 0;
 	char *name = NULL;
@@ -151,8 +151,8 @@ static char *find_out_shebang(const char *script)
 }
 
 
-// Execute shell script
-int shell_shell(kcontext_t *context)
+// Execute script
+int script_script(kcontext_t *context)
 {
 	const char *script = NULL;
 	pid_t cpid = -1;
@@ -167,7 +167,7 @@ int shell_shell(kcontext_t *context)
 		return 0;
 
 	// Create FIFO
-	if (!(fifo_name = shell_mkfifo())) {
+	if (!(fifo_name = script_mkfifo())) {
 		fprintf(stderr, "Error: Can't create temporary FIFO.\n"
 			"Error: The ACTION will be not executed.\n");
 		return -1;
