@@ -130,6 +130,27 @@ static bool_t populate_env(kcontext_t *context)
 }
 
 
+static char *find_out_shebang(const char *script)
+{
+	char *default_shebang = "/bin/sh";
+	char *shebang = NULL;
+	char *line = NULL;
+
+	line = faux_str_getline(script, NULL);
+	if (
+		!line ||
+		(strlen(line) < 2) ||
+		(line[0] != '#') ||
+		(line[1] != '!')
+		)
+		return faux_str_dup(default_shebang);
+
+	shebang = faux_str_dup(line + 2);
+
+	return shebang;
+}
+
+
 // Execute shell script
 int shell_shell(kcontext_t *context)
 {
@@ -139,6 +160,7 @@ int shell_shell(kcontext_t *context)
 	char *fifo_name = NULL;
 	FILE *wpipe = NULL;
 	char *command = NULL;
+	char *shebang = NULL;
 
 	script = kcontext_script(context);
 	if (faux_str_is_empty(script))
@@ -177,7 +199,8 @@ int shell_shell(kcontext_t *context)
 	populate_env(context);
 
 	// Prepare command
-	command = faux_str_sprintf("/bin/sh %s", fifo_name);
+	shebang = find_out_shebang(script);
+	command = faux_str_sprintf("%s %s", shebang, fifo_name);
 
 	res = system(command);
 
@@ -189,6 +212,7 @@ int shell_shell(kcontext_t *context)
 	faux_str_free(command);
 	unlink(fifo_name);
 	faux_str_free(fifo_name);
+	faux_str_free(shebang);
 
 	return WEXITSTATUS(res);
 }
