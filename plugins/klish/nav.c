@@ -44,7 +44,7 @@ int klish_nav(kcontext_t *context)
 
 	// Navigation is suitable only for command actions but not for
 	// PTYPEs, CONDitions i.e. SERVICE_ACTIONS.
-	assert(kcontext_type(context) == KCONTEXT_ACTION);
+	assert(kcontext_type(context) == KCONTEXT_TYPE_ACTION);
 
 	script = kcontext_script(context);
 	if (faux_str_is_empty(script)) // No navigation commands. It's not an error.

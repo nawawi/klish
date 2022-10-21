@@ -111,7 +111,7 @@ bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
 			retcode = BOOL_FALSE;
 			continue; // Try to load all plugins
 		}
-		kcontext_set_type(context, KCONTEXT_PLUGIN_INIT);
+		kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_INIT);
 		kcontext_set_plugin(context, plugin);
 		if ((init_retcode = kplugin_init(plugin, context)) < 0) {
 			faux_error_sprintf(error,
@@ -142,7 +142,7 @@ bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
 	iter = kscheme_plugins_iter(scheme);
 	while ((plugin = kscheme_plugins_each(&iter))) {
 		int fini_retcode = -1;
-		kcontext_set_type(context, KCONTEXT_PLUGIN_FINI);
+		kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_FINI);
 		kcontext_set_plugin(context, plugin);
 		if ((fini_retcode = kplugin_fini(plugin, context)) < 0) {
 			faux_error_sprintf(error,

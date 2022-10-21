@@ -79,6 +79,9 @@ int shell_shell(kcontext_t *context)
 	}
 
 	// Parent
+	// Populate environment. Put command parameters to env vars.
+
+
 	// Prepare command
 	command = faux_str_sprintf("/bin/sh %s", fifo_name);
 

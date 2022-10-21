@@ -531,7 +531,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		}
 
 		// Fill the kexec_t
-		context = kcontext_new(KCONTEXT_ACTION);
+		context = kcontext_new(KCONTEXT_TYPE_ACTION);
 		assert(context);
 		kcontext_set_scheme(context, ksession_scheme(session));
 		kcontext_set_pargv(context, pargv);
@@ -587,7 +587,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 		return NULL;
 	}
 
-	context = kcontext_new(KCONTEXT_SERVICE_ACTION);
+	context = kcontext_new(KCONTEXT_TYPE_SERVICE_ACTION);
 	assert(context);
 	kcontext_set_scheme(context, ksession_scheme(session));
 	kcontext_set_pargv(context, pargv);

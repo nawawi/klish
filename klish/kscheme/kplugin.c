@@ -211,7 +211,7 @@ int kplugin_init(kplugin_t *plugin, kcontext_t *context)
 	if (!plugin->init_fn)
 		return -1;
 	// Be sure the context type is appropriate one
-	kcontext_set_type(context, KCONTEXT_PLUGIN_INIT);
+	kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_INIT);
 
 	return plugin->init_fn(context);
 }
@@ -229,7 +229,7 @@ int kplugin_fini(kplugin_t *plugin, kcontext_t *context)
 	if (!plugin->fini_fn)
 		return 0; // Fini function is not mandatory so it's ok
 	// Be sure the context type is appropriate one
-	kcontext_set_type(context, KCONTEXT_PLUGIN_FINI);
+	kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_FINI);
 
 	return plugin->fini_fn(context);
 }
