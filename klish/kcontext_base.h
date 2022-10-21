@@ -20,6 +20,7 @@ typedef enum {
 	KCONTEXT_TYPE_ACTION,
 	// Context for service actions like PTYPE, COND, etc.
 	KCONTEXT_TYPE_SERVICE_ACTION,
+	KCONTEXT_TYPE_MAX,
 } kcontext_type_e;
 
 

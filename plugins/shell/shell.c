@@ -36,6 +36,100 @@ static char *shell_mkfifo(void)
 }
 
 
+const char *kcontext_type_e_str[] = {
+	"none",
+	"plugin_init",
+	"plugin_fini",
+	"action",
+	"service_action"
+	};
+
+#define PREFIX "KLISH_"
+#define OVERWRITE 1
+
+
+static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
+{
+	kcontext_type_e type = KCONTEXT_TYPE_NONE;
+	const kentry_t *entry = NULL;
+	kpargv_pargs_node_t *iter = NULL;
+	kparg_t *parg = NULL;
+	const kentry_t *saved_entry = NULL;
+	size_t num = 0;
+
+	if (!pargv)
+		return BOOL_FALSE;
+
+	// Command
+	entry = kpargv_command(pargv);
+	if (entry) {
+		char *var = faux_str_sprintf("%sCOMMAND", prefix);
+		setenv(var, kentry_name(entry), OVERWRITE);
+		faux_str_free(var);
+	}
+
+	// Parameters
+	iter = kpargv_pargs_iter(pargv);
+	while ((parg = kpargv_pargs_each(&iter))) {
+		const char *str = NULL;
+		char *var = NULL;
+		entry = kparg_entry(parg);
+		if (kentry_max(entry) > 1) { // Multi
+			if (entry == saved_entry)
+				num++;
+			else
+				num = 0;
+			var = faux_str_sprintf("%sPARAM_%s_%u",
+				prefix, kentry_name(entry), num);
+			saved_entry = entry;
+		} else { // Single
+			var = faux_str_sprintf("%sPARAM_%s",
+				prefix, kentry_name(entry));
+			saved_entry = NULL;
+			num = 0;
+		}
+		setenv(var, kparg_value(parg), OVERWRITE);
+		faux_str_free(var);
+	}
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t populate_env(kcontext_t *context)
+{
+	kcontext_type_e type = KCONTEXT_TYPE_NONE;
+	const kentry_t *entry = NULL;
+	const char *str = NULL;
+
+	assert(context);
+
+	// Type
+	type = kcontext_type(context);
+	if (type >= KCONTEXT_TYPE_MAX)
+		type = KCONTEXT_TYPE_NONE;
+	setenv(PREFIX"TYPE", kcontext_type_e_str[type], OVERWRITE);
+
+	// Candidate
+	entry = kcontext_candidate_entry(context);
+	if (entry)
+		setenv(PREFIX"CANDIDATE", kentry_name(entry), OVERWRITE);
+
+	// Value
+	str = kcontext_candidate_value(context);
+	if (str)
+		setenv(PREFIX"VALUE", str, OVERWRITE);
+
+	// Parameters
+	populate_env_kpargv(kcontext_pargv(context), PREFIX);
+
+	// Parent parameters
+	populate_env_kpargv(kcontext_parent_pargv(context), PREFIX"PARENT_");
+
+	return BOOL_TRUE;
+}
+
+
 // Execute shell script
 int shell_shell(kcontext_t *context)
 {
@@ -80,7 +174,7 @@ int shell_shell(kcontext_t *context)
 
 	// Parent
 	// Populate environment. Put command parameters to env vars.
-
+	populate_env(context);
 
 	// Prepare command
 	command = faux_str_sprintf("/bin/sh %s", fifo_name);

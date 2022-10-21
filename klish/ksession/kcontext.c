@@ -142,31 +142,46 @@ void kcontext_free(kcontext_t *context)
 
 kparg_t *kcontext_candidate_parg(const kcontext_t *context)
 {
+	const kpargv_t *pargv = NULL;
+
 	assert(context);
 	if (!context)
 		return NULL;
+	pargv = kcontext_parent_pargv(context);
+	if (!pargv)
+		return NULL;
 
-	return kpargv_candidate_parg(kcontext_parent_pargv(context));
+	return kpargv_candidate_parg(pargv);
 }
 
 
 const kentry_t *kcontext_candidate_entry(const kcontext_t *context)
 {
+	kparg_t *parg = NULL;
+
 	assert(context);
 	if (!context)
 		return NULL;
+	parg = kcontext_candidate_parg(context);
+	if (!parg)
+		return NULL;
 
-	return kparg_entry(kcontext_candidate_parg(context));
+	return kparg_entry(parg);
 }
 
 
 const char *kcontext_candidate_value(const kcontext_t *context)
 {
+	kparg_t *parg = NULL;
+
 	assert(context);
 	if (!context)
 		return NULL;
+	parg = kcontext_candidate_parg(context);
+	if (!parg)
+		return NULL;
 
-	return kparg_value(kcontext_candidate_parg(context));
+	return kparg_value(parg);
 }
 
 
@@ -241,11 +256,16 @@ void *kcontext_udata(const kcontext_t *context)
 
 const kentry_t *kcontext_command(const kcontext_t *context)
 {
+	kpargv_t *pargv = NULL;
+
 	assert(context);
 	if (!context)
 		return NULL;
+	pargv = kcontext_pargv(context);
+	if (!pargv)
+		return NULL;
 
-	return kpargv_command(kcontext_pargv(context));
+	return kpargv_command(pargv);
 }
 
 
