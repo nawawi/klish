@@ -1,12 +1,15 @@
 /** @file kexec.c
  */
-#include <assert.h>
-#include <stdio.h>
+#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED
 #include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <syslog.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
@@ -15,6 +18,10 @@
 #include <klish/kcontext.h>
 #include <klish/kpath.h>
 #include <klish/kexec.h>
+
+
+#define PTMX_PATH "/dev/ptmx"
+
 
 // Declaration of grabber. Implementation is in the grabber.c
 void grabber(int fds[][2]);
@@ -234,6 +241,41 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// Nothing to prepare for empty list
 	if (kexec_contexts_is_empty(exec))
 		return BOOL_FALSE;
+
+	// If command is interactive then prepare pseudoterminal. Note
+	// interactive commands can't have filters
+	if (kexec_interactive(exec)) {
+		int ptm = -1;
+		char *pts_name = NULL;
+		int pts = -1;
+		kcontext_t *context = (kcontext_t *)faux_list_data(
+			faux_list_head(exec->contexts));
+
+		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
+		if (ptm < 0)
+			return BOOL_FALSE;
+		// Set O_NONBLOCK flag here. Because this flag is ignored while
+		// open() ptmx. I don't know why. fcntl() is working fine.
+		fflags = fcntl(ptm, F_GETFL);
+		fcntl(ptm, F_SETFL, fflags | O_NONBLOCK);
+		grantpt(ptm);
+		unlockpt(ptm);
+		pts_name = ptsname(ptm);
+		pts = open(pts_name, O_RDWR, O_NOCTTY);
+		if (pts < 0) {
+			close(ptm);
+			return BOOL_FALSE;
+		}
+
+		kexec_set_stdin(exec, ptm);
+		kexec_set_stdout(exec, ptm);
+		kexec_set_stderr(exec, ptm);
+		kcontext_set_stdin(context, pts);
+		kcontext_set_stdout(context, pts);
+		kcontext_set_stderr(context, pts);
+
+		return BOOL_TRUE;
+	}
 
 	// Create "global" stdin, stdout, stderr for the whole job execution.
 	// Now function creates only the simple pipes but somedays it will be
@@ -617,4 +659,29 @@ bool_t kexec_exec(kexec_t *exec)
 	kexec_continue_command_execution(exec, -1, 0);
 
 	return BOOL_TRUE;
+}
+
+
+bool_t kexec_interactive(const kexec_t *exec)
+{
+	faux_list_node_t *node = NULL;
+	kcontext_t *context = NULL;
+	const kentry_t *entry = NULL;
+
+	assert(exec);
+	if (!exec)
+		return BOOL_FALSE;
+
+	// Only the ACTION of first context can be interactive
+	node = faux_list_head(exec->contexts);
+	if (!node)
+		return BOOL_FALSE;
+	context = (kcontext_t *)faux_list_data(node);
+	if (!context)
+		return BOOL_FALSE;
+	entry = kcontext_command(context);
+	if (!entry)
+		return BOOL_FALSE;
+
+	return kentry_interactive(entry);
 }

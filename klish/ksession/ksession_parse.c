@@ -518,6 +518,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 			faux_list_free(split);
 			return NULL;
 		}
+
 		// Only the first component can have 'restore=true' attribute
 		if ((iter != faux_list_head(split)) &&
 			kentry_restore(kpargv_command(pargv))) {
@@ -529,6 +530,31 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 			faux_list_free(split);
 			return NULL;
 		}
+
+		// Only the first component can have 'interactive=true' attribute
+		if ((iter != faux_list_head(split)) &&
+			kentry_interactive(kpargv_command(pargv))) {
+			faux_error_sprintf(error, "The filter \"%s\" "
+				"can't be interactive",
+				kentry_name(kpargv_command(pargv)));
+			kpargv_free(pargv);
+			kexec_free(exec);
+			faux_list_free(split);
+			return NULL;
+		}
+
+		// Interactive command can't have filters
+		if ((iter != faux_list_head(split)) &&
+			kexec_interactive(exec)) {
+			faux_error_sprintf(error, "The interactive command \"%s\" "
+				"can't have filters",
+				kentry_name(kpargv_command(pargv)));
+			kpargv_free(pargv);
+			kexec_free(exec);
+			faux_list_free(split);
+			return NULL;
+		}
+
 
 		// Fill the kexec_t
 		context = kcontext_new(KCONTEXT_TYPE_ACTION);

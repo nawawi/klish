@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <syslog.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
@@ -301,4 +302,21 @@ bool_t kentry_set_udata(kentry_t *entry, void *data, kentry_udata_free_fn free_f
 	entry->udata_free_fn = free_fn;
 
 	return BOOL_TRUE;
+}
+
+
+bool_t kentry_interactive(const kentry_t *entry)
+{
+	kentry_actions_node_t *iter = NULL;
+	kaction_t *action = NULL;
+
+	if (!entry)
+		return BOOL_FALSE;
+	iter = kentry_actions_iter(entry);
+	while ((action = kentry_actions_each(&iter))) {
+		if (kaction_interactive(action))
+			return BOOL_TRUE;
+	}
+
+	return BOOL_FALSE;
 }

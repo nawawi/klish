@@ -110,6 +110,7 @@ bool_t kentry_add_actions(kentry_t *entry, kaction_t *action);
 ssize_t kentry_actions_len(const kentry_t *entry);
 kentry_actions_node_t *kentry_actions_iter(const kentry_t *entry);
 kaction_t *kentry_actions_each(kentry_actions_node_t **iter);
+bool_t kentry_interactive(const kentry_t *entry);
 
 // HOTKEYs
 faux_list_t *kentry_hotkeys(const kentry_t *entry);

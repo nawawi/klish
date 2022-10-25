@@ -304,6 +304,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	if (ktpd->exec) {
 		faux_msg_t *ack = NULL;
 		ktp_status_e status = KTP_STATUS_INCOMPLETED;
+		if (kexec_interactive(ktpd->exec))
+			status |= KTP_STATUS_INTERACTIVE;
 		ack = ktp_msg_preform(cmd, status);
 		faux_msg_send_async(ack, ktpd->async);
 		faux_msg_free(ack);
