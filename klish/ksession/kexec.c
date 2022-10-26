@@ -251,7 +251,8 @@ static bool_t kexec_prepare(kexec_t *exec)
 		kcontext_t *context = (kcontext_t *)faux_list_data(
 			faux_list_head(exec->contexts));
 
-		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
+//		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
+		ptm = open(PTMX_PATH, O_RDWR, 0);
 		if (ptm < 0)
 			return BOOL_FALSE;
 		// Set O_NONBLOCK flag here. Because this flag is ignored while
@@ -261,7 +262,8 @@ static bool_t kexec_prepare(kexec_t *exec)
 		grantpt(ptm);
 		unlockpt(ptm);
 		pts_name = ptsname(ptm);
-		pts = open(pts_name, O_RDWR, O_NOCTTY);
+//		pts = open(pts_name, O_RDWR, O_NOCTTY);
+		pts = open(pts_name, O_RDWR, 0);
 		if (pts < 0) {
 			close(ptm);
 			return BOOL_FALSE;

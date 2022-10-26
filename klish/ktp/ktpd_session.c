@@ -37,7 +37,7 @@ struct ktpd_session_s {
 	uid_t uid;
 	gid_t gid;
 	char *user;
-	faux_async_t *async;
+	faux_async_t *async; // Object for data exchange with client (KTP)
 	faux_hdr_t *hdr; // Engine will receive header and then msg
 	faux_eloop_t *eloop; // External link, dont's free()
 	kexec_t *exec;
@@ -794,6 +794,117 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
+static ssize_t stdin_out(int fd, faux_buf_t *buf)
+{
+	ssize_t total_written = 0;
+
+	assert(buf);
+	if (!buf)
+		return -1;
+	assert(fd >= 0);
+
+	while (faux_buf_len(buf) > 0) {
+		ssize_t data_to_write = 0;
+		ssize_t bytes_written = 0;
+		void *data = NULL;
+
+		data_to_write = faux_buf_dread_lock_easy(buf, &data);
+		if (data_to_write <= 0)
+			return -1;
+
+		bytes_written = write(fd, data, data_to_write);
+		if (bytes_written > 0) {
+			total_written += bytes_written;
+			faux_buf_dread_unlock_easy(buf, bytes_written);
+		} else {
+			faux_buf_dread_unlock_easy(buf, 0);
+		}
+		if (bytes_written < 0) {
+			if ( // Something went wrong
+				(errno != EINTR) &&
+				(errno != EAGAIN) &&
+				(errno != EWOULDBLOCK)
+				)
+				return -1;
+		// Not whole data block was written
+		} else if (bytes_written != data_to_write) {
+			break;
+		}
+	}
+
+	return total_written;
+}
+
+
+static bool_t action_stdin_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
+	faux_buf_t *bufin = NULL;
+	int fd = -1;
+
+	if (!ktpd)
+		return BOOL_TRUE;
+	if (!ktpd->exec)
+		return BOOL_TRUE;
+	fd = kexec_stdin(ktpd->exec);
+	if (fd < 0) // Something strange
+		return BOOL_FALSE;
+
+	bufin = kexec_bufin(ktpd->exec);
+	assert(bufin);
+	stdin_out(fd, bufin); // Non-blocking write
+	if (faux_buf_len(bufin) != 0) // Try later
+		return BOOL_TRUE;
+
+	// All data is written
+	faux_eloop_exclude_fd_event(ktpd->eloop, fd, POLLOUT);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	char *line = NULL;
+	unsigned int len = 0;
+	faux_buf_t *bufin = NULL;
+	int fd = -1;
+
+	assert(ktpd);
+	assert(msg);
+
+	if (!ktpd->exec)
+		return BOOL_FALSE;
+	if (!kexec_interactive(ktpd->exec))
+		return BOOL_FALSE;
+	fd = kexec_stdin(ktpd->exec);
+	if (fd < 0)
+		return BOOL_FALSE;
+
+	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE, (void **)&line, &len))
+		return BOOL_TRUE; // It's strange but not a bug
+	if (len == 0)
+		return BOOL_TRUE;
+	bufin = kexec_bufin(ktpd->exec);
+	assert(bufin);
+	faux_buf_write(bufin, line, len);
+	stdin_out(fd, bufin); // Non-blocking write
+	if (faux_buf_len(bufin) == 0)
+		return BOOL_TRUE;
+
+	// Non-blocking write can't write all data so plan to write later
+	faux_eloop_include_fd_event(ktpd->eloop, fd, POLLOUT);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
@@ -808,16 +919,30 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 	cmd = faux_msg_get_cmd(msg);
 	switch (cmd) {
 	case KTP_AUTH:
+		if ((ktpd->state != KTPD_SESSION_STATE_UNAUTHORIZED) &&
+			(ktpd->state != KTPD_SESSION_STATE_IDLE))
+			break;
 		ktpd_session_process_auth(ktpd, msg);
 		break;
 	case KTP_CMD:
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+			break;
 		ktpd_session_process_cmd(ktpd, msg);
 		break;
 	case KTP_COMPLETION:
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+			break;
 		ktpd_session_process_completion(ktpd, msg);
 		break;
 	case KTP_HELP:
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+			break;
 		ktpd_session_process_help(ktpd, msg);
+		break;
+	case KTP_STDIN:
+		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS)
+			break;
+		ktpd_session_process_stdin(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
@@ -926,6 +1051,12 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	char *buf = NULL;
 	ssize_t len = 0;
 	faux_msg_t *ack = NULL;
+
+	// Interactive command use these function as callback not only for
+	// getting stdout but for writing stdin too. Because pseudo-terminal
+	// uses the same fd for in and out.
+	if (info->revents & POLLOUT)
+		return action_stdin_ev(eloop, type, associated_data, user_data);
 
 	// Some errors or fd is closed so remove it from polling
 	if (!(info->revents & POLLIN)) {
