@@ -480,10 +480,24 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	}
 
 	// Child
-	dup2(kcontext_stdin(context), STDIN_FILENO);
-	dup2(kcontext_stdout(context), STDOUT_FILENO);
-	dup2(kcontext_stderr(context), STDERR_FILENO);
-
+	if (kaction_interactive(action)) {
+		int fd = -1;
+		char *tmp = NULL;
+		setsid();
+		tmp = faux_str_sprintf("/proc/self/fd/%i", kcontext_stdin(context));
+		fd = open(tmp, O_RDWR, 0);
+		faux_str_free(tmp);
+		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		dup2(fd, STDERR_FILENO);
+	} else {
+		dup2(kcontext_stdin(context), STDIN_FILENO);
+		dup2(kcontext_stdout(context), STDOUT_FILENO);
+		dup2(kcontext_stderr(context), STDERR_FILENO);
+	}
+	int i = 0;
+	for (i = 3; i < 256; i++)
+		close(i);
 	exitcode = fn(context);
 	// We will use _exit() later so stdio streams will remain unflushed.
 	// Some output data can be lost. Flush necessary streams here.
