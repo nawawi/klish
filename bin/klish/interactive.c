@@ -269,8 +269,32 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
+	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
 
-	tinyrl_read(ctx->tinyrl);
+	if (!ctx)
+		return BOOL_FALSE;
+
+	state = ktp_session_state(ctx->ktp);
+
+	// Standard klish command line
+	if (state == KTP_SESSION_STATE_IDLE) {
+		tinyrl_read(ctx->tinyrl);
+		return BOOL_TRUE;
+	}
+
+	// Interactive command
+	if ((state == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
+		KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ctx->ktp))) {
+		int fd = fileno(tinyrl_istream(ctx->tinyrl));
+		char buf[1024] = {};
+		ssize_t bytes_readed = 0;
+
+		while ((bytes_readed = read(fd, buf, sizeof(buf))) > 0) {
+			ktp_session_stdin(ctx->ktp, buf, bytes_readed);
+			if (bytes_readed != sizeof(buf))
+				break;
+		}
+	}
 
 	// Happy compiler
 	eloop = eloop;
