@@ -596,7 +596,8 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 
 
 static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
-	const char *line, size_t line_len, faux_error_t *error, bool_t dry_run)
+	const char *line, size_t line_len, faux_error_t *error,
+	bool_t dry_run, bool_t drop_state)
 {
 	faux_msg_t *req = NULL;
 	ktp_status_e status = KTP_STATUS_NONE;
@@ -616,12 +617,14 @@ static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 	faux_msg_free(req);
 
 	// Prepare for loop
-	ktp->error = error;
-	ktp->cmd_retcode = -1;
-	ktp->cmd_retcode_available = BOOL_FALSE;
-	ktp->request_done = BOOL_FALSE;
-	ktp->cmd_features = KTP_STATUS_NONE;
-	ktp->cmd_features_available = BOOL_FALSE;
+	if (drop_state) {
+		ktp->error = error;
+		ktp->cmd_retcode = -1;
+		ktp->cmd_retcode_available = BOOL_FALSE;
+		ktp->request_done = BOOL_FALSE;
+		ktp->cmd_features = KTP_STATUS_NONE;
+		ktp->cmd_features_available = BOOL_FALSE;
+	}
 
 	return BOOL_TRUE;
 }
@@ -630,7 +633,8 @@ static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_t *error, bool_t dry_run)
 {
-	if (!ktp_session_req(ktp, KTP_CMD, line, strlen(line), error, dry_run))
+	if (!ktp_session_req(ktp, KTP_CMD, line, strlen(line),
+		error, dry_run, BOOL_TRUE))
 		return BOOL_FALSE;
 	ktp->state = KTP_SESSION_STATE_WAIT_FOR_CMD;
 
@@ -640,7 +644,8 @@ bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 
 bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error)
 {
-	if (!ktp_session_req(ktp, KTP_AUTH, NULL, 0, error, BOOL_FALSE))
+	if (!ktp_session_req(ktp, KTP_AUTH, NULL, 0,
+		error, BOOL_FALSE, BOOL_TRUE))
 		return BOOL_FALSE;
 	ktp->state = KTP_SESSION_STATE_UNAUTHORIZED;
 
@@ -650,7 +655,8 @@ bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error)
 
 bool_t ktp_session_completion(ktp_session_t *ktp, const char *line, bool_t dry_run)
 {
-	if (!ktp_session_req(ktp, KTP_COMPLETION, line, strlen(line), NULL, dry_run))
+	if (!ktp_session_req(ktp, KTP_COMPLETION, line, strlen(line),
+		NULL, dry_run, BOOL_TRUE))
 		return BOOL_FALSE;
 	ktp->state = KTP_SESSION_STATE_WAIT_FOR_COMPLETION;
 
@@ -660,7 +666,8 @@ bool_t ktp_session_completion(ktp_session_t *ktp, const char *line, bool_t dry_r
 
 bool_t ktp_session_help(ktp_session_t *ktp, const char *line)
 {
-	if (!ktp_session_req(ktp, KTP_HELP, line, strlen(line), NULL, BOOL_TRUE))
+	if (!ktp_session_req(ktp, KTP_HELP, line, strlen(line),
+		NULL, BOOL_TRUE, BOOL_TRUE))
 		return BOOL_FALSE;
 	ktp->state = KTP_SESSION_STATE_WAIT_FOR_HELP;
 
@@ -670,7 +677,8 @@ bool_t ktp_session_help(ktp_session_t *ktp, const char *line)
 
 bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len)
 {
-	if (!ktp_session_req(ktp, KTP_STDIN, line, line_len, NULL, BOOL_TRUE))
+	if (!ktp_session_req(ktp, KTP_STDIN, line, line_len,
+		NULL, BOOL_TRUE, BOOL_FALSE))
 		return BOOL_FALSE;
 
 	return BOOL_TRUE;

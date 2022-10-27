@@ -30,6 +30,7 @@ typedef struct ctx_s {
 
 bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
+bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -99,7 +100,10 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
 
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_COMPLETION_ACK, completion_ack_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK_INCOMPLETED,
+		cmd_incompleted_ack_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_COMPLETION_ACK,
+		completion_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_HELP_ACK, help_ack_cb, &ctx);
 
 	tinyrl_redisplay(tinyrl);
@@ -220,6 +224,10 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	}
 	faux_error_free(error);
 
+	// Operation is finished so restore stdin handler
+	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+		stdin_cb, ctx);
+
 	// Happy compiler
 	msg = msg;
 
@@ -258,6 +266,28 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	if (!ktp_session_done(ktp))
 		tinyrl_redisplay(ctx->tinyrl);
 
+	// Operation is finished so restore stdin handler
+	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+		stdin_cb, ctx);
+
+	// Happy compiler
+	msg = msg;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+
+	// Interactive command. So restore stdin handler.
+	if ((ktp_session_state(ktp) == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
+		KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ktp))) {
+		faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+			stdin_cb, ctx);
+	}
+
 	// Happy compiler
 	msg = msg;
 
@@ -294,7 +324,13 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 			if (bytes_readed != sizeof(buf))
 				break;
 		}
+		return BOOL_TRUE;
 	}
+
+	// Here the situation when input is not allowed. Remove stdin from
+	// eloop waiting list. Else klish will get 100% CPU. Callbacks on
+	// operation completions will restore this handler.
+	faux_eloop_del_fd(eloop, STDIN_FILENO);
 
 	// Happy compiler
 	eloop = eloop;
@@ -505,6 +541,10 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	faux_list_free(completions);
 	faux_str_free(prefix);
 
+	// Operation is finished so restore stdin handler
+	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+		stdin_cb, ctx);
+
 	// Happy compiler
 	ktp = ktp;
 	msg = msg;
@@ -586,6 +626,10 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	}
 
 	faux_list_free(help_list);
+
+	// Operation is finished so restore stdin handler
+	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+		stdin_cb, ctx);
 
 	ktp = ktp; // happy compiler
 
