@@ -83,6 +83,7 @@ bool_t ktp_session_set_cb(ktp_session_t *ktp, ktp_session_cb_e cb_id,
 	void *fn, void *udata);
 bool_t ktp_session_connected(ktp_session_t *session);
 int ktp_session_fd(const ktp_session_t *session);
+faux_async_t *ktp_session_async(const ktp_session_t *ktp);
 bool_t ktp_session_stop_on_answer(const ktp_session_t *ktp);
 bool_t ktp_session_set_stop_on_answer(ktp_session_t *ktp, bool_t stop_on_answer);
 ktp_session_state_e ktp_session_state(const ktp_session_t *ktp);

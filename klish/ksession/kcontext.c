@@ -32,6 +32,7 @@ struct kcontext_s {
 	int stderr;
 	pid_t pid;
 	bool_t done; // If all actions are done
+	char *pts_fn; // Pseudo Terminal Slave file name
 };
 
 
@@ -92,6 +93,10 @@ FAUX_HIDDEN KSET(context, ksession_t *, session);
 KGET_BOOL(context, done);
 FAUX_HIDDEN KSET_BOOL(context, done);
 
+// PTS file name (Pseudo Terminal Slave)
+KSET_STR(context, pts_fn);
+KGET_STR(context, pts_fn);
+
 
 kcontext_t *kcontext_new(kcontext_type_e type)
 {
@@ -117,6 +122,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->pid = -1; // PID of currently executed ACTION
 	context->session = NULL; // Don't free
 	context->done = BOOL_FALSE;
+	context->pts_fn = NULL;
 
 	return context;
 }
@@ -135,6 +141,7 @@ void kcontext_free(kcontext_t *context)
 		close(context->stdout);
 	if (context->stderr != -1)
 		close(context->stderr);
+	faux_str_free(context->pts_fn);
 
 	faux_free(context);
 }

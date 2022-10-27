@@ -228,6 +228,16 @@ int ktp_session_fd(const ktp_session_t *ktp)
 }
 
 
+faux_async_t *ktp_session_async(const ktp_session_t *ktp)
+{
+	assert(ktp);
+	if (!ktp)
+		return NULL;
+
+	return ktp->async;
+}
+
+
 static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {

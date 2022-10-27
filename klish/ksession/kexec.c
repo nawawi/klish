@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <syslog.h>
+#include <sys/ioctl.h>
+#include <termios.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
@@ -228,6 +230,48 @@ bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 }
 
 
+bool_t kexec_set_winsize(kexec_t *exec)
+{
+	int fd = -1;
+	size_t width = 0;
+	size_t height = 0;
+	struct winsize ws = {};
+	int res = -1;
+	kcontext_t *context = NULL;
+	ksession_t *session = NULL;
+
+	if (!exec)
+		return BOOL_FALSE;
+	if (!kexec_interactive(exec))
+		return BOOL_FALSE;
+	fd = kexec_stdin(exec);
+	if (fd < 0)
+		return BOOL_FALSE;
+	if (!isatty(fd))
+		return BOOL_FALSE;
+	context = (kcontext_t *)faux_list_data(faux_list_head(exec->contexts));
+	if (!context)
+		return BOOL_FALSE;
+	session = kcontext_session(context);
+	if (!session)
+		return BOOL_FALSE;
+
+	// Set pseudo terminal window size
+	width = ksession_term_width(session);
+	height = ksession_term_height(session);
+	if ((width == 0) || (height == 0))
+		return BOOL_FALSE;
+
+	ws.ws_col = (unsigned short)width;
+	ws.ws_row = (unsigned short)height;
+	res = ioctl(fd, TIOCSWINSZ, &ws);
+	if (res < 0)
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t kexec_prepare(kexec_t *exec)
 {
 	int pipefd[2] = {};
@@ -247,12 +291,10 @@ static bool_t kexec_prepare(kexec_t *exec)
 	if (kexec_interactive(exec)) {
 		int ptm = -1;
 		char *pts_name = NULL;
-		int pts = -1;
 		kcontext_t *context = (kcontext_t *)faux_list_data(
 			faux_list_head(exec->contexts));
 
 		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
-//		ptm = open(PTMX_PATH, O_RDWR, 0);
 		if (ptm < 0)
 			return BOOL_FALSE;
 		// Set O_NONBLOCK flag here. Because this flag is ignored while
@@ -262,19 +304,16 @@ static bool_t kexec_prepare(kexec_t *exec)
 		grantpt(ptm);
 		unlockpt(ptm);
 		pts_name = ptsname(ptm);
-		pts = open(pts_name, O_RDWR, O_NOCTTY);
-//		pts = open(pts_name, O_RDWR, 0);
-		if (pts < 0) {
-			close(ptm);
-			return BOOL_FALSE;
-		}
 
 		kexec_set_stdin(exec, ptm);
 		kexec_set_stdout(exec, ptm);
 		kexec_set_stderr(exec, ptm);
-		kcontext_set_stdin(context, pts);
-		kcontext_set_stdout(context, pts);
-		kcontext_set_stderr(context, pts);
+		// Don't set pts fd here. In a case of pseudo-terminal the pts
+		// must be opened later in the child after setsid(). So just
+		// save filename of pts.
+		kcontext_set_pts_fn(context, pts_name);
+		// Set pseudo terminal window size
+		kexec_set_winsize(exec);
 
 		return BOOL_TRUE;
 	}
@@ -455,6 +494,9 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	ksym_fn fn = NULL;
 	int exitcode = 0;
 	pid_t child_pid = -1;
+	int i = 0;
+	int fdmax = 0;
+	const char *pts_fn = NULL;
 
 	fn = ksym_function(kaction_sym(action));
 
@@ -480,13 +522,12 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	}
 
 	// Child
-	if (kaction_interactive(action)) {
+	if ((pts_fn = kcontext_pts_fn(context)) != NULL) {
 		int fd = -1;
-		char *tmp = NULL;
 		setsid();
-		tmp = faux_str_sprintf("/proc/self/fd/%i", kcontext_stdin(context));
-		fd = open(tmp, O_RDWR, 0);
-		faux_str_free(tmp);
+		fd = open(pts_fn, O_RDWR, 0);
+		if (fd < 0)
+			_exit(-1);
 		dup2(fd, STDIN_FILENO);
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
@@ -495,9 +536,12 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 		dup2(kcontext_stdout(context), STDOUT_FILENO);
 		dup2(kcontext_stderr(context), STDERR_FILENO);
 	}
-	int i = 0;
-	for (i = 3; i < 256; i++)
+
+	// Close all inherited fds except stdin, stdout, stderr
+	fdmax = (int)sysconf(_SC_OPEN_MAX);
+	for (i = (STDERR_FILENO + 1); i < fdmax; i++)
 		close(i);
+
 	exitcode = fn(context);
 	// We will use _exit() later so stdio streams will remain unflushed.
 	// Some output data can be lost. Flush necessary streams here.

@@ -14,6 +14,7 @@
 #include <sys/wait.h>
 
 #include <faux/str.h>
+#include <faux/conv.h>
 #include <faux/async.h>
 #include <faux/msg.h>
 #include <faux/eloop.h>
@@ -905,6 +906,57 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
+static bool_t ktpd_session_process_winch(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	char *line = NULL;
+	char *p = NULL;
+	unsigned short width = 0;
+	unsigned short height = 0;
+
+	assert(ktpd);
+	assert(msg);
+
+	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_WINCH)))
+		return BOOL_TRUE;
+
+	p = strchr(line, ' ');
+	if (!p || (p == line)) {
+		faux_str_free(line);
+		return BOOL_FALSE;
+	}
+	if (!faux_conv_atous(line, &width, 0)) {
+		faux_str_free(line);
+		return BOOL_FALSE;
+	}
+	if (!faux_conv_atous(p + 1, &height, 0)) {
+		faux_str_free(line);
+		return BOOL_FALSE;
+	}
+
+	ksession_set_term_width(ktpd->session, width);
+	ksession_set_term_height(ktpd->session, height);
+	faux_str_free(line);
+
+	if (!ktpd->exec)
+		return BOOL_TRUE;
+	// Set pseudo terminal window size
+	kexec_set_winsize(ktpd->exec);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t ktpd_session_process_notification(ktpd_session_t *ktpd, faux_msg_t *msg)
+{
+	assert(ktpd);
+	assert(msg);
+
+	ktpd_session_process_winch(ktpd, msg);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
@@ -943,6 +995,9 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS)
 			break;
 		ktpd_session_process_stdin(ktpd, msg);
+		break;
+	case KTP_NOTIFICATION:
+		ktpd_session_process_notification(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);

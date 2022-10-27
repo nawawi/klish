@@ -15,6 +15,8 @@ struct ksession_s {
 	kscheme_t *scheme;
 	kpath_t *path;
 	bool_t done; // Indicates that session is over and must be closed
+	size_t term_width;
+	size_t term_height;
 };
 
 
@@ -27,6 +29,14 @@ KGET(session, kpath_t *, path);
 // Done
 KGET_BOOL(session, done);
 KSET_BOOL(session, done);
+
+// Width of pseudo terminal
+KGET(session, size_t, term_width);
+KSET(session, size_t, term_width);
+
+// Height of pseudo terminal
+KGET(session, size_t, term_height);
+KSET(session, size_t, term_height);
 
 
 ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry)
@@ -68,6 +78,8 @@ ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry)
 	assert(level);
 	kpath_push(session->path, level);
 	session->done = BOOL_FALSE;
+	session->term_width = 0;
+	session->term_height = 0;
 
 	return session;
 }

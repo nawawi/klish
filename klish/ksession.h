@@ -26,6 +26,14 @@ kpath_t *ksession_path(const ksession_t *session);
 bool_t ksession_done(const ksession_t *session);
 bool_t ksession_set_done(ksession_t *session, bool_t done);
 
+// Width of pseudo terminal
+size_t ksession_term_width(const ksession_t *session);
+bool_t ksession_set_term_width(ksession_t *session, size_t term_width);
+
+// Height of pseudo terminal
+size_t ksession_term_height(const ksession_t *session);
+bool_t ksession_set_term_height(ksession_t *session, size_t term_height);
+
 C_DECL_END
 
 #endif // _klish_ksession_h

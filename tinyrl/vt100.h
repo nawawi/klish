@@ -79,6 +79,7 @@ void vt100_set_istream(vt100_t *vt100, FILE *istream);
 FILE *vt100_ostream(const vt100_t *vt100);
 void vt100_set_ostream(vt100_t *vt100, FILE *ostream);
 
+void vt100_winsize(const vt100_t *vt100, size_t *width, size_t *height);
 size_t vt100_width(const vt100_t *vt100);
 size_t vt100_height(const vt100_t *vt100);
 

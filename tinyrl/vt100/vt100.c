@@ -253,49 +253,50 @@ int vt100_eof(const vt100_t *vt100)
 }
 
 
-size_t vt100_width(const vt100_t *vt100)
+void vt100_winsize(const vt100_t *vt100, size_t *width, size_t *height)
 {
 #ifdef TIOCGWINSZ
 	struct winsize ws = {};
 	int res = 0;
 #endif
-	const size_t default_width = 80;
-
-	if(!vt100 || !vt100->ostream)
-		return default_width;
+	size_t w = 80;
+	size_t h = 25;
 
 #ifdef TIOCGWINSZ
-	ws.ws_col = 0;
-	res = ioctl(fileno(vt100->ostream), TIOCGWINSZ, &ws);
-	if (res || (0 == ws.ws_col))
-		return default_width;
-	return (size_t)ws.ws_col;
-#else
-	return default_width;
+	if(vt100 && vt100->ostream && isatty(fileno(vt100->ostream))) {
+		res = ioctl(fileno(vt100->ostream), TIOCGWINSZ, &ws);
+		if (!res) {
+			if (0 != ws.ws_col)
+				w = (size_t)ws.ws_col;
+			if (0 != ws.ws_row)
+				h = (size_t)ws.ws_row;
+		}
+	}
 #endif
+
+	if (width)
+		*width = w;
+	if (height)
+		*height = h;
+}
+
+size_t vt100_width(const vt100_t *vt100)
+{
+	size_t w = 0;
+
+	vt100_winsize(vt100, &w, NULL);
+
+	return w;
 }
 
 
 size_t vt100_height(const vt100_t *vt100)
 {
-#ifdef TIOCGWINSZ
-	struct winsize ws = {};
-	int res = 0;
-#endif
-	const size_t default_height = 25;
+	size_t h = 0;
 
-	if(!vt100 || !vt100->ostream)
-		return default_height;
+	vt100_winsize(vt100, NULL, &h);
 
-#ifdef TIOCGWINSZ
-	ws.ws_row = 0;
-	res = ioctl(fileno(vt100->ostream), TIOCGWINSZ, &ws);
-	if (res || (0 == ws.ws_row))
-		return default_height;
-	return (size_t)ws.ws_row;
-#else
-	return default_height;
-#endif
+	return h;
 }
 
 

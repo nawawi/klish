@@ -33,13 +33,18 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
+
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
+static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
+
 static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
 	faux_error_t *error);
 static void reset_hotkey_table(ctx_t *ctx);
 static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
+static bool_t send_winch_notification(ctx_t *ctx);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
@@ -109,7 +114,14 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	tinyrl_redisplay(tinyrl);
 
 	eloop = ktp_session_eloop(ktp);
+
+	// Notify server about terminal window size change
+	faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
+
 	faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
+
+	send_winch_notification(&ctx);
+
 	faux_eloop_loop(eloop);
 
 cleanup:
@@ -331,6 +343,51 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// eloop waiting list. Else klish will get 100% CPU. Callbacks on
 	// operation completions will restore this handler.
 	faux_eloop_del_fd(eloop, STDIN_FILENO);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t send_winch_notification(ctx_t *ctx)
+{
+	size_t width = 0;
+	size_t height = 0;
+	char *winsize = NULL;
+	faux_msg_t *req = NULL;
+	ktp_status_e status = KTP_STATUS_NONE;
+
+	if (!ctx->tinyrl)
+		return BOOL_FALSE;
+	if (!ctx->ktp)
+		return BOOL_FALSE;
+
+	tinyrl_winsize(ctx->tinyrl, &width, &height);
+	winsize = faux_str_sprintf("%lu %lu", width, height);
+
+	req = ktp_msg_preform(KTP_NOTIFICATION, status);
+	faux_msg_add_param(req, KTP_PARAM_WINCH, winsize, strlen(winsize));
+	faux_str_free(winsize);
+	faux_msg_send_async(req, ktp_session_async(ctx->ktp));
+	faux_msg_free(req);
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+
+	if (!ctx)
+		return BOOL_FALSE;
+
+	send_winch_notification(ctx);
 
 	// Happy compiler
 	eloop = eloop;

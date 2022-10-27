@@ -97,7 +97,11 @@ void tinyrl_reset_line_state(tinyrl_t *tinyrl);
 void tinyrl_reset_line(tinyrl_t *tinyrl);
 void tinyrl_crlf(const tinyrl_t *tinyrl);
 void tinyrl_multi_crlf(const tinyrl_t *tinyrl);
+
+void tinyrl_winsize(const tinyrl_t *tinyrl, size_t *width, size_t *height);
 size_t tinyrl_width(const tinyrl_t *tinyrl);
+size_t tinyrl_height(const tinyrl_t *tinyrl);
+
 int tinyrl_printf(const tinyrl_t *tinyrl, const char *fmt, ...);
 size_t tinyrl_equal_part(const tinyrl_t *tinyrl,
 	const char *s1, const char *s2);

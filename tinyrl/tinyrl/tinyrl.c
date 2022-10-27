@@ -729,13 +729,36 @@ void tinyrl_reset_hist_pos(tinyrl_t *tinyrl)
 }
 
 
+void tinyrl_winsize(const tinyrl_t *tinyrl, size_t *width, size_t *height)
+{
+	vt100_t *term = NULL;
+
+	if (tinyrl)
+		term = tinyrl->term;
+
+	vt100_winsize(term, width, height);
+}
+
+
 size_t tinyrl_width(const tinyrl_t *tinyrl)
 {
-	assert(tinyrl);
-	if (!tinyrl)
-		return 80;
+	vt100_t *term = NULL;
 
-	return tinyrl->width;
+	if (tinyrl)
+		term = tinyrl->term;
+
+	return vt100_width(term);
+}
+
+
+size_t tinyrl_height(const tinyrl_t *tinyrl)
+{
+	vt100_t *term = NULL;
+
+	if (tinyrl)
+		term = tinyrl->term;
+
+	return vt100_height(term);
 }
 
 
