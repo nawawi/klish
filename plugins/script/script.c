@@ -24,6 +24,7 @@ static char *script_mkfifo(void)
 {
 	int res = 0;
 	char *name = NULL;
+	int rc = 0;
 
 	name = faux_str_sprintf("/tmp/klish.fifo.%u.XXXXXX", getpid());
 	mktemp(name);
@@ -142,10 +143,13 @@ static char *find_out_shebang(const char *script)
 		(strlen(line) < 2) ||
 		(line[0] != '#') ||
 		(line[1] != '!')
-		)
+		) {
+		faux_str_free(line);
 		return faux_str_dup(default_shebang);
+	}
 
 	shebang = faux_str_dup(line + 2);
+	faux_str_free(line);
 
 	return shebang;
 }
@@ -186,6 +190,7 @@ int script_script(kcontext_t *context)
 	// Child: write to FIFO
 	if (cpid == 0) {
 		wpipe = fopen(fifo_name, "w");
+		faux_str_free(fifo_name);
 		if (!wpipe)
 			_exit(-1);
 		fwrite(script, strlen(script), 1, wpipe);

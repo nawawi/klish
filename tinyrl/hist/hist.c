@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#include <syslog.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>

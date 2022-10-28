@@ -129,9 +129,19 @@ void tty_raw_mode(tinyrl_t *tinyrl)
 		return;
 	new_termios.c_iflag = 0;
 	new_termios.c_oflag = OPOST | ONLCR;
+//	new_termios.c_oflag = ONLCR;
 	new_termios.c_lflag = 0;
+
+//	new_termios.c_cflag = CS8 | CREAD;
+//	new_termios.c_iflag = IGNPAR | IUTF8;
+//	new_termios.c_oflag = OPOST | ONLCR | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+//	new_termios.c_lflag = ECHOCTL | ECHOKE;
+
 	new_termios.c_cc[VMIN] = 1;
 	new_termios.c_cc[VTIME] = 0;
+
+//	cfsetospeed(&new_termios, B38400);
+
 	// Mode switch
 	tcsetattr(fd, TCSADRAIN, &new_termios);
 }
