@@ -12,6 +12,7 @@
 #include <syslog.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <signal.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
@@ -497,6 +498,7 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	int i = 0;
 	int fdmax = 0;
 	const char *pts_fn = NULL;
+	sigset_t sigs = {};
 
 	fn = ksym_function(kaction_sym(action));
 
@@ -522,6 +524,11 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	}
 
 	// Child
+
+	// Unblock signals
+	sigemptyset(&sigs);
+	sigprocmask(SIG_SETMASK, &sigs, NULL);
+
 	if ((pts_fn = kcontext_pts_fn(context)) != NULL) {
 		int fd = -1;
 		setsid();
