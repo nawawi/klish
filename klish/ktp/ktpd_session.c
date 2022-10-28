@@ -837,7 +837,7 @@ static ssize_t stdin_out(int fd, faux_buf_t *buf)
 }
 
 
-static bool_t action_stdin_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t push_stdin(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
@@ -1096,7 +1096,7 @@ int ktpd_session_fd(const ktpd_session_t *ktpd)
 }
 
 
-static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t get_stdout(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
@@ -1106,18 +1106,6 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	char *buf = NULL;
 	ssize_t len = 0;
 	faux_msg_t *ack = NULL;
-
-	// Interactive command use these function as callback not only for
-	// getting stdout but for writing stdin too. Because pseudo-terminal
-	// uses the same fd for in and out.
-	if (info->revents & POLLOUT)
-		return action_stdin_ev(eloop, type, associated_data, user_data);
-
-	// Some errors or fd is closed so remove it from polling
-	if (!(info->revents & POLLIN)) {
-		faux_eloop_del_fd(eloop, info->fd);
-		return BOOL_TRUE;
-	}
 
 	if (!ktpd)
 		return BOOL_TRUE;
@@ -1154,6 +1142,36 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	faux_msg_free(ack);
 
 	free(buf);
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+
+	return BOOL_TRUE;
+}
+
+
+
+static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data)
+{
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+
+	// Interactive command use these function as callback not only for
+	// getting stdout but for writing stdin too. Because pseudo-terminal
+	// uses the same fd for in and out.
+	if (info->revents & POLLOUT)
+		push_stdin(eloop, type, associated_data, user_data);
+
+	// Some errors or fd is closed so remove it from polling
+	if (info->revents & POLLIN)
+		get_stdout(eloop, type, associated_data, user_data);
+
+	// EOF || POLERR || POLLNVAL
+	if (info->revents & (POLLHUP | POLLERR | POLLNVAL)) {
+		faux_eloop_del_fd(eloop, info->fd);
+		syslog(LOG_DEBUG, "Close fd %d", info->fd);
+	}
 
 	// Happy compiler
 	eloop = eloop;
@@ -1249,7 +1267,7 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		if (faux_async_in(async) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with async input");
+			syslog(LOG_ERR, "Problem with client async input");
 			return BOOL_FALSE; // Stop event loop
 		}
 	}

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
