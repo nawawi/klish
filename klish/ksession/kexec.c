@@ -290,6 +290,7 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// If command is interactive then prepare pseudoterminal. Note
 	// interactive commands can't have filters
 	if (kexec_interactive(exec)) {
+		int pts = -1;
 		int ptm = -1;
 		char *pts_name = NULL;
 		kcontext_t *context = (kcontext_t *)faux_list_data(
@@ -305,14 +306,23 @@ static bool_t kexec_prepare(kexec_t *exec)
 		grantpt(ptm);
 		unlockpt(ptm);
 		pts_name = ptsname(ptm);
+		// Open client side (pts) of pseudo terminal. It's necessary for
+		// sync action execution. Additionally open descriptor makes
+		// action (from child) to don't send SIGHUP on terminal handler.
+		pts = open(pts_name, O_RDWR, O_NOCTTY);
+		if (pts < 0)
+			return BOOL_FALSE;
 
 		kexec_set_stdin(exec, ptm);
 		kexec_set_stdout(exec, ptm);
 		kexec_set_stderr(exec, ptm);
-		// Don't set pts fd here. In a case of pseudo-terminal the pts
-		// must be opened later in the child after setsid(). So just
+		kcontext_set_stdin(context, pts);
+		kcontext_set_stdout(context, pts);
+		kcontext_set_stderr(context, pts);
+		// In a case of pseudo-terminal the pts
+		// must be reopened later in the child after setsid(). So just
 		// save filename of pts.
-		kcontext_set_pts_fn(context, pts_name);
+		kcontext_set_pts_fname(context, pts_name);
 		// Set pseudo terminal window size
 		kexec_set_winsize(exec);
 
@@ -320,8 +330,6 @@ static bool_t kexec_prepare(kexec_t *exec)
 	}
 
 	// Create "global" stdin, stdout, stderr for the whole job execution.
-	// Now function creates only the simple pipes but somedays it will be
-	// able to create pseudo-terminal for interactive sessions.
 
 	// STDIN
 	if (pipe(pipefd) < 0)
@@ -497,7 +505,7 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	pid_t child_pid = -1;
 	int i = 0;
 	int fdmax = 0;
-	const char *pts_fn = NULL;
+	const char *pts_fname = NULL;
 	sigset_t sigs = {};
 
 	fn = ksym_function(kaction_sym(action));
@@ -529,10 +537,10 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	sigemptyset(&sigs);
 	sigprocmask(SIG_SETMASK, &sigs, NULL);
 
-	if ((pts_fn = kcontext_pts_fn(context)) != NULL) {
+	if ((pts_fname = kcontext_pts_fname(context)) != NULL) {
 		int fd = -1;
 		setsid();
-		fd = open(pts_fn, O_RDWR, 0);
+		fd = open(pts_fname, O_RDWR, 0);
 		if (fd < 0)
 			_exit(-1);
 		dup2(fd, STDIN_FILENO);

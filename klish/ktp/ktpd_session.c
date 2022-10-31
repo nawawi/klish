@@ -1170,7 +1170,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// EOF || POLERR || POLLNVAL
 	if (info->revents & (POLLHUP | POLLERR | POLLNVAL)) {
 		faux_eloop_del_fd(eloop, info->fd);
-		syslog(LOG_DEBUG, "Close fd %d", info->fd);
+//		syslog(LOG_DEBUG, "Close fd %d (%x)", info->fd, info->revents);
 	}
 
 	// Happy compiler
