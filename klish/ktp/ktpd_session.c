@@ -771,7 +771,6 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 					faux_str_dup(prefix_str),
 					faux_str_dup(line_str));
 				faux_list_add(help_list, help_struct);
-				help_added = BOOL_TRUE;
 			}
 		}
 
