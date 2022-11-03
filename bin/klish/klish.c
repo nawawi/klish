@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 				faux_error_fshow(error, stderr);
 			}
 			faux_error_free(error);
-			fprintf(stderr, "Retcode: %d\n", retcode);
+//			fprintf(stderr, "Retcode: %d\n", retcode);
 			// Stop-on-error
 			if (opts->stop_on_error && (!rc || retcode != 0))
 				break;
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 					faux_error_fshow(error, stderr);
 				}
 				faux_error_free(error);
-				fprintf(stderr, "Retcode: %d\n", retcode);
+//				fprintf(stderr, "Retcode: %d\n", retcode);
 				faux_str_free(line);
 				// Stop-on-error
 				if (opts->stop_on_error && (!rc || retcode != 0)) {
@@ -197,7 +197,7 @@ static bool_t ktp_sync_cmd(ktp_session_t *ktp, const char *line,
 static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data)
 {
-	if (write(STDOUT_FILENO, line, len) < 0)
+	if (faux_write_block(STDOUT_FILENO, line, len) < 0)
 		return BOOL_FALSE;
 
 	ktp = ktp;
@@ -210,7 +210,7 @@ static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data)
 {
-	if (write(STDERR_FILENO, line, len) < 0)
+	if (faux_write_block(STDERR_FILENO, line, len) < 0)
 		return BOOL_FALSE;
 
 	ktp = ktp;
