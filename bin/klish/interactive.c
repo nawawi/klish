@@ -729,15 +729,14 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 
 	// Write to pager's pipe if pager is really working
 	if (ctx->pager_working == TRI_TRUE) {
-		if (fwrite(line, 1, len, ctx->pager_pipe) == 0) {
+		if (faux_write_block(fileno(ctx->pager_pipe), line, len) <= 0) {
 			// If we can't write to pager pipe then try stdout.
-			if (write(STDOUT_FILENO, line, len) < 0)
+			if (faux_write_block(STDOUT_FILENO, line, len) < 0)
 				return BOOL_FALSE;
 			return BOOL_TRUE; // Don't break the loop
 		}
-		fflush(ctx->pager_pipe);
 	} else {
-		if (write(STDOUT_FILENO, line, len) < 0)
+		if (faux_write_block(STDOUT_FILENO, line, len) < 0)
 			return BOOL_FALSE;
 	}
 
