@@ -2,23 +2,22 @@
 
 ## About
 
-The klish is a framework for implementing a CISCO-like CLI on a UNIX systems.
+The klish is a framework for implementing a CISCO-like or Juniper-like
+CLI on a UNIX systems.
 
-NOTE: It's a development branch for fully rewritten klish version 3.
-It's not functional for now.
-For stable klish version 2 see the "2.2" branch.
+Current version 3 is not compatible to previous stable 2.2 branch. It's
+fully rewritten version. It has another architecture and config file
+format.
+
+For previous stable klish version 2 see the "2.2" branch.
 
 The main target for the klish is a Linux platform.
 
 
 ## Build
 
-NOTE:
-You need branch "master" for development non-stable version.
-You need branch "2.2" for stable version.
-
-The development master branch needs libfaux (http://faux.libcode.org) to be built.
-The stable branch 2.2 doesn't need libfaux library.
+The version 3 needs libfaux (http://faux.libcode.org) to be built.
+klish-3.0.0 is tested with faux-2.1.0
 
 
 ## Resources
@@ -35,4 +34,4 @@ Dev mailing list : http://groups.google.com/group/klish-dev
 
 Download : https://src.libcode.org/download/klish/
 
-Author : Serj Kalichev `serj.kalichev(_at_)libcode.org`
+Author : Serj Kalichev `pkun(_at_)libcode.org`
