@@ -681,7 +681,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 	// Last unfinished word. Common prefix for all entries
 	prefix = kpargv_last_arg(pargv);
 
-	// Fill msg with possible completions
+	// Fill msg with possible help messages
 	if (!kpargv_completions_is_empty(pargv)) {
 		const kentry_t *candidate = NULL;
 		kpargv_completions_node_t *citer = kpargv_completions_iter(pargv);
@@ -710,11 +710,8 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 			// Generate help with found ACTION
 			if (help) {
 				char *out = NULL;
-				const char *str = NULL;
 				kparg_t *parg = NULL;
 				int rc = -1;
-				char *prefix_str = NULL;
-				char *line_str = NULL;
 
 				parg = kparg_new(candidate, prefix);
 				kpargv_set_candidate_parg(pargv, parg);
@@ -722,21 +719,25 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 					help, pargv, &rc, &out);
 				kparg_free(parg);
 
-				str = out;
-				do {
-					prefix_str = faux_str_getline(str, &str);
-					if (!prefix_str)
-						break;
-					line_str = faux_str_getline(str, &str);
-					if (!line_str) {
-						faux_str_free(prefix_str);
-						break;
-					}
-					help_struct = help_new(prefix_str, line_str);
-					faux_list_add(help_list, help_struct);
-					help_added = BOOL_TRUE;
-				} while (line_str);
-				faux_str_free(out);
+				if (out) {
+					const char *str = out;
+					char *prefix_str = NULL;
+					char *line_str = NULL;
+					do {
+						prefix_str = faux_str_getline(str, &str);
+						if (!prefix_str)
+							break;
+						line_str = faux_str_getline(str, &str);
+						if (!line_str) {
+							faux_str_free(prefix_str);
+							break;
+						}
+						help_struct = help_new(prefix_str, line_str);
+						faux_list_add(help_list, help_struct);
+						help_added = BOOL_TRUE;
+					} while (line_str);
+					faux_str_free(out);
+				}
 			}
 
 
