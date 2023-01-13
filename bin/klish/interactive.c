@@ -722,9 +722,9 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 
 		ctx->pager_pipe = popen(ctx->opts->pager, "we");
 		if (!ctx->pager_pipe)
-			ctx->pager_working = BOOL_FALSE; // Indicates can't start
+			ctx->pager_working = TRI_FALSE; // Indicates can't start
 		else
-			ctx->pager_working = BOOL_TRUE;
+			ctx->pager_working = TRI_TRUE;
 	}
 
 	// Write to pager's pipe if pager is really working
