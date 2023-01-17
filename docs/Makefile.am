@@ -1,2 +1,2 @@
-EXTRA_DIST +=
+EXTRA_DIST += \
 	docs/specification.ru.md

@@ -23,7 +23,7 @@ lib_LIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
 
-EXTRA_DIST =
+EXTRA_DIST = \
 	bin/Makefile.am \
 	dbs/Makefile.am \
 	docs/Makefile.am \
