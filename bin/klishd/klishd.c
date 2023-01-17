@@ -232,31 +232,14 @@ err_client:
 
 bool_t daemonize(const char *pidfile)
 {
-	int pidfd = -1;
-
 	// Daemonize
 	syslog(LOG_DEBUG, "Daemonize\n");
-	if (daemon(0, 0) < 0) {
+	if (!faux_daemon(0, 0, pidfile, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) {
 		syslog(LOG_ERR, "Can't daemonize\n");
 		return BOOL_FALSE;
 	}
 
-	// Write pidfile
-	syslog(LOG_DEBUG, "Write PID file: %s\n", pidfile);
-	if ((pidfd = open(pidfile,
-		O_WRONLY | O_CREAT | O_EXCL | O_TRUNC,
-		S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
-		syslog(LOG_WARNING, "Can't open pidfile %s: %s\n",
-			pidfile, strerror(errno));
-	} else {
-		char str[20];
-		snprintf(str, sizeof(str), "%u\n", getpid());
-		str[sizeof(str) - 1] = '\0';
-		if (write(pidfd, str, strlen(str)) < 0)
-			syslog(LOG_WARNING, "Can't write to %s: %s\n",
-				pidfile, strerror(errno));
-		close(pidfd);
-	}
+	syslog(LOG_DEBUG, "PID file: %s\n", pidfile);
 
 	return BOOL_TRUE;
 }
