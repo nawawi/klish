@@ -22,9 +22,7 @@
 
 static char *script_mkfifo(void)
 {
-	int res = 0;
 	char *name = NULL;
-	int rc = 0;
 
 	name = faux_str_sprintf("/tmp/klish.fifo.%u.XXXXXX", getpid());
 	mktemp(name);
@@ -51,7 +49,6 @@ const char *kcontext_type_e_str[] = {
 
 static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 {
-	kcontext_type_e type = KCONTEXT_TYPE_NONE;
 	const kentry_t *entry = NULL;
 	kpargv_pargs_node_t *iter = NULL;
 	kparg_t *parg = NULL;
@@ -72,7 +69,6 @@ static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 	// Parameters
 	iter = kpargv_pargs_iter(pargv);
 	while ((parg = kpargv_pargs_each(&iter))) {
-		const char *str = NULL;
 		char *var = NULL;
 		entry = kparg_entry(parg);
 		if (kentry_max(entry) > 1) { // Multi

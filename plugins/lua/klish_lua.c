@@ -307,6 +307,7 @@ static void laction (int i) {
 		return;
 	lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 	globalL = NULL; // run only once
+	i = i; // Happy compiler
 }
 
 
@@ -430,7 +431,7 @@ int klish_plugin_lua_action(kcontext_t *context)
 	// Restore SIGINT and SIGQUIT
 	sigaction(SIGINT, &sig_old_int, NULL);
 	sigaction(SIGQUIT, &sig_old_quit, NULL);
-err:
+
 	return status;
 }
 
@@ -494,7 +495,6 @@ int kplugin_lua_init(kcontext_t *context)
 int kplugin_lua_fini(kcontext_t *context)
 {
 	kplugin_t *plugin = NULL;
-	lua_State *L = NULL;
 	struct lua_klish_data *ctx = NULL;
 
 	assert(context);

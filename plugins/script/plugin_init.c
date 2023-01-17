@@ -20,7 +20,6 @@ const uint8_t kplugin_script_minor = KPLUGIN_MINOR;
 int kplugin_script_init(kcontext_t *context)
 {
 	kplugin_t *plugin = NULL;
-	ksym_t *sym = NULL;
 
 	assert(context);
 	plugin = kcontext_plugin(context);
