@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://clish.sourceforge.net/XMLSchema" targetNamespace="http://clish.sourceforge.net/XMLSchema">
-
+<xs:schema 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns="https://klish.libcode.org/klish3"
+	targetNamespace="https://klish.libcode.org/klish3">
 
 	<xs:annotation>
 		<xs:appinfo>XML schema for klish configuration files</xs:appinfo>

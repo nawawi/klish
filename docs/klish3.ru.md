@@ -327,20 +327,22 @@ SEQ сам может быть элементом контейнера SWITCH.
 
 ### KLISH
 
-Любая XML файл с конфигурацией klish должен начинаться открывающим тегом 'KLISH'
+Любой XML файл с конфигурацией klish должен начинаться открывающим тегом 'KLISH'
 и заканчиваться закрывающим тегом 'KLISH'.
 
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <KLISH
-	xmlns="http://clish.sourceforge.net/XMLSchema"
+	xmlns="https://klish.libcode.org/klish3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
+	xsi:schemaLocation="https://src.libcode.org/pkun/klish/src/master/klish.xsd">
 
 <!-- Тут любая конфигурация для klish -->
 
 </KLISH>
 ```
+
+Описани
 
 
 ### PLUGIN
