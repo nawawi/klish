@@ -320,3 +320,71 @@ SEQ сам может быть элементом контейнера SWITCH.
 показ текущей конфигурации устройства, выход из текущего VIEW, либо любая другая
 команда. Клиент klish "ловит" нажатие горячих клавиш и передает на сервер
 команду, соответствующую нажатой горячей клавише.
+
+
+## Теги
+
+
+### KLISH
+
+Любая XML файл с конфигурацией klish должен начинаться открывающим тегом 'KLISH'
+и заканчиваться закрывающим тегом 'KLISH'.
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<KLISH
+	xmlns="http://clish.sourceforge.net/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
+
+<!-- Тут любая конфигурация для klish -->
+
+</KLISH>
+```
+
+
+### PLUGIN
+
+
+### HOTKEY
+
+
+### ACTION
+
+
+### ENTRY
+
+
+### VIEW
+
+
+### COMMAND
+
+
+### FILTER
+
+
+### PARAM
+
+
+### SWITCH
+
+
+### SEQ
+
+
+### PTYPE
+
+
+### PROMPT
+
+
+### HELP
+
+
+### COMPL
+
+
+### COND
+
+
