@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<KLISH
+	xmlns="https://klish.libcode.org/klish3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://src.libcode.org/pkun/klish/src/master/klish.xsd">
 
 <!-- klish-3.0.0 XML config example -->
 
-<KLISH
-	xmlns="http://clish.sourceforge.net/XMLSchema"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema http://clish.sourceforge.net/XMLSchema/clish.xsd">
-
 <!-- VIEW. Views are not visible for path. Switch because you must choose one of the commands -->
-<ENTRY name="main" mode="switch" ptype="STRING" container="true">
+<ENTRY name="main" mode="switch" container="true">
 
   <!-- COMMAND -->
   <ENTRY name="cmd" help="Clear settings" mode="sequence">
     <!-- SWITCH container. Container is not visible while CLI session -->
-    <ENTRY name="opt" help="Switch subcommand" ptype="STRING" mode="switch" container="true">
+    <ENTRY name="opt" help="Switch subcommand" mode="switch" container="true">
       <!-- PARAMs (switched) -->
-      <ENTRY name="o1" ptype="COMMAND" help="Clear callerid_number_prepend assignment" />
-      <ENTRY name="o2" ptype="COMMAND" help="Clear record assignment" />
-      <ENTRY name="o3" ptype="COMMAND" help="Clear callerid assignment" />
-      <ENTRY name="o4" ptype="COMMAND" help="Clear a schedule">
+      <ENTRY name="o1" help="Clear callerid_number_prepend assignment" />
+      <ENTRY name="o2" help="Clear record assignment" />
+      <ENTRY name="o3" help="Clear callerid assignment" />
+      <ENTRY name="o4" help="Clear a schedule">
         <!-- subPARAM -->
-        <ENTRY name="o5" help="Include number" ptype="UINT" optional="false" completion="${POSSIBLE_TRUNK_GROUP_INCLUDES}">
+        <ENTRY name="o5" help="Include number">
         </ENTRY>
       </ENTRY>
-      <ENTRY name="o6" ptype="COMMAND" help="Clear callerid_number_remove assignment" />
-      <ENTRY name="o7" ptype="COMMAND" help="Clear callerid_number_postpend assignment" />
-      <ENTRY name="o8" ptype="COMMAND" help="Clear callerid_number_replace assignment" />
+      <ENTRY name="o6" help="Clear callerid_number_remove assignment" />
+      <ENTRY name="o7" help="Clear callerid_number_postpend assignment" />
+      <ENTRY name="o8" help="Clear callerid_number_replace assignment" />
 
     </ENTRY>
 
@@ -37,11 +36,11 @@
 
 
   <!-- Another COMMAND. Sequence means that all subENTRYes can be entered simultaneously -->
-  <ENTRY name="cmd1" help="Clear settings" mode="sequence" ptype="STRING" purpose="common">
+  <ENTRY name="cmd1" help="Clear settings" mode="sequence" purpose="common">
 	<!-- PTYPE. Special purpose=ptype. Link to previosly defined "COMMAND" PTYPE -->
 	<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
 	<!-- COND. Conditional expression. Is parent COMMAND visible? -->
-	<ENTRY name="o2" ptype="COMMAND" purpose="cond"/>
+	<ENTRY name="o2" purpose="cond"/>
 
 	<ENTRY name="o1" help="Clear callerid_number_prepend assignment">
 		<ENTRY name="COMMAND" purpose="ptype" ref="/COMMAND"/>
@@ -51,14 +50,14 @@
 	</ENTRY>
 
     <!-- Conditional ACTIONs -->
-    <ACTION sym="tsym" exec_on="always" ptype="STRING">0</ACTION>
-    <ACTION sym="tsym" exec_on="always" ptype="STRING">1</ACTION>
-    <ACTION sym="tsym" exec_on="fail" ptype="STRING">2</ACTION>
-    <ACTION sym="tsym" exec_on="never" ptype="STRING">3</ACTION>
-    <ACTION sym="tsym" exec_on="always" ptype="STRING" sync="true">4</ACTION>
-    <ACTION sym="tsym" exec_on="always" ptype="STRING"></ACTION>
-    <ACTION sym="tsym" exec_on="success" ptype="STRING">5</ACTION>
-    <ACTION sym="tsym" exec_on="always" ptype="STRING">6</ACTION>
+    <ACTION sym="tsym" exec_on="always">0</ACTION>
+    <ACTION sym="tsym" exec_on="always">1</ACTION>
+    <ACTION sym="tsym" exec_on="fail">2</ACTION>
+    <ACTION sym="tsym" exec_on="never">3</ACTION>
+    <ACTION sym="tsym" exec_on="always" sync="true">4</ACTION>
+    <ACTION sym="tsym" exec_on="always"></ACTION>
+    <ACTION sym="tsym" exec_on="success">5</ACTION>
+    <ACTION sym="tsym" exec_on="always">6</ACTION>
   </ENTRY>
 
 
