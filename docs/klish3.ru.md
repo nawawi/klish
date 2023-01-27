@@ -2131,7 +2131,7 @@ backtrace=1
 local pars = klish.par()
 for k, v in ipairs(pars) do
   for i, p in ipairs(pars[v]) do
-    print(string.format("%s[%d] = %s", v, i, p)
+    print(string.format("%s[%d] = %s", v, i, p))
   end
 end
 ```
