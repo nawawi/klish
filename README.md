@@ -24,7 +24,7 @@ klish-3.0.0 is tested with faux-2.1.0
 
 Homepage : http://klish.libcode.org
 
-Docs : See the sourcecode tree "doc/" dir for documenation
+Docs : https://src.libcode.org/pkun/klish/src/master/docs/klish3.ru.md (in Russian)
 
 Repository : https://src.libcode.org/pkun/klish
 
