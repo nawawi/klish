@@ -2085,9 +2085,11 @@ push /view_name1
 
 Содержимое тега может задавать конфигурацию.
 
-Рассмотрим параметры конфигурации.
+### Параметры конфигурации
 
-### Параметр autostart
+Рассмотрим параметры конфигурации плугина.
+
+#### autostart
 
 ```
 autostart="/usr/share/lua/klish/autostart.lua"
@@ -2099,7 +2101,7 @@ autostart="/usr/share/lua/klish/autostart.lua"
 может быть только один.
 
 
-### Параметр package.path
+#### package.path
 
 ```
 package.path="/usr/lib/lua/clish/?.lua;/usr/lib/lua/?.lua"
@@ -2108,7 +2110,7 @@ package.path="/usr/lib/lua/clish/?.lua;/usr/lib/lua/?.lua"
 Задаёт Lua package.path (пути по которым идёт поиск модулей). Параметр может
 быть только один.
 
-### Параметр backtrace
+#### backtrace
 
 ```
 backtrace=1
