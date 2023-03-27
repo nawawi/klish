@@ -647,6 +647,37 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static bool_t get_stdout(kexec_t *exec)
+{
+	ssize_t r = -1;
+	faux_buf_t *faux_buf = NULL;
+	void *linear_buf = NULL;
+	int fd = -1;
+
+	if (!exec)
+		return BOOL_FALSE;
+
+	fd = kexec_stdout(exec);
+	assert(fd != -1);
+	faux_buf = kexec_bufout(exec);
+	assert(faux_buf);
+
+	do {
+		ssize_t really_readed = 0;
+		ssize_t linear_len =
+			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
+		// Non-blocked read. The fd became non-blocked while
+		// kexec_prepare().
+		r = read(fd, linear_buf, linear_len);
+		if (r > 0)
+			really_readed = r;
+		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
+	} while (r > 0);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -662,8 +693,11 @@ static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		kexec_continue_command_execution(exec, child_pid, wstatus);
 
 	// Check if kexec is done now
-	if (kexec_done(exec))
+	if (kexec_done(exec)) {
+		// May be buffer still contains data
+		get_stdout(exec);
 		return BOOL_FALSE; // To break a loop
+	}
 
 	// Happy compiler
 	eloop = eloop;
@@ -677,35 +711,14 @@ static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
-	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
 	kexec_t *exec = (kexec_t *)user_data;
-	ssize_t r = -1;
-	faux_buf_t *faux_buf = NULL;
-	void *linear_buf = NULL;
-
-	if (!exec)
-		return BOOL_FALSE;
-
-	faux_buf = kexec_bufout(exec);
-	assert(faux_buf);
-
-	do {
-		ssize_t really_readed = 0;
-		ssize_t linear_len =
-			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
-		// Non-blocked read. The fd became non-blocked while
-		// kexec_prepare().
-		r = read(info->fd, linear_buf, linear_len);
-		if (r > 0)
-			really_readed = r;
-		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
-	} while (r > 0);
 
 	// Happy compiler
 	eloop = eloop;
 	type = type;
+	associated_data = associated_data;
 
-	return BOOL_TRUE;
+	return get_stdout(exec);
 }
 
 
