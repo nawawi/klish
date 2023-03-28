@@ -146,6 +146,7 @@ int main(int argc, char **argv)
 			if (opts->stop_on_error && (retcode != 0))
 				break;
 		}
+		faux_file_close(fd);
 
 	// Interactive shell
 	} else {
@@ -170,7 +171,7 @@ err:
 static int ktp_sync_cmd(ktp_session_t *ktp, const char *line,
 	const struct options *opts)
 {
-	faux_error_t *error = faux_error_new();
+	faux_error_t *error = NULL;
 	int retcode = -1;
 
 	if (faux_str_is_empty(line))
@@ -180,8 +181,11 @@ static int ktp_sync_cmd(ktp_session_t *ktp, const char *line,
 	if (!opts->quiet)
 		fprintf(stderr, "%s\n", line);
 
-	if (!ktp_session_cmd(ktp, line, error, opts->dry_run))
+	error = faux_error_new();
+	if (!ktp_session_cmd(ktp, line, error, opts->dry_run)) {
+		faux_error_free(error);
 		return -1;
+	}
 
 	faux_eloop_loop(ktp_session_eloop(ktp));
 	// If retcode is not available then variable will not be changed
