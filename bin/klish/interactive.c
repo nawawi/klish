@@ -311,18 +311,24 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *udata)
 {
+	bool_t rc = BOOL_TRUE;
 	ctx_t *ctx = (ctx_t *)udata;
 	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
+	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
 
 	if (!ctx)
 		return BOOL_FALSE;
+
+	// Some errors or fd is closed so stop session
+	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
+		rc = BOOL_FALSE;
 
 	state = ktp_session_state(ctx->ktp);
 
 	// Standard klish command line
 	if (state == KTP_SESSION_STATE_IDLE) {
 		tinyrl_read(ctx->tinyrl);
-		return BOOL_TRUE;
+		return rc;
 	}
 
 	// Interactive command
@@ -337,7 +343,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 			if (bytes_readed != sizeof(buf))
 				break;
 		}
-		return BOOL_TRUE;
+		return rc;
 	}
 
 	// Here the situation when input is not allowed. Remove stdin from
@@ -348,9 +354,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Happy compiler
 	eloop = eloop;
 	type = type;
-	associated_data = associated_data;
 
-	return BOOL_TRUE;
+	return rc;
 }
 
 
