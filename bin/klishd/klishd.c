@@ -209,6 +209,8 @@ err: // For listen daemon
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
+	// Ignore SIGPIPE from client
+	signal(SIGPIPE, SIG_IGN);
 	// Main service loop
 	faux_eloop_loop(eloop);
 
@@ -217,6 +219,7 @@ err_client:
 
 	ktpd_session_free(ktpd_session);
 	faux_eloop_free(eloop);
+	syslog(LOG_DEBUG, "Close connection %d", client_fd);
 	close(client_fd);
 
 	// Free scheme

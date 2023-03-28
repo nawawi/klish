@@ -1213,7 +1213,7 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		if (faux_async_out(async) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with async output");
+			syslog(LOG_ERR, "Can't send data to client");
 			return BOOL_FALSE; // Stop event loop
 		}
 	}
@@ -1223,7 +1223,7 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		if (faux_async_in(async) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
-			syslog(LOG_ERR, "Problem with client async input");
+			syslog(LOG_ERR, "Can't get data from client");
 			return BOOL_FALSE; // Stop event loop
 		}
 	}
@@ -1231,7 +1231,7 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// EOF
 	if (info->revents & POLLHUP) {
 		faux_eloop_del_fd(eloop, info->fd);
-		syslog(LOG_DEBUG, "Close connection %d", info->fd);
+		syslog(LOG_DEBUG, "Connection %d is closed by client", info->fd);
 		return BOOL_FALSE; // Stop event loop
 	}
 
