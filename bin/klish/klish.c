@@ -38,8 +38,8 @@ static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
 static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
-static bool_t ktp_sync_cmd(ktp_session_t *ktp, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run);
+static int ktp_sync_cmd(ktp_session_t *ktp, const char *line,
+	const struct options *opts);
 
 
 int main(int argc, char **argv)
@@ -104,24 +104,10 @@ int main(int argc, char **argv)
 		const char *line = NULL;
 		faux_list_node_t *iter = faux_list_head(opts->commands);
 		while ((line = faux_list_each(&iter))) {
-			faux_error_t *error = faux_error_new();
-			bool_t rc = BOOL_FALSE;
-			// Echo command
-			if (!opts->quiet)
-				fprintf(stderr, "%s\n", line);
 			// Request to server
-			rc = ktp_sync_cmd(ktp, line, &retcode,
-				error, opts->dry_run);
-			if (!rc)
-				retcode = -1;
-			if (faux_error_len(error) > 0) {
-				fprintf(stderr, "Error:\n");
-				faux_error_fshow(error, stderr);
-			}
-			faux_error_free(error);
-//			fprintf(stderr, "Retcode: %d\n", retcode);
+			retcode = ktp_sync_cmd(ktp, line, opts);
 			// Stop-on-error
-			if (opts->stop_on_error && (!rc || retcode != 0))
+			if (opts->stop_on_error && (retcode != 0))
 				break;
 		}
 
@@ -134,31 +120,30 @@ int main(int argc, char **argv)
 			bool_t stop = BOOL_FALSE;
 			faux_file_t *fd = faux_file_open(filename, O_RDONLY, 0);
 			while ((line = faux_file_getline(fd))) {
-				faux_error_t *error = faux_error_new();
-				bool_t rc = BOOL_FALSE;
-				// Echo command
-				if (!opts->quiet)
-					fprintf(stderr, "%s\n", line);
 				// Request to server
-				rc = ktp_sync_cmd(ktp, line, &retcode,
-					error, opts->dry_run);
-				if (!rc)
-					retcode = -1;
-				if (faux_error_len(error) > 0) {
-					fprintf(stderr, "Error:\n");
-					faux_error_fshow(error, stderr);
-				}
-				faux_error_free(error);
-//				fprintf(stderr, "Retcode: %d\n", retcode);
+				retcode = ktp_sync_cmd(ktp, line, opts);
 				faux_str_free(line);
 				// Stop-on-error
-				if (opts->stop_on_error && (!rc || retcode != 0)) {
+				if (opts->stop_on_error && (retcode != 0)) {
 					stop = BOOL_TRUE;
 					break;
 				}
 			}
 			faux_file_close(fd);
 			if (stop)
+				break;
+		}
+
+	// Commands from non-interactive STDIN
+	} else if (!isatty(STDIN_FILENO)) {
+		char *line = NULL;
+		faux_file_t *fd = faux_file_fdopen(STDIN_FILENO);
+		while ((line = faux_file_getline(fd))) {
+			// Request to server
+			retcode = ktp_sync_cmd(ktp, line, opts);
+			faux_str_free(line);
+			// Stop-on-error
+			if (opts->stop_on_error && (retcode != 0))
 				break;
 		}
 
@@ -175,22 +160,40 @@ err:
 	ktp_disconnect(unix_sock);
 	opts_free(opts);
 
-	if ((retval < 0) || (retcode < 0))
+	if ((retval < 0) || (retcode != 0))
 		return -1;
 
 	return 0;
 }
 
 
-static bool_t ktp_sync_cmd(ktp_session_t *ktp, const char *line,
-	int *retcode, faux_error_t *error, bool_t dry_run)
+static int ktp_sync_cmd(ktp_session_t *ktp, const char *line,
+	const struct options *opts)
 {
-	if (!ktp_session_cmd(ktp, line, error, dry_run))
-		return BOOL_FALSE;
+	faux_error_t *error = faux_error_new();
+	int retcode = -1;
+
+	if (faux_str_is_empty(line))
+		return 0;
+
+	// Echo command
+	if (!opts->quiet)
+		fprintf(stderr, "%s\n", line);
+
+	if (!ktp_session_cmd(ktp, line, error, opts->dry_run))
+		return -1;
 
 	faux_eloop_loop(ktp_session_eloop(ktp));
+	// If retcode is not available then variable will not be changed
+	ktp_session_retcode(ktp, &retcode);
 
-	return ktp_session_retcode(ktp, retcode);
+	if (faux_error_len(error) > 0) {
+		fprintf(stderr, "Error:\n");
+		faux_error_fshow(error, stderr);
+	}
+	faux_error_free(error);
+
+	return retcode;
 }
 
 
