@@ -99,6 +99,9 @@ int main(int argc, char **argv)
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, NULL);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, NULL);
 
+	// Ignore SIGPIPE from server
+	signal(SIGPIPE, SIG_IGN);
+
 	// Commands from cmdline
 	if (faux_list_len(opts->commands) > 0) {
 		const char *line = NULL;

@@ -82,7 +82,10 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	ktpd->state = KTPD_SESSION_STATE_IDLE;
 	ktpd->eloop = eloop;
 	ktpd->session = ksession_new(scheme, start_entry);
-	assert(ktpd->session);
+	if (!ktpd->session) {
+		faux_free(ktpd);
+		return NULL;
+	}
 	ktpd->exec = NULL;
 	// Exit flag. It differs from ksession done flag because KTPD session
 	// can't exit immediately. It must finish current command processing
