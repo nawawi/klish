@@ -267,8 +267,11 @@ static bool_t load_db(kscheme_t *scheme, const char *db_name,
 
 	db = kdb_new(db_name, sofile);
 	assert(db);
-	if (!db)
+	if (!db) {
+		faux_ini_free(config);
 		return BOOL_FALSE;
+	}
+	// Now kdb owns config
 	kdb_set_ini(db, config);
 	kdb_set_error(db, error);
 
@@ -358,15 +361,14 @@ static kscheme_t *load_all_dbs(const char *dbs,
 	iter = faux_argv_iter(dbs_argv);
 	while ((db_name = faux_argv_each(&iter))) {
 		faux_ini_t *config = NULL; // Sub-config for current DB
-		char *prefix = NULL;
-
-		prefix = faux_str_mcat(&prefix, "DB.", db_name, ".", NULL);
-		if (config)
+		if (global_config) {
+			char *prefix = NULL;
+			prefix = faux_str_mcat(&prefix, "DB.", db_name, ".", NULL);
 			config = faux_ini_extract_subini(global_config, prefix);
+			faux_str_free(prefix);
+		}
 		if (!load_db(scheme, db_name, config, error))
 			retcode = BOOL_FALSE;
-		faux_ini_free(config);
-		faux_str_free(prefix);
 	}
 
 	faux_argv_free(dbs_argv);
