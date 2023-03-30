@@ -53,6 +53,7 @@ static int create_listen_unix_sock(const char *path);
 static kscheme_t *load_all_dbs(const char *dbs,
 	faux_ini_t *global_config, faux_error_t *error);
 static bool_t clear_scheme(kscheme_t *scheme, faux_error_t *error);
+static void signal_handler_empty(int signo);
 
 
 // Main loop events
@@ -81,6 +82,8 @@ int main(int argc, char **argv)
 	faux_error_t *error = faux_error_new();
 	faux_ini_t *config = NULL;
 	int client_fd = -1;
+	struct sigaction sig_act = {};
+	sigset_t sig_set = {};
 
 	// Parse command line options
 	opts = opts_init();
@@ -209,8 +212,15 @@ err: // For listen daemon
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
 	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
-	// Ignore SIGPIPE from client
-	signal(SIGPIPE, SIG_IGN);
+
+	// Ignore SIGPIPE from client. Don't use SIG_IGN because it will be
+	// inherited.
+	sigemptyset(&sig_set);
+	sig_act.sa_flags = 0;
+	sig_act.sa_mask = sig_set;
+	sig_act.sa_handler = &signal_handler_empty;
+	sigaction(SIGPIPE, &sig_act, NULL);
+
 	// Main service loop
 	faux_eloop_loop(eloop);
 
@@ -598,4 +608,10 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Return BOOL_FALSE to break listen parent loop. Child will create its
 	// own loop then.
 	return BOOL_FALSE;
+}
+
+
+static void signal_handler_empty(int signo)
+{
+	signo = signo; // Happy compiler
 }
