@@ -200,7 +200,6 @@ err: // For listen daemon
 	// Create KTP session
 	// Function ktpd_session_new() will add new events to eloop itself.
 	ktpd_session = ktpd_session_new(client_fd, scheme, NULL, eloop);
-	assert(ktpd_session);
 	if (!ktpd_session) {
 		syslog(LOG_ERR, "Can't create KTPd session\n");
 		goto err_client;
