@@ -25,6 +25,8 @@
 const uint8_t kplugin_lua_major = KPLUGIN_MAJOR;
 const uint8_t kplugin_lua_minor = KPLUGIN_MINOR;
 
+const uint8_t kplugin_lua_opt_global = 1; // RTLD_GLOBAL flag for dlopen()
+
 
 struct lua_klish_data {
 	lua_State *L;

@@ -129,7 +129,9 @@ bool_t kplugin_load(kplugin_t *plugin)
 	char *fini_name = NULL;
 	char *major_name = NULL;
 	char *minor_name = NULL;
-	int flag = RTLD_NOW | RTLD_LOCAL;
+	char *opt_global_name = NULL;
+	int default_flags = RTLD_NOW; // By default it uses RTLD_LOCAL
+	int flags = default_flags;
 	const char *id = NULL;
 	bool_t retcode = BOOL_FALSE;
 	uint8_t *ver = NULL;
@@ -154,9 +156,10 @@ bool_t kplugin_load(kplugin_t *plugin)
 	minor_name = faux_str_sprintf(KPLUGIN_MINOR_FMT, id);
 	init_name = faux_str_sprintf(KPLUGIN_INIT_FMT, id);
 	fini_name = faux_str_sprintf(KPLUGIN_FINI_FMT, id);
+	opt_global_name = faux_str_sprintf(KPLUGIN_OPT_GLOBAL_FMT, id);
 
 	// Open shared object
-	plugin->dlhan = dlopen(file_name, flag);
+	plugin->dlhan = dlopen(file_name, flags);
 	if (!plugin->dlhan) {
 //		fprintf(stderr, "Error: Can't open plugin \"%s\": %s\n",
 //			this->name, dlerror());
@@ -184,6 +187,18 @@ bool_t kplugin_load(kplugin_t *plugin)
 	// Get plugin fini function
 	plugin->fini_fn = dlsym(plugin->dlhan, fini_name);
 
+	// Get plugin options
+	ver = (uint8_t *)dlsym(plugin->dlhan, opt_global_name);
+	if (ver && (*ver != 0))
+		flags = flags | RTLD_GLOBAL;
+
+	// Reopen shared object with plugin options if necessary
+	if (flags != default_flags) {
+		plugin->dlhan = dlopen(file_name, flags | RTLD_NOLOAD);
+		// Decrement reference counter. Object will not be really closed.
+		dlclose(plugin->dlhan);
+	}
+
 	retcode = BOOL_TRUE;
 err:
 	faux_str_free(file_name);
@@ -191,6 +206,7 @@ err:
 	faux_str_free(minor_name);
 	faux_str_free(init_name);
 	faux_str_free(fini_name);
+	faux_str_free(opt_global_name);
 
 	if (!retcode && plugin->dlhan)
 		dlclose(plugin->dlhan);

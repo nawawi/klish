@@ -31,6 +31,9 @@
 #define KPLUGIN_INIT_FMT "kplugin_%s_init"
 #define KPLUGIN_FINI_FMT "kplugin_%s_fini"
 
+// Plugin's options
+#define KPLUGIN_OPT_GLOBAL_FMT "kplugin_%s_opt_global"
+
 
 typedef struct kplugin_s kplugin_t;
 
