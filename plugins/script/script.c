@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <syslog.h>
 
 #include <faux/str.h>
 #include <faux/list.h>
@@ -70,6 +71,9 @@ static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 	iter = kpargv_pargs_iter(pargv);
 	while ((parg = kpargv_pargs_each(&iter))) {
 		char *var = NULL;
+		const char *value = kparg_value(parg);
+		if (!value) // PTYPE contains "__ptype" parg with NULL value
+			continue;
 		entry = kparg_entry(parg);
 		if (kentry_max(entry) > 1) { // Multi
 			if (entry == saved_entry)
@@ -85,7 +89,7 @@ static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 			saved_entry = NULL;
 			num = 0;
 		}
-		setenv(var, kparg_value(parg), OVERWRITE);
+		setenv(var, value, OVERWRITE);
 		faux_str_free(var);
 	}
 
