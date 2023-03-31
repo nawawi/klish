@@ -189,11 +189,11 @@ static int luaB_context(lua_State *L)
 	context = ctx->context;
 	assert(context);
 
-	if (!strcmp(name, "value"))
+	if (!strcmp(name, "val"))
 		val = kcontext_candidate_value(context);
-	else if (!strcmp(name, "command"))
+	else if (!strcmp(name, "cmd"))
 		pars = kcontext_pargv(context);
-	else if (!strcmp(name, "parent_command"))
+	else if (!strcmp(name, "pcmd"))
 		pars = kcontext_parent_pargv(context);
 	if (pars) {
 		entry = kpargv_command(pars);
