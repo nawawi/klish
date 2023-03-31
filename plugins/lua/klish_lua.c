@@ -40,11 +40,15 @@ static lua_State *globalL = NULL;
 
 static int luaB_par(lua_State *L);
 static int luaB_ppar(lua_State *L);
+static int luaB_pars(lua_State *L);
+static int luaB_ppars(lua_State *L);
 static int luaB_path(lua_State *L);
 
 static const luaL_Reg klish_lib[] = {
 	{ "par", luaB_par },
 	{ "ppar", luaB_ppar },
+	{ "pars", luaB_pars },
+	{ "ppars", luaB_ppars },
 	{ "path", luaB_path },
 	{ NULL, NULL }
 };
@@ -165,7 +169,7 @@ static struct lua_klish_data *lua_context(lua_State *L)
 }
 
 
-static int _luaB_par(lua_State *L, int parent)
+static int _luaB_par(lua_State *L, int parent, int multi)
 {
 	unsigned int k = 0, i = 0;
 	kcontext_t *context;
@@ -176,7 +180,10 @@ static int _luaB_par(lua_State *L, int parent)
 	struct lua_klish_data *ctx;
 	const char *name = luaL_optstring(L, 1, NULL);
 
-	lua_newtable(L);
+	if (multi)
+		lua_newtable(L);
+	else if (!name)
+		return 0;
 	ctx = lua_context(L);
 	assert(ctx);
 
@@ -185,11 +192,11 @@ static int _luaB_par(lua_State *L, int parent)
 
 	pars = (parent)?kcontext_parent_pargv(context):kcontext_pargv(context);
 	if (!pars)
-		return 1;
+		return multi?1:0;
 
 	par_i = kpargv_pargs_iter(pars);
 	if (kpargv_pargs_len(pars) <= 0)
-		return 1;
+		return multi?1:0;
 
 	while ((p = kpargv_pargs_each(&par_i))) {
 		const kentry_t *entry = kparg_entry(p);
@@ -212,12 +219,16 @@ static int _luaB_par(lua_State *L, int parent)
 			lua_pop(L, 1);
 			last_entry = entry;
 		} else if (!strcmp(n, name)) {
+			if (!multi) {
+				lua_pushstring(L, kparg_value(p));
+				return 1;
+			}
 			lua_pushnumber(L, ++ k);
 			lua_pushstring(L, kparg_value(p));
 			lua_rawset(L, -3);
 		}
 	}
-	return 1;
+	return multi?1:0;
 }
 
 
@@ -253,15 +264,25 @@ static int luaB_path(lua_State *L)
 }
 
 
-static int luaB_par(lua_State *L)
+static int luaB_pars(lua_State *L)
 {
-	return _luaB_par(L, 0);
+	return _luaB_par(L, 0, 1);
 }
 
 
+static int luaB_ppars(lua_State *L)
+{
+	return _luaB_par(L, 1, 1);
+}
+
+static int luaB_par(lua_State *L)
+{
+	return _luaB_par(L, 0, 0);
+}
+
 static int luaB_ppar(lua_State *L)
 {
-	return _luaB_par(L, 1);
+	return _luaB_par(L, 1, 0);
 }
 
 
