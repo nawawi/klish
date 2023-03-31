@@ -43,6 +43,7 @@ static int luaB_ppar(lua_State *L);
 static int luaB_pars(lua_State *L);
 static int luaB_ppars(lua_State *L);
 static int luaB_path(lua_State *L);
+static int luaB_context(lua_State *L);
 
 static const luaL_Reg klish_lib[] = {
 	{ "par", luaB_par },
@@ -50,6 +51,7 @@ static const luaL_Reg klish_lib[] = {
 	{ "pars", luaB_pars },
 	{ "ppars", luaB_ppars },
 	{ "path", luaB_path },
+	{ "context", luaB_context },
 	{ NULL, NULL }
 };
 
@@ -168,6 +170,41 @@ static struct lua_klish_data *lua_context(lua_State *L)
 	return ctx;
 }
 
+static int luaB_context(lua_State *L)
+{
+	const kpargv_t *pars = NULL;
+	const kentry_t *entry;
+	const char *val = NULL;
+
+	struct lua_klish_data *ctx;
+	kcontext_t *context;
+
+	const char *name = luaL_optstring(L, 1, NULL);
+	if (!name)
+		return 0;
+
+	ctx = lua_context(L);
+	assert(ctx);
+
+	context = ctx->context;
+	assert(context);
+
+	if (!strcmp(name, "value"))
+		val = kcontext_candidate_value(context);
+	else if (!strcmp(name, "command"))
+		pars = kcontext_pargv(context);
+	else if (!strcmp(name, "parent_command"))
+		pars = kcontext_parent_pargv(context);
+	if (pars) {
+		entry = kpargv_command(pars);
+		assert(entry);
+		val = kentry_name(entry);
+	}
+	if (!val)
+		return 0;
+	lua_pushstring(L, val);
+	return 1;
+}
 
 static int _luaB_par(lua_State *L, int parent, int multi)
 {
