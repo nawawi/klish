@@ -413,6 +413,7 @@ int klish_plugin_lua_action(kcontext_t *context)
 
 	ctx = kplugin_udata(plugin);
 	assert(ctx);
+	ctx->context = context;
 
 	script = kcontext_script(context);
 
