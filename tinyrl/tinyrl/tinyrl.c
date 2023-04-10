@@ -302,8 +302,22 @@ void tinyrl_set_udata(tinyrl_t *tinyrl, void *udata)
 
 const char *tinyrl_line(const tinyrl_t *tinyrl)
 {
+	assert(tinyrl);
+	if (!tinyrl)
+		return NULL;
 	return tinyrl->line.str;
 }
+
+
+char *tinyrl_line_to_pos(const tinyrl_t *tinyrl)
+{
+	assert(tinyrl);
+	if (!tinyrl)
+		return NULL;
+
+	return faux_str_dupn(tinyrl->line.str, tinyrl->line.pos);
+}
+
 
 
 bool_t tinyrl_hist_save(const tinyrl_t *tinyrl)

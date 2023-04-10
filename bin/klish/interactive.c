@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <syslog.h>
 
 #include <faux/faux.h>
 #include <faux/str.h>
@@ -458,11 +459,12 @@ static bool_t tinyrl_key_hotkey(tinyrl_t *tinyrl, unsigned char key)
 
 static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 {
-	const char *line = NULL;
+	char *line = NULL;
 	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
 
-	line = tinyrl_line(tinyrl);
+	line = tinyrl_line_to_pos(tinyrl);
 	ktp_session_completion(ctx->ktp, line, ctx->opts->dry_run);
+	faux_str_free(line);
 
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 
@@ -474,11 +476,19 @@ static bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 
 static bool_t tinyrl_key_help(tinyrl_t *tinyrl, unsigned char key)
 {
-	const char *line = NULL;
+	char *line = NULL;
 	ctx_t *ctx = (ctx_t *)tinyrl_udata(tinyrl);
 
-	line = tinyrl_line(tinyrl);
+	line = tinyrl_line_to_pos(tinyrl);
+	// If "?" is quoted then it's not special hotkey.
+	// Just insert it into the line.
+	if (faux_str_unclosed_quotes(line, NULL)) {
+		faux_str_free(line);
+		return tinyrl_key_default(tinyrl, key);
+	}
+
 	ktp_session_help(ctx->ktp, line);
+	faux_str_free(line);
 
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 

@@ -15,7 +15,6 @@ off_t utf8_move_right(const char *line, off_t cur_pos);
 ssize_t utf8_nsyms(const char *str, size_t len);
 
 // Keys
-bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key);
 bool_t tinyrl_key_interrupt(tinyrl_t *tinyrl, unsigned char key);
 bool_t tinyrl_key_start_of_line(tinyrl_t *tinyrl, unsigned char key);
 bool_t tinyrl_key_end_of_line(tinyrl_t *tinyrl, unsigned char key);

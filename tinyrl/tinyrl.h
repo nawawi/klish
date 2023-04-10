@@ -62,7 +62,7 @@ typedef int tinyrl_timeout_fn_t(tinyrl_t *instance);
  */
 typedef bool_t tinyrl_key_func_t(tinyrl_t *instance, unsigned char key);
 
-
+bool_t tinyrl_key_default(tinyrl_t *tinyrl, unsigned char key);
 
 
 tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
@@ -82,6 +82,7 @@ void tinyrl_set_busy(tinyrl_t *tinyrl, bool_t busy);
 void tinyrl_set_prompt(tinyrl_t *tinyrl, const char *prompt);
 const char *tinyrl_prompt(const tinyrl_t *tinyrl);
 const char *tinyrl_line(const tinyrl_t *tinyrl);
+char *tinyrl_line_to_pos(const tinyrl_t *tinyrl);
 bool_t tinyrl_hist_save(const tinyrl_t *tinyrl);
 bool_t tinyrl_hist_restore(tinyrl_t *tinyrl);
 void tinyrl_line_to_hist(tinyrl_t *tinyrl);
@@ -110,9 +111,6 @@ size_t tinyrl_equal_part(const tinyrl_t *tinyrl,
 bool_t tinyrl_line_insert(tinyrl_t *tinyrl, const char *text, size_t len);
 bool_t tinyrl_line_delete(tinyrl_t *tinyrl, size_t start, size_t len);
 bool_t tinyrl_line_replace(tinyrl_t *tinyrl, const char *text);
-
-
-
 
 extern void tinyrl_done(tinyrl_t * instance);
 

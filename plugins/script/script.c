@@ -72,7 +72,7 @@ static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 	while ((parg = kpargv_pargs_each(&iter))) {
 		char *var = NULL;
 		const char *value = kparg_value(parg);
-		if (!value) // PTYPE contains "__ptype" parg with NULL value
+		if (!value) // PTYPE can contain parg with NULL value
 			continue;
 		entry = kparg_entry(parg);
 		if (kentry_max(entry) > 1) { // Multi
