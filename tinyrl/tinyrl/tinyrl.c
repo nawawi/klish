@@ -63,17 +63,7 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->handlers[KEY_HT] = tinyrl_key_tab;
 	tinyrl->handlers[KEY_ETB] = tinyrl_key_backword;
 
-	tinyrl->max_line_length = 0;
-	tinyrl->buffer = NULL;
-	tinyrl->buffer_size = 0;
-	tinyrl->done = BOOL_FALSE;
-	tinyrl->completion_over = BOOL_FALSE;
-	tinyrl->attempted_completion_function = NULL;
 	tinyrl->hotkey_fn = NULL;
-	tinyrl->state = 0;
-	tinyrl->kill_string = NULL;
-	tinyrl->echo_char = '\0';
-	tinyrl->echo_enabled = BOOL_TRUE;
 	tinyrl->utf8 = BOOL_TRUE;
 	tinyrl->busy = BOOL_FALSE;
 

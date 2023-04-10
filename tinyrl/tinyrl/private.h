@@ -48,7 +48,6 @@ typedef struct line_s {
 #define NUM_HANDLERS 256
 
 struct tinyrl_s {
-
 	tinyrl_key_func_t *handlers[NUM_HANDLERS]; // Handlers for pressed keys
 	tinyrl_key_func_t *hotkey_fn; // Handler for non-standard hotkeys
 	hist_t *hist; // History object
@@ -70,18 +69,4 @@ struct tinyrl_s {
 	bool_t esc_cont; // Does escape sequence continue
 	char esc_seq[10]; // Current ESC sequence (line doesn't contain it)
 	char *esc_p; // Pointer for unfinished ESC sequence
-
-
-	unsigned max_line_length;
-	char *buffer;
-	size_t buffer_size;
-	bool_t done;
-	bool_t completion_over;
-	bool_t completion_error_over;
-	tinyrl_completion_func_t *attempted_completion_function;
-	int state;
-#define RL_STATE_COMPLETING (0x00000001)
-	char *kill_string;
-	char echo_char;
-	bool_t echo_enabled;
 };
