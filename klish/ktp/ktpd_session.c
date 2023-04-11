@@ -698,8 +698,8 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_list_t *help_list = NULL;
 		help_t *help_struct = NULL;
 
-		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_NONUNIQUE,
-			help_compare, help_kcompare, help_free);
+		help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+			help_compare, NULL, help_free);
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *help = NULL;
 			const kentry_t *ptype = NULL;
@@ -742,8 +742,10 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 							break;
 						}
 						help_struct = help_new(prefix_str, line_str);
-						faux_list_add(help_list, help_struct);
-						help_added = BOOL_TRUE;
+						if (faux_list_add(help_list, help_struct))
+							help_added = BOOL_TRUE;
+						else
+							help_free(help_struct);
 					} while (line_str);
 					faux_str_free(out);
 				}
@@ -780,7 +782,8 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 				help_struct = help_new(
 					faux_str_dup(prefix_str),
 					faux_str_dup(line_str));
-				faux_list_add(help_list, help_struct);
+				if (!faux_list_add(help_list, help_struct))
+					help_free(help_struct);
 			}
 		}
 

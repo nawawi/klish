@@ -11,17 +11,12 @@ int help_compare(const void *first, const void *second)
 {
 	const help_t *f = (const help_t *)first;
 	const help_t *s = (const help_t *)second;
+	int r = 0;
 
-	return strcmp(f->prefix, s->prefix);
-}
+	if ((r = strcmp(f->prefix, s->prefix)) != 0)
+		return r;
 
-
-int help_kcompare(const void *key, const void *list_item)
-{
-	const char *f = (const char *)key;
-	const help_t *s = (const help_t *)list_item;
-
-	return strcmp(f, s->prefix);
+	return strcmp(f->line, s->line);
 }
 
 

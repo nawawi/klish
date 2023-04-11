@@ -657,8 +657,8 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 
 	process_prompt_param(ctx->tinyrl, msg);
 
-	help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_NONUNIQUE,
-		help_compare, help_kcompare, help_free);
+	help_list = faux_list_new(FAUX_LIST_SORTED, FAUX_LIST_UNIQUE,
+		help_compare, NULL, help_free);
 
 	// Wait for PREFIX - LINE pairs
 	iter = faux_msg_init_param_iter(msg);
@@ -685,7 +685,10 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		line_str = faux_str_dupn(param_data, param_len);
 
 		help = help_new(prefix_str, line_str);
-		faux_list_add(help_list, help);
+		if (!faux_list_add(help_list, help)) {
+			help_free(help);
+			continue;
+		}
 		if (prefix_len > max_prefix_len)
 			max_prefix_len = prefix_len;
 	}
