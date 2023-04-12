@@ -181,29 +181,98 @@ static int luaB_context(lua_State *L)
 
 	const char *name = luaL_optstring(L, 1, NULL);
 	if (!name)
-		return 0;
-
+		lua_newtable(L);
 	ctx = lua_context(L);
 	assert(ctx);
 
 	context = ctx->context;
 	assert(context);
 
-	if (!strcmp(name, "val"))
+	if (!name || !strcmp(name, "val")) {
 		val = kcontext_candidate_value(context);
-	else if (!strcmp(name, "cmd"))
-		pars = kcontext_pargv(context);
-	else if (!strcmp(name, "pcmd"))
-		pars = kcontext_parent_pargv(context);
-	if (pars) {
-		entry = kpargv_command(pars);
-		assert(entry);
-		val = kentry_name(entry);
+		if (val) {
+			if (!name) {
+				lua_pushstring(L, "val");
+				lua_pushstring(L, kcontext_candidate_value(context));
+				lua_rawset(L, -3);
+			} else
+				lua_pushstring(L, val);
+		}
+		if (name)
+			return val?1:0;
 	}
-	if (!val)
-		return 0;
-	lua_pushstring(L, val);
-	return 1;
+
+	if (!name || !strcmp(name, "cmd")) {
+		pars = kcontext_pargv(context);
+		entry = kpargv_command(pars);
+		val = kentry_name(entry);
+		if (val) {
+			if (!name) {
+				lua_pushstring(L, "cmd");
+				lua_pushstring(L, val);
+				lua_rawset(L, -3);
+			} else
+				lua_pushstring(L, val);
+		}
+		if (name)
+			return val?1:0;
+	}
+
+	if (!name || !strcmp(name, "pcmd")) {
+		pars = kcontext_parent_pargv(context);
+		entry = kpargv_command(pars);
+		val = kentry_name(entry);
+		if (val) {
+			if (!name) {
+				lua_pushstring(L, "pcmd");
+				lua_pushstring(L, val);
+				lua_rawset(L, -3);
+			} else
+				lua_pushstring(L, val);
+		}
+		if (name)
+			return val?1:0;
+	}
+
+	if (!name || !strcmp(name, "pid")) {
+		pid_t pid = ksession_pid(kcontext_session(context));
+		if (!name) {
+			lua_pushstring(L, "pid");
+			lua_pushinteger(L, pid);
+			lua_rawset(L, -3);
+		} else
+			lua_pushinteger(L, pid);
+		if (name)
+			return 1;
+	}
+
+	if (!name || !strcmp(name, "uid")) {
+		uid_t uid = ksession_uid(kcontext_session(context));
+		if (!name) {
+			lua_pushstring(L, "uid");
+			lua_pushinteger(L, uid);
+			lua_rawset(L, -3);
+		} else
+			lua_pushinteger(L, uid);
+		if (name)
+			return 1;
+	}
+
+	if (!name || !strcmp(name, "user")) {
+		val = ksession_user(kcontext_session(context));
+		if (val) {
+			if (!name) {
+				lua_pushstring(L, "user");
+				lua_pushstring(L, val);
+				lua_rawset(L, -3);
+			} else
+				lua_pushstring(L, val);
+		}
+		if (name)
+			return val?1:0;
+	}
+
+	return name?0:1;
 }
 
 static int _luaB_par(lua_State *L, int parent, int multi)
