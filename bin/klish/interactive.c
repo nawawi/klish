@@ -41,8 +41,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
-static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
-	faux_error_t *error);
+static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode);
 static void reset_hotkey_table(ctx_t *ctx);
 static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
@@ -94,7 +93,7 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	// prompt from the server. Generally it must be necessary for
 	// non-interactive session too but for now is not implemented.
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_AUTH_ACK, auth_ack_cb, &ctx);
-	if (!ktp_sync_auth(ktp, &auth_rc, ktp_session_error(ktp)))
+	if (!ktp_sync_auth(ktp, &auth_rc))
 		goto cleanup;
 	if (auth_rc < 0)
 		goto cleanup;
@@ -234,9 +233,8 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		faux_error_node_t *err_iter = faux_error_iter(error);
 		const char *err = NULL;
 		while ((err = faux_error_each(&err_iter)))
-			fprintf(stderr, "Error: %s\n", err);
+			fprintf(stderr, "Error: auth: %s\n", err);
 	}
-	faux_error_free(error);
 
 	// Operation is finished so restore stdin handler
 	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
@@ -712,15 +710,25 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 }
 
 
-static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode,
-	faux_error_t *error)
+static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode)
 {
-	if (!ktp_session_auth(ktp, error))
+	faux_error_t *error = NULL;
+	bool_t rc = BOOL_FALSE;
+
+	assert(ktp);
+
+	error = faux_error_new();
+	if (!ktp_session_auth(ktp, error)) {
+		faux_error_free(error);
 		return BOOL_FALSE;
+	}
 
 	faux_eloop_loop(ktp_session_eloop(ktp));
 
-	return ktp_session_retcode(ktp, retcode);
+	rc = ktp_session_retcode(ktp, retcode);
+	faux_error_free(error);
+
+	return rc;
 }
 
 

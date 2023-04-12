@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +19,7 @@
 #include <faux/async.h>
 #include <faux/msg.h>
 #include <faux/eloop.h>
+#include <faux/sysdb.h>
 #include <klish/ksession.h>
 #include <klish/ksession_parse.h>
 #include <klish/ktp.h>
@@ -244,14 +246,37 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	ktp_cmd_e cmd = KTP_AUTH_ACK;
 	uint32_t status = KTP_STATUS_NONE;
+	faux_msg_t *ack = NULL;
 	char *prompt = NULL;
 	uint8_t retcode8bit = 0;
+	struct ucred ucred = {};
+	socklen_t len = sizeof(ucred);
+	int sock = -1;
+	char *user = NULL;
 
 	assert(ktpd);
 	assert(msg);
 
+	// Get UNIX socket peer information
+	sock = faux_async_fd(ktpd->async);
+	if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &ucred, &len) < 0) {
+		const char *err = "Can't get peer credentials";
+		syslog(LOG_ERR, "%s for connection %d", err, sock);
+		ack = ktp_msg_preform(cmd, KTP_STATUS_ERROR | KTP_STATUS_EXIT);
+		faux_msg_add_param(ack, KTP_PARAM_ERROR, err, strlen(err));
+		faux_msg_send_async(ack, ktpd->async);
+		faux_msg_free(ack);
+		ktpd->exit = BOOL_TRUE;
+		return BOOL_FALSE;
+	}
+	ksession_set_pid(ktpd->session, ucred.pid);
+	ksession_set_uid(ktpd->session, ucred.uid);
+	user = faux_sysdb_name_by_uid(ucred.uid);
+	ksession_set_user(ktpd->session, user);
+	faux_str_free(user);
+
 	// Prepare ACK message
-	faux_msg_t *ack = ktp_msg_preform(cmd, status);
+	ack = ktp_msg_preform(cmd, status);
 	faux_msg_add_param(ack, KTP_PARAM_RETCODE, &retcode8bit, 1);
 	// Generate prompt
 	prompt = generate_prompt(ktpd);

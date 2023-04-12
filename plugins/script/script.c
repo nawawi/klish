@@ -101,9 +101,14 @@ static bool_t populate_env(kcontext_t *context)
 {
 	kcontext_type_e type = KCONTEXT_TYPE_NONE;
 	const kentry_t *entry = NULL;
+	const ksession_t *session = NULL;
 	const char *str = NULL;
+	pid_t pid = -1;
+	uid_t uid = -1;
 
 	assert(context);
+	session = kcontext_session(context);
+	assert(session);
 
 	// Type
 	type = kcontext_type(context);
@@ -120,6 +125,27 @@ static bool_t populate_env(kcontext_t *context)
 	str = kcontext_candidate_value(context);
 	if (str)
 		setenv(PREFIX"VALUE", str, OVERWRITE);
+
+	// PID
+	pid = ksession_pid(session);
+	if (pid != -1) {
+		char *t = faux_str_sprintf("%lld", (long long int)pid);
+		setenv(PREFIX"PID", t, OVERWRITE);
+		faux_str_free(t);
+	}
+
+	// UID
+	uid = ksession_uid(session);
+	if (uid != -1) {
+		char *t = faux_str_sprintf("%lld", (long long int)uid);
+		setenv(PREFIX"UID", t, OVERWRITE);
+		faux_str_free(t);
+	}
+
+	// User
+	str = ksession_user(session);
+	if (str)
+		setenv(PREFIX"USER", str, OVERWRITE);
 
 	// Parameters
 	populate_env_kpargv(kcontext_pargv(context), PREFIX);
