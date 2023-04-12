@@ -34,6 +34,18 @@ bool_t ksession_set_term_width(ksession_t *session, size_t term_width);
 size_t ksession_term_height(const ksession_t *session);
 bool_t ksession_set_term_height(ksession_t *session, size_t term_height);
 
+// PID of client (Unix socket peer)
+pid_t ksession_pid(const ksession_t *session);
+bool_t ksession_set_pid(ksession_t *session, pid_t pid);
+
+// UID of client (Unix socket peer)
+uid_t ksession_uid(const ksession_t *session);
+bool_t ksession_set_uid(ksession_t *session, uid_t uid);
+
+// Client user name (Unix socket peer)
+const char *ksession_user(const ksession_t *session);
+bool_t ksession_set_user(ksession_t *session, const char *user);
+
 C_DECL_END
 
 #endif // _klish_ksession_h

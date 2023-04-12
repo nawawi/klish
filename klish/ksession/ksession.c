@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include <klish/khelper.h>
 #include <klish/kscheme.h>
@@ -17,6 +18,9 @@ struct ksession_s {
 	bool_t done; // Indicates that session is over and must be closed
 	size_t term_width;
 	size_t term_height;
+	pid_t pid;
+	uid_t uid;
+	char *user;
 };
 
 
@@ -37,6 +41,18 @@ KSET(session, size_t, term_width);
 // Height of pseudo terminal
 KGET(session, size_t, term_height);
 KSET(session, size_t, term_height);
+
+// PID of client (Unix socket peer)
+KGET(session, pid_t, pid);
+KSET(session, pid_t, pid);
+
+// UID of client (Unix socket peer)
+KGET(session, uid_t, uid);
+KSET(session, uid_t, uid);
+
+// Client user name (Unix socket peer)
+KSET_STR(session, user);
+KGET_STR(session, user);
 
 
 ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry)
@@ -80,6 +96,10 @@ ksession_t *ksession_new(kscheme_t *scheme, const char *start_entry)
 	session->done = BOOL_FALSE;
 	session->term_width = 0;
 	session->term_height = 0;
+	// Peer data
+	session->pid = -1;
+	session->uid = -1;
+	session->user = NULL;
 
 	return session;
 }
@@ -91,6 +111,7 @@ void ksession_free(ksession_t *session)
 		return;
 
 	kpath_free(session->path);
+	faux_str_free(session->user);
 
 	free(session);
 }

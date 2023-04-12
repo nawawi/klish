@@ -35,9 +35,6 @@ typedef enum {
 struct ktpd_session_s {
 	ksession_t *session;
 	ktpd_session_state_e state;
-	uid_t uid;
-	gid_t gid;
-	char *user;
 	faux_async_t *async; // Object for data exchange with client (KTP)
 	faux_hdr_t *hdr; // Engine will receive header and then msg
 	faux_eloop_t *eloop; // External link, dont's free()
