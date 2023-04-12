@@ -204,8 +204,11 @@ static int luaB_context(lua_State *L)
 
 	if (!name || !strcmp(name, "cmd")) {
 		pars = kcontext_pargv(context);
-		entry = kpargv_command(pars);
-		val = kentry_name(entry);
+		val = NULL;
+		if (pars) {
+			entry = kpargv_command(pars);
+			val = kentry_name(entry);
+		}
 		if (val) {
 			if (!name) {
 				lua_pushstring(L, "cmd");
@@ -220,8 +223,11 @@ static int luaB_context(lua_State *L)
 
 	if (!name || !strcmp(name, "pcmd")) {
 		pars = kcontext_parent_pargv(context);
-		entry = kpargv_command(pars);
-		val = kentry_name(entry);
+		val = NULL;
+		if (pars) {
+			entry = kpargv_command(pars);
+			val = kentry_name(entry);
+		}
 		if (val) {
 			if (!name) {
 				lua_pushstring(L, "pcmd");
