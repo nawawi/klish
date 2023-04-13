@@ -445,19 +445,19 @@ kpargv_t *ksession_parse_for_completion(ksession_t *session,
 		if (iter == faux_list_tail(split)) { // Last item
 			pargv = ksession_parse_line(session, argv,
 				KPURPOSE_COMPLETION);
-			if (!pargv) {
-				faux_list_free(split);
-				return NULL;
-			}
+			if (!pargv)
+				break;
 		} else { // Non-last item
 			pargv = ksession_parse_line(session, argv,
 				KPURPOSE_EXEC);
 			// All non-last components must be ready for execution
-			if (!pargv || kpargv_status(pargv) != KPARSE_OK) {
+			if (!pargv)
+				break;
+			if (kpargv_status(pargv) != KPARSE_OK) {
 				kpargv_free(pargv);
-				faux_list_free(split);
-				return NULL;
+				break;
 			}
+			kpargv_free(pargv);
 		}
 		iter = faux_list_next_node(iter);
 	}
