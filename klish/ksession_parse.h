@@ -14,7 +14,7 @@
 C_DECL_BEGIN
 
 kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
-	kpargv_purpose_e purpose);
+	kpargv_purpose_e purpose, bool_t is_filter);
 faux_list_t *ksession_split_pipes(const char *raw_line, faux_error_t *error);
 kpargv_t *ksession_parse_for_completion(ksession_t *session,
 	const char *raw_line);

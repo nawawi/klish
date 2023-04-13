@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <faux/eloop.h>
 #include <faux/buf.h>
@@ -61,7 +62,7 @@ static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
 
 static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	const kentry_t *current_entry, faux_argv_node_t **argv_iter,
-	kpargv_t *pargv, bool_t entry_is_command)
+	kpargv_t *pargv, bool_t entry_is_command, bool_t is_filter)
 {
 	const kentry_t *entry = current_entry;
 	kentry_mode_e mode = KENTRY_MODE_NONE;
@@ -110,8 +111,9 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		// Additionally if it's last continuable argument then lie to
 		// engine: make all last arguments NOTFOUND. It's necessary to walk
 		// through all variants to gether all completions.
-		if ((KPURPOSE_COMPLETION == purpose) ||
-			(KPURPOSE_HELP == purpose)) {
+		if (((KPURPOSE_COMPLETION == purpose) ||
+			(KPURPOSE_HELP == purpose)) &&
+			(is_filter == kentry_filter(entry))) {
 			if (!*argv_iter) {
 				// That's time to add entry to completions list.
 				if (!kpargv_continuable(pargv))
@@ -183,7 +185,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
 			rc = ksession_parse_arg(session, nested, argv_iter,
-				pargv, BOOL_FALSE);
+				pargv, BOOL_FALSE, is_filter);
 //printf("%s\n", kpargv_status_decode(rc));
 			// If some arguments was consumed then we will not check
 			// next SWITCH's entries in any case.
@@ -218,7 +220,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
 				nrc = ksession_parse_arg(session, nested,
-					argv_iter, pargv, BOOL_FALSE);
+					argv_iter, pargv, BOOL_FALSE, is_filter);
 //fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
 					break;
@@ -265,7 +267,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 
 
 kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
-	kpargv_purpose_e purpose)
+	kpargv_purpose_e purpose, bool_t is_filter)
 {
 	faux_argv_node_t *argv_iter = NULL;
 	kpargv_t *pargv = NULL;
@@ -303,7 +305,7 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 			continue;
 		// Parsing
 		pstatus = ksession_parse_arg(session, current_entry, &argv_iter,
-			pargv, BOOL_FALSE);
+			pargv, BOOL_FALSE, is_filter);
 		if (pstatus != KPARSE_NOTFOUND)
 			break;
 		// NOTFOUND but some args were parsed.
@@ -414,6 +416,82 @@ faux_list_t *ksession_split_pipes(const char *raw_line, faux_error_t *error)
 }
 
 
+// is_piped means full command contains more than one piped components
+static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
+	bool_t is_first, bool_t is_piped)
+{
+	kpargv_purpose_e purpose = KPURPOSE_EXEC;
+	const kentry_t *cmd = NULL;
+
+	if (!pargv)
+		return BOOL_FALSE;
+
+	purpose = kpargv_purpose(pargv);
+	cmd = kpargv_command(pargv);
+
+	// For execution pargv must be fully correct but for completion
+	// it's not a case
+	if ((KPURPOSE_EXEC == purpose) && (kpargv_status(pargv) != KPARSE_OK)) {
+		faux_error_sprintf(error, "%s", kpargv_status_str(pargv));
+		return BOOL_FALSE;
+	}
+
+	// Can't check following conditions without cmd
+	if (!cmd)
+		return BOOL_TRUE;
+
+	// First component
+	if (is_first) {
+
+		// First component can't be filter
+		if (kentry_filter(cmd)) {
+			faux_error_sprintf(error, "The filter \"%s\" "
+				"can't be used without previous pipeline",
+				kentry_name(cmd));
+			return BOOL_FALSE;
+		}
+
+		// Interactive command can't have filters
+		if (kentry_interactive(cmd) && is_piped) {
+			faux_error_sprintf(error, "The interactive command \"%s\" "
+				"can't have filters",
+				kentry_name(cmd));
+			return BOOL_FALSE;
+		}
+
+	// Components after pipe "|"
+	} else {
+
+		// Only the first component can be non-filter
+		if (!kentry_filter(cmd)) {
+			faux_error_sprintf(error, "The non-filter command \"%s\" "
+				"can't be destination of pipe",
+				kentry_name(cmd));
+			return BOOL_FALSE;
+		}
+
+		// Only the first component can have 'restore=true' attribute
+		if (kentry_restore(cmd)) {
+			faux_error_sprintf(error, "The command \"%s\" "
+				"can't be destination of pipe",
+				kentry_name(cmd));
+			return BOOL_FALSE;
+		}
+
+		// Only the first component can have 'interactive=true' attribute
+		if (kentry_interactive(cmd)) {
+			faux_error_sprintf(error, "The filter \"%s\" "
+				"can't be interactive",
+				kentry_name(cmd));
+			return BOOL_FALSE;
+		}
+
+	}
+
+	return BOOL_TRUE;
+}
+
+
 // All components except last one must be legal for execution but last
 // component must be parsed for completion.
 // Completion is a "back-end" operation so it doesn't need detailed error
@@ -424,6 +502,7 @@ kpargv_t *ksession_parse_for_completion(ksession_t *session,
 	faux_list_t *split = NULL;
 	faux_list_node_t *iter = NULL;
 	kpargv_t *pargv = NULL;
+	bool_t is_piped = BOOL_FALSE;
 
 	assert(session);
 	if (!session)
@@ -438,27 +517,23 @@ kpargv_t *ksession_parse_for_completion(ksession_t *session,
 		faux_list_free(split);
 		return NULL;
 	}
+	is_piped = (faux_list_len(split) > 1);
 
 	iter = faux_list_head(split);
 	while (iter) {
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
-		if (iter == faux_list_tail(split)) { // Last item
-			pargv = ksession_parse_line(session, argv,
-				KPURPOSE_COMPLETION);
-			if (!pargv)
-				break;
-		} else { // Non-last item
-			pargv = ksession_parse_line(session, argv,
-				KPURPOSE_EXEC);
-			// All non-last components must be ready for execution
-			if (!pargv)
-				break;
-			if (kpargv_status(pargv) != KPARSE_OK) {
-				kpargv_free(pargv);
-				break;
-			}
+		bool_t is_last = (iter == faux_list_tail(split));
+		bool_t is_first = (iter == faux_list_head(split));
+		kpargv_purpose_e purpose = is_last ? KPURPOSE_COMPLETION : KPURPOSE_EXEC;
+
+		pargv = ksession_parse_line(session, argv, purpose, !is_first);
+		if (!ksession_check_line(pargv, NULL, is_first, is_piped)) {
 			kpargv_free(pargv);
+			pargv = NULL;
+			break;
 		}
+		if (!is_last)
+			kpargv_free(pargv);
 		iter = faux_list_next_node(iter);
 	}
 
@@ -475,6 +550,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	faux_list_node_t *iter = NULL;
 	kpargv_t *pargv = NULL;
 	kexec_t *exec = NULL;
+	bool_t is_piped = BOOL_FALSE;
 
 	assert(session);
 	if (!session)
@@ -489,6 +565,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		faux_list_free(split);
 		return NULL;
 	}
+	is_piped = (faux_list_len(split) > 1);
 
 	// Create exec list
 	exec = kexec_new();
@@ -502,73 +579,11 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	while (iter) {
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
 		kcontext_t *context = NULL;
-		bool_t check_failed = BOOL_FALSE;
+		bool_t is_first = (iter == faux_list_head(split));
 
-		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
+		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC, !is_first);
 		// All components must be ready for execution
-		if (!pargv) {
-			kexec_free(exec);
-			faux_list_free(split);
-			return NULL;
-		}
-		if (kpargv_status(pargv) != KPARSE_OK) {
-			faux_error_sprintf(error, "%s",
-				kpargv_status_str(pargv));
-			kpargv_free(pargv);
-			kexec_free(exec);
-			faux_list_free(split);
-			return NULL;
-		}
-
-		// First component
-		if (iter == faux_list_head(split)) {
-
-			// First component can't be filter
-			if (kentry_filter(kpargv_command(pargv))) {
-				faux_error_sprintf(error, "The filter \"%s\" "
-					"can't be used without previous pipeline",
-					kentry_name(kpargv_command(pargv)));
-				check_failed = BOOL_TRUE;
-			}
-
-		// Components after pipe "|"
-		} else {
-
-			// Only the first component can be non-filter
-			if (!kentry_filter(kpargv_command(pargv))) {
-				faux_error_sprintf(error, "The non-filter command \"%s\" "
-					"can't be destination of pipe",
-					kentry_name(kpargv_command(pargv)));
-				check_failed = BOOL_TRUE;
-			}
-
-			// Only the first component can have 'restore=true' attribute
-			if (kentry_restore(kpargv_command(pargv))) {
-				faux_error_sprintf(error, "The command \"%s\" "
-					"can't be destination of pipe",
-					kentry_name(kpargv_command(pargv)));
-				check_failed = BOOL_TRUE;
-			}
-
-			// Only the first component can have 'interactive=true' attribute
-			if (kentry_interactive(kpargv_command(pargv))) {
-				faux_error_sprintf(error, "The filter \"%s\" "
-					"can't be interactive",
-					kentry_name(kpargv_command(pargv)));
-				check_failed = BOOL_TRUE;
-			}
-
-			// Interactive command can't have filters
-			if (kexec_interactive(exec)) {
-				faux_error_sprintf(error, "The interactive command \"%s\" "
-					"can't have filters",
-					kentry_name(kpargv_command(pargv)));
-				check_failed = BOOL_TRUE;
-			}
-		}
-
-		// Some checks were failed
-		if (check_failed) {
+		if (!ksession_check_line(pargv, error, is_first, is_piped)) {
 			kpargv_free(pargv);
 			kexec_free(exec);
 			faux_list_free(split);
@@ -623,7 +638,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 	kpargv_set_purpose(pargv, KPURPOSE_EXEC);
 
 	pstatus = ksession_parse_arg(session, entry, &argv_iter, pargv,
-		BOOL_TRUE);
+		BOOL_TRUE, BOOL_FALSE);
 	// Parsing problems
 	if ((pstatus != KPARSE_INPROGRESS) || (argv_iter != NULL)) {
 		kexec_free(exec);

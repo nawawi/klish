@@ -176,10 +176,10 @@ const char *kpargv_status_decode(kpargv_status_e status)
 		s = "Not found";
 		break;
 	case KPARSE_INCOMPLETED:
-		s = "Incompleted";
+		s = "Incompleted command";
 		break;
 	case KPARSE_ILLEGAL:
-		s = "Illegal";
+		s = "Illegal command";
 		break;
 	case KPARSE_NOACTION:
 		s = "Has no action";
