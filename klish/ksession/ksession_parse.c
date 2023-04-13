@@ -502,6 +502,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	while (iter) {
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
 		kcontext_t *context = NULL;
+		bool_t check_failed = BOOL_FALSE;
 
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC);
 		// All components must be ready for execution
@@ -522,6 +523,13 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		// First component
 		if (iter == faux_list_head(split)) {
 
+			// First component can't be filter
+			if (kentry_filter(kpargv_command(pargv))) {
+				faux_error_sprintf(error, "The filter \"%s\" "
+					"can't be used without previous pipeline",
+					kentry_name(kpargv_command(pargv)));
+				check_failed = BOOL_TRUE;
+			}
 
 		// Components after pipe "|"
 		} else {
@@ -531,10 +539,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 				faux_error_sprintf(error, "The non-filter command \"%s\" "
 					"can't be destination of pipe",
 					kentry_name(kpargv_command(pargv)));
-				kpargv_free(pargv);
-				kexec_free(exec);
-				faux_list_free(split);
-				return NULL;
+				check_failed = BOOL_TRUE;
 			}
 
 			// Only the first component can have 'restore=true' attribute
@@ -542,10 +547,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 				faux_error_sprintf(error, "The command \"%s\" "
 					"can't be destination of pipe",
 					kentry_name(kpargv_command(pargv)));
-				kpargv_free(pargv);
-				kexec_free(exec);
-				faux_list_free(split);
-				return NULL;
+				check_failed = BOOL_TRUE;
 			}
 
 			// Only the first component can have 'interactive=true' attribute
@@ -553,10 +555,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 				faux_error_sprintf(error, "The filter \"%s\" "
 					"can't be interactive",
 					kentry_name(kpargv_command(pargv)));
-				kpargv_free(pargv);
-				kexec_free(exec);
-				faux_list_free(split);
-				return NULL;
+				check_failed = BOOL_TRUE;
 			}
 
 			// Interactive command can't have filters
@@ -564,11 +563,16 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 				faux_error_sprintf(error, "The interactive command \"%s\" "
 					"can't have filters",
 					kentry_name(kpargv_command(pargv)));
-				kpargv_free(pargv);
-				kexec_free(exec);
-				faux_list_free(split);
-				return NULL;
+				check_failed = BOOL_TRUE;
 			}
+		}
+
+		// Some checks were failed
+		if (check_failed) {
+			kpargv_free(pargv);
+			kexec_free(exec);
+			faux_list_free(split);
+			return NULL;
 		}
 
 		// Fill the kexec_t
