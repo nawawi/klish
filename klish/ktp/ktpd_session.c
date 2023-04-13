@@ -725,8 +725,6 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 		while ((candidate = kpargv_completions_each(&citer))) {
 			const kentry_t *help = NULL;
 			const kentry_t *ptype = NULL;
-			bool_t help_added = BOOL_FALSE;
-
 
 			// Get PTYPE of parameter
 			ptype = kentry_nested_by_purpose(candidate,
@@ -764,18 +762,14 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 							break;
 						}
 						help_struct = help_new(prefix_str, line_str);
-						if (faux_list_add(help_list, help_struct))
-							help_added = BOOL_TRUE;
-						else
+						if (!faux_list_add(help_list, help_struct))
 							help_free(help_struct);
 					} while (line_str);
 					faux_str_free(out);
 				}
-			}
-
 
 			// Generate help with available information
-			if (!help_added) {
+			} else {
 				const char *prefix_str = NULL;
 				const char *line_str = NULL;
 
