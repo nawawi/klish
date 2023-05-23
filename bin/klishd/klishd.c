@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 		setlogmask(LOG_UPTO(LOG_INFO));
 
 	// Parse config file
-	syslog(LOG_DEBUG, "Parse config file: %s\n", opts->cfgfile);
+	syslog(LOG_DEBUG, "Parse config file: %s", opts->cfgfile);
 	if (!access(opts->cfgfile, R_OK)) {
 		if (!(config = config_parse(opts->cfgfile, opts)))
 			goto err;
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	// DEBUG: Show options
 	opts_show(opts);
 
-	syslog(LOG_INFO, "Start daemon.\n");
+	syslog(LOG_INFO, "Start daemon");
 
 	// Fork the daemon if needed
 	if (!opts->foreground && !daemonize(opts->pidfile))
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 	}
 
 	// Listen socket
-	syslog(LOG_DEBUG, "Create listen UNIX socket: %s\n", opts->unix_socket_path);
+	syslog(LOG_DEBUG, "Create listen UNIX socket: %s", opts->unix_socket_path);
 	listen_unix_sock = create_listen_unix_sock(opts->unix_socket_path);
 	if (listen_unix_sock < 0)
 		goto err;
@@ -175,12 +175,12 @@ err: // For listen daemon
 		// Remove pidfile
 		if (pidfd >= 0) {
 			if (unlink(opts->pidfile) < 0) {
-				syslog(LOG_ERR, "Can't remove pid-file %s: %s\n",
+				syslog(LOG_WARNING, "Can't remove PID file %s: %s",
 				opts->pidfile, strerror(errno));
 			}
 		}
 
-		syslog(LOG_INFO, "Stop daemon.\n");
+		syslog(LOG_INFO, "Stop daemon");
 
 		return retval;
 	}
@@ -201,11 +201,11 @@ err: // For listen daemon
 	// Function ktpd_session_new() will add new events to eloop itself.
 	ktpd_session = ktpd_session_new(client_fd, scheme, NULL, eloop);
 	if (!ktpd_session) {
-		syslog(LOG_ERR, "Can't create KTPd session\n");
+		syslog(LOG_ERR, "Can't create KTPd session");
 		goto err_client;
 	}
 
-	syslog(LOG_DEBUG, "New connection %d\n", client_fd);
+	syslog(LOG_DEBUG, "New connection %d", client_fd);
 
 	// Signals
 	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
@@ -245,13 +245,13 @@ err_client:
 bool_t daemonize(const char *pidfile)
 {
 	// Daemonize
-	syslog(LOG_DEBUG, "Daemonize\n");
+	syslog(LOG_DEBUG, "Daemonize");
 	if (!faux_daemon(0, 0, pidfile, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) {
-		syslog(LOG_ERR, "Can't daemonize\n");
+		syslog(LOG_ERR, "Can't daemonize");
 		return BOOL_FALSE;
 	}
 
-	syslog(LOG_DEBUG, "PID file: %s\n", pidfile);
+	syslog(LOG_DEBUG, "PID file: %s", pidfile);
 
 	return BOOL_TRUE;
 }
@@ -454,11 +454,11 @@ static int create_listen_unix_sock(const char *path)
 		return -1;
 
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		syslog(LOG_ERR, "Can't create socket: %s\n", strerror(errno));
+		syslog(LOG_ERR, "Can't create socket: %s", strerror(errno));
 		goto err;
 	}
 	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-		syslog(LOG_ERR, "Can't set socket options: %s\n", strerror(errno));
+		syslog(LOG_ERR, "Can't set socket options: %s", strerror(errno));
 		goto err;
 	}
 
@@ -469,13 +469,13 @@ static int create_listen_unix_sock(const char *path)
 	strncpy(laddr.sun_path, path, USOCK_PATH_MAX);
 	laddr.sun_path[USOCK_PATH_MAX - 1] = '\0';
 	if (bind(sock, (struct sockaddr *)&laddr, sizeof(laddr))) {
-		syslog(LOG_ERR, "Can't bind socket %s: %s\n", path, strerror(errno));
+		syslog(LOG_ERR, "Can't bind socket %s: %s", path, strerror(errno));
 		goto err;
 	}
 
 	if (listen(sock, 128)) {
 		unlink(path);
-		syslog(LOG_ERR, "Can't listen on socket %s: %s\n", path, strerror(errno));
+		syslog(LOG_ERR, "Can't listen on socket %s: %s", path, strerror(errno));
 		goto err;
 	}
 
@@ -519,7 +519,7 @@ static bool_t wait_for_child_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 				"by signal: %d",
 				child_pid, WTERMSIG(wstatus));
 		} else {
-			syslog(LOG_ERR, "Service process %d was terminated: %d",
+			syslog(LOG_DEBUG, "Service process %d was terminated: %d",
 				child_pid, WEXITSTATUS(wstatus));
 		}
 	}
@@ -546,11 +546,11 @@ static bool_t refresh_config_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	faux_ini_t *ini = NULL;
 
 	if (access(opts->cfgfile, R_OK) == 0) {
-		syslog(LOG_DEBUG, "Re-reading config file \"%s\"\n", opts->cfgfile);
+		syslog(LOG_DEBUG, "Re-reading config file \"%s\"", opts->cfgfile);
 		if (!(ini = config_parse(opts->cfgfile, opts)))
-			syslog(LOG_ERR, "Error while config file parsing.\n");
+			syslog(LOG_ERR, "Error while config file parsing");
 	} else if (opts->cfgfile_userdefined) {
-		syslog(LOG_ERR, "Can't find config file \"%s\"\n", opts->cfgfile);
+		syslog(LOG_ERR, "Can't find config file \"%s\"", opts->cfgfile);
 	}
 	faux_ini_free(ini); // No way to use it later
 
@@ -591,7 +591,7 @@ static bool_t listen_socket_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Parent
 	if (child_pid > 0) {
 		close(new_conn); // It's needed by child but not for parent
-		syslog(LOG_ERR, "Service process for client was forked: %d",
+		syslog(LOG_INFO, "Service process for client was forked: %d",
 			child_pid);
 		return BOOL_TRUE;
 	}
