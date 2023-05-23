@@ -270,7 +270,7 @@ static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// EOF
 	if (info->revents & POLLHUP) {
 		faux_eloop_del_fd(eloop, info->fd);
-		syslog(LOG_INFO, "Close connection %d", info->fd);
+		syslog(LOG_DEBUG, "Close connection %d", info->fd);
 		return BOOL_FALSE; // Stop event loop
 	}
 
