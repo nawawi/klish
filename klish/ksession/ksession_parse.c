@@ -71,8 +71,9 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	faux_argv_node_t *saved_argv_iter = NULL;
 	kpargv_purpose_e purpose = KPURPOSE_NONE;
 
-//fprintf(stderr, "PARSE: name=%s, ref=%s, arg=%s\n",
-//kentry_name(entry), kentry_ref_str(entry), faux_argv_current(*argv_iter));
+//fprintf(stderr, "PARSE: name=%s, ref=%s, arg=%s, pargs=%d\n",
+//kentry_name(entry), kentry_ref_str(entry), faux_argv_current(*argv_iter),
+//kpargv_pargs_len(pargv));
 
 	assert(current_entry);
 	if (!current_entry)
@@ -111,9 +112,12 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		// Additionally if it's last continuable argument then lie to
 		// engine: make all last arguments NOTFOUND. It's necessary to walk
 		// through all variants to gether all completions.
+		// is_filter: When it's a filter then all non-first entries can be
+		// filters or non-filters
 		if (((KPURPOSE_COMPLETION == purpose) ||
 			(KPURPOSE_HELP == purpose)) &&
-			(is_filter == kentry_filter(entry))) {
+			((is_filter == kentry_filter(entry)) ||
+			(is_filter && kpargv_pargs_len(pargv)))) {
 			if (!*argv_iter) {
 				// That's time to add entry to completions list.
 				if (!kpargv_continuable(pargv))
