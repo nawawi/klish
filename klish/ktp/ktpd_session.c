@@ -1028,7 +1028,7 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 		ktpd_session_process_notification(ktpd, msg);
 		break;
 	default:
-		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd);
+		syslog(LOG_WARNING, "Unsupported command: 0x%04u", cmd);
 		break;
 	}
 
