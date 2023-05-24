@@ -227,22 +227,36 @@ bool_t kentry_link(kentry_t *dst, const kentry_t *src)
 	// Copy structure by hand because else some fields must be
 	// returned back anyway and temp memory must be allocated. I think it
 	// worse.
+	// TODO: Some fields must be copied from src if they are not defined in
+	// dst explicitly. But now I don't know how to do so. These fields are:
+	// container, purpose, min, max, restore, order.
+
 	// name - orig
 	// help - orig
+	if (!dst->help)
+		dst->help = faux_str_dup(src->help);
 	// parent - orig
 	// container - orig
+	// mode - ref
 	dst->mode = src->mode;
 	// purpose - orig
 	// min - orig
 	// max - orig
 	// ref_str - orig
 	// value - orig
+	if (!dst->value)
+		dst->value = faux_str_dup(src->value);
 	// restore - orig
 	// order - orig
+	// filter - ref
 	dst->filter = src->filter;
+	// entrys - ref
 	dst->entrys = src->entrys;
+	// actions - ref
 	dst->actions = src->actions;
+	// hotkeys - ref
 	dst->hotkeys = src->hotkeys;
+	// nested_by_purpose - ref
 	dst->nested_by_purpose = src->nested_by_purpose;
 	// udata - orig
 	// udata_free_fn - orig
