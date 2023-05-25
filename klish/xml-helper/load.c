@@ -849,8 +849,8 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		ientry.purpose = "common";
 		break;
 	}
-	ientry.min = "1";
-	ientry.max = "1";
+	ientry.min = kxml_node_attr(element, "min");
+	ientry.max = kxml_node_attr(element, "max");
 	ientry.ref = kxml_node_attr(element, "ref");
 	if ((KTAG_FILTER == tag) || (KTAG_COMMAND == tag)) {
 		ientry.value = kxml_node_attr(element, "value");
@@ -899,6 +899,8 @@ err:
 		kxml_node_attr_free(ientry.name);
 	kxml_node_attr_free(ientry.help);
 	kxml_node_attr_free(ientry.mode);
+	kxml_node_attr_free(ientry.min);
+	kxml_node_attr_free(ientry.max);
 	kxml_node_attr_free(ientry.ref);
 	if ((KTAG_FILTER == tag) || (KTAG_COMMAND == tag)) {
 		kxml_node_attr_free(ientry.value);

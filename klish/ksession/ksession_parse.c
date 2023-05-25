@@ -213,13 +213,13 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			size_t num = 0;
 			size_t min = kentry_min(nested);
 
-//fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Ignore entries with non-COMMON purpose.
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
 			// Filter out double parsing for optional entries.
 			if (kpargv_entry_exists(pargv, nested))
 				continue;
+//fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
@@ -246,7 +246,6 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			}
 			// It's not an error if optional parameter is absend
 			rc = KPARSE_INPROGRESS;
-
 			// Mandatory or ordered parameter
 			if ((min > 0) || kentry_order(nested))
 				saved_iter = iter;
