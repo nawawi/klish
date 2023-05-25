@@ -223,10 +223,13 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
+				faux_argv_node_t *iter_before_parse = *argv_iter;
 				nrc = ksession_parse_arg(session, nested,
 					argv_iter, pargv, BOOL_FALSE, is_filter);
 //fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
+					break;
+				if (iter_before_parse == *argv_iter)
 					break;
 			}
 			// All errors will break the loop
@@ -253,6 +256,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// If optional entry is found then go back to nearest
 			// non-optional (or ordered) entry to try to find
 			// another optional entries.
+//fprintf(stderr, "%s: min=%d, num=%d\n", kentry_name(nested), min, num);
 			if ((0 == min) && (num > 0))
 				iter = saved_iter;
 		}
