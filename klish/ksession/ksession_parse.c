@@ -111,7 +111,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		// When purpose is COMPLETION or HELP then fill completion list.
 		// Additionally if it's last continuable argument then lie to
 		// engine: make all last arguments NOTFOUND. It's necessary to walk
-		// through all variants to gether all completions.
+		// through all variants to gather all completions.
 		// is_filter: When it's a filter then all non-first entries can be
 		// filters or non-filters
 		if (((KPURPOSE_COMPLETION == purpose) ||
@@ -219,14 +219,14 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// Filter out double parsing for optional entries.
 			if (kpargv_entry_exists(pargv, nested))
 				continue;
-//fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
+fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
 				faux_argv_node_t *iter_before_parse = *argv_iter;
 				nrc = ksession_parse_arg(session, nested,
 					argv_iter, pargv, BOOL_FALSE, is_filter);
-//fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
+fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
 				if (nrc != KPARSE_INPROGRESS)
 					break;
 				if (iter_before_parse == *argv_iter)
@@ -256,7 +256,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// If optional entry is found then go back to nearest
 			// non-optional (or ordered) entry to try to find
 			// another optional entries.
-//fprintf(stderr, "%s: min=%d, num=%d\n", kentry_name(nested), min, num);
+fprintf(stderr, "%s: min=%d, num=%d\n", kentry_name(nested), min, num);
 			if ((0 == min) && (num > 0))
 				iter = saved_iter;
 		}
@@ -269,6 +269,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		((saved_argv_iter != *argv_iter) || !kentry_container(entry)))
 		rc = KPARSE_ILLEGAL;
 
+fprintf(stderr, "Return %s: %s\n", kentry_name(entry), kpargv_status_decode(rc));
 	return rc;
 }
 
