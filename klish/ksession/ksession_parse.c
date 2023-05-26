@@ -122,14 +122,12 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 				// That's time to add entry to completions list.
 				if (!kpargv_continuable(pargv))
 					kpargv_add_completions(pargv, entry);
-				return KPARSE_INCOMPLETED;
-			} else {
-				// Add entry to completions if it's last incompleted arg.
-				if (faux_argv_is_last(*argv_iter) &&
-					kpargv_continuable(pargv)) {
-					kpargv_add_completions(pargv, entry);
-					return KPARSE_NOTFOUND;
-				}
+				return KPARSE_NOTFOUND;
+			// Add entry to completions if it's last incompleted arg.
+			} else if (faux_argv_is_last(*argv_iter) &&
+				kpargv_continuable(pargv)) {
+				kpargv_add_completions(pargv, entry);
+				return KPARSE_NOTFOUND;
 			}
 		}
 
@@ -236,6 +234,10 @@ fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(nrc));
 			if ((KPARSE_ERROR == nrc) ||
 				(KPARSE_ILLEGAL == nrc) ||
 				(KPARSE_NONE == nrc)) {
+				rc = nrc;
+				break;
+			}
+			if ((min > 0) && (KPARSE_INCOMPLETED == nrc)) {
 				rc = nrc;
 				break;
 			}
