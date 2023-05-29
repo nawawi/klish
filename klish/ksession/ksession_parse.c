@@ -72,9 +72,9 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	faux_argv_node_t *saved_argv_iter = NULL;
 	kpargv_purpose_e purpose = KPURPOSE_NONE;
 
-//fprintf(stderr, "PARSE: name=%s, ref=%s, arg=%s, pargs=%d\n",
-//kentry_name(entry), kentry_ref_str(entry), faux_argv_current(*argv_iter),
-//kpargv_pargs_len(pargv));
+fprintf(stderr, "PARSE: name=%s, ref=%s, arg=%s, pargs=%d\n",
+kentry_name(entry), kentry_ref_str(entry), faux_argv_current(*argv_iter),
+kpargv_pargs_len(pargv));
 
 	assert(current_entry);
 	if (!current_entry)
@@ -201,7 +201,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			// The INCOMPLETED status is for completion list. In this
 			// case all next statuses will be INCOMPLETED too.
 //			if ((rc != KPARSE_NOTFOUND) && (rc != KPARSE_INCOMPLETED))
-			if (res == KPARSE_INPROGRESS) {
+			if ((res == KPARSE_INPROGRESS) && kentry_container(entry)) {
 				kparg_t *parg = kparg_new(entry, kentry_name(nested));
 				kpargv_add_pargs(pargv, parg);
 			}
@@ -216,6 +216,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		kentry_entrys_node_t *iter = kentry_entrys_iter(entry);
 		kentry_entrys_node_t *saved_iter = iter;
 		const kentry_t *nested = NULL;
+		kpargv_t *cur_level_pargv = kpargv_new();
 
 		while ((nested = kentry_entrys_each(&iter))) {
 			kpargv_status_e res = KPARSE_NOTFOUND;
@@ -226,7 +227,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
 			// Filter out double parsing for optional entries.
-			if (kpargv_entry_exists(pargv, nested))
+			if (kpargv_entry_exists(cur_level_pargv, nested))
 				continue;
 fprintf(stderr, "SEQ arg: %s, entry %s\n", *argv_iter ? faux_argv_current(*argv_iter) : "<empty>", kentry_name(nested));
 			// Try to match argument and current entry
@@ -264,9 +265,14 @@ fprintf(stderr, "%s: %s\n", kentry_name(nested), kpargv_status_decode(res));
 			// It's not an error if optional parameter is absend
 //			rc = KPARSE_INPROGRESS;
 			if (res == KPARSE_INPROGRESS) {
-				kparg_t *parg = kparg_new(entry, kentry_name(nested));
-				kpargv_add_pargs(pargv, parg);
-				rc = res;
+				kparg_t *tmp_parg = kparg_new(nested, NULL);
+				kpargv_add_pargs(cur_level_pargv, tmp_parg);
+				if (kentry_container(entry)) {
+					kparg_t *parg = kparg_new(entry,
+						kentry_name(nested));
+					kpargv_add_pargs(pargv, parg);
+					rc = res;
+				}
 			}
 			// Mandatory or ordered parameter
 			if ((min > 0) || kentry_order(nested))
@@ -279,6 +285,7 @@ fprintf(stderr, "%s: min=%d, num=%d\n", kentry_name(nested), min, num);
 			if ((0 == min) && (num > 0))
 				iter = saved_iter;
 		}
+		kpargv_free(cur_level_pargv);
 	}
 
 	// If nested result is NOTFOUND but argument was consumed
