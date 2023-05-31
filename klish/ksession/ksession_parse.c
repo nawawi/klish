@@ -70,10 +70,10 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	kpargv_status_e rc = KPARSE_NONE; // For nested ENTRYs
 	kpargv_purpose_e purpose = KPURPOSE_NONE;
 
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "PARSE: name=%s, arg=%s, pargs=%d\n",
-kentry_name(entry), faux_argv_current(*argv_iter),
-kpargv_pargs_len(pargv));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "PARSE: name=%s, arg=%s, pargs=%d\n",
+//kentry_name(entry), faux_argv_current(*argv_iter),
+//kpargv_pargs_len(pargv));
 
 	assert(current_entry);
 	if (!current_entry)
@@ -100,7 +100,7 @@ kpargv_pargs_len(pargv));
 		parg = kparg_new(entry, NULL);
 		kpargv_add_pargs(pargv, parg);
 		kpargv_set_command(pargv, entry);
-		retcode = KPARSE_INPROGRESS;
+		retcode = KPARSE_OK;
 
 	// Is entry candidate to resolve current arg?
 	// Container can't be a candidate.
@@ -145,7 +145,7 @@ kpargv_pargs_len(pargv));
 			if (kentry_actions_len(entry) > 0)
 				kpargv_set_command(pargv, entry);
 			faux_argv_each(argv_iter); // Next argument
-			retcode = KPARSE_INPROGRESS;
+			retcode = KPARSE_OK;
 		} else {
 			// It's not a container and is not validated so
 			// no chance to find anything here.
@@ -155,10 +155,11 @@ kpargv_pargs_len(pargv));
 		}
 	}
 
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "ITSELF: name=%s, retcode=%s\n",
-kentry_name(entry), kpargv_status_decode(retcode));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "ITSELF: name=%s, retcode=%s\n",
+//kentry_name(entry), kpargv_status_decode(retcode));
 
+	// It's not container and suitable entry is not found
 	if (retcode == KPARSE_NOTFOUND)
 		return retcode;
 
@@ -179,36 +180,34 @@ kentry_name(entry), kpargv_status_decode(retcode));
 		kentry_entrys_node_t *iter = kentry_entrys_iter(entry);
 		const kentry_t *nested = NULL;
 
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SWITCH: name=%s, arg %s\n", kentry_name(entry),
-*argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SWITCH: name=%s, arg %s\n", kentry_name(entry),
+//*argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
 
 		while ((nested = kentry_entrys_each(&iter))) {
 			kpargv_status_e res = KPARSE_NONE;
 			// Ignore entries with non-COMMON purpose.
 			if (kentry_purpose(nested) != KENTRY_PURPOSE_COMMON)
 				continue;
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SWITCH-nested name=%s, nested=%s\n",
-kentry_name(entry), kentry_name(nested));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SWITCH-nested name=%s, nested=%s\n",
+//kentry_name(entry), kentry_name(nested));
 			res = ksession_parse_arg(session, nested, argv_iter,
 				pargv, BOOL_FALSE, is_filter);
 			if (res == KPARSE_NONE)
 				rc = KPARSE_NOTFOUND;
 			else
 				rc = res;
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SWITCH-nested-answer: name=%s, nested=%s, res=%s\n",
-kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SWITCH-nested-answer: name=%s, nested=%s, res=%s\n",
+//kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
 			// Save choosen entry name to container's value
-			if ((res == KPARSE_INPROGRESS) && kentry_container(entry)) {
+			if ((res == KPARSE_OK) && kentry_container(entry)) {
 				kparg_t *parg = kparg_new(entry, kentry_name(nested));
 				kpargv_add_pargs(pargv, parg);
 			}
-			// Try next entries if current status is NOTFOUND.
-			// The INCOMPLETED status is for completion list. In this
-			// case all next statuses will be INCOMPLETED too.
-			if ((res == KPARSE_INPROGRESS) || (res == KPARSE_ERROR))
+			// Try next entries if current status is NOTFOUND or NONE
+			if ((res == KPARSE_OK) || (res == KPARSE_ERROR))
 				break;
 		}
 
@@ -232,31 +231,31 @@ kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
 			// Filter out double parsing for optional entries.
 			if (kpargv_entry_exists(cur_level_pargv, nested))
 				continue;
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SEQ name=%s, arg=%s\n",
-kentry_name(entry), *argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SEQ name=%s, arg=%s\n",
+//kentry_name(entry), *argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SEQ-nested: name=%s, nested=%s\n",
-kentry_name(entry), kentry_name(nested));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SEQ-nested: name=%s, nested=%s\n",
+//kentry_name(entry), kentry_name(nested));
 				res = ksession_parse_arg(session, nested,
 					argv_iter, pargv, BOOL_FALSE, is_filter);
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SEQ-nested-answer: name=%s, nested=%s, res=%s, num=%d, min=%d\n",
-kentry_name(entry), kentry_name(nested), kpargv_status_decode(res), num, min);
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "SEQ-nested-answer: name=%s, nested=%s, res=%s, num=%d, min=%d\n",
+//kentry_name(entry), kentry_name(nested), kpargv_status_decode(res), num, min);
 				// It's not an error but there will be not
 				// additional arguments of the same entry
 				if ((res == KPARSE_NONE) ||
 					((res == KPARSE_NOTFOUND) && (num >= min)))
 					break;
-				// Only ERROR, INPROGRESS or NOTFOUND (with not
+				// Only ERROR, OK or NOTFOUND (with not
 				// enough arguments) will set rc
 				rc = res;
-				// Only INPROGRESS will continue the loop. Any
+				// Only OK will continue the loop. Any
 				// another case will break the loop and ext loop
-				if (res != KPARSE_INPROGRESS) {
+				if (res != KPARSE_OK) {
 					break_loop = BOOL_TRUE;
 					break;
 				}
@@ -290,23 +289,19 @@ kentry_name(entry), kentry_name(nested), kpargv_status_decode(res), num, min);
 		kpargv_free(cur_level_pargv);
 	}
 
-//	if ((KPARSE_NOTFOUND == rc) &&
-//		((saved_argv_iter != *argv_iter) || !kentry_container(entry)))
-//		rc = KPARSE_ILLEGAL;
 	if (rc == KPARSE_NONE)
 		return retcode;
 
 	if (retcode == KPARSE_NONE)
 		return rc;
 
-	// If nested result is not INPROGRESS but argument was consumed
-	// within nested entries or by entry itself then whole sequence
-	// is ILLEGAL.
-	if ((retcode == KPARSE_INPROGRESS) && (rc == KPARSE_NOTFOUND))
+	// If nested result is NOTFOUND but argument was consumed
+	// by entry itself then whole sequence is ERROR
+	if ((retcode == KPARSE_OK) && (rc == KPARSE_NOTFOUND))
 		rc = KPARSE_ERROR;
 
-if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "RET: name=%s, rc=%s\n", kentry_name(entry), kpargv_status_decode(rc));
+//if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+//fprintf(stderr, "RET: name=%s, rc=%s\n", kentry_name(entry), kpargv_status_decode(rc));
 
 	return rc;
 }
@@ -352,7 +347,7 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 		// Parsing
 		pstatus = ksession_parse_arg(session, current_entry, &argv_iter,
 			pargv, BOOL_FALSE, is_filter);
-		if (pstatus != KPARSE_NOTFOUND)
+		if ((pstatus != KPARSE_NOTFOUND) && (pstatus != KPARSE_NONE))
 			break;
 		// NOTFOUND but some args were parsed.
 		// When it's completion for first argument (that can be continued)
@@ -367,18 +362,18 @@ kpargv_t *ksession_parse_line(ksession_t *session, const faux_argv_t *argv,
 		kpargv_set_last_arg(pargv, faux_argv_current(argv_iter));
 	// It's a higher level of parsing, so some statuses can have different
 	// meanings
-	if (KPARSE_NONE == pstatus)
-		pstatus = KPARSE_ERROR; // Strange case
-	else if (KPARSE_INPROGRESS == pstatus) {
-		if (NULL == argv_iter) // All args are parsed
-			pstatus = KPARSE_OK;
-		else
-			pstatus = KPARSE_ILLEGAL; // Additional not parsable args
-	} else if (KPARSE_NOTFOUND == pstatus)
-		pstatus = KPARSE_ILLEGAL; // Unknown command
-	// If no ACTIONs were found i.e. command was not found
-	if ((KPARSE_OK == pstatus) && !kpargv_command(pargv))
-		pstatus = KPARSE_NOACTION;
+	if (KPARSE_NONE == pstatus) {
+		pstatus = KPARSE_ERROR;
+	} else if (KPARSE_OK == pstatus) {
+		// Not all args are parsed
+		if (argv_iter != NULL)
+			pstatus = KPARSE_ERROR; // Additional not parsable args
+		// If no ACTIONs were found i.e. command was not found
+		else if (!kpargv_command(pargv))
+			pstatus = KPARSE_NOACTION;
+	} else if (KPARSE_NOTFOUND == pstatus) {
+		pstatus = KPARSE_ERROR; // Unknown command
+	}
 
 	kpargv_set_status(pargv, pstatus);
 	kpargv_set_level(pargv, level_found);
@@ -686,7 +681,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 	pstatus = ksession_parse_arg(session, entry, &argv_iter, pargv,
 		BOOL_TRUE, BOOL_FALSE);
 	// Parsing problems
-	if ((pstatus != KPARSE_INPROGRESS) || (argv_iter != NULL)) {
+	if ((pstatus != KPARSE_OK) || (argv_iter != NULL)) {
 		kexec_free(exec);
 		faux_argv_free(argv);
 		kpargv_free(pargv);

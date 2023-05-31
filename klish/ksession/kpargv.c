@@ -163,29 +163,23 @@ kparg_t *kpargv_entry_exists(const kpargv_t *pargv, const void *entry)
 
 const char *kpargv_status_decode(kpargv_status_e status)
 {
-	const char *s = "Unknown";
+	const char *s = NULL;
 
 	switch (status) {
 	case KPARSE_OK:
 		s = "Ok";
 		break;
-	case KPARSE_INPROGRESS:
-		s = "In progress";
-		break;
 	case KPARSE_NOTFOUND:
 		s = "Not found";
 		break;
-	case KPARSE_INCOMPLETED:
-		s = "Incompleted command";
-		break;
-	case KPARSE_ILLEGAL:
+	case KPARSE_ERROR:
 		s = "Illegal command";
 		break;
 	case KPARSE_NOACTION:
-		s = "Has no action";
+		s = "Command has no action";
 		break;
-	default: // ERROR/MAX/NONE
-		s = "Error";
+	default: // MAX/NONE
+		s = "Unknown error";
 		break;
 	}
 
