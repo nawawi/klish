@@ -66,12 +66,11 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 {
 	const kentry_t *entry = current_entry;
 	kentry_mode_e mode = KENTRY_MODE_NONE;
-//	kpargv_status_e retcode = KPARSE_INPROGRESS; // For ENTRY itself
 	kpargv_status_e retcode = KPARSE_NOTFOUND; // For ENTRY itself
 	kpargv_status_e rc = KPARSE_NONE; // For nested ENTRYs
-	faux_argv_node_t *saved_argv_iter = NULL;
 	kpargv_purpose_e purpose = KPURPOSE_NONE;
 
+if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
 fprintf(stderr, "PARSE: name=%s, arg=%s, pargs=%d\n",
 kentry_name(entry), faux_argv_current(*argv_iter),
 kpargv_pargs_len(pargv));
@@ -134,7 +133,6 @@ kpargv_pargs_len(pargv));
 
 		// If all arguments are resolved already then return INCOMPLETED
 		if (!*argv_iter)
-//			return KPARSE_NOTFOUND;
 			return KPARSE_INCOMPLETED;
 
 		// Validate argument
@@ -157,7 +155,9 @@ kpargv_pargs_len(pargv));
 		}
 	}
 
-fprintf(stderr, "ITSELF: name=%s, retcode=%s\n", kentry_name(entry), kpargv_status_decode(retcode));
+if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
+fprintf(stderr, "ITSELF: name=%s, retcode=%s\n",
+kentry_name(entry), kpargv_status_decode(retcode));
 
 	// ENTRY has no nested ENTRYs so return
 	if (kentry_entrys_is_empty(entry))
@@ -167,17 +167,6 @@ fprintf(stderr, "ITSELF: name=%s, retcode=%s\n", kentry_name(entry), kpargv_stat
 	mode = kentry_mode(entry);
 	if (KENTRY_MODE_EMPTY == mode)
 		return retcode;
-
-	// Walk through the nested entries:
-	saved_argv_iter = *argv_iter;
-
-
-	// Following code (SWITCH or SEQUENCE cases) sometimes don's set rc.
-	// It happens when entry has nested entries but purposes of all entries
-	// are not COMMON so they will be ignored. So return code of function
-	// will be the code of ENTRY itself processing.
-	// Here retcode can be KPARSE_INPROGRESS or KPARSE_NOTFOUND
-//	rc = retcode;
 
 	// SWITCH mode
 	// Entries within SWITCH can't has 'min'/'max' else than 1.
@@ -190,6 +179,7 @@ fprintf(stderr, "ITSELF: name=%s, retcode=%s\n", kentry_name(entry), kpargv_stat
 if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
 fprintf(stderr, "SWITCH: name=%s, arg %s\n", kentry_name(entry),
 *argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
+
 		while ((nested = kentry_entrys_each(&iter))) {
 			kpargv_status_e res = KPARSE_NONE;
 			// Ignore entries with non-COMMON purpose.
@@ -200,13 +190,11 @@ fprintf(stderr, "SWITCH-nested name=%s, nested=%s\n",
 kentry_name(entry), kentry_name(nested));
 			res = ksession_parse_arg(session, nested, argv_iter,
 				pargv, BOOL_FALSE, is_filter);
+			rc = res;
 if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
 fprintf(stderr, "SWITCH-nested-answer: name=%s, nested=%s, res=%s\n",
 kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
-			// If some arguments was consumed then we will not check
-			// next SWITCH's entries in any case.
-//			if (saved_argv_iter != *argv_iter)
-//				break;
+			// Save choosen entry name to container's value
 			if ((res == KPARSE_INPROGRESS) && kentry_container(entry)) {
 				kparg_t *parg = kparg_new(entry, kentry_name(nested));
 				kpargv_add_pargs(pargv, parg);
@@ -214,9 +202,6 @@ kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
 			// Try next entries if current status is NOTFOUND.
 			// The INCOMPLETED status is for completion list. In this
 			// case all next statuses will be INCOMPLETED too.
-//			if ((res != KPARSE_NOTFOUND) && (res != KPARSE_INCOMPLETED))
-//			if (res != KPARSE_NOTFOUND)
-				rc = res;
 			if (!(res & KPARSE_NOTFIT))
 				break;
 		}
@@ -247,15 +232,14 @@ kentry_name(entry), *argv_iter ? faux_argv_current(*argv_iter) : "<empty>");
 			// Try to match argument and current entry
 			// (from 'min' to 'max' times)
 			for (num = 0; num < kentry_max(nested); num++) {
-//				faux_argv_node_t *iter_before_parse = *argv_iter;
 if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
 fprintf(stderr, "SEQ-nested: name=%s, nested=%s\n",
 kentry_name(entry), kentry_name(nested));
 				res = ksession_parse_arg(session, nested,
 					argv_iter, pargv, BOOL_FALSE, is_filter);
 if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
-fprintf(stderr, "SEQ-nested-answer: name=%s, nested=%s, res=%s\n",
-kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
+fprintf(stderr, "SEQ-nested-answer: name=%s, nested=%s, res=%s, num=%d, min=%d\n",
+kentry_name(entry), kentry_name(nested), kpargv_status_decode(res), num, min);
 				if (!(res & KPARSE_NOTFIT) || (num < min)) {
 					if (res != KPARSE_INPROGRESS)
 						break_loop = BOOL_TRUE;
@@ -265,36 +249,16 @@ kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
 					consumed = BOOL_TRUE;
 				else
 					break;
-//				if (iter_before_parse == *argv_iter)
-//					break;
 			}
 			if (break_loop)
 				break;
-/*			// All errors will break the loop
-			if ((res != KPARSE_INPROGRESS) && (res != KPARSE_NOTFOUND)) {
-//			if ((KPARSE_ERROR == res) ||
-//				(KPARSE_ILLEGAL == res) ||
-//				(KPARSE_NONE == res)) {
-				rc = res;
-				break;
-			}
-//			if ((min > 0) && (KPARSE_INCOMPLETED == res)) {
-//				rc = res;
-//				break;
-//			}
-			// Not found necessary number of mandatory instances
-			if (num < min) {
-//				if (KPARSE_INPROGRESS == res)
-					rc = KPARSE_NOTFOUND;
-//				else
-//					rc = res; // NOTFOUND or INCOMPLETED
-				break;
-			}
-			// It's not an error if optional parameter is absend
-//			rc = KPARSE_INPROGRESS;
-*/			if (consumed) {
+			if (consumed) {
+				// Remember if optional parameter was already
+				// entered
 				kparg_t *tmp_parg = kparg_new(nested, NULL);
 				kpargv_add_pargs(cur_level_pargv, tmp_parg);
+				// SEQ container will get all entered nested
+				// entry names as value within resulting pargv
 				if (kentry_container(entry)) {
 					kparg_t *parg = kparg_new(entry,
 						kentry_name(nested));
@@ -310,31 +274,25 @@ kentry_name(entry), kentry_name(nested), kpargv_status_decode(res));
 				if ((0 == min) && (num > 0))
 					iter = saved_iter;
 			}
-
-			// If optional entry is found then go back to nearest
-			// non-optional (or ordered) entry to try to find
-			// another optional entries.
-//fprintf(stderr, "%s: min=%d, num=%d\n", kentry_name(nested), min, num);
-//			if ((0 == min) && (num > 0))
-//				iter = saved_iter;
 		}
 		kpargv_free(cur_level_pargv);
 	}
 
-	// If nested result is NOTFOUND but argument was consumed
-	// within nested entries or by entry itself then whole sequence
-	// is ILLEGAL.
 //	if ((KPARSE_NOTFOUND == rc) &&
 //		((saved_argv_iter != *argv_iter) || !kentry_container(entry)))
 //		rc = KPARSE_ILLEGAL;
 	if (rc == KPARSE_NONE)
 		return retcode;
 
+	// If nested result is not INPROGRESS but argument was consumed
+	// within nested entries or by entry itself then whole sequence
+	// is ILLEGAL.
 	if ((retcode == KPARSE_INPROGRESS) && (rc != KPARSE_INPROGRESS))
 		rc = KPARSE_ILLEGAL;
 
 if (kentry_purpose(entry) == KENTRY_PURPOSE_COMMON)
 fprintf(stderr, "RET: name=%s, rc=%s\n", kentry_name(entry), kpargv_status_decode(rc));
+
 	return rc;
 }
 
