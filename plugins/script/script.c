@@ -50,47 +50,63 @@ const char *kcontext_type_e_str[] = {
 
 static bool_t populate_env_kpargv(const kpargv_t *pargv, const char *prefix)
 {
-	const kentry_t *entry = NULL;
-	kpargv_pargs_node_t *iter = NULL;
-	kparg_t *parg = NULL;
-	const kentry_t *saved_entry = NULL;
-	size_t num = 0;
+	const kentry_t *cmd = NULL;
+	faux_list_node_t *iter = NULL;
+	faux_list_node_t *cur = NULL;
 
 	if (!pargv)
 		return BOOL_FALSE;
 
 	// Command
-	entry = kpargv_command(pargv);
-	if (entry) {
+	cmd = kpargv_command(pargv);
+	if (cmd) {
 		char *var = faux_str_sprintf("%sCOMMAND", prefix);
-		setenv(var, kentry_name(entry), OVERWRITE);
+		setenv(var, kentry_name(cmd), OVERWRITE);
 		faux_str_free(var);
 	}
 
 	// Parameters
-	iter = kpargv_pargs_iter(pargv);
-	while ((parg = kpargv_pargs_each(&iter))) {
-		char *var = NULL;
-		const char *value = kparg_value(parg);
-		if (!value) // PTYPE can contain parg with NULL value
+	iter = faux_list_head(kpargv_pargs(pargv));
+	while ((cur = faux_list_each_node(&iter))) {
+		kparg_t *parg = (kparg_t *)faux_list_data(cur);
+		kparg_t *tmp_parg = NULL;
+		const kentry_t *entry = kparg_entry(parg);
+		faux_list_node_t *iter_before = faux_list_prev_node(cur);
+		faux_list_node_t *iter_after = cur;
+		unsigned int num = 0;
+		bool_t already_populated = BOOL_FALSE;
+
+		if (!kparg_value(parg)) // PTYPE can contain parg with NULL value
 			continue;
-		entry = kparg_entry(parg);
-		if (kentry_max(entry) > 1) { // Multi
-			if (entry == saved_entry)
-				num++;
-			else
-				num = 0;
+
+		// Search for such entry within arguments before current one
+		while ((tmp_parg = (kparg_t *)faux_list_eachr(&iter_before))) {
+			if (kparg_entry(tmp_parg) == entry) {
+				already_populated = BOOL_TRUE;
+				break;
+			}
+		}
+		if (already_populated)
+			continue;
+
+		// Populate all next args with the current entry
+		while ((tmp_parg = (kparg_t *)faux_list_each(&iter_after))) {
+			char *var = NULL;
+			const char *value = kparg_value(tmp_parg);
+			if (kparg_entry(tmp_parg) != entry)
+				continue;
+			if (num == 0) {
+				var = faux_str_sprintf("%sPARAM_%s",
+					prefix, kentry_name(entry));
+				setenv(var, value, OVERWRITE);
+				faux_str_free(var);
+			}
 			var = faux_str_sprintf("%sPARAM_%s_%u",
 				prefix, kentry_name(entry), num);
-			saved_entry = entry;
-		} else { // Single
-			var = faux_str_sprintf("%sPARAM_%s",
-				prefix, kentry_name(entry));
-			saved_entry = NULL;
-			num = 0;
+			setenv(var, value, OVERWRITE);
+			faux_str_free(var);
+			num++;
 		}
-		setenv(var, value, OVERWRITE);
-		faux_str_free(var);
 	}
 
 	return BOOL_TRUE;
