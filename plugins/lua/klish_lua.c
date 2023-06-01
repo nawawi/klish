@@ -315,9 +315,11 @@ static int _luaB_par(lua_State *L, int parent, int multi)
 		const char *n = kentry_name(entry);
 		if (!name) {
 			if (last_entry != entry) {
-				lua_pushnumber(L, ++k);
-				lua_pushstring(L, n);
-				lua_rawset(L, -3);
+				if (!kentry_container(entry)) {
+					lua_pushnumber(L, ++k);
+					lua_pushstring(L, n);
+					lua_rawset(L, -3);
+				}
 				lua_pushstring(L, n);
 				lua_newtable(L);
 				lua_rawset(L, -3);
