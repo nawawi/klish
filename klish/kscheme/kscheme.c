@@ -87,7 +87,7 @@ void kscheme_free(kscheme_t *scheme)
 
 #define TAG "PLUGIN"
 
-bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
+static bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
 	faux_error_t *error)
 {
 	bool_t retcode = BOOL_TRUE;
@@ -126,7 +126,7 @@ bool_t kscheme_load_plugins(kscheme_t *scheme, kcontext_t *context,
 }
 
 
-bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
+static bool_t kscheme_fini_plugins(kscheme_t *scheme, kcontext_t *context,
 	faux_error_t *error)
 {
 	kscheme_plugins_node_t *iter = NULL;
@@ -428,4 +428,65 @@ void *kscheme_named_udata(kscheme_t *scheme, const char *name)
 	assert(scheme->ustore);
 
 	return kustore_slot_data(scheme->ustore, name);
+}
+
+
+bool_t kscheme_init_session_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error)
+{
+	bool_t retcode = BOOL_TRUE;
+	kscheme_plugins_node_t *iter = NULL;
+	kplugin_t *plugin = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->plugins);
+	if (!context)
+		return BOOL_FALSE;
+
+	iter = kscheme_plugins_iter(scheme);
+	while ((plugin = kscheme_plugins_each(&iter))) {
+		int init_retcode = 0;
+		kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_INIT);
+		kcontext_set_plugin(context, plugin);
+		if ((init_retcode = kplugin_init_session(plugin, context)) < 0) {
+			faux_error_sprintf(error,
+				TAG ": Can't init session for plugin \"%s\" (%d)",
+				kplugin_name(plugin), init_retcode);
+			retcode = BOOL_FALSE;
+			continue;
+		}
+	}
+
+	return retcode;
+}
+
+
+bool_t kscheme_fini_session_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error)
+{
+	kscheme_plugins_node_t *iter = NULL;
+	kplugin_t *plugin = NULL;
+
+	assert(scheme);
+	if (!scheme)
+		return BOOL_FALSE;
+	assert(scheme->plugins);
+	if (!context)
+		return BOOL_FALSE;
+
+	iter = kscheme_plugins_iter(scheme);
+	while ((plugin = kscheme_plugins_each(&iter))) {
+		int fini_retcode = -1;
+		kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_FINI);
+		kcontext_set_plugin(context, plugin);
+		if ((fini_retcode = kplugin_fini_session(plugin, context)) < 0) {
+			faux_error_sprintf(error,
+				TAG ": Can't fini session for plugin \"%s\" (%d)",
+				kplugin_name(plugin), fini_retcode);
+		}
+	}
+
+	return BOOL_TRUE;
 }

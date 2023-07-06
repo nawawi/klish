@@ -26,6 +26,11 @@ void kscheme_free(kscheme_t *scheme);
 
 bool_t kscheme_prepare(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
 bool_t kscheme_fini(kscheme_t *scheme, kcontext_t *context, faux_error_t *error);
+bool_t kscheme_init_session_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error);
+bool_t kscheme_fini_session_plugins(kscheme_t *scheme, kcontext_t *context,
+	faux_error_t *error);
+
 
 // PLUGINs
 faux_list_t *kscheme_plugins(const kscheme_t *scheme);
