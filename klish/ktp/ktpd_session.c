@@ -114,8 +114,19 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 
 void ktpd_session_free(ktpd_session_t *ktpd)
 {
+	kcontext_t *context = NULL;
+	kscheme_t *scheme = NULL;
+
 	if (!ktpd)
 		return;
+
+	// fini session for plugins
+	scheme = ksession_scheme(ktpd->session);
+	context = kcontext_new(KCONTEXT_TYPE_PLUGIN_FINI);
+	kcontext_set_session(context, ktpd->session);
+	kcontext_set_scheme(context, scheme);
+	kscheme_fini_session_plugins(scheme, context, NULL);
+	kcontext_free(context);
 
 	kexec_free(ktpd->exec);
 	ksession_free(ktpd->session);
@@ -253,6 +264,8 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	socklen_t len = sizeof(ucred);
 	int sock = -1;
 	char *user = NULL;
+	kcontext_t *context = NULL;
+	kscheme_t *scheme = NULL;
 
 	assert(ktpd);
 	assert(msg);
@@ -274,6 +287,14 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	user = faux_sysdb_name_by_uid(ucred.uid);
 	ksession_set_user(ktpd->session, user);
 	faux_str_free(user);
+
+	// init session for plugins
+	scheme = ksession_scheme(ktpd->session);
+	context = kcontext_new(KCONTEXT_TYPE_PLUGIN_INIT);
+	kcontext_set_session(context, ktpd->session);
+	kcontext_set_scheme(context, scheme);
+	kscheme_init_session_plugins(scheme, context, NULL);
+	kcontext_free(context);
 
 	// Prepare ACK message
 	ack = ktp_msg_preform(cmd, status);

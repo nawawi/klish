@@ -31,7 +31,6 @@ bool_t kscheme_init_session_plugins(kscheme_t *scheme, kcontext_t *context,
 bool_t kscheme_fini_session_plugins(kscheme_t *scheme, kcontext_t *context,
 	faux_error_t *error);
 
-
 // PLUGINs
 faux_list_t *kscheme_plugins(const kscheme_t *scheme);
 bool_t kscheme_add_plugins(kscheme_t *scheme, kplugin_t *plugin);
