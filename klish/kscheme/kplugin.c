@@ -25,6 +25,8 @@ struct kplugin_s {
 	void *dlhan; // dlopen() handler
 	ksym_fn init_fn;
 	ksym_fn fini_fn;
+	ksym_fn init_session_fn;
+	ksym_fn fini_session_fn;
 	void *udata; // User data
 	faux_list_t *syms;
 };
@@ -58,6 +60,12 @@ KSET(plugin, uint8_t, minor);
 // User data
 KGET(plugin, void *, udata);
 KSET(plugin, void *, udata);
+
+// Session init/fini functions
+KGET(plugin, ksym_fn, init_session_fn);
+KSET(plugin, ksym_fn, init_session_fn);
+KGET(plugin, ksym_fn, fini_session_fn);
+KSET(plugin, ksym_fn, fini_session_fn);
 
 // SYMs list
 KGET(plugin, faux_list_t *, syms);
@@ -248,4 +256,40 @@ int kplugin_fini(kplugin_t *plugin, kcontext_t *context)
 	kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_FINI);
 
 	return plugin->fini_fn(context);
+}
+
+
+int kplugin_init_session(kplugin_t *plugin, kcontext_t *context)
+{
+	assert(plugin);
+	if (!plugin)
+		return -1;
+	assert(context);
+	if (!context)
+		return -1;
+
+	if (!plugin->init_session_fn)
+		return 0;
+	// Be sure the context type is appropriate one
+	kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_INIT);
+
+	return plugin->init_session_fn(context);
+}
+
+
+int kplugin_fini_session(kplugin_t *plugin, kcontext_t *context)
+{
+	assert(plugin);
+	if (!plugin)
+		return -1;
+	assert(context);
+	if (!context)
+		return -1;
+
+	if (!plugin->fini_session_fn)
+		return 0; // Fini function is not mandatory so it's ok
+	// Be sure the context type is appropriate one
+	kcontext_set_type(context, KCONTEXT_TYPE_PLUGIN_FINI);
+
+	return plugin->fini_session_fn(context);
 }

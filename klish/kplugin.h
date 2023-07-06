@@ -59,6 +59,12 @@ bool_t kplugin_set_minor(kplugin_t *plugin, uint8_t minor);
 void *kplugin_udata(const kplugin_t *plugin);
 bool_t kplugin_set_udata(kplugin_t *plugin, void *udata);
 bool_t kplugin_load(kplugin_t *plugin);
+ksym_fn kplugin_init_session_fn(const kplugin_t *plugin);
+bool_t kplugin_set_init_session_fn(kplugin_t *plugin, ksym_fn fn);
+ksym_fn kplugin_fini_session_fn(const kplugin_t *plugin);
+bool_t kplugin_set_fini_session_fn(kplugin_t *plugin, ksym_fn fn);
+int kplugin_init_session(kplugin_t *plugin, kcontext_t *context);
+int kplugin_fini_session(kplugin_t *plugin, kcontext_t *context);
 int kplugin_init(kplugin_t *plugin, kcontext_t *context);
 int kplugin_fini(kplugin_t *plugin, kcontext_t *context);
 
