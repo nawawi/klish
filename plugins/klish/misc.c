@@ -127,15 +127,10 @@ int klish_prompt(kcontext_t *context)
 				}
 			// Username
 			case 'u': {
-				char *user = getenv("USER");
-				if (user) {
-					faux_str_cat(&prompt, user);
-					break;
-				}
-				user = faux_sysdb_name_by_uid(getuid());
+				const char *user = NULL;
+				user = ksession_user(kcontext_session(context));
 				if (user)
 					faux_str_cat(&prompt, user);
-				faux_str_free(user);
 				break;
 				}
 			}
