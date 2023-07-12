@@ -31,6 +31,14 @@
 #include "private.h"
 
 
+typedef enum {
+	MODE_CMDLINE,
+	MODE_FILES,
+	MODE_STDIN,
+	MODE_INTERACTIVE
+} client_mode_e;
+
+
 static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
 static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
@@ -50,6 +58,8 @@ int main(int argc, char **argv)
 	ktp_session_t *ktp = NULL;
 	int retcode = 0;
 	faux_eloop_t *eloop = NULL;
+	int auth_rc = -1;
+	client_mode_e mode = MODE_INTERACTIVE;
 
 #ifdef HAVE_LOCALE_H
 	// Set current locale
@@ -74,6 +84,14 @@ int main(int argc, char **argv)
 		goto err;
 	}
 
+	// Find out client mode
+	if (faux_list_len(opts->commands) > 0)
+		mode = MODE_CMDLINE;
+	else if (faux_list_len(opts->files) > 0)
+		mode = MODE_FILES;
+	else if (!isatty(STDIN_FILENO))
+		mode = MODE_STDIN;
+
 	// Connect to server
 	unix_sock = ktp_connect_unix(opts->unix_socket_path);
 	if (unix_sock < 0) {
@@ -94,16 +112,25 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: Can't create klish session\n");
 		goto err;
 	}
+
+	// Ignore SIGPIPE from server
+	signal(SIGPIPE, SIG_IGN);
+
+	// Auth for non-interactive modes. Interactive mode does auth itself
+	if (mode != MODE_INTERACTIVE) {
+		if (!ktp_sync_auth(ktp, &auth_rc) || (auth_rc < 0)) {
+			fprintf(stderr, "Error: Can't auth\n");
+			goto err;
+		}
+	}
+
 	// These callback functions is only for batch mode. Interactive
 	// mode can reassign them.
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, NULL);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, NULL);
 
-	// Ignore SIGPIPE from server
-	signal(SIGPIPE, SIG_IGN);
-
 	// Commands from cmdline
-	if (faux_list_len(opts->commands) > 0) {
+	if (mode == MODE_CMDLINE) {
 		const char *line = NULL;
 		faux_list_node_t *iter = faux_list_head(opts->commands);
 		while ((line = faux_list_each(&iter))) {
@@ -115,7 +142,7 @@ int main(int argc, char **argv)
 		}
 
 	// Commands from files
-	} else if (faux_list_len(opts->files) > 0) {
+	} else if (mode == MODE_FILES) {
 		const char *filename = NULL;
 		faux_list_node_t *iter =  faux_list_head(opts->files);
 		while ((filename = (const char *)faux_list_each(&iter))) {
@@ -138,7 +165,7 @@ int main(int argc, char **argv)
 		}
 
 	// Commands from non-interactive STDIN
-	} else if (!isatty(STDIN_FILENO)) {
+	} else if (mode == MODE_STDIN) {
 		char *line = NULL;
 		faux_file_t *fd = faux_file_fdopen(STDIN_FILENO);
 		while ((line = faux_file_getline(fd))) {
@@ -201,6 +228,33 @@ static int ktp_sync_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_free(error);
 
 	return retcode;
+}
+
+
+bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode)
+{
+	faux_error_t *error = NULL;
+	bool_t rc = BOOL_FALSE;
+
+	assert(ktp);
+
+	error = faux_error_new();
+	if (!ktp_session_auth(ktp, error)) {
+		faux_error_free(error);
+		return BOOL_FALSE;
+	}
+
+	faux_eloop_loop(ktp_session_eloop(ktp));
+
+	rc = ktp_session_retcode(ktp, retcode);
+
+	if (faux_error_len(error) > 0) {
+		fprintf(stderr, "Auth error:\n");
+		faux_error_fshow(error, stderr);
+	}
+	faux_error_free(error);
+
+	return rc;
 }
 
 

@@ -41,7 +41,6 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 
-static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode);
 static void reset_hotkey_table(ctx_t *ctx);
 static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
@@ -707,28 +706,6 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	ktp = ktp; // happy compiler
 
 	return BOOL_TRUE;
-}
-
-
-static bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode)
-{
-	faux_error_t *error = NULL;
-	bool_t rc = BOOL_FALSE;
-
-	assert(ktp);
-
-	error = faux_error_new();
-	if (!ktp_session_auth(ktp, error)) {
-		faux_error_free(error);
-		return BOOL_FALSE;
-	}
-
-	faux_eloop_loop(ktp_session_eloop(ktp));
-
-	rc = ktp_session_retcode(ktp, retcode);
-	faux_error_free(error);
-
-	return rc;
 }
 
 
