@@ -78,7 +78,7 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 		return NULL;
 
 	// Init
-	ktpd->state = KTPD_SESSION_STATE_IDLE;
+	ktpd->state = KTPD_SESSION_STATE_UNAUTHORIZED;
 	ktpd->eloop = eloop;
 	ktpd->session = ksession_new(scheme, start_entry);
 	if (!ktpd->session) {
@@ -121,12 +121,14 @@ void ktpd_session_free(ktpd_session_t *ktpd)
 		return;
 
 	// fini session for plugins
-	scheme = ksession_scheme(ktpd->session);
-	context = kcontext_new(KCONTEXT_TYPE_PLUGIN_FINI);
-	kcontext_set_session(context, ktpd->session);
-	kcontext_set_scheme(context, scheme);
-	kscheme_fini_session_plugins(scheme, context, NULL);
-	kcontext_free(context);
+	if (ktpd->state != KTPD_SESSION_STATE_UNAUTHORIZED) {
+		scheme = ksession_scheme(ktpd->session);
+		context = kcontext_new(KCONTEXT_TYPE_PLUGIN_FINI);
+		kcontext_set_session(context, ktpd->session);
+		kcontext_set_scheme(context, scheme);
+		kscheme_fini_session_plugins(scheme, context, NULL);
+		kcontext_free(context);
+	}
 
 	kexec_free(ktpd->exec);
 	ksession_free(ktpd->session);
@@ -308,6 +310,8 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	add_hotkeys_to_msg(ktpd, ack);
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
+
+	ktpd->state = KTPD_SESSION_STATE_IDLE;
 
 	return BOOL_TRUE;
 }
@@ -1009,6 +1013,8 @@ static bool_t ktpd_session_process_notification(ktpd_session_t *ktpd, faux_msg_t
 static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
+	const char *err = NULL;
+	ktp_cmd_e ecmd = KTP_NOTIFICATION; // Answer command if error
 
 	assert(ktpd);
 	if (!ktpd)
@@ -1021,28 +1027,42 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 	switch (cmd) {
 	case KTP_AUTH:
 		if ((ktpd->state != KTPD_SESSION_STATE_UNAUTHORIZED) &&
-			(ktpd->state != KTPD_SESSION_STATE_IDLE))
+			(ktpd->state != KTPD_SESSION_STATE_IDLE)) {
+			ecmd = KTP_AUTH_ACK;
+			err = "Server illegal state for authorization";
 			break;
+		}
 		ktpd_session_process_auth(ktpd, msg);
 		break;
 	case KTP_CMD:
-		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE) {
+			ecmd = KTP_CMD_ACK;
+			err = "Server illegal state for command execution";
 			break;
+		}
 		ktpd_session_process_cmd(ktpd, msg);
 		break;
 	case KTP_COMPLETION:
-		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE) {
+			ecmd = KTP_COMPLETION_ACK;
+			err = "Server illegal state for completion";
 			break;
+		}
 		ktpd_session_process_completion(ktpd, msg);
 		break;
 	case KTP_HELP:
-		if (ktpd->state != KTPD_SESSION_STATE_IDLE)
+		if (ktpd->state != KTPD_SESSION_STATE_IDLE) {
+			ecmd = KTP_HELP_ACK;
+			err = "Server illegal state for help";
 			break;
+		}
 		ktpd_session_process_help(ktpd, msg);
 		break;
 	case KTP_STDIN:
-		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS)
+		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
+			err = "Nobody is waiting for stdin";
 			break;
+		}
 		ktpd_session_process_stdin(ktpd, msg);
 		break;
 	case KTP_NOTIFICATION:
@@ -1050,8 +1070,13 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u", cmd);
+		err = "Unsupported command";
 		break;
 	}
+
+	// On error
+	if (err)
+		ktp_send_error(ktpd->async, ecmd, err);
 
 	return BOOL_TRUE;
 }
