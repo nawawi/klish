@@ -106,8 +106,10 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 			faux_buf_dwrite_unlock_easy(stream->buf, readed);
 			total += readed;
 		} while (r > 0);
-		if (total > 0)
+		if (total > 0) {
 			faux_eloop_include_fd_event(eloop, stream->fd_out, POLLOUT);
+			info->revents |= POLLOUT; /* force to do first write */
+		}
 	}
 
 	// Write data
