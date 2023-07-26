@@ -90,10 +90,9 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if (!stream)
 		return BOOL_FALSE; // Problems
 
-	// Read data
+	// Read data (must locates before write data code)
 	if (info->revents & POLLIN) {
 		ssize_t r = 0;
-		size_t total = 0;
 		do {
 			ssize_t len = 0;
 			void *data = NULL;
@@ -104,16 +103,11 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 			r = read(stream->fd_in, data, len);
 			readed = r < 0 ? 0 : r;
 			faux_buf_dwrite_unlock_easy(stream->buf, readed);
-			total += readed;
 		} while (r > 0);
-		if (total > 0) {
-			faux_eloop_include_fd_event(eloop, stream->fd_out, POLLOUT);
-			info->revents |= POLLOUT; /* force to do first write */
-		}
 	}
 
 	// Write data
-	if (info->revents & POLLOUT) {
+	if (faux_buf_len(stream->buf) > 0) {
 		ssize_t r = 0;
 		ssize_t sent = 0;
 		ssize_t len = 0;
@@ -126,9 +120,12 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 			sent = r < 0 ? 0 : r;
 			faux_buf_dread_unlock_easy(stream->buf, sent);
 		} while (sent == len);
-		if (faux_buf_len(stream->buf) == 0)
-			faux_eloop_exclude_fd_event(eloop, stream->fd_out, POLLOUT);
 	}
+	// Check if there additional data to send
+	if (faux_buf_len(stream->buf) == 0)
+		faux_eloop_exclude_fd_event(eloop, stream->fd_out, POLLOUT);
+	else
+		faux_eloop_include_fd_event(eloop, stream->fd_out, POLLOUT);
 
 	// EOF
 	if (info->revents & POLLHUP) {
