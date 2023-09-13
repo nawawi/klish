@@ -25,6 +25,10 @@ typedef struct ctx_s {
 	tinyrl_t *tinyrl;
 	struct options *opts;
 	char *hotkeys[VT100_HOTKEY_MAP_LEN];
+	// pager_working flag values:
+	// TRI_UNDEFINED - Not started yet or not necessary
+	// TRI_TRUE - Pager is working
+	// TRI_FALSE - Can't start pager or pager has exited
 	tri_t pager_working;
 	FILE *pager_pipe;
 } ctx_t;
@@ -731,14 +735,17 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 	}
 
 	// Write to pager's pipe if pager is really working
+	// Don't do anything if pager state is TRI_FALSE
 	if (ctx->pager_working == TRI_TRUE) {
 		if (faux_write_block(fileno(ctx->pager_pipe), line, len) <= 0) {
-			// If we can't write to pager pipe then try stdout.
-			if (faux_write_block(STDOUT_FILENO, line, len) < 0)
-				return BOOL_FALSE;
+			// If we can't write to pager pipe then send
+			// "SIGPIPE" to server. Pager is finished or broken.
+			// TODO: Send "SIGPIPE" to server
 			return BOOL_TRUE; // Don't break the loop
 		}
-	} else {
+
+	// TRI_UNDEFINED here means that pager is not needed
+	} else if (ctx->pager_working == TRI_UNDEFINED) {
 		if (faux_write_block(STDOUT_FILENO, line, len) < 0)
 			return BOOL_FALSE;
 	}
