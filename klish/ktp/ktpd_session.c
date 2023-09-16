@@ -1010,6 +1010,27 @@ static bool_t ktpd_session_process_notification(ktpd_session_t *ktpd, faux_msg_t
 }
 
 
+static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
+	faux_msg_t *msg)
+{
+	int fd = -1;
+
+	assert(ktpd);
+	assert(msg);
+
+	if (!ktpd->exec)
+		return BOOL_FALSE;
+	fd = kexec_stdout(ktpd->exec);
+	if (fd < 0)
+		return BOOL_FALSE;
+	close(fd);
+//	kexec_set_stdout(ktpd->exec, -1);
+syslog(LOG_ERR, "Close stdout");
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	uint16_t cmd = 0;
@@ -1067,6 +1088,13 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 		break;
 	case KTP_NOTIFICATION:
 		ktpd_session_process_notification(ktpd, msg);
+		break;
+	case KTP_STDOUT_CLOSE:
+		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
+			err = "No active command is running";
+			break;
+		}
+		ktpd_session_process_stdout_close(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u", cmd);

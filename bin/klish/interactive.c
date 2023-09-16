@@ -271,7 +271,7 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	faux_error_free(error);
 
 	// Wait for pager
-	if (ctx->pager_working == TRI_TRUE) {
+	if (ctx->pager_working != TRI_UNDEFINED) {
 		pclose(ctx->pager_pipe);
 		ctx->pager_working = TRI_UNDEFINED;
 		ctx->pager_pipe = NULL;
@@ -740,7 +740,8 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 		if (faux_write_block(fileno(ctx->pager_pipe), line, len) <= 0) {
 			// If we can't write to pager pipe then send
 			// "SIGPIPE" to server. Pager is finished or broken.
-			// TODO: Send "SIGPIPE" to server
+			ktp_session_stdout_close(ktp);
+			ctx->pager_working = TRI_FALSE;
 			return BOOL_TRUE; // Don't break the loop
 		}
 
