@@ -1024,8 +1024,9 @@ static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
 	if (fd < 0)
 		return BOOL_FALSE;
 	close(fd);
-//	kexec_set_stdout(ktpd->exec, -1);
-syslog(LOG_ERR, "Close stdout");
+	// Remove already generated data from out buffer. This data is not
+	// needed now
+	faux_buf_empty(kexec_bufout(ktpd->exec));
 
 	return BOOL_TRUE;
 }
