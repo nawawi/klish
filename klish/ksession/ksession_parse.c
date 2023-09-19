@@ -274,7 +274,6 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 					kparg_t *parg = kparg_new(entry,
 						kentry_name(nested));
 					kpargv_add_pargs(pargv, parg);
-					rc = res;
 				}
 				// Mandatory or ordered parameter
 				if ((min > 0) || kentry_order(nested))
