@@ -390,6 +390,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	if (	(KTAG_ENTRY != parent_tag) &&
 		(KTAG_COMMAND != parent_tag) &&
 		(KTAG_FILTER != parent_tag) &&
+		(KTAG_PARAM != parent_tag) &&
 		(KTAG_COND != parent_tag) &&
 		(KTAG_COMPL != parent_tag) &&
 		(KTAG_HELP != parent_tag) &&
