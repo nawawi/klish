@@ -329,6 +329,7 @@ static bool_t kexec_prepare(kexec_t *exec)
 		return BOOL_TRUE;
 	}
 
+	// Commands without pseudoterminal
 	// Create "global" stdin, stdout, stderr for the whole job execution.
 
 	// STDIN
@@ -747,6 +748,7 @@ bool_t kexec_interactive(const kexec_t *exec)
 	faux_list_node_t *node = NULL;
 	kcontext_t *context = NULL;
 	const kentry_t *entry = NULL;
+	const ksession_t *session = NULL;
 
 	assert(exec);
 	if (!exec)
@@ -758,6 +760,10 @@ bool_t kexec_interactive(const kexec_t *exec)
 		return BOOL_FALSE;
 	context = (kcontext_t *)faux_list_data(node);
 	if (!context)
+		return BOOL_FALSE;
+	// If client has no input tty then consider command as non-interactive
+	session = kcontext_session(context);
+	if (session && !ksession_isatty_stdin(session))
 		return BOOL_FALSE;
 	entry = kcontext_command(context);
 	if (!entry)

@@ -46,6 +46,14 @@ bool_t ksession_set_uid(ksession_t *session, uid_t uid);
 const char *ksession_user(const ksession_t *session);
 bool_t ksession_set_user(ksession_t *session, const char *user);
 
+// Client isatty
+bool_t ksession_isatty_stdin(const ksession_t *session);
+bool_t ksession_set_isatty_stdin(ksession_t *session, bool_t isatty_stdin);
+bool_t ksession_isatty_stdout(const ksession_t *session);
+bool_t ksession_set_isatty_stdout(ksession_t *session, bool_t isatty_stdout);
+bool_t ksession_isatty_stderr(const ksession_t *session);
+bool_t ksession_set_isatty_stderr(ksession_t *session, bool_t isatty_stderr);
+
 C_DECL_END
 
 #endif // _klish_ksession_h

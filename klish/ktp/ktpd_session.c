@@ -268,6 +268,7 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	char *user = NULL;
 	kcontext_t *context = NULL;
 	kscheme_t *scheme = NULL;
+	uint32_t client_status = KTP_STATUS_NONE;
 
 	assert(ktpd);
 	assert(msg);
@@ -289,6 +290,15 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	user = faux_sysdb_name_by_uid(ucred.uid);
 	ksession_set_user(ktpd->session, user);
 	faux_str_free(user);
+
+	// Get tty information from auth message status
+	client_status = faux_msg_get_status(msg);
+	ksession_set_isatty_stdin(ktpd->session,
+		KTP_STATUS_IS_TTY_STDIN(client_status));
+	ksession_set_isatty_stdout(ktpd->session,
+		KTP_STATUS_IS_TTY_STDOUT(client_status));
+	ksession_set_isatty_stderr(ktpd->session,
+		KTP_STATUS_IS_TTY_STDERR(client_status));
 
 	// init session for plugins
 	scheme = ksession_scheme(ktpd->session);

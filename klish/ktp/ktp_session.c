@@ -605,6 +605,22 @@ static bool_t ktp_session_read_cb(faux_async_t *async,
 }
 
 
+static bool_t ktp_session_drop_state(ktp_session_t *ktp, faux_error_t *error)
+{
+	assert(ktp);
+	if (!ktp)
+		return BOOL_FALSE;
+
+	ktp->error = error;
+	ktp->cmd_retcode = -1;
+	ktp->cmd_retcode_available = BOOL_FALSE;
+	ktp->request_done = BOOL_FALSE;
+	ktp->cmd_features = KTP_STATUS_NONE;
+	ktp->cmd_features_available = BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
 static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 	const char *line, size_t line_len, faux_error_t *error,
 	bool_t dry_run, bool_t drop_state)
@@ -627,14 +643,8 @@ static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 	faux_msg_free(req);
 
 	// Prepare for loop
-	if (drop_state) {
-		ktp->error = error;
-		ktp->cmd_retcode = -1;
-		ktp->cmd_retcode_available = BOOL_FALSE;
-		ktp->request_done = BOOL_FALSE;
-		ktp->cmd_features = KTP_STATUS_NONE;
-		ktp->cmd_features_available = BOOL_FALSE;
-	}
+	if (drop_state)
+		ktp_session_drop_state(ktp, error);
 
 	return BOOL_TRUE;
 }
@@ -654,9 +664,30 @@ bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 
 bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error)
 {
-	if (!ktp_session_req(ktp, KTP_AUTH, NULL, 0,
-		error, BOOL_FALSE, BOOL_TRUE))
+	faux_msg_t *req = NULL;
+	ktp_status_e status = KTP_STATUS_NONE;
+
+	assert(ktp);
+	if (!ktp)
 		return BOOL_FALSE;
+
+	// This request starts session. It must send some client's environment
+	// to server
+	if (isatty(STDIN_FILENO))
+		status |= KTP_STATUS_TTY_STDIN;
+	if (isatty(STDOUT_FILENO))
+		status |= KTP_STATUS_TTY_STDOUT;
+	if (isatty(STDERR_FILENO))
+		status |= KTP_STATUS_TTY_STDERR;
+
+	// Send request
+	req = ktp_msg_preform(KTP_AUTH, status);
+	faux_msg_send_async(req, ktp->async);
+	faux_msg_free(req);
+
+	// Prepare for loop
+	ktp_session_drop_state(ktp, error);
+
 	ktp->state = KTP_SESSION_STATE_UNAUTHORIZED;
 
 	return BOOL_TRUE;
