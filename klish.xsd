@@ -145,8 +145,7 @@
 *	action execution.
 *
 * [interrupt="true/false"] - The boolean field that specify that action can be
-*	be interrupted by Ctrl^C. Default is false. Ignored for non-interactive
-*	actions.
+*	be interrupted by Ctrl^C. Default is false.
 *
 * [interactive="true/false"] - Is action interactive.
 *
