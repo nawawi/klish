@@ -36,6 +36,13 @@ typedef enum {
 	KENTRY_PURPOSE_MAX,
 } kentry_purpose_e;
 
+// Filter flag
+typedef enum {
+	KENTRY_FILTER_NONE, // Illegal
+	KENTRY_FILTER_FALSE, // Entry is not a filter
+	KENTRY_FILTER_TRUE, // Entry is a filter
+	KENTRY_FILTER_DUAL, // Entry can be filter or non-filter
+} kentry_filter_e;
 
 // Number of max occurs
 typedef enum {
@@ -89,8 +96,8 @@ bool_t kentry_set_restore(kentry_t *entry, bool_t restore);
 bool_t kentry_order(const kentry_t *entry);
 bool_t kentry_set_order(kentry_t *entry, bool_t order);
 // Filter
-bool_t kentry_filter(const kentry_t *entry);
-bool_t kentry_set_filter(kentry_t *entry, bool_t filter);
+kentry_filter_e kentry_filter(const kentry_t *entry);
+bool_t kentry_set_filter(kentry_t *entry, kentry_filter_e filter);
 // User data
 void *kentry_udata(const kentry_t *entry);
 bool_t kentry_set_udata(kentry_t *entry, void *data, kentry_udata_free_fn udata_free_fn);

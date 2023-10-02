@@ -134,9 +134,14 @@ bool_t ientry_parse(const ientry_t *info, kentry_t *entry, faux_error_t *error)
 
 	// Filter
 	if (!faux_str_is_empty(info->filter)) {
-		bool_t b = BOOL_FALSE;
-		if (!faux_conv_str2bool(info->filter, &b) ||
-			!kentry_set_filter(entry, b)) {
+		kentry_filter_e filter = KENTRY_FILTER_NONE;
+		if (!faux_str_casecmp(info->filter, "false"))
+			filter = KENTRY_FILTER_FALSE;
+		else if (!faux_str_casecmp(info->filter, "true"))
+			filter = KENTRY_FILTER_TRUE;
+		else if (!faux_str_casecmp(info->filter, "dual"))
+			filter = KENTRY_FILTER_DUAL;
+		if ((KENTRY_FILTER_NONE == filter) || !kentry_set_filter(entry, filter)) {
 			faux_error_add(error, TAG": Illegal 'filter' attribute");
 			retcode = BOOL_FALSE;
 		}
@@ -299,6 +304,7 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 	char *tmp = NULL;
 	char *mode = NULL;
 	char *purpose = NULL;
+	char *filter = NULL;
 	kentry_entrys_node_t *entrys_iter = NULL;
 	kentry_actions_node_t *actions_iter = NULL;
 	kentry_hotkeys_node_t *hotkeys_iter = NULL;
@@ -374,7 +380,22 @@ char *ientry_deploy(const kentry_t *kentry, int level)
 		attr2ctext(&str, "value", kentry_value(kentry), level + 1);
 		attr2ctext(&str, "restore", faux_conv_bool2str(kentry_restore(kentry)), level + 1);
 		attr2ctext(&str, "order", faux_conv_bool2str(kentry_order(kentry)), level + 1);
-		attr2ctext(&str, "filter", faux_conv_bool2str(kentry_filter(kentry)), level + 1);
+
+		// Filter
+		switch (kentry_filter(kentry)) {
+		case KENTRY_FILTER_FALSE:
+			filter = "false";
+			break;
+		case KENTRY_FILTER_TRUE:
+			filter = "true";
+			break;
+		case KENTRY_FILTER_DUAL:
+			filter = "dual";
+			break;
+		default:
+			filter = NULL;
+		}
+		attr2ctext(&str, "filter", filter, level + 1);
 
 		// ENTRY list
 		entrys_iter = kentry_entrys_iter(kentry);

@@ -27,7 +27,7 @@ struct kentry_s {
 	char *value; // Additional info
 	bool_t restore; // Should entry restore its depth while execution
 	bool_t order; // Is entry ordered
-	bool_t filter; // Is entry filter. Filter can't have inline actions.
+	kentry_filter_e filter; // Is entry filter. Filter can't have inline actions.
 	faux_list_t *entrys; // Nested ENTRYs
 	faux_list_t *actions; // Nested ACTIONs
 	faux_list_t *hotkeys; // Hotkeys
@@ -88,8 +88,8 @@ KGET_BOOL(entry, order);
 KSET_BOOL(entry, order);
 
 // Filter
-KGET_BOOL(entry, filter);
-KSET_BOOL(entry, filter);
+KGET(entry, kentry_filter_e, filter);
+KSET(entry, kentry_filter_e, filter);
 
 // Nested ENTRYs list
 KGET(entry, faux_list_t *, entrys);
@@ -143,7 +143,7 @@ kentry_t *kentry_new(const char *name)
 	entry->value = NULL;
 	entry->restore = BOOL_FALSE;
 	entry->order = BOOL_FALSE;
-	entry->filter = BOOL_FALSE;
+	entry->filter = KENTRY_FILTER_FALSE;
 	entry->udata = NULL;
 	entry->udata_free_fn = NULL;
 

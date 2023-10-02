@@ -269,6 +269,14 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="entry_filter_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="false"/>
+			<xs:enumeration value="dual"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:group name="entry_group_t">
 		<xs:choice>
 			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
@@ -304,7 +312,7 @@
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="filter" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="filter" type="entry_filter_t" use="optional" default="false"/>
 	</xs:complexType>
 
 
@@ -438,6 +446,7 @@
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="filter" type="entry_filter_t" use="optional" default="false"/>
 	</xs:complexType>
 
 </xs:schema>

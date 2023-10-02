@@ -107,6 +107,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	} else if (!kentry_container(entry)) {
 		const char *current_arg = NULL;
 		kparg_t *parg = NULL;
+		kentry_filter_e filter_flag = kentry_filter(entry);
 
 		// When purpose is COMPLETION or HELP then fill completion list.
 		// Additionally if it's last continuable argument then lie to
@@ -116,7 +117,9 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		// filters or non-filters
 		if (((KPURPOSE_COMPLETION == purpose) ||
 			(KPURPOSE_HELP == purpose)) &&
-			((is_filter == kentry_filter(entry)) ||
+			((filter_flag == KENTRY_FILTER_DUAL) ||
+			(is_filter && (filter_flag == KENTRY_FILTER_TRUE)) ||
+			(!is_filter && (filter_flag == KENTRY_FILTER_FALSE)) ||
 			(is_filter && kpargv_pargs_len(pargv)))) {
 			if (!*argv_iter) {
 				// That's time to add entry to completions list.
@@ -483,8 +486,8 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 	// First component
 	if (is_first) {
 
-		// First component can't be filter
-		if (kentry_filter(cmd)) {
+		// First component can't be a filter
+		if (kentry_filter(cmd) == KENTRY_FILTER_TRUE) {
 			faux_error_sprintf(error, "The filter \"%s\" "
 				"can't be used without previous pipeline",
 				kentry_name(cmd));
@@ -503,7 +506,7 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 	} else {
 
 		// Only the first component can be non-filter
-		if (!kentry_filter(cmd)) {
+		if (kentry_filter(cmd) == KENTRY_FILTER_FALSE) {
 			faux_error_sprintf(error, "The non-filter command \"%s\" "
 				"can't be destination of pipe",
 				kentry_name(cmd));
