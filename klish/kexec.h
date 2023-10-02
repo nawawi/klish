@@ -9,6 +9,7 @@
 #include <faux/list.h>
 #include <faux/buf.h>
 #include <klish/kcontext.h>
+#include <klish/ksession.h>
 
 typedef struct kexec_s kexec_t;
 
@@ -17,7 +18,7 @@ typedef faux_list_node_t kexec_contexts_node_t;
 
 C_DECL_BEGIN
 
-kexec_t *kexec_new(void);
+kexec_t *kexec_new(ksession_t *session, kcontext_type_e type);
 void kexec_free(kexec_t *exec);
 
 // Dry-run

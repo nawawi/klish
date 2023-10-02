@@ -30,6 +30,8 @@
 void grabber(int fds[][2]);
 
 struct kexec_s {
+	kcontext_type_e type; // Common ACTIONs or service ACTIONs
+	ksession_t *session;
 	faux_list_t *contexts;
 	bool_t dry_run;
 	int stdin;
@@ -39,6 +41,8 @@ struct kexec_s {
 	faux_buf_t *bufout;
 	faux_buf_t *buferr;
 	kpath_t *saved_path;
+	char *pts_fname; // Pseudoterminal slave file name
+	int pts; // Pseudoterminal slave handler
 };
 
 // Dry-run
@@ -79,16 +83,28 @@ KNESTED_IS_EMPTY(exec, contexts);
 KNESTED_ITER(exec, contexts);
 KNESTED_EACH(exec, kcontext_t *, contexts);
 
+// Pseudoterminal
+FAUX_HIDDEN KGET(exec, int, pts);
+FAUX_HIDDEN KSET(exec, int, pts);
+FAUX_HIDDEN KSET_STR(exec, pts_fname);
+FAUX_HIDDEN KGET_STR(exec, pts_fname);
 
-kexec_t *kexec_new()
+
+kexec_t *kexec_new(ksession_t *session, kcontext_type_e type)
 {
 	kexec_t *exec = NULL;
+
+	assert(session);
+	if (!session)
+		return NULL;
 
 	exec = faux_zmalloc(sizeof(*exec));
 	assert(exec);
 	if (!exec)
 		return NULL;
 
+	exec->type = type;
+	exec->session = session;
 	exec->dry_run = BOOL_FALSE;
 	exec->saved_path = NULL;
 
@@ -105,6 +121,10 @@ kexec_t *kexec_new()
 	exec->bufin = faux_buf_new(0);
 	exec->bufout = faux_buf_new(0);
 	exec->buferr = faux_buf_new(0);
+
+	// Pseudoterminal
+	exec->pts = -1;
+	exec->pts_fname = NULL;
 
 	return exec;
 }
@@ -127,6 +147,8 @@ void kexec_free(kexec_t *exec)
 	faux_buf_free(exec->bufin);
 	faux_buf_free(exec->bufout);
 	faux_buf_free(exec->buferr);
+
+	faux_str_free(exec->pts_fname);
 
 	kpath_free(exec->saved_path);
 
@@ -233,39 +255,29 @@ bool_t kexec_add(kexec_t *exec, kcontext_t *context)
 
 bool_t kexec_set_winsize(kexec_t *exec)
 {
-	int fd = -1;
 	size_t width = 0;
 	size_t height = 0;
 	struct winsize ws = {};
 	int res = -1;
-	kcontext_t *context = NULL;
-	ksession_t *session = NULL;
 
 	if (!exec)
 		return BOOL_FALSE;
-	if (!kexec_interactive(exec))
+	if (exec->pts < 0)
 		return BOOL_FALSE;
-	fd = kexec_stdin(exec);
-	if (fd < 0)
+	if (!isatty(exec->pts))
 		return BOOL_FALSE;
-	if (!isatty(fd))
-		return BOOL_FALSE;
-	context = (kcontext_t *)faux_list_data(faux_list_head(exec->contexts));
-	if (!context)
-		return BOOL_FALSE;
-	session = kcontext_session(context);
-	if (!session)
+	if (!exec->session)
 		return BOOL_FALSE;
 
 	// Set pseudo terminal window size
-	width = ksession_term_width(session);
-	height = ksession_term_height(session);
+	width = ksession_term_width(exec->session);
+	height = ksession_term_height(exec->session);
 	if ((width == 0) || (height == 0))
 		return BOOL_FALSE;
 
 	ws.ws_col = (unsigned short)width;
 	ws.ws_row = (unsigned short)height;
-	res = ioctl(fd, TIOCSWINSZ, &ws);
+	res = ioctl(exec->pts, TIOCSWINSZ, &ws);
 	if (res < 0)
 		return BOOL_FALSE;
 
@@ -279,6 +291,16 @@ static bool_t kexec_prepare(kexec_t *exec)
 	faux_list_node_t *iter = NULL;
 	int global_stderr = -1;
 	int fflags = 0;
+	int r_end = -1;
+	int w_end = -1;
+	// Pseudoterminal related vars
+	bool_t isatty_stdin = BOOL_FALSE;
+	bool_t isatty_stdout = BOOL_FALSE;
+	bool_t isatty_stderr = BOOL_FALSE;
+	int pts = -1;
+	int ptm = -1;
+	char *pts_name = NULL;
+
 
 	assert(exec);
 	if (!exec)
@@ -287,15 +309,15 @@ static bool_t kexec_prepare(kexec_t *exec)
 	if (kexec_contexts_is_empty(exec))
 		return BOOL_FALSE;
 
-	// If command is interactive then prepare pseudoterminal. Note
-	// interactive commands can't have filters
-	if (kexec_interactive(exec)) {
-		int pts = -1;
-		int ptm = -1;
-		char *pts_name = NULL;
-		kcontext_t *context = (kcontext_t *)faux_list_data(
-			faux_list_head(exec->contexts));
-
+	// If user has a terminal somewhere (stdin, stdout, stderr) then prepare
+	// pseudoterminal. Service actions (internal actions like PTYPE checks)
+	// never get terminal
+	if (exec->type == KCONTEXT_TYPE_ACTION) {
+		isatty_stdin = ksession_isatty_stdin(exec->session);
+		isatty_stdout = ksession_isatty_stdout(exec->session);
+		isatty_stderr = ksession_isatty_stderr(exec->session);
+	}
+	if (isatty_stdin || isatty_stdout || isatty_stderr) {
 		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
 		if (ptm < 0)
 			return BOOL_FALSE;
@@ -306,74 +328,80 @@ static bool_t kexec_prepare(kexec_t *exec)
 		grantpt(ptm);
 		unlockpt(ptm);
 		pts_name = ptsname(ptm);
+		// In a case of pseudo-terminal the pts
+		// must be reopened later in the child after setsid(). So
+		// save filename of pts
+		kexec_set_pts_fname(exec, pts_name);
 		// Open client side (pts) of pseudo terminal. It's necessary for
 		// sync action execution. Additionally open descriptor makes
 		// action (from child) to don't send SIGHUP on terminal handler.
 		pts = open(pts_name, O_RDWR, O_NOCTTY);
 		if (pts < 0)
 			return BOOL_FALSE;
-
-		kexec_set_stdin(exec, ptm);
-		kexec_set_stdout(exec, ptm);
-		kexec_set_stderr(exec, ptm);
-		kcontext_set_stdin(context, pts);
-		kcontext_set_stdout(context, pts);
-		kcontext_set_stderr(context, pts);
-		// In a case of pseudo-terminal the pts
-		// must be reopened later in the child after setsid(). So just
-		// save filename of pts.
-		kcontext_set_pts_fname(context, pts_name);
+		kexec_set_pts(exec, pts);
 		// Set pseudo terminal window size
 		kexec_set_winsize(exec);
-
-		return BOOL_TRUE;
 	}
 
-	// Commands without pseudoterminal
 	// Create "global" stdin, stdout, stderr for the whole job execution.
 
 	// STDIN
-	if (pipe(pipefd) < 0)
-		return BOOL_FALSE;
-	kcontext_set_stdin(faux_list_data(faux_list_head(exec->contexts)),
-		pipefd[0]); // Read end
-	kexec_set_stdin(exec, pipefd[1]); // Write end
+	if (isatty_stdin) {
+		r_end = pts;
+		w_end = ptm;
+	} else {
+		if (pipe(pipefd) < 0)
+			return BOOL_FALSE;
+		r_end = pipefd[0];
+		w_end = pipefd[1];
+	}
+	kcontext_set_stdin(faux_list_data(
+		faux_list_head(exec->contexts)), r_end); // Read end
+	kexec_set_stdin(exec, w_end); // Write end
 
 	// STDOUT
-	if (pipe(pipefd) < 0)
-		return BOOL_FALSE;
-	// Read end of 'stdout' pipe must be non-blocked
-	fflags = fcntl(pipefd[0], F_GETFL);
-	fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
-	kexec_set_stdout(exec, pipefd[0]); // Read end
-	kcontext_set_stdout(faux_list_data(faux_list_tail(exec->contexts)),
-		pipefd[1]); // Write end
+	if (isatty_stdout) {
+		r_end = ptm;
+		w_end = pts;
+	} else {
+		if (pipe(pipefd) < 0)
+			return BOOL_FALSE;
+		// Read end of 'stdout' pipe must be non-blocked
+		fflags = fcntl(pipefd[0], F_GETFL);
+		fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
+		r_end = pipefd[0];
+		w_end = pipefd[1];
+	}
+	kexec_set_stdout(exec, r_end); // Read end
+	kcontext_set_stdout(
+		faux_list_data(faux_list_tail(exec->contexts)), w_end); // Write end
 
 	// STDERR
-	if (pipe(pipefd) < 0)
-		return BOOL_FALSE;
-	// Read end of 'stderr' pipe must be non-blocked
-	fflags = fcntl(pipefd[0], F_GETFL);
-	fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
-	kexec_set_stderr(exec, pipefd[0]); // Read end
+	if (isatty_stderr) {
+		r_end = ptm;
+		w_end = pts;
+	} else {
+		if (pipe(pipefd) < 0)
+			return BOOL_FALSE;
+		// Read end of 'stderr' pipe must be non-blocked
+		fflags = fcntl(pipefd[0], F_GETFL);
+		fcntl(pipefd[0], F_SETFL, fflags | O_NONBLOCK);
+		r_end = pipefd[0];
+		w_end = pipefd[1];
+	}
+	kexec_set_stderr(exec, r_end); // Read end
 	// STDERR write end will be set to all list members as stderr
-	global_stderr = pipefd[1]; // Write end
+	global_stderr = w_end; // Write end
+
+	// Save current path
+	if (ksession_path(exec->session))
+		exec->saved_path = kpath_clone(ksession_path(exec->session));
 
 	// Iterate all context_t elements to fill all stdin, stdout, stderr
 	for (iter = faux_list_head(exec->contexts); iter;
 		iter = faux_list_next_node(iter)) {
 		faux_list_node_t *next = faux_list_next_node(iter);
 		kcontext_t *context = (kcontext_t *)faux_list_data(iter);
-
-		// The first context is a context of main command. The other
-		// contexts are contexts of filters. So save current path from
-		// first context.
-		if (iter == faux_list_head(exec->contexts)) {
-			ksession_t *session = kcontext_session(context);
-			if (session && ksession_path(session))
-				exec->saved_path = kpath_clone(
-					ksession_path(session));
-		}
 
 		// Set the same STDERR to all contexts
 		kcontext_set_stderr(context, global_stderr);
@@ -398,8 +426,8 @@ static bool_t kexec_prepare(kexec_t *exec)
 // service process will be forked. It gets output and stores it to the
 // internal buffer. After sym function return grabber will write
 // buffered data back. So grabber will simulate async sym execution.
-static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
-	pid_t *pid, int *retcode)
+static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
+	const kaction_t *action, pid_t *pid, int *retcode)
 {
 	ksym_fn fn = NULL;
 	int exitcode = 0;
@@ -489,6 +517,8 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 
 	_exit(0);
 
+	exec = exec; // Happy compiler
+
 	return BOOL_TRUE;
 }
 
@@ -498,15 +528,14 @@ static bool_t exec_action_sync(kcontext_t *context, const kaction_t *action,
 // The parent will save forked process's pid and immediately return
 // control to event loop which will get forked process stdout and
 // wait for process termination.
-static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
-	pid_t *pid)
+static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
+	const kaction_t *action, pid_t *pid)
 {
 	ksym_fn fn = NULL;
 	int exitcode = 0;
 	pid_t child_pid = -1;
 	int i = 0;
 	int fdmax = 0;
-	const char *pts_fname = NULL;
 	sigset_t sigs = {};
 
 	fn = ksym_function(kaction_sym(action));
@@ -538,20 +567,25 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 	sigemptyset(&sigs);
 	sigprocmask(SIG_SETMASK, &sigs, NULL);
 
-	if ((pts_fname = kcontext_pts_fname(context)) != NULL) {
+	// Reopen streams if the pseudoterminal is used.
+	// It's necessary to set session terminal
+	if (exec->pts_fname != NULL) {
 		int fd = -1;
 		setsid();
-		fd = open(pts_fname, O_RDWR, 0);
+		fd = open(exec->pts_fname, O_RDWR, 0);
 		if (fd < 0)
 			_exit(-1);
-		dup2(fd, STDIN_FILENO);
-		dup2(fd, STDOUT_FILENO);
-		dup2(fd, STDERR_FILENO);
-	} else {
-		dup2(kcontext_stdin(context), STDIN_FILENO);
-		dup2(kcontext_stdout(context), STDOUT_FILENO);
-		dup2(kcontext_stderr(context), STDERR_FILENO);
+		if (isatty(kcontext_stdin(context)))
+			kcontext_set_stdin(context, fd);
+		if (isatty(kcontext_stdout(context)))
+			kcontext_set_stdout(context, fd);
+		if (isatty(kcontext_stderr(context)))
+			kcontext_set_stderr(context, fd);
 	}
+
+	dup2(kcontext_stdin(context), STDIN_FILENO);
+	dup2(kcontext_stdout(context), STDOUT_FILENO);
+	dup2(kcontext_stderr(context), STDERR_FILENO);
 
 	// Close all inherited fds except stdin, stdout, stderr
 	fdmax = (int)sysconf(_SC_OPEN_MAX);
@@ -572,8 +606,8 @@ static bool_t exec_action_async(kcontext_t *context, const kaction_t *action,
 }
 
 
-static bool_t exec_action(kcontext_t *context, const kaction_t *action,
-	pid_t *pid, int *retcode)
+static bool_t exec_action(const kexec_t *exec, kcontext_t *context,
+	const kaction_t *action, pid_t *pid, int *retcode)
 {
 	assert(context);
 	if (!context)
@@ -583,9 +617,9 @@ static bool_t exec_action(kcontext_t *context, const kaction_t *action,
 		return BOOL_FALSE;
 
 	if (kaction_is_sync(action))
-		return exec_action_sync(context, action, pid, retcode);
+		return exec_action_sync(exec, context, action, pid, retcode);
 
-	return exec_action_async(context, action, pid);
+	return exec_action_async(exec, context, action, pid);
 }
 
 
@@ -665,7 +699,7 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 			exitstatus = 0; // Exit status while dry-run is always 0
 		 } else { // Normal execution
 			is_sync = kaction_is_sync(action);
-			exec_action(context, action, &new_pid, &exitstatus);
+			exec_action(exec, context, action, &new_pid, &exitstatus);
 		}
 
 		// SYNC: Compute new value for retcode.
@@ -748,7 +782,6 @@ bool_t kexec_interactive(const kexec_t *exec)
 	faux_list_node_t *node = NULL;
 	kcontext_t *context = NULL;
 	const kentry_t *entry = NULL;
-	const ksession_t *session = NULL;
 
 	assert(exec);
 	if (!exec)
@@ -760,10 +793,6 @@ bool_t kexec_interactive(const kexec_t *exec)
 		return BOOL_FALSE;
 	context = (kcontext_t *)faux_list_data(node);
 	if (!context)
-		return BOOL_FALSE;
-	// If client has no input tty then consider command as non-interactive
-	session = kcontext_session(context);
-	if (session && !ksession_isatty_stdin(session))
 		return BOOL_FALSE;
 	entry = kcontext_command(context);
 	if (!entry)

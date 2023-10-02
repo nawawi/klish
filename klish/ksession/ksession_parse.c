@@ -608,7 +608,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	is_piped = (faux_list_len(split) > 1);
 
 	// Create exec list
-	exec = kexec_new();
+	exec = kexec_new(session, KCONTEXT_TYPE_ACTION);
 	assert(exec);
 	if (!exec) {
 		faux_list_free(split);
@@ -660,11 +660,14 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 	kpargv_status_e pstatus = KPARSE_NONE;
 	const char *line = NULL; // TODO: Must be 'line' field of ENTRY
 
+	assert(session);
+	if (!session)
+		return NULL;
 	assert(entry);
 	if (!entry)
 		return NULL;
 
-	exec = kexec_new();
+	exec = kexec_new(session, KCONTEXT_TYPE_SERVICE_ACTION);
 	assert(exec);
 
 	argv = faux_argv_new();
