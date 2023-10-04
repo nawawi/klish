@@ -945,8 +945,6 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	if (!ktpd->exec)
 		return BOOL_FALSE;
-	if (!kexec_interactive(ktpd->exec))
-		return BOOL_FALSE;
 	fd = kexec_stdin(ktpd->exec);
 	if (fd < 0)
 		return BOOL_FALSE;

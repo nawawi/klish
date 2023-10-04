@@ -314,7 +314,11 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// never get terminal
 	if (exec->type == KCONTEXT_TYPE_ACTION) {
 		isatty_stdin = ksession_isatty_stdin(exec->session);
-		isatty_stdout = ksession_isatty_stdout(exec->session);
+		// Only if last command in pipeline is interactive then stdout
+		// can be pts. Because client adds its own pager to pipeline in
+		// a case of non-interactive commands
+		if (kexec_interactive(exec))
+			isatty_stdout = ksession_isatty_stdout(exec->session);
 		isatty_stderr = ksession_isatty_stderr(exec->session);
 	}
 	if (isatty_stdin || isatty_stdout || isatty_stderr) {
@@ -787,8 +791,9 @@ bool_t kexec_interactive(const kexec_t *exec)
 	if (!exec)
 		return BOOL_FALSE;
 
-	// Only the ACTION of first context can be interactive
-	node = faux_list_head(exec->contexts);
+	// Only the interactivity of last context is important. Because
+	// its output can be used as input for client's pager
+	node = faux_list_tail(exec->contexts);
 	if (!node)
 		return BOOL_FALSE;
 	context = (kcontext_t *)faux_list_data(node);

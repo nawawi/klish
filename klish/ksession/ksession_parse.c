@@ -494,14 +494,6 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 			return BOOL_FALSE;
 		}
 
-		// Interactive command can't have filters
-		if (kentry_interactive(cmd) && is_piped) {
-			faux_error_sprintf(error, "The interactive command \"%s\" "
-				"can't have filters",
-				kentry_name(cmd));
-			return BOOL_FALSE;
-		}
-
 	// Components after pipe "|"
 	} else {
 
@@ -521,15 +513,9 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 			return BOOL_FALSE;
 		}
 
-		// Only the first component can have 'interactive=true' attribute
-		if (kentry_interactive(cmd)) {
-			faux_error_sprintf(error, "The filter \"%s\" "
-				"can't be interactive",
-				kentry_name(cmd));
-			return BOOL_FALSE;
-		}
-
 	}
+
+	is_piped = is_piped; // Happy compiler
 
 	return BOOL_TRUE;
 }
