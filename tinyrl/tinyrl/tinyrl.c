@@ -419,19 +419,15 @@ int tinyrl_read(tinyrl_t *tinyrl)
 
 	assert(tinyrl);
 
-	tinyrl_set_busy(tinyrl, BOOL_FALSE);
-
-	while ((rc = vt100_getchar(tinyrl->term, &key)) > 0) {
+	while (!tinyrl_busy(tinyrl) &&
+		((rc = vt100_getchar(tinyrl->term, &key)) > 0)) {
 		count++;
 		process_char(tinyrl, key);
 		// Some commands can't be processed immediately by handlers and
 		// need some network exchange for example. In this case we will
 		// not execute redisplay() here.
-		if (!tinyrl->utf8_cont && !tinyrl_busy(tinyrl)) {
+		if (!tinyrl->utf8_cont && !tinyrl_busy(tinyrl))
 			tinyrl_redisplay(tinyrl);
-	//		printf("%s\n", tinyrl->line.str);
-		}
-//printf("key=%u, pos=%lu, len=%lu\n", key, tinyrl->line.pos, tinyrl->line.len);
 	}
 
 	if ((rc < 0) && (EAGAIN == errno))
