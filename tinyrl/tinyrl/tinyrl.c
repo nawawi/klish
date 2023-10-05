@@ -77,7 +77,7 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->hist = hist_new(hist_fname, hist_stifle);
 	tinyrl_hist_restore(tinyrl);
 
-	tty_raw_mode(tinyrl);
+	tinyrl_raw_mode(tinyrl);
 
 	return tinyrl;
 }
@@ -89,7 +89,7 @@ void tinyrl_free(tinyrl_t *tinyrl)
 	if (!tinyrl)
 		return;
 
-	tty_restore_mode(tinyrl);
+	tinyrl_restore_mode(tinyrl);
 
 	tinyrl_hist_save(tinyrl);
 	hist_free(tinyrl->hist);
@@ -103,7 +103,7 @@ void tinyrl_free(tinyrl_t *tinyrl)
 }
 
 
-void tty_raw_mode(tinyrl_t *tinyrl)
+void tinyrl_raw_mode(tinyrl_t *tinyrl)
 {
 	struct termios new_termios = {};
 	FILE *istream = NULL;
@@ -137,7 +137,7 @@ void tty_raw_mode(tinyrl_t *tinyrl)
 }
 
 
-void tty_restore_mode(tinyrl_t *tinyrl)
+void tinyrl_restore_mode(tinyrl_t *tinyrl)
 {
 	FILE *istream = NULL;
 	int fd = -1;
@@ -148,6 +148,46 @@ void tty_restore_mode(tinyrl_t *tinyrl)
 	fd = fileno(istream);
 	// Do the mode switch
 	tcsetattr(fd, TCSADRAIN, &tinyrl->default_termios);
+}
+
+
+void tinyrl_enable_isig(tinyrl_t *tinyrl)
+{
+	struct termios new_termios = {};
+	FILE *istream = NULL;
+	int fd = -1;
+
+	if (!tinyrl)
+		return;
+	istream = vt100_istream(tinyrl->term);
+	if (!istream)
+		return;
+	fd = fileno(istream);
+	if (tcgetattr(fd, &new_termios) < 0)
+		return;
+//	new_termios.c_lflag |= (ISIG | NOFLSH);
+//	new_termios.c_lflag |= (ISIG);
+	tcsetattr(fd, TCSADRAIN, &new_termios);
+}
+
+
+void tinyrl_disable_isig(tinyrl_t *tinyrl)
+{
+	struct termios new_termios = {};
+	FILE *istream = NULL;
+	int fd = -1;
+
+	if (!tinyrl)
+		return;
+	istream = vt100_istream(tinyrl->term);
+	if (!istream)
+		return;
+	fd = fileno(istream);
+	if (tcgetattr(fd, &new_termios) < 0)
+		return;
+//	new_termios.c_lflag &= ~(ISIG | NOFLSH);
+//	new_termios.c_lflag &= ~(ISIG);
+	tcsetattr(fd, TCSADRAIN, &new_termios);
 }
 
 
