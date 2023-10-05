@@ -165,9 +165,9 @@ void tinyrl_enable_isig(tinyrl_t *tinyrl)
 	fd = fileno(istream);
 	if (tcgetattr(fd, &new_termios) < 0)
 		return;
-//	new_termios.c_lflag |= (ISIG | NOFLSH);
-//	new_termios.c_lflag |= (ISIG);
-	tcsetattr(fd, TCSADRAIN, &new_termios);
+
+	new_termios.c_lflag |= (ISIG | NOFLSH);
+	tcsetattr(fd, TCSANOW, &new_termios);
 }
 
 
@@ -185,9 +185,8 @@ void tinyrl_disable_isig(tinyrl_t *tinyrl)
 	fd = fileno(istream);
 	if (tcgetattr(fd, &new_termios) < 0)
 		return;
-//	new_termios.c_lflag &= ~(ISIG | NOFLSH);
-//	new_termios.c_lflag &= ~(ISIG);
-	tcsetattr(fd, TCSADRAIN, &new_termios);
+	new_termios.c_lflag &= ~(ISIG | NOFLSH);
+	tcsetattr(fd, TCSANOW, &new_termios);
 }
 
 

@@ -264,9 +264,6 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	int rc = -1;
 	faux_error_t *error = NULL;
 
-	// Disable SIGINT caught for non-interactive commands
-	tinyrl_disable_isig(ctx->tinyrl);
-
 	process_prompt_param(ctx->tinyrl, msg);
 	process_hotkey_param(ctx, msg);
 
@@ -287,6 +284,11 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		ctx->pager_working = TRI_UNDEFINED;
 		ctx->pager_pipe = NULL;
 	}
+
+	// Disable SIGINT caught for non-interactive commands.
+	// Do it after pager exit. Else it can restore wrong tty mode after
+	// ISIG disabling
+	tinyrl_disable_isig(ctx->tinyrl);
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	if (!ktp_session_done(ktp))
@@ -463,7 +465,7 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
 	// Suppose non-interactive command
 	// Caught SIGINT for non-interactive commands
-	tinyrl_enable_isig(ctx->tinyrl);
+	tinyrl_enable_isig(tinyrl);
 
 	key = key; // Happy compiler
 
