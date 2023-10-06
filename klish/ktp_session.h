@@ -98,6 +98,9 @@ bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len);
 bool_t ktp_session_stdout_close(ktp_session_t *ktp);
 bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode);
 ktp_status_e ktp_session_cmd_features(const ktp_session_t *ktp);
+bool_t ktp_session_stdout_need_newline(ktp_session_t *ktp);
+bool_t ktp_session_stderr_need_newline(ktp_session_t *ktp);
+int ktp_session_last_stream(ktp_session_t *ktp);
 
 
 // Server KTP session

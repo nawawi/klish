@@ -263,6 +263,31 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	ctx_t *ctx = (ctx_t *)udata;
 	int rc = -1;
 	faux_error_t *error = NULL;
+	bool_t it_was_pager = BOOL_FALSE;
+
+	// Wait for pager
+	if (ctx->pager_working != TRI_UNDEFINED) {
+		pclose(ctx->pager_pipe);
+		ctx->pager_working = TRI_UNDEFINED;
+		ctx->pager_pipe = NULL;
+		it_was_pager = BOOL_TRUE;
+	}
+
+	// Disable SIGINT caught for non-interactive commands.
+	// Do it after pager exit. Else it can restore wrong tty mode after
+	// ISIG disabling
+	tinyrl_disable_isig(ctx->tinyrl);
+
+	// Sometimes output stream from server doesn't contain final crlf so
+	// goto newline itself
+	if (ktp_session_last_stream(ktp) == STDERR_FILENO) {
+		if (ktp_session_stderr_need_newline(ktp))
+			fprintf(stderr, "\n");
+	} else {
+		// Pager adds newline itself
+		if (ktp_session_stdout_need_newline(ktp) && !it_was_pager)
+			tinyrl_crlf(ctx->tinyrl);
+	}
 
 	process_prompt_param(ctx->tinyrl, msg);
 	process_hotkey_param(ctx, msg);
@@ -277,18 +302,6 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 			fprintf(stderr, "Error: %s\n", err);
 	}
 	faux_error_free(error);
-
-	// Wait for pager
-	if (ctx->pager_working != TRI_UNDEFINED) {
-		pclose(ctx->pager_pipe);
-		ctx->pager_working = TRI_UNDEFINED;
-		ctx->pager_pipe = NULL;
-	}
-
-	// Disable SIGINT caught for non-interactive commands.
-	// Do it after pager exit. Else it can restore wrong tty mode after
-	// ISIG disabling
-	tinyrl_disable_isig(ctx->tinyrl);
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	if (!ktp_session_done(ktp))
