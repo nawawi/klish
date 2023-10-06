@@ -119,7 +119,6 @@ void tinyrl_raw_mode(tinyrl_t *tinyrl)
 		return;
 	new_termios.c_iflag = 0;
 	new_termios.c_oflag = OPOST | ONLCR;
-//	new_termios.c_oflag = ONLCR;
 	new_termios.c_lflag = 0;
 
 //	new_termios.c_cflag = CS8 | CREAD;
@@ -165,9 +164,8 @@ void tinyrl_enable_isig(tinyrl_t *tinyrl)
 	fd = fileno(istream);
 	if (tcgetattr(fd, &new_termios) < 0)
 		return;
-
 	new_termios.c_lflag |= (ISIG | NOFLSH);
-	tcsetattr(fd, TCSANOW, &new_termios);
+	tcsetattr(fd, TCSADRAIN, &new_termios);
 }
 
 
@@ -186,7 +184,7 @@ void tinyrl_disable_isig(tinyrl_t *tinyrl)
 	if (tcgetattr(fd, &new_termios) < 0)
 		return;
 	new_termios.c_lflag &= ~(ISIG | NOFLSH);
-	tcsetattr(fd, TCSANOW, &new_termios);
+	tcsetattr(fd, TCSADRAIN, &new_termios);
 }
 
 
