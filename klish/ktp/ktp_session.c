@@ -399,7 +399,8 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 		// Only first 'incompleted' cmd ack sets cmd features
 		if (!ktp->cmd_features_available) {
 			ktp->cmd_features_available = BOOL_TRUE;
-			ktp->cmd_features = status & KTP_STATUS_INTERACTIVE;
+			ktp->cmd_features = status &
+				(KTP_STATUS_INTERACTIVE | KTP_STATUS_NEED_STDIN);
 		}
 		// Execute external callback
 		if (ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].fn)

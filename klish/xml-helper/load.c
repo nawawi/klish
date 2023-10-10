@@ -376,7 +376,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	iaction.sym = kxml_node_attr(element, "sym");
 	iaction.lock = kxml_node_attr(element, "lock");
 	iaction.interrupt = kxml_node_attr(element, "interrupt");
-	iaction.interactive = kxml_node_attr(element, "interactive");
+	iaction.in = kxml_node_attr(element, "in");
+	iaction.out = kxml_node_attr(element, "out");
 	iaction.exec_on = kxml_node_attr(element, "exec_on");
 	iaction.update_retcode = kxml_node_attr(element, "update_retcode");
 	iaction.permanent = kxml_node_attr(element, "permanent");
@@ -420,7 +421,8 @@ err:
 	kxml_node_attr_free(iaction.sym);
 	kxml_node_attr_free(iaction.lock);
 	kxml_node_attr_free(iaction.interrupt);
-	kxml_node_attr_free(iaction.interactive);
+	kxml_node_attr_free(iaction.in);
+	kxml_node_attr_free(iaction.out);
 	kxml_node_attr_free(iaction.exec_on);
 	kxml_node_attr_free(iaction.update_retcode);
 	kxml_node_attr_free(iaction.permanent);

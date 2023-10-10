@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <syslog.h>
 
 #include <faux/str.h>
 #include <faux/conv.h>
@@ -12,6 +13,41 @@
 #include <klish/iaction.h>
 
 #define TAG "ACTION"
+
+
+static const char * const kaction_io_e_str[] = {
+	NULL,
+	"false",
+	"true",
+	"tty",
+};
+
+
+static const char *kaction_io_e_enum2str(kaction_io_e io)
+{
+	if ((KACTION_IO_NONE == io) || (io >= KACTION_IO_MAX))
+		return NULL;
+
+	return kaction_io_e_str[io];
+}
+
+
+static kaction_io_e kaction_io_e_str2enum(const char *str)
+{
+	kaction_io_e io = KACTION_IO_NONE;
+
+	if (!str)
+		return KACTION_IO_NONE;
+
+	for (io = (KACTION_IO_NONE + 1); io < KACTION_IO_MAX; io++) {
+		if (faux_str_casecmp(str, kaction_io_e_str[io]) == 0)
+			break;
+	}
+	if (io >= KACTION_IO_MAX)
+		return KACTION_IO_NONE;
+
+	return io;
+}
 
 
 bool_t iaction_parse(const iaction_t *info, kaction_t *action, faux_error_t *error)
@@ -49,12 +85,22 @@ bool_t iaction_parse(const iaction_t *info, kaction_t *action, faux_error_t *err
 		}
 	}
 
-	// Interactive
-	if (!faux_str_is_empty(info->interactive)) {
-		bool_t b = BOOL_FALSE;
-		if (!faux_conv_str2bool(info->interactive, &b) ||
-			!kaction_set_interactive(action, b)) {
-			faux_error_add(error, TAG": Illegal 'interactive' attribute");
+	// In
+	if (!faux_str_is_empty(info->in)) {
+		kaction_io_e io = KACTION_IO_NONE;
+		if (((io = kaction_io_e_str2enum(info->in)) == KACTION_IO_NONE) ||
+			!kaction_set_in(action, io)) {
+			faux_error_add(error, TAG": Illegal 'in' attribute");
+			retcode = BOOL_FALSE;
+		}
+	}
+
+	// Out
+	if (!faux_str_is_empty(info->out)) {
+		kaction_io_e io = KACTION_IO_NONE;
+		if (((io = kaction_io_e_str2enum(info->out)) == KACTION_IO_NONE) ||
+			!kaction_set_out(action, io)) {
+			faux_error_add(error, TAG": Illegal 'out' attribute");
 			retcode = BOOL_FALSE;
 		}
 	}
@@ -152,7 +198,8 @@ char *iaction_deploy(const kaction_t *kaction, int level)
 	attr2ctext(&str, "sym", kaction_sym_ref(kaction), level + 1);
 	attr2ctext(&str, "lock", kaction_lock(kaction), level + 1);
 	attr2ctext(&str, "interrupt", faux_conv_bool2str(kaction_interrupt(kaction)), level + 1);
-	attr2ctext(&str, "interactive", faux_conv_bool2str(kaction_interactive(kaction)), level + 1);
+	attr2ctext(&str, "in", kaction_io_e_enum2str(kaction_in(kaction)), level + 1);
+	attr2ctext(&str, "out", kaction_io_e_enum2str(kaction_out(kaction)), level + 1);
 	// Exec_on
 	switch (kaction_exec_on(kaction)) {
 	case KACTION_COND_FAIL:

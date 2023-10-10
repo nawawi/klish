@@ -57,6 +57,7 @@ kcontext_t *kexec_contexts_each(kexec_contexts_node_t **iter);
 
 bool_t kexec_continue_command_execution(kexec_t *exec, pid_t pid, int wstatus);
 bool_t kexec_exec(kexec_t *exec);
+bool_t kexec_need_stdin(const kexec_t *exec);
 bool_t kexec_interactive(const kexec_t *exec);
 bool_t kexec_set_winsize(kexec_t *exec);
 

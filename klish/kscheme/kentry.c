@@ -319,18 +319,43 @@ bool_t kentry_set_udata(kentry_t *entry, void *data, kentry_udata_free_fn free_f
 }
 
 
-bool_t kentry_interactive(const kentry_t *entry)
+// Get integral value of "in" field of all ENTRY's actions
+// false < true < tty
+kaction_io_e kentry_in(const kentry_t *entry)
 {
 	kentry_actions_node_t *iter = NULL;
 	kaction_t *action = NULL;
+	kaction_io_e io = KACTION_IO_FALSE;
 
 	if (!entry)
-		return BOOL_FALSE;
+		return io;
 	iter = kentry_actions_iter(entry);
 	while ((action = kentry_actions_each(&iter))) {
-		if (kaction_interactive(action))
-			return BOOL_TRUE;
+		kaction_io_e cur_io = kaction_in(action);
+		if (cur_io > io)
+			io = cur_io;
 	}
 
-	return BOOL_FALSE;
+	return io;
+}
+
+
+// Get integral value of "out" field of all ENTRY's actions
+// false < true < tty
+kaction_io_e kentry_out(const kentry_t *entry)
+{
+	kentry_actions_node_t *iter = NULL;
+	kaction_t *action = NULL;
+	kaction_io_e io = KACTION_IO_FALSE;
+
+	if (!entry)
+		return io;
+	iter = kentry_actions_iter(entry);
+	while ((action = kentry_actions_each(&iter))) {
+		kaction_io_e cur_io = kaction_out(action);
+		if (cur_io > io)
+			io = cur_io;
+	}
+
+	return io;
 }

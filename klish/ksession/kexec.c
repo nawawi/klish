@@ -781,27 +781,55 @@ bool_t kexec_exec(kexec_t *exec)
 }
 
 
+// If some kexec's kentry has tty as "out" then consider kexec as interactive
 bool_t kexec_interactive(const kexec_t *exec)
 {
-	faux_list_node_t *node = NULL;
+	faux_list_node_t *iter = NULL;
 	kcontext_t *context = NULL;
-	const kentry_t *entry = NULL;
 
 	assert(exec);
 	if (!exec)
 		return BOOL_FALSE;
 
-	// Only the interactivity of last context is important. Because
-	// its output can be used as input for client's pager
-	node = faux_list_tail(exec->contexts);
-	if (!node)
-		return BOOL_FALSE;
-	context = (kcontext_t *)faux_list_data(node);
-	if (!context)
-		return BOOL_FALSE;
-	entry = kcontext_command(context);
-	if (!entry)
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		const kentry_t *entry = kcontext_command(context);
+		if (!entry)
+			return BOOL_FALSE;
+		if (kentry_out(entry) == KACTION_IO_TTY)
+			return BOOL_TRUE;
+	}
+
+	return BOOL_FALSE;
+}
+
+
+// If some kexec's kentry has tty as "in" then consider kexec as need_stdin.
+// The first kentry with "in=true" also does kexec need_stdin
+bool_t kexec_need_stdin(const kexec_t *exec)
+{
+	faux_list_node_t *iter = NULL;
+	size_t num = 0;
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
 		return BOOL_FALSE;
 
-	return kentry_interactive(entry);
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		const kentry_t *entry = kcontext_command(context);
+		if (!entry)
+			return BOOL_FALSE;
+		// Check first command within pipeline
+		if (num == 0) {
+			if (kentry_out(entry) == KACTION_IO_TRUE)
+				return BOOL_TRUE;
+		}
+		num++;
+		if (kentry_out(entry) == KACTION_IO_TTY)
+			return BOOL_TRUE;
+	}
+
+	return BOOL_FALSE;
 }

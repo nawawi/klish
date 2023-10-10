@@ -18,7 +18,8 @@ struct kaction_s {
 	kplugin_t *plugin; // Source of symbol
 	char *lock; // Named lock
 	bool_t interrupt;
-	bool_t interactive;
+	kaction_io_e in;
+	kaction_io_e out;
 	kaction_cond_e exec_on;
 	bool_t update_retcode;
 	tri_t permanent;
@@ -41,9 +42,11 @@ KSET_STR(action, lock);
 KGET_BOOL(action, interrupt);
 KSET_BOOL(action, interrupt);
 
-// Interactive
-KGET_BOOL(action, interactive);
-KSET_BOOL(action, interactive);
+// In/Out
+KGET(action, kaction_io_e, in);
+KSET(action, kaction_io_e, in);
+KGET(action, kaction_io_e, out);
+KSET(action, kaction_io_e, out);
 
 // Exec_on
 KGET(action, kaction_cond_e, exec_on);
@@ -87,7 +90,8 @@ kaction_t *kaction_new(void)
 	action->sym_ref = NULL;
 	action->lock = NULL;
 	action->interrupt = BOOL_FALSE;
-	action->interactive = BOOL_FALSE;
+	action->in = KACTION_IO_FALSE;
+	action->out = KACTION_IO_TRUE;
 	action->exec_on = KACTION_COND_SUCCESS;
 	action->update_retcode = BOOL_TRUE;
 	action->script = NULL;
