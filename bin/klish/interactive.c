@@ -126,6 +126,8 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	faux_eloop_add_signal(eloop, SIGINT, ctrl_c_cb, &ctx);
 	faux_eloop_add_signal(eloop, SIGTERM, ctrl_c_cb, &ctx);
 	faux_eloop_add_signal(eloop, SIGQUIT, ctrl_c_cb, &ctx);
+	// To don't stop klish client on exit. SIGTSTP can be pended
+	faux_eloop_add_signal(eloop, SIGTSTP, ctrl_c_cb, &ctx);
 
 	// Notify server about terminal window size change
 	faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
