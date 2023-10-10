@@ -48,20 +48,22 @@ typedef enum {
 	KTP_STATUS_NONE =		(uint32_t)0x00000000,
 	KTP_STATUS_ERROR =		(uint32_t)0x00000001,
 	KTP_STATUS_INCOMPLETED =	(uint32_t)0x00000002,
-	KTP_STATUS_INTERACTIVE =	(uint32_t)0x00000100,
-	KTP_STATUS_TTY_STDIN =		(uint32_t)0x00000200,
-	KTP_STATUS_TTY_STDOUT =		(uint32_t)0x00000400,
-	KTP_STATUS_TTY_STDERR =		(uint32_t)0x00000800,
+	KTP_STATUS_TTY_STDIN =		(uint32_t)0x00000100, // Client's stdin is tty
+	KTP_STATUS_TTY_STDOUT =		(uint32_t)0x00000200, // Client's stdout is tty
+	KTP_STATUS_TTY_STDERR =		(uint32_t)0x00000400, // Client's stderr is tty
+	KTP_STATUS_NEED_STDIN =		(uint32_t)0x00001000, // Server's cmd need stdin
+	KTP_STATUS_INTERACTIVE =	(uint32_t)0x00002000, // Server's stdout is for tty
 	KTP_STATUS_DRY_RUN =		(uint32_t)0x00010000,
 	KTP_STATUS_EXIT =		(uint32_t)0x80000000,
 } ktp_status_e;
 
 #define KTP_STATUS_IS_ERROR(status) (status & KTP_STATUS_ERROR)
 #define KTP_STATUS_IS_INCOMPLETED(status) (status & KTP_STATUS_INCOMPLETED)
-#define KTP_STATUS_IS_INTERACTIVE(status) (status & KTP_STATUS_INTERACTIVE)
 #define KTP_STATUS_IS_TTY_STDIN(status) (status & KTP_STATUS_TTY_STDIN)
 #define KTP_STATUS_IS_TTY_STDOUT(status) (status & KTP_STATUS_TTY_STDOUT)
 #define KTP_STATUS_IS_TTY_STDERR(status) (status & KTP_STATUS_TTY_STDERR)
+#define KTP_STATUS_IS_NEED_STDIN(status) (status & KTP_STATUS_NEED_STDIN)
+#define KTP_STATUS_IS_INTERACTIVE(status) (status & KTP_STATUS_INTERACTIVE)
 #define KTP_STATUS_IS_DRY_RUN(status) (status & KTP_STATUS_DRY_RUN)
 #define KTP_STATUS_IS_EXIT(status) (status & KTP_STATUS_EXIT)
 

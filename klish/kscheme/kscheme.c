@@ -263,8 +263,9 @@ bool_t kscheme_prepare_action_list(kscheme_t *scheme, kentry_t *entry,
 		}
 		kaction_set_sym(action, sym);
 		kaction_set_plugin(action, plugin);
-		// Filter can't contain sync symbols.
-		if (kentry_filter(entry) && kaction_is_sync(action)) {
+		// Filter can't contain sync symbols
+		if ((kentry_filter(entry) != KENTRY_FILTER_FALSE) &&
+			kaction_is_sync(action)) {
 			faux_error_sprintf(error, "Filter \"%s\" can't contain "
 				"sync symbol \"%s\"",
 				kentry_name(entry), sym_ref);

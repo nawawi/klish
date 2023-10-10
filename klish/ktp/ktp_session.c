@@ -35,6 +35,9 @@ struct ktp_session_s {
 	ktp_status_e cmd_features;
 	bool_t cmd_features_available;
 	bool_t stop_on_answer; // Stop the loop when answer is received (for non-interactive mode)
+	bool_t stdout_need_newline; // Does stdout has final line feed. If no then newline is needed
+	bool_t stderr_need_newline; // Does stderr has final line feed. If no then newline is needed
+	int last_stream; // Last active stream: stdout or stderr
 };
 
 
@@ -70,6 +73,9 @@ ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;
 	ktp->cmd_features_available = BOOL_FALSE;
+	ktp->stdout_need_newline = BOOL_FALSE;
+	ktp->stderr_need_newline = BOOL_FALSE;
+	ktp->last_stream = STDOUT_FILENO;
 
 	// Async object
 	ktp->async = faux_async_new(sock);
@@ -299,6 +305,14 @@ static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *m
 	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE, (void **)&line, &len))
 		return BOOL_TRUE; // It's strange but not a bug
 
+	if (len > 0) {
+		if (line[len - 1] == '\n')
+			ktp->stdout_need_newline = BOOL_FALSE;
+		else
+			ktp->stdout_need_newline = BOOL_TRUE;
+		ktp->last_stream = STDOUT_FILENO;
+	}
+
 	return ((ktp_session_stdout_cb_fn)ktp->cb[KTP_SESSION_CB_STDOUT].fn)(
 		ktp, line, len, ktp->cb[KTP_SESSION_CB_STDOUT].udata);
 }
@@ -318,6 +332,14 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 	if (!faux_msg_get_param_by_type(msg, KTP_PARAM_LINE,
 			(void **)&line, &len))
 		return BOOL_TRUE; // It's strange but not a bug
+
+	if (len > 0) {
+		if (line[len - 1] == '\n')
+			ktp->stderr_need_newline = BOOL_FALSE;
+		else
+			ktp->stderr_need_newline = BOOL_TRUE;
+		ktp->last_stream = STDERR_FILENO;
+	}
 
 	return ((ktp_session_stdout_cb_fn)ktp->cb[KTP_SESSION_CB_STDERR].fn)(
 		ktp, line, len, ktp->cb[KTP_SESSION_CB_STDERR].udata);
@@ -377,7 +399,8 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 		// Only first 'incompleted' cmd ack sets cmd features
 		if (!ktp->cmd_features_available) {
 			ktp->cmd_features_available = BOOL_TRUE;
-			ktp->cmd_features = status & KTP_STATUS_INTERACTIVE;
+			ktp->cmd_features = status &
+				(KTP_STATUS_INTERACTIVE | KTP_STATUS_NEED_STDIN);
 		}
 		// Execute external callback
 		if (ktp->cb[KTP_SESSION_CB_CMD_ACK_INCOMPLETED].fn)
@@ -617,6 +640,9 @@ static bool_t ktp_session_drop_state(ktp_session_t *ktp, faux_error_t *error)
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;
 	ktp->cmd_features_available = BOOL_FALSE;
+	ktp->stdout_need_newline = BOOL_FALSE;
+	ktp->stderr_need_newline = BOOL_FALSE;
+	ktp->last_stream = STDOUT_FILENO;
 
 	return BOOL_TRUE;
 }
@@ -745,4 +771,31 @@ bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode)
 		*retcode = ktp->cmd_retcode;
 
 	return ktp->cmd_retcode_available; // Sign of server answer
+}
+
+
+bool_t ktp_session_stdout_need_newline(ktp_session_t *ktp)
+{
+	if (!ktp)
+		return BOOL_FALSE;
+
+	return ktp->stdout_need_newline;
+}
+
+
+bool_t ktp_session_stderr_need_newline(ktp_session_t *ktp)
+{
+	if (!ktp)
+		return BOOL_FALSE;
+
+	return ktp->stderr_need_newline;
+}
+
+
+int ktp_session_last_stream(ktp_session_t *ktp)
+{
+	if (!ktp)
+		return BOOL_FALSE;
+
+	return ktp->last_stream;
 }

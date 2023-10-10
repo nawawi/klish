@@ -44,6 +44,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
+static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *user_data);
 
 static void reset_hotkey_table(ctx_t *ctx);
 static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
@@ -118,6 +120,14 @@ int klish_interactive_shell(ktp_session_t *ktp, struct options *opts)
 	tinyrl_redisplay(tinyrl);
 
 	eloop = ktp_session_eloop(ktp);
+
+	// Reassign signal handlers. Handlers are used to send SIGINT
+	// to non-interactive commands
+	faux_eloop_add_signal(eloop, SIGINT, ctrl_c_cb, &ctx);
+	faux_eloop_add_signal(eloop, SIGTERM, ctrl_c_cb, &ctx);
+	faux_eloop_add_signal(eloop, SIGQUIT, ctrl_c_cb, &ctx);
+	// To don't stop klish client on exit. SIGTSTP can be pended
+	faux_eloop_add_signal(eloop, SIGTSTP, ctrl_c_cb, &ctx);
 
 	// Notify server about terminal window size change
 	faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
@@ -255,6 +265,31 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	ctx_t *ctx = (ctx_t *)udata;
 	int rc = -1;
 	faux_error_t *error = NULL;
+	bool_t it_was_pager = BOOL_FALSE;
+
+	// Wait for pager
+	if (ctx->pager_working != TRI_UNDEFINED) {
+		pclose(ctx->pager_pipe);
+		ctx->pager_working = TRI_UNDEFINED;
+		ctx->pager_pipe = NULL;
+		it_was_pager = BOOL_TRUE;
+	}
+
+	// Disable SIGINT caught for non-interactive commands.
+	// Do it after pager exit. Else it can restore wrong tty mode after
+	// ISIG disabling
+	tinyrl_disable_isig(ctx->tinyrl);
+
+	// Sometimes output stream from server doesn't contain final crlf so
+	// goto newline itself
+	if (ktp_session_last_stream(ktp) == STDERR_FILENO) {
+		if (ktp_session_stderr_need_newline(ktp))
+			fprintf(stderr, "\n");
+	} else {
+		// Pager adds newline itself
+		if (ktp_session_stdout_need_newline(ktp) && !it_was_pager)
+			tinyrl_crlf(ctx->tinyrl);
+	}
 
 	process_prompt_param(ctx->tinyrl, msg);
 	process_hotkey_param(ctx, msg);
@@ -269,13 +304,6 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 			fprintf(stderr, "Error: %s\n", err);
 	}
 	faux_error_free(error);
-
-	// Wait for pager
-	if (ctx->pager_working != TRI_UNDEFINED) {
-		pclose(ctx->pager_pipe);
-		ctx->pager_working = TRI_UNDEFINED;
-		ctx->pager_pipe = NULL;
-	}
 
 	tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 	if (!ktp_session_done(ktp))
@@ -296,11 +324,16 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 {
 	ctx_t *ctx = (ctx_t *)udata;
 
-	// Interactive command. So restore stdin handler.
-	if ((ktp_session_state(ktp) == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
-		KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ktp))) {
-		faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-			stdin_cb, ctx);
+	if (ktp_session_state(ktp) == KTP_SESSION_STATE_WAIT_FOR_CMD) {
+		// Cmd need stdin so restore stdin handler
+		if (KTP_STATUS_IS_NEED_STDIN(ktp_session_cmd_features(ktp))) {
+			// Disable SIGINT signal (it is used for commands that
+			// don't need stdin. Commands with stdin can get ^C
+			// themself interactively.)
+			tinyrl_disable_isig(ctx->tinyrl);
+			faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+				stdin_cb, ctx);
+		}
 	}
 
 	// Happy compiler
@@ -333,9 +366,9 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 		return rc;
 	}
 
-	// Interactive command
+	// Command needs stdin
 	if ((state == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
-		KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ctx->ktp))) {
+		KTP_STATUS_IS_NEED_STDIN(ktp_session_cmd_features(ctx->ktp))) {
 		int fd = fileno(tinyrl_istream(ctx->tinyrl));
 		char buf[1024] = {};
 		ssize_t bytes_readed = 0;
@@ -406,6 +439,26 @@ static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
+static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+	void *associated_data, void *udata)
+{
+	ctx_t *ctx = (ctx_t *)udata;
+	char ctrl_c = KEY_ETX;
+
+	if (!ctx)
+		return BOOL_FALSE;
+
+	ktp_session_stdin(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
+
+	// Happy compiler
+	eloop = eloop;
+	type = type;
+	associated_data = associated_data;
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 {
 	const char *line = NULL;
@@ -426,6 +479,9 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 
 	tinyrl_reset_line(tinyrl);
 	tinyrl_set_busy(tinyrl, BOOL_TRUE);
+	// Suppose non-interactive command by default
+	// Caught SIGINT for non-interactive commands
+	tinyrl_enable_isig(tinyrl);
 
 	key = key; // Happy compiler
 
@@ -724,7 +780,7 @@ static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t
 	if (
 		ctx->opts->pager_enabled && // Pager enabled within config file
 		(ctx->pager_working == TRI_UNDEFINED) && // Pager is not working
-		!(ktp_session_cmd_features(ktp) & KTP_STATUS_INTERACTIVE) // Non interactive command
+		!KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ktp)) // Non interactive command
 		) {
 
 		ctx->pager_pipe = popen(ctx->opts->pager, "we");

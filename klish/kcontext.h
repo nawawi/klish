@@ -74,10 +74,6 @@ FAUX_HIDDEN bool_t kcontext_set_session(kcontext_t *context, ksession_t *session
 bool_t kcontext_done(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_done(kcontext_t *context, bool_t done);
 
-// Pseudo Terminal Slave filename
-const char *kcontext_pts_fname(const kcontext_t *context);
-bool_t kcontext_set_pts_fname(kcontext_t *context, const char *pts_fn);
-
 // Wrappers
 kparg_t *kcontext_candidate_parg(const kcontext_t *context);
 const kentry_t *kcontext_candidate_entry(const kcontext_t *context);

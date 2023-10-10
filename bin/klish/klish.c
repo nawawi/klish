@@ -11,6 +11,7 @@
 #include <getopt.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <syslog.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif

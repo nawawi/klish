@@ -107,6 +107,7 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 	} else if (!kentry_container(entry)) {
 		const char *current_arg = NULL;
 		kparg_t *parg = NULL;
+		kentry_filter_e filter_flag = kentry_filter(entry);
 
 		// When purpose is COMPLETION or HELP then fill completion list.
 		// Additionally if it's last continuable argument then lie to
@@ -116,7 +117,9 @@ static kpargv_status_e ksession_parse_arg(ksession_t *session,
 		// filters or non-filters
 		if (((KPURPOSE_COMPLETION == purpose) ||
 			(KPURPOSE_HELP == purpose)) &&
-			((is_filter == kentry_filter(entry)) ||
+			((filter_flag == KENTRY_FILTER_DUAL) ||
+			(is_filter && (filter_flag == KENTRY_FILTER_TRUE)) ||
+			(!is_filter && (filter_flag == KENTRY_FILTER_FALSE)) ||
 			(is_filter && kpargv_pargs_len(pargv)))) {
 			if (!*argv_iter) {
 				// That's time to add entry to completions list.
@@ -483,18 +486,10 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 	// First component
 	if (is_first) {
 
-		// First component can't be filter
-		if (kentry_filter(cmd)) {
+		// First component can't be a filter
+		if (kentry_filter(cmd) == KENTRY_FILTER_TRUE) {
 			faux_error_sprintf(error, "The filter \"%s\" "
 				"can't be used without previous pipeline",
-				kentry_name(cmd));
-			return BOOL_FALSE;
-		}
-
-		// Interactive command can't have filters
-		if (kentry_interactive(cmd) && is_piped) {
-			faux_error_sprintf(error, "The interactive command \"%s\" "
-				"can't have filters",
 				kentry_name(cmd));
 			return BOOL_FALSE;
 		}
@@ -503,7 +498,7 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 	} else {
 
 		// Only the first component can be non-filter
-		if (!kentry_filter(cmd)) {
+		if (kentry_filter(cmd) == KENTRY_FILTER_FALSE) {
 			faux_error_sprintf(error, "The non-filter command \"%s\" "
 				"can't be destination of pipe",
 				kentry_name(cmd));
@@ -518,15 +513,9 @@ static bool_t ksession_check_line(const kpargv_t *pargv, faux_error_t *error,
 			return BOOL_FALSE;
 		}
 
-		// Only the first component can have 'interactive=true' attribute
-		if (kentry_interactive(cmd)) {
-			faux_error_sprintf(error, "The filter \"%s\" "
-				"can't be interactive",
-				kentry_name(cmd));
-			return BOOL_FALSE;
-		}
-
 	}
+
+	is_piped = is_piped; // Happy compiler
 
 	return BOOL_TRUE;
 }
@@ -608,7 +597,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	is_piped = (faux_list_len(split) > 1);
 
 	// Create exec list
-	exec = kexec_new();
+	exec = kexec_new(session, KCONTEXT_TYPE_ACTION);
 	assert(exec);
 	if (!exec) {
 		faux_list_free(split);
@@ -660,11 +649,14 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session,
 	kpargv_status_e pstatus = KPARSE_NONE;
 	const char *line = NULL; // TODO: Must be 'line' field of ENTRY
 
+	assert(session);
+	if (!session)
+		return NULL;
 	assert(entry);
 	if (!entry)
 		return NULL;
 
-	exec = kexec_new();
+	exec = kexec_new(session, KCONTEXT_TYPE_SERVICE_ACTION);
 	assert(exec);
 
 	argv = faux_argv_new();

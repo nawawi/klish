@@ -145,10 +145,13 @@
 *	action execution.
 *
 * [interrupt="true/false"] - The boolean field that specify that action can be
-*	be interrupted by Ctrl^C. Default is false. Ignored for non-interactive
-*	actions.
+*	be interrupted by Ctrl^C. Default is false.
 *
-* [interactive="true/false"] - Is action interactive.
+* [in="true/false/tty"] - Does ACTION need input. The "tty" means action can use
+*	terminal.
+*
+* [out="true/false/tty"] - How does ACTION use output. The "tty" means action
+*	generate output for terminal.
 *
 * [exec_on="fail/success/always/never"] - ACTION's execution depends on
 *	return code of previous elements of ACTION chain. If the
@@ -183,13 +186,22 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="action_io_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="false"/>
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="tty"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:complexType name="action_t">
 		<xs:simpleContent>
 			<xs:extension base="xs:string">
 				<xs:attribute name="sym" type="xs:string" use="optional"/>
 				<xs:attribute name="lock" type="xs:string" use="optional"/>
 				<xs:attribute name="interrupt" type="xs:boolean" use="optional" default="false"/>
-				<xs:attribute name="interactive" type="xs:boolean" use="optional" default="false"/>
+				<xs:attribute name="in" type="action_io_t" use="optional" default="false"/>
+				<xs:attribute name="out" type="action_io_t" use="optional" default="true"/>
 				<xs:attribute name="exec_on" type="action_cond_t" use="optional" default="success"/>
 				<xs:attribute name="update_retcode" type="xs:boolean" use="optional" default="true"/>
 				<xs:attribute name="permanent" type="xs:boolean" use="optional" default="false"/>
@@ -270,6 +282,14 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="entry_filter_t">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="false"/>
+			<xs:enumeration value="dual"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:group name="entry_group_t">
 		<xs:choice>
 			<xs:element ref="HOTKEY" minOccurs="0" maxOccurs="unbounded"/>
@@ -305,7 +325,7 @@
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="order" type="xs:boolean" use="optional" default="false"/>
-		<xs:attribute name="filter" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="filter" type="entry_filter_t" use="optional" default="false"/>
 	</xs:complexType>
 
 
@@ -439,6 +459,7 @@
 		<xs:attribute name="ref" type="xs:string" use="optional"/>
 		<xs:attribute name="value" type="xs:string" use="optional"/>
 		<xs:attribute name="restore" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="filter" type="entry_filter_t" use="optional" default="false"/>
 	</xs:complexType>
 
 </xs:schema>

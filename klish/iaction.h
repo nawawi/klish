@@ -13,7 +13,8 @@ typedef struct iaction_s {
 	char *sym;
 	char *lock;
 	char *interrupt;
-	char *interactive;
+	char *in;
+	char *out;
 	char *exec_on;
 	char *update_retcode;
 	char *permanent;

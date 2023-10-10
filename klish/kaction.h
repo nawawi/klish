@@ -21,6 +21,14 @@ typedef enum {
 	KACTION_COND_NEVER,
 } kaction_cond_e;
 
+typedef enum {
+	KACTION_IO_NONE,
+	KACTION_IO_FALSE,
+	KACTION_IO_TRUE,
+	KACTION_IO_TTY,
+	KACTION_IO_MAX,
+} kaction_io_e;
+
 
 C_DECL_BEGIN
 
@@ -36,8 +44,11 @@ bool_t kaction_set_lock(kaction_t *action, const char *lock);
 bool_t kaction_interrupt(const kaction_t *action);
 bool_t kaction_set_interrupt(kaction_t *action, bool_t interrupt);
 
-bool_t kaction_interactive(const kaction_t *action);
-bool_t kaction_set_interactive(kaction_t *action, bool_t interactive);
+kaction_io_e kaction_in(const kaction_t *action);
+bool_t kaction_set_in(kaction_t *action, kaction_io_e in);
+
+kaction_io_e kaction_out(const kaction_t *action);
+bool_t kaction_set_out(kaction_t *action, kaction_io_e out);
 
 kaction_cond_e kaction_exec_on(const kaction_t *action);
 bool_t kaction_set_exec_on(kaction_t *action, kaction_cond_e exec_on);

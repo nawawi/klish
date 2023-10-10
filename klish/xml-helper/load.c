@@ -376,7 +376,8 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 	iaction.sym = kxml_node_attr(element, "sym");
 	iaction.lock = kxml_node_attr(element, "lock");
 	iaction.interrupt = kxml_node_attr(element, "interrupt");
-	iaction.interactive = kxml_node_attr(element, "interactive");
+	iaction.in = kxml_node_attr(element, "in");
+	iaction.out = kxml_node_attr(element, "out");
 	iaction.exec_on = kxml_node_attr(element, "exec_on");
 	iaction.update_retcode = kxml_node_attr(element, "update_retcode");
 	iaction.permanent = kxml_node_attr(element, "permanent");
@@ -420,7 +421,8 @@ err:
 	kxml_node_attr_free(iaction.sym);
 	kxml_node_attr_free(iaction.lock);
 	kxml_node_attr_free(iaction.interrupt);
-	kxml_node_attr_free(iaction.interactive);
+	kxml_node_attr_free(iaction.in);
+	kxml_node_attr_free(iaction.out);
 	kxml_node_attr_free(iaction.exec_on);
 	kxml_node_attr_free(iaction.update_retcode);
 	kxml_node_attr_free(iaction.permanent);
@@ -798,6 +800,7 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	bool_t res = BOOL_FALSE;
 	ktags_e tag = kxml_node_tag(element);
 	bool_t is_name = BOOL_FALSE;
+	bool_t is_filter = BOOL_FALSE;
 	kentry_entrys_node_t *iter = NULL;
 	kentry_t *nested_entry = NULL;
 	bool_t ptype_exists = BOOL_FALSE;
@@ -862,10 +865,15 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 	}
 	ientry.order = "false";
 	// Filter
-	if (KTAG_FILTER == tag)
-		ientry.filter = "true";
-	else
-		ientry.filter = "false";
+	ientry.filter = kxml_node_attr(element, "filter");
+	if (ientry.filter) {
+		is_filter = BOOL_TRUE;
+	} else {
+		if (KTAG_FILTER == tag)
+			ientry.filter = "true";
+		else
+			ientry.filter = "false";
+	}
 
 	if (!(entry = add_entry_to_hierarchy(element, parent, &ientry, error)))
 		goto err;
@@ -907,6 +915,8 @@ err:
 		kxml_node_attr_free(ientry.value);
 		kxml_node_attr_free(ientry.restore);
 	}
+	if (is_filter)
+		kxml_node_attr_free(ientry.filter);
 
 	return res;
 }
