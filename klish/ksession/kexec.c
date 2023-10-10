@@ -823,11 +823,11 @@ bool_t kexec_need_stdin(const kexec_t *exec)
 			return BOOL_FALSE;
 		// Check first command within pipeline
 		if (num == 0) {
-			if (kentry_out(entry) == KACTION_IO_TRUE)
+			if (kentry_in(entry) == KACTION_IO_TRUE)
 				return BOOL_TRUE;
 		}
 		num++;
-		if (kentry_out(entry) == KACTION_IO_TTY)
+		if (kentry_in(entry) == KACTION_IO_TTY)
 			return BOOL_TRUE;
 	}
 
