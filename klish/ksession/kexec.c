@@ -13,6 +13,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <signal.h>
+#include <errno.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
@@ -540,7 +541,7 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 	pid_t child_pid = -1;
 	int i = 0;
 	int fdmax = 0;
-	sigset_t sigs = {};
+	sigset_t sigs;
 
 	fn = ksym_function(kaction_sym(action));
 
@@ -569,6 +570,13 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 
 	// Unblock signals
 	sigemptyset(&sigs);
+	// Block signals for children processes if action is non-interruptible.
+	// The block state is inherited
+	if (!kaction_interrupt(action)) {
+		sigaddset(&sigs, SIGINT);
+		sigaddset(&sigs, SIGQUIT);
+		sigaddset(&sigs, SIGHUP);
+	}
 	sigprocmask(SIG_SETMASK, &sigs, NULL);
 
 	// Reopen streams if the pseudoterminal is used.
@@ -613,6 +621,8 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 static bool_t exec_action(const kexec_t *exec, kcontext_t *context,
 	const kaction_t *action, pid_t *pid, int *retcode)
 {
+	bool_t rc = BOOL_FALSE;
+
 	assert(context);
 	if (!context)
 		return BOOL_FALSE;
@@ -621,9 +631,11 @@ static bool_t exec_action(const kexec_t *exec, kcontext_t *context,
 		return BOOL_FALSE;
 
 	if (kaction_is_sync(action))
-		return exec_action_sync(exec, context, action, pid, retcode);
+		rc = exec_action_sync(exec, context, action, pid, retcode);
+	else
+		rc = exec_action_async(exec, context, action, pid);
 
-	return exec_action_async(exec, context, action, pid);
+	return rc;
 }
 
 
