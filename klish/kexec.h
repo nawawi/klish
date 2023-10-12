@@ -60,7 +60,7 @@ bool_t kexec_exec(kexec_t *exec);
 bool_t kexec_need_stdin(const kexec_t *exec);
 bool_t kexec_interactive(const kexec_t *exec);
 bool_t kexec_set_winsize(kexec_t *exec);
-
+const kaction_t *kexec_current_action(const kexec_t *exec);
 
 C_DECL_END
 
