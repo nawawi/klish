@@ -941,6 +941,8 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 	unsigned int len = 0;
 	faux_buf_t *bufin = NULL;
 	int fd = -1;
+	bool_t interrupt = BOOL_FALSE;
+	const kaction_t *action = NULL;
 
 	assert(ktpd);
 	assert(msg);
@@ -957,7 +959,31 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 		return BOOL_TRUE;
 	bufin = kexec_bufin(ktpd->exec);
 	assert(bufin);
-	faux_buf_write(bufin, line, len);
+
+	action = kexec_current_action(ktpd->exec);
+	if (action)
+		interrupt = kaction_interrupt(action);
+	// If current action is non-interruptible and action's stdin is terminal
+	// then remove ^C (0x03) symbol from stdin stream to don't deliver
+	// SIGINT to process
+	if (isatty(fd) && !interrupt) {
+		// 0x03 is a ^C
+		const char chars_to_search[] = {0x03, 0};
+		const char *start = line;
+		const char *pos = NULL;
+		size_t cur_len = len;
+		while ((pos = faux_str_charsn(start, chars_to_search, cur_len))) {
+			size_t written = pos - start;
+			faux_buf_write(bufin, start, written);
+			start = pos + 1;
+			cur_len = cur_len - written - 1;
+		}
+		if (cur_len > 0)
+			faux_buf_write(bufin, start, cur_len);
+	} else {
+		faux_buf_write(bufin, line, len);
+	}
+
 	stdin_out(fd, bufin); // Non-blocking write
 	if (faux_buf_len(bufin) == 0)
 		return BOOL_TRUE;

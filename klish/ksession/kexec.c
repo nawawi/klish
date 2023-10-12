@@ -570,13 +570,6 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 
 	// Unblock signals
 	sigemptyset(&sigs);
-	// Block signals for children processes if action is non-interruptible.
-	// The block state is inherited
-	if (!kaction_interrupt(action)) {
-		sigaddset(&sigs, SIGINT);
-		sigaddset(&sigs, SIGQUIT);
-		sigaddset(&sigs, SIGHUP);
-	}
 	sigprocmask(SIG_SETMASK, &sigs, NULL);
 
 	// Reopen streams if the pseudoterminal is used.
@@ -844,4 +837,20 @@ bool_t kexec_need_stdin(const kexec_t *exec)
 	}
 
 	return BOOL_FALSE;
+}
+
+
+const kaction_t *kexec_current_action(const kexec_t *exec)
+{
+	kcontext_t *context = NULL;
+
+	assert(exec);
+	if (!exec)
+		return NULL;
+
+	context = (kcontext_t *)faux_list_data(faux_list_head(exec->contexts));
+	if (!context)
+		return NULL;
+
+	return kcontext_action(context);
 }
