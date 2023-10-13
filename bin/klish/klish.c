@@ -70,12 +70,10 @@ static bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 static bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
-static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
-	void *user_data);
 
 // Eloop callbacks
-static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data);
+//static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+//	void *associated_data, void *user_data);
 static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -152,9 +150,18 @@ int main(int argc, char **argv)
 
 	// Eloop object
 	eloop = faux_eloop_new(NULL);
-	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
-	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
-	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
+//	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
+//	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
+//	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
+	// Handlers are used to send SIGINT
+	// to non-interactive commands
+	faux_eloop_add_signal(eloop, SIGINT, ctrl_c_cb, &ctx);
+	faux_eloop_add_signal(eloop, SIGTERM, ctrl_c_cb, &ctx);
+	faux_eloop_add_signal(eloop, SIGQUIT, ctrl_c_cb, &ctx);
+	// To don't stop klish client on exit. SIGTSTP can be pended
+	faux_eloop_add_signal(eloop, SIGTSTP, ctrl_c_cb, &ctx);
+	// Notify server about terminal window size change
+	faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
 
 	// KTP session
 	ktp = ktp_session_new(unix_sock, eloop);
@@ -190,11 +197,8 @@ int main(int argc, char **argv)
 	ctx.pager_working = TRI_UNDEFINED;
 	ctx.pager_pipe = NULL;
 
-	// These callback functions is only for batch mode. Interactive
-	// mode can reassign them.
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, NULL);
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, NULL);
-
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_AUTH_ACK, auth_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK_INCOMPLETED,
@@ -254,20 +258,7 @@ int main(int argc, char **argv)
 		tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
 		tinyrl_bind_key(tinyrl, '?', tinyrl_key_help);
 
-		// Replace common stdout callback by interactive-specific one.
-		// Place it after auth to make auth use standard stdout callback.
-		ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, interactive_stdout_cb, &ctx);
 
-		// Reassign signal handlers. Handlers are used to send SIGINT
-		// to non-interactive commands
-		faux_eloop_add_signal(eloop, SIGINT, ctrl_c_cb, &ctx);
-		faux_eloop_add_signal(eloop, SIGTERM, ctrl_c_cb, &ctx);
-		faux_eloop_add_signal(eloop, SIGQUIT, ctrl_c_cb, &ctx);
-		// To don't stop klish client on exit. SIGTSTP can be pended
-		faux_eloop_add_signal(eloop, SIGTSTP, ctrl_c_cb, &ctx);
-
-		// Notify server about terminal window size change
-		faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
 
 		faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
 	}
@@ -328,18 +319,8 @@ static bool_t send_next_command(ctx_t *ctx)
 		return BOOL_FALSE;
 	}
 
-	return BOOL_TRUE;
-}
-
-
-static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
-	void *user_data)
-{
-	if (faux_write_block(STDOUT_FILENO, line, len) < 0)
-		return BOOL_FALSE;
-
-	ktp = ktp;
-	user_data = user_data;
+	// Suppose non-interactive command by default
+	tinyrl_enable_isig(ctx->tinyrl);
 
 	return BOOL_TRUE;
 }
@@ -357,7 +338,7 @@ static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
 	return BOOL_TRUE;
 }
 
-
+/*
 static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
@@ -369,7 +350,7 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	return BOOL_FALSE; // Stop Event Loop
 }
-
+*/
 
 static bool_t process_prompt_param(tinyrl_t *tinyrl, const faux_msg_t *msg)
 {
@@ -601,7 +582,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	state = ktp_session_state(ctx->ktp);
 
 	// Standard klish command line
-	if (state == KTP_SESSION_STATE_IDLE) {
+	if ((state == KTP_SESSION_STATE_IDLE) &&
+		(ctx->mode == MODE_INTERACTIVE)) {
 		tinyrl_read(ctx->tinyrl);
 		return rc;
 	}
@@ -684,10 +666,14 @@ static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 {
 	ctx_t *ctx = (ctx_t *)udata;
 	char ctrl_c = KEY_ETX;
+	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
 
 	if (!ctx)
 		return BOOL_FALSE;
 
+	state = ktp_session_state(ctx->ktp);
+	if (state != KTP_SESSION_STATE_WAIT_FOR_CMD)
+		return BOOL_TRUE;
 	ktp_session_stdin(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
 
 	// Happy compiler
@@ -1009,7 +995,7 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 }
 
 
-static bool_t interactive_stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
