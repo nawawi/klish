@@ -31,7 +31,3 @@ struct options *opts_init(void);
 void opts_free(struct options *opts);
 int opts_parse(int argc, char *argv[], struct options *opts);
 bool_t config_parse(const char *cfgfile, struct options *opts);
-
-// Interactive shell and standard functions
-bool_t ktp_sync_auth(ktp_session_t *ktp, int *retcode);
-int klish_interactive_shell(ktp_session_t *ktp, struct options *opts);
