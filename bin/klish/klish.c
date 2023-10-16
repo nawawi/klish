@@ -272,12 +272,14 @@ int main(int argc, char **argv)
 
 	retval = 0;
 err:
-	if (tinyrl_busy(tinyrl))
-		faux_error_free(ktp_session_error(ktp));
 	// Restore stdin mode
 	fcntl(STDIN_FILENO, F_SETFL, stdin_flags);
 	reset_hotkey_table(&ctx);
-	tinyrl_free(tinyrl);
+	if (tinyrl) {
+		if (tinyrl_busy(tinyrl))
+			faux_error_free(ktp_session_error(ktp));
+		tinyrl_free(tinyrl);
+	}
 	ktp_session_free(ktp);
 	faux_eloop_free(eloop);
 	ktp_disconnect(unix_sock);
@@ -571,13 +573,19 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ctx_t *ctx = (ctx_t *)udata;
 	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
+	bool_t close_stdin = BOOL_FALSE;
 
 	if (!ctx)
 		return BOOL_FALSE;
 
-	// Some errors or fd is closed so stop session
-	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
-		rc = BOOL_FALSE;
+	// Some errors or fd is closed so stop interactive session
+	// Non-interactive session just removes stdin callback
+	if (info->revents & (POLLHUP | POLLERR | POLLNVAL)) {
+		if (ctx->mode == MODE_INTERACTIVE)
+			rc = BOOL_FALSE;
+		faux_eloop_del_fd(eloop, STDIN_FILENO);
+		close_stdin = BOOL_TRUE;
+	}
 
 	state = ktp_session_state(ctx->ktp);
 
@@ -585,11 +593,9 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if ((state == KTP_SESSION_STATE_IDLE) &&
 		(ctx->mode == MODE_INTERACTIVE)) {
 		tinyrl_read(ctx->tinyrl);
-		return rc;
-	}
 
 	// Command needs stdin
-	if ((state == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
+	} else if ((state == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
 		KTP_STATUS_IS_NEED_STDIN(ktp_session_cmd_features(ctx->ktp))) {
 		int fd = fileno(tinyrl_istream(ctx->tinyrl));
 		char buf[1024] = {};
@@ -600,16 +606,18 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 			if (bytes_readed != sizeof(buf))
 				break;
 		}
-		return rc;
+		if (close_stdin)
+			ktp_session_stdin_close(ctx->ktp);
+
+	// Input is not needed
+	} else {
+		// Here the situation when input is not allowed. Remove stdin from
+		// eloop waiting list. Else klish will get 100% CPU. Callbacks on
+		// operation completions will restore this handler.
+		faux_eloop_del_fd(eloop, STDIN_FILENO);
 	}
 
-	// Here the situation when input is not allowed. Remove stdin from
-	// eloop waiting list. Else klish will get 100% CPU. Callbacks on
-	// operation completions will restore this handler.
-	faux_eloop_del_fd(eloop, STDIN_FILENO);
-
 	// Happy compiler
-	eloop = eloop;
 	type = type;
 
 	return rc;
