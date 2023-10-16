@@ -57,6 +57,8 @@ typedef struct ctx_s {
 	FILE *pager_pipe;
 	client_mode_e mode;
 	faux_list_node_t *cmdline_iter; // MODE_CMDLINE
+	faux_list_node_t *files_iter; // MODE_FILES
+	faux_file_t *files_fd; // MODE_FILES
 } ctx_t;
 
 
@@ -190,9 +192,7 @@ int main(int argc, char **argv)
 	ctx.ktp = ktp;
 	ctx.tinyrl = tinyrl;
 	ctx.opts = opts;
-	faux_bzero(ctx.hotkeys, sizeof(ctx.hotkeys));
 	ctx.pager_working = TRI_UNDEFINED;
-	ctx.pager_pipe = NULL;
 
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, &ctx);
@@ -211,26 +211,8 @@ int main(int argc, char **argv)
 
 	// Commands from files
 	} else if (ctx.mode == MODE_FILES) {
-		const char *filename = NULL;
-		faux_list_node_t *iter =  faux_list_head(opts->files);
-		while ((filename = (const char *)faux_list_each(&iter))) {
-			char *line = NULL;
-			bool_t stop = BOOL_FALSE;
-			faux_file_t *fd = faux_file_open(filename, O_RDONLY, 0);
-			while ((line = faux_file_getline(fd))) {
-				// Request to server
-//				retcode = ktp_sync_cmd(ktp, line, opts);
-				faux_str_free(line);
-				// Stop-on-error
-				if (opts->stop_on_error && (retcode != 0)) {
-					stop = BOOL_TRUE;
-					break;
-				}
-			}
-			faux_file_close(fd);
-			if (stop)
-				break;
-		}
+		// input files iterator
+		ctx.files_iter = faux_list_head(opts->files);
 
 	// Commands from non-interactive STDIN
 	} else if (ctx.mode == MODE_STDIN) {
@@ -254,9 +236,6 @@ int main(int argc, char **argv)
 		tinyrl_bind_key(tinyrl, '\r', tinyrl_key_enter);
 		tinyrl_bind_key(tinyrl, '\t', tinyrl_key_tab);
 		tinyrl_bind_key(tinyrl, '?', tinyrl_key_help);
-
-
-
 		faux_eloop_add_fd(eloop, STDIN_FILENO, POLLIN, stdin_cb, &ctx);
 	}
 
@@ -291,16 +270,36 @@ err:
 
 static bool_t send_next_command(ctx_t *ctx)
 {
-	const char *line = NULL;
+	char *line = NULL;
 	faux_error_t *error = NULL;
+	bool_t rc = BOOL_FALSE;
 
 	// User must type next interactive command. So just return
 	if (ctx->mode == MODE_INTERACTIVE)
 		return BOOL_TRUE;
 
 	// Commands from cmdline
-	if (ctx->mode == MODE_CMDLINE)
-		line = faux_list_each(&ctx->cmdline_iter);
+	if (ctx->mode == MODE_CMDLINE) {
+		line = faux_str_dup(faux_list_each(&ctx->cmdline_iter));
+
+	// Commands from input files
+	} else if (ctx->mode == MODE_FILES) {
+		do {
+			if (!ctx->files_fd) {
+				const char *fn = (const char *)faux_list_each(&ctx->files_iter);
+				if (!fn)
+					break; // No more files
+				ctx->files_fd = faux_file_open(fn, O_RDONLY, 0);
+			}
+			if (!ctx->files_fd) // Can't open file. Try next file
+				continue;
+			line = faux_file_getline(ctx->files_fd);
+			if (!line) { // EOF
+				faux_file_close(ctx->files_fd);
+				ctx->files_fd = NULL;
+			}
+		} while (!line);
+	}
 
 	if (!line) {
 		ktp_session_set_done(ctx->ktp, BOOL_TRUE);
@@ -310,10 +309,13 @@ static bool_t send_next_command(ctx_t *ctx)
 	if (ctx->opts->verbose) {
 		const char *prompt = tinyrl_prompt(ctx->tinyrl);
 		printf("%s%s\n", prompt ? prompt : "", line);
+		fflush(stdout);
 	}
 
 	error = faux_error_new();
-	if (!ktp_session_cmd(ctx->ktp, line, error, ctx->opts->dry_run)) {
+	rc = ktp_session_cmd(ctx->ktp, line, error, ctx->opts->dry_run);
+	faux_str_free(line);
+	if (!rc) {
 		faux_error_free(error);
 		return BOOL_FALSE;
 	}
