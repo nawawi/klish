@@ -310,7 +310,7 @@ static bool_t send_next_command(ctx_t *ctx)
 		return BOOL_TRUE;
 	}
 
-	if (!ctx->opts->quiet) {
+	if (ctx->opts->verbose) {
 		const char *prompt = tinyrl_prompt(ctx->tinyrl);
 		printf("%s%s\n", prompt ? prompt : "", line);
 	}
