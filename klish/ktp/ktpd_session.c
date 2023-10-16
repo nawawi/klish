@@ -42,6 +42,7 @@ struct ktpd_session_s {
 	faux_eloop_t *eloop; // External link, dont's free()
 	kexec_t *exec;
 	bool_t exit;
+	bool_t stdin_must_be_closed;
 };
 
 
@@ -86,6 +87,10 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 		return NULL;
 	}
 	ktpd->exec = NULL;
+	// Client can send command to close stdin but it can't be done
+	// immediately because stdin buffer can still contain data. So really
+	// close stdin after all data is written.
+	ktpd->stdin_must_be_closed = BOOL_FALSE;
 	// Exit flag. It differs from ksession done flag because KTPD session
 	// can't exit immediately. It must finish current command processing
 	// before really stop the event loop. Note: User defined plugin
@@ -902,10 +907,8 @@ static ssize_t stdin_out(int fd, faux_buf_t *buf)
 }
 
 
-static bool_t push_stdin(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
+static bool_t push_stdin(ktpd_session_t *ktpd)
 {
-	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
 	faux_buf_t *bufin = NULL;
 	int fd = -1;
 
@@ -914,7 +917,7 @@ static bool_t push_stdin(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if (!ktpd->exec)
 		return BOOL_TRUE;
 	fd = kexec_stdin(ktpd->exec);
-	if (fd < 0) // Something strange
+	if (fd < 0) // May be fd is already closed
 		return BOOL_FALSE;
 
 	bufin = kexec_bufin(ktpd->exec);
@@ -925,11 +928,10 @@ static bool_t push_stdin(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	// All data is written
 	faux_eloop_exclude_fd_event(ktpd->eloop, fd, POLLOUT);
-
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
+	if (ktpd->stdin_must_be_closed) {
+		close(fd);
+		kexec_set_stdin(ktpd->exec, -1);
+	}
 
 	return BOOL_TRUE;
 }
@@ -1046,6 +1048,27 @@ static bool_t ktpd_session_process_notification(ktpd_session_t *ktpd, faux_msg_t
 }
 
 
+static bool_t ktpd_session_process_stdin_close(ktpd_session_t *ktpd,
+	faux_msg_t *msg)
+{
+	int fd = -1;
+
+	assert(ktpd);
+	assert(msg);
+
+	if (!ktpd->exec)
+		return BOOL_FALSE;
+	fd = kexec_stdin(ktpd->exec);
+	if (fd < 0)
+		return BOOL_FALSE;
+	// Schedule to close stdin
+	ktpd->stdin_must_be_closed = BOOL_TRUE;
+	push_stdin(ktpd);
+
+	return BOOL_TRUE;
+}
+
+
 static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
 	faux_msg_t *msg)
 {
@@ -1063,6 +1086,28 @@ static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
 	// Remove already generated data from out buffer. This data is not
 	// needed now
 	faux_buf_empty(kexec_bufout(ktpd->exec));
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t ktpd_session_process_stderr_close(ktpd_session_t *ktpd,
+	faux_msg_t *msg)
+{
+	int fd = -1;
+
+	assert(ktpd);
+	assert(msg);
+
+	if (!ktpd->exec)
+		return BOOL_FALSE;
+	fd = kexec_stderr(ktpd->exec);
+	if (fd < 0)
+		return BOOL_FALSE;
+	close(fd);
+	// Remove already generated data from err buffer. This data is not
+	// needed any more
+	faux_buf_empty(kexec_buferr(ktpd->exec));
 
 	return BOOL_TRUE;
 }
@@ -1126,12 +1171,26 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 	case KTP_NOTIFICATION:
 		ktpd_session_process_notification(ktpd, msg);
 		break;
+	case KTP_STDIN_CLOSE:
+		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
+			err = "No active command is running";
+			break;
+		}
+		ktpd_session_process_stdin_close(ktpd, msg);
+		break;
 	case KTP_STDOUT_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
 			err = "No active command is running";
 			break;
 		}
 		ktpd_session_process_stdout_close(ktpd, msg);
+		break;
+	case KTP_STDERR_CLOSE:
+		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
+			err = "No active command is running";
+			break;
+		}
+		ktpd_session_process_stderr_close(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04u", cmd);
@@ -1297,7 +1356,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// getting stdout but for writing stdin too. Because pseudo-terminal
 	// uses the same fd for in and out.
 	if (info->revents & POLLOUT)
-		push_stdin(eloop, type, associated_data, user_data);
+		push_stdin(ktpd);
 
 	if (info->revents & POLLIN)
 		get_stream(ktpd, info->fd, BOOL_FALSE);
@@ -1306,6 +1365,8 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// EOF || POLERR || POLLNVAL
 	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
 		faux_eloop_del_fd(eloop, info->fd);
+
+	type = type; // Happy compiler
 
 	return BOOL_TRUE;
 }

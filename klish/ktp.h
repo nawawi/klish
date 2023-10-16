@@ -27,7 +27,9 @@ typedef enum {
 	KTP_AUTH = 'a',
 	KTP_AUTH_ACK = 'A',
 	KTP_KEEPALIVE = 'k',
+	KTP_STDIN_CLOSE = 'I',
 	KTP_STDOUT_CLOSE = 'O',
+	KTP_STDERR_CLOSE = 'E',
 } ktp_cmd_e;
 
 

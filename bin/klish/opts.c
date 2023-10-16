@@ -124,8 +124,8 @@ int opts_parse(int argc, char *argv[], struct options *opts)
 
 	// Input files
 	if(optind < argc) {
-		int i;
-		for (i = argc - 1; i >= optind; i--)
+		int i = 0;
+		for (i = optind; i < argc; i++)
 			faux_list_add(opts->files, argv[i]);
 	}
 

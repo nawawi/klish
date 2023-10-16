@@ -425,7 +425,7 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 	ktp->state = KTP_SESSION_STATE_IDLE;
 	// Get exit flag from message
 	if (KTP_STATUS_IS_EXIT(status))
-		ktp->done = BOOL_TRUE;
+		ktp_session_set_done(ktp, BOOL_TRUE);
 
 	// Execute external callback
 	if (ktp->cb[KTP_SESSION_CB_CMD_ACK].fn)
@@ -679,6 +679,9 @@ static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 bool_t ktp_session_cmd(ktp_session_t *ktp, const char *line,
 	faux_error_t *error, bool_t dry_run)
 {
+	if (!line)
+		return BOOL_FALSE;
+
 	if (!ktp_session_req(ktp, KTP_CMD, line, strlen(line),
 		error, dry_run, BOOL_TRUE))
 		return BOOL_FALSE;
@@ -752,9 +755,29 @@ bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len)
 }
 
 
+bool_t ktp_session_stdin_close(ktp_session_t *ktp)
+{
+	if (!ktp_session_req(ktp, KTP_STDIN_CLOSE, NULL, 0,
+		NULL, BOOL_TRUE, BOOL_FALSE))
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
 bool_t ktp_session_stdout_close(ktp_session_t *ktp)
 {
 	if (!ktp_session_req(ktp, KTP_STDOUT_CLOSE, NULL, 0,
+		NULL, BOOL_TRUE, BOOL_FALSE))
+		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+bool_t ktp_session_stderr_close(ktp_session_t *ktp)
+{
+	if (!ktp_session_req(ktp, KTP_STDERR_CLOSE, NULL, 0,
 		NULL, BOOL_TRUE, BOOL_FALSE))
 		return BOOL_FALSE;
 
