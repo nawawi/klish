@@ -438,8 +438,7 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		return BOOL_FALSE;
 	}
 
-	if (isatty(STDIN_FILENO))
-		send_winch_notification(ctx);
+	send_winch_notification(ctx);
 
 	if (ctx->mode == MODE_INTERACTIVE) {
 		// Print prompt for interactive command
