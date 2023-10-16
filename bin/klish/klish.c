@@ -56,9 +56,11 @@ typedef struct ctx_s {
 	tri_t pager_working;
 	FILE *pager_pipe;
 	client_mode_e mode;
+	// Parsing state vars
 	faux_list_node_t *cmdline_iter; // MODE_CMDLINE
 	faux_list_node_t *files_iter; // MODE_FILES
 	faux_file_t *files_fd; // MODE_FILES
+	faux_file_t *stdin_fd; // MODE_STDIN
 } ctx_t;
 
 
@@ -216,17 +218,6 @@ int main(int argc, char **argv)
 
 	// Commands from non-interactive STDIN
 	} else if (ctx.mode == MODE_STDIN) {
-		char *line = NULL;
-		faux_file_t *fd = faux_file_fdopen(STDIN_FILENO);
-		while ((line = faux_file_getline(fd))) {
-			// Request to server
-//			retcode = ktp_sync_cmd(ktp, line, opts);
-			faux_str_free(line);
-			// Stop-on-error
-			if (opts->stop_on_error && (retcode != 0))
-				break;
-		}
-		faux_file_close(fd);
 
 	// Interactive shell
 	} else {
@@ -299,6 +290,15 @@ static bool_t send_next_command(ctx_t *ctx)
 				ctx->files_fd = NULL;
 			}
 		} while (!line);
+
+	// Commands from stdin
+	} else if (ctx->mode == MODE_STDIN) {
+		if (!ctx->stdin_fd)
+			ctx->stdin_fd = faux_file_fdopen(STDIN_FILENO);
+		if (ctx->stdin_fd)
+			line = faux_file_getline(ctx->stdin_fd);
+		if (!line) // EOF
+			faux_file_close(ctx->stdin_fd);
 	}
 
 	if (!line) {
@@ -438,8 +438,7 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		return BOOL_FALSE;
 	}
 
-	if (isatty(STDIN_FILENO))
-		send_winch_notification(ctx);
+	send_winch_notification(ctx);
 
 	if (ctx->mode == MODE_INTERACTIVE) {
 		// Print prompt for interactive command
