@@ -150,9 +150,6 @@ int main(int argc, char **argv)
 
 	// Eloop object
 	eloop = faux_eloop_new(NULL);
-//	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, NULL);
-//	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, NULL);
-//	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, NULL);
 	// Handlers are used to send SIGINT
 	// to non-interactive commands
 	faux_eloop_add_signal(eloop, SIGINT, ctrl_c_cb, &ctx);
@@ -340,19 +337,6 @@ static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
 	return BOOL_TRUE;
 }
 
-/*
-static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
-	void *associated_data, void *user_data)
-{
-	// Happy compiler
-	eloop = eloop;
-	type = type;
-	associated_data = associated_data;
-	user_data = user_data;
-
-	return BOOL_FALSE; // Stop Event Loop
-}
-*/
 
 static bool_t process_prompt_param(tinyrl_t *tinyrl, const faux_msg_t *msg)
 {
