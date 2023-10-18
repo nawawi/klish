@@ -89,6 +89,7 @@ static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 static void reset_hotkey_table(ctx_t *ctx);
 static bool_t send_winch_notification(ctx_t *ctx);
 static bool_t send_next_command(ctx_t *ctx);
+static void signal_handler_empty(int signo);
 
 // Keys
 static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key);
@@ -109,6 +110,8 @@ int main(int argc, char **argv)
 	tinyrl_t *tinyrl = NULL;
 	char *hist_path = NULL;
 	int stdin_flags = 0;
+	struct sigaction sig_act = {};
+	sigset_t sig_set = {};
 
 #ifdef HAVE_LOCALE_H
 	// Set current locale
@@ -164,6 +167,18 @@ int main(int argc, char **argv)
 	// Notify server about terminal window size change
 	faux_eloop_add_signal(eloop, SIGWINCH, sigwinch_cb, &ctx);
 
+	// Ignore SIGINT etc. Don't use SIG_IGN because it will
+	// not interrupt syscall. It necessary because in MODE_STDIN
+	// there is a blocking read and eloop doesn't process signals
+	// while blocking read
+	sigemptyset(&sig_set);
+	sig_act.sa_flags = 0;
+	sig_act.sa_mask = sig_set;
+	sig_act.sa_handler = &signal_handler_empty;
+	sigaction(SIGINT, &sig_act, NULL);
+	sigaction(SIGTERM, &sig_act, NULL);
+	sigaction(SIGQUIT, &sig_act, NULL);
+
 	// KTP session
 	ktp = ktp_session_new(unix_sock, eloop);
 	assert(ktp);
@@ -179,7 +194,8 @@ int main(int argc, char **argv)
 
 	// Set stdin to O_NONBLOCK mode
 	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-	fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
+	if (ctx.mode != MODE_STDIN)
+		fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
 
 	// TiniRL
 	if (ctx.mode == MODE_INTERACTIVE)
@@ -512,11 +528,10 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		tinyrl_set_busy(ctx->tinyrl, BOOL_FALSE);
 		if (!ktp_session_done(ktp))
 			tinyrl_redisplay(ctx->tinyrl);
+		// Operation is finished so restore stdin handler
+		faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+			stdin_cb, ctx);
 	}
-
-	// Operation is finished so restore stdin handler
-	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-		stdin_cb, ctx);
 
 	// Send next command for non-interactive modes
 	send_next_command(ctx);
@@ -531,6 +546,11 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
+
+	// It can't get data from stdin, it gets commands from stdin instead.
+	// So don't process incompleted ack but just return
+	if (ctx->mode == MODE_STDIN)
+		return BOOL_TRUE;
 
 	if (ktp_session_state(ktp) == KTP_SESSION_STATE_WAIT_FOR_CMD) {
 		// Cmd need stdin so restore stdin handler
@@ -664,10 +684,12 @@ static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if (!ctx)
 		return BOOL_FALSE;
 
+	if (ctx->mode != MODE_INTERACTIVE)
+		return BOOL_FALSE;
+
 	state = ktp_session_state(ctx->ktp);
-	if (state != KTP_SESSION_STATE_WAIT_FOR_CMD)
-		return BOOL_TRUE;
-	ktp_session_stdin(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
+	if (state == KTP_SESSION_STATE_WAIT_FOR_CMD)
+		ktp_session_stdin(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
 
 	// Happy compiler
 	eloop = eloop;
@@ -1027,4 +1049,10 @@ static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	}
 
 	return BOOL_TRUE;
+}
+
+
+static void signal_handler_empty(int signo)
+{
+	signo = signo; // Happy compiler
 }
