@@ -178,6 +178,9 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &sig_act, NULL);
 	sigaction(SIGTERM, &sig_act, NULL);
 	sigaction(SIGQUIT, &sig_act, NULL);
+	// Ignore SIGPIPE from server. Don't use SIG_IGN because it will not
+	// break syscall
+	sigaction(SIGPIPE, &sig_act, NULL);
 
 	// KTP session
 	ktp = ktp_session_new(unix_sock, eloop);
@@ -188,9 +191,6 @@ int main(int argc, char **argv)
 	}
 	// Don't stop loop on each answer
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
-
-	// Ignore SIGPIPE from server
-	signal(SIGPIPE, SIG_IGN);
 
 	// Set stdin to O_NONBLOCK mode
 	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);

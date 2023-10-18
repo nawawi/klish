@@ -80,6 +80,10 @@ ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 	// Async object
 	ktp->async = faux_async_new(sock);
 	assert(ktp->async);
+	// Workaround. Make buffer a large else we have lost stdin
+	// TODO: It must be refactored. So large buffer is bad idea
+	faux_async_set_write_overflow(ktp->async, 1000000000l);
+	faux_async_set_read_overflow(ktp->async, 1000000000l);
 	// Receive message header first
 	faux_async_set_read_limits(ktp->async,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
