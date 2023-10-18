@@ -464,10 +464,16 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	ktpd->state = KTPD_SESSION_STATE_WAIT_FOR_PROCESS;
 	ktpd->exec = exec;
 
-	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), POLLIN,
+	// Set stdin, stdout, stderr handlers. It's so complex because stdin,
+	// stdout and stderr actually can be the same fd
+	faux_eloop_add_fd(ktpd->eloop, kexec_stdin(exec), 0,
 		action_stdout_ev, ktpd);
-	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), POLLIN,
+	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), 0,
+		action_stdout_ev, ktpd);
+	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), 0,
 		action_stderr_ev, ktpd);
+	faux_eloop_include_fd_event(ktpd->eloop, kexec_stdout(exec), POLLIN);
+	faux_eloop_include_fd_event(ktpd->eloop, kexec_stderr(exec), POLLIN);
 
 	return BOOL_TRUE;
 }
@@ -508,6 +514,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// file descriptors and send it to client.
 	get_stream(ktpd, kexec_stdout(ktpd->exec), BOOL_FALSE);
 	get_stream(ktpd, kexec_stderr(ktpd->exec), BOOL_TRUE);
+	faux_eloop_del_fd(eloop, kexec_stdin(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
 
@@ -930,7 +937,7 @@ static bool_t push_stdin(ktpd_session_t *ktpd)
 	faux_eloop_exclude_fd_event(ktpd->eloop, fd, POLLOUT);
 	if (ktpd->stdin_must_be_closed) {
 		close(fd);
-		kexec_set_stdin(ktpd->exec, -1);
+//		kexec_set_stdin(ktpd->exec, -1);
 	}
 
 	return BOOL_TRUE;
