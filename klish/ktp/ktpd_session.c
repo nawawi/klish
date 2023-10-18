@@ -101,6 +101,10 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	// Async object
 	ktpd->async = faux_async_new(sock);
 	assert(ktpd->async);
+	// Workaround. Make buffer a large else we have lost stdin
+	// TODO: It must be refactored. So large buffer is bad idea
+	faux_async_set_write_overflow(ktpd->async, 1000000000l);
+	faux_async_set_read_overflow(ktpd->async, 1000000000l);
 	// Receive message header first
 	faux_async_set_read_limits(ktpd->async,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
