@@ -585,12 +585,8 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	// Some errors or fd is closed so stop interactive session
 	// Non-interactive session just removes stdin callback
-	if (info->revents & (POLLHUP | POLLERR | POLLNVAL)) {
-		if (ctx->mode == MODE_INTERACTIVE)
-			rc = BOOL_FALSE;
-		faux_eloop_del_fd(eloop, STDIN_FILENO);
+	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
 		close_stdin = BOOL_TRUE;
-	}
 
 	state = ktp_session_state(ctx->ktp);
 
@@ -598,6 +594,10 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if ((state == KTP_SESSION_STATE_IDLE) &&
 		(ctx->mode == MODE_INTERACTIVE)) {
 		tinyrl_read(ctx->tinyrl);
+		if (close_stdin) {
+			faux_eloop_del_fd(eloop, STDIN_FILENO);
+			rc = BOOL_FALSE;
+		}
 
 	// Command needs stdin
 	} else if ((state == KTP_SESSION_STATE_WAIT_FOR_CMD) &&
@@ -606,13 +606,16 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 		char buf[1024] = {};
 		ssize_t bytes_readed = 0;
 
-		while ((bytes_readed = read(fd, buf, sizeof(buf))) > 0) {
+		// Don't read all data from stdin to don't overfill out buffer.
+		// Allow another handlers to push already received data to
+		// server
+		if ((bytes_readed = read(fd, buf, sizeof(buf))) > 0)
 			ktp_session_stdin(ctx->ktp, buf, bytes_readed);
-			if (bytes_readed != sizeof(buf))
-				break;
-		}
-		if (close_stdin)
+		// Actually close stdin only when all data is read
+		if (close_stdin && (bytes_readed <= 0)) {
 			ktp_session_stdin_close(ctx->ktp);
+			faux_eloop_del_fd(eloop, STDIN_FILENO);
+		}
 
 	// Input is not needed
 	} else {
