@@ -130,7 +130,7 @@ bool_t ktp_peer_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Write data
 	if (info->revents & POLLOUT) {
 		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
-		if (faux_async_out_easy(async) < 0) {
+		if (faux_async_out(async) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
 			syslog(LOG_ERR, "Problem with async output");
@@ -140,7 +140,7 @@ bool_t ktp_peer_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	// Read data
 	if (info->revents & POLLIN) {
-		if (faux_async_in_easy(async) < 0) {
+		if (faux_async_in(async) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
 			syslog(LOG_ERR, "Problem with async input");
