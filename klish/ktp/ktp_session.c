@@ -651,6 +651,7 @@ static bool_t ktp_session_drop_state(ktp_session_t *ktp, faux_error_t *error)
 	return BOOL_TRUE;
 }
 
+
 static bool_t ktp_session_req(ktp_session_t *ktp, ktp_cmd_e cmd,
 	const char *line, size_t line_len, faux_error_t *error,
 	bool_t dry_run, bool_t drop_state)
