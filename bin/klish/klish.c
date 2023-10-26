@@ -65,6 +65,8 @@ typedef struct ctx_s {
 
 
 // KTP session static functions
+static bool_t async_stdin_sent_cb(ktp_session_t *ktp, size_t len,
+	void *user_data);
 static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
 static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
@@ -212,6 +214,7 @@ int main(int argc, char **argv)
 	ctx.opts = opts;
 	ctx.pager_working = TRI_UNDEFINED;
 
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDIN, async_stdin_sent_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_AUTH_ACK, auth_ack_cb, &ctx);
@@ -579,6 +582,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
 	bool_t close_stdin = BOOL_FALSE;
+	size_t obuf_len = 0;
 
 	if (!ctx)
 		return BOOL_FALSE;
@@ -587,6 +591,14 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Non-interactive session just removes stdin callback
 	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
 		close_stdin = BOOL_TRUE;
+
+	// Temporarily stop stdin reading because too much data is buffered
+	// and all data can't be sent to server yet
+	obuf_len = faux_buf_len(faux_async_obuf(ktp_session_async(ctx->ktp)));
+	if (obuf_len > OBUF_LIMIT) {
+		faux_eloop_del_fd(eloop, STDIN_FILENO);
+		return BOOL_TRUE;
+	}
 
 	state = ktp_session_state(ctx->ktp);
 
@@ -629,6 +641,25 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	type = type;
 
 	return rc;
+}
+
+
+static bool_t async_stdin_sent_cb(ktp_session_t *ktp, size_t len,
+	void *user_data)
+{
+	ctx_t *ctx = (ctx_t *)user_data;
+
+	assert(ktp);
+
+	// This callbacks is executed when any number of bytes is really written
+	// to server socket. So if stdin transmit was stopped due to obuf
+	// overflow it's time to rearm transmission
+	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
+		stdin_cb, ctx);
+
+	len = len; // Happy compiler
+
+	return BOOL_TRUE;
 }
 
 
@@ -1013,12 +1044,19 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 }
 
 
+//size_t max_stdout_len = 0;
+
 static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
 
 	assert(ctx);
+
+//if (len > max_stdout_len) {
+//max_stdout_len = len;
+//fprintf(stderr, "max_stdout_len=%ld\n", max_stdout_len);
+//}
 
 	// Start pager if necessary
 	if (

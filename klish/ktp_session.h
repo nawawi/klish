@@ -56,6 +56,7 @@ typedef enum {
 } ktp_session_state_e;
 
 typedef enum {
+	KTP_SESSION_CB_STDIN,
 	KTP_SESSION_CB_STDOUT,
 	KTP_SESSION_CB_STDERR,
 	KTP_SESSION_CB_AUTH_ACK,
@@ -67,6 +68,8 @@ typedef enum {
 	KTP_SESSION_CB_MAX,
 } ktp_session_cb_e;
 
+typedef bool_t (*ktp_session_stdin_cb_fn)(ktp_session_t *ktp,
+	size_t len, void *udata);
 typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
 	const char *line, size_t len, void *udata);
 typedef bool_t (*ktp_session_event_cb_fn)(ktp_session_t *ktp,

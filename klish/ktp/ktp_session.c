@@ -80,10 +80,6 @@ ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 	// Async object
 	ktp->async = faux_async_new(sock);
 	assert(ktp->async);
-	// Workaround. Make buffer a large else we have lost stdin
-	// TODO: It must be refactored. So large buffer is bad idea
-	faux_async_set_write_overflow(ktp->async, 1000000000l);
-	faux_async_set_read_overflow(ktp->async, 1000000000l);
 	// Receive message header first
 	faux_async_set_read_limits(ktp->async,
 		sizeof(faux_hdr_t), sizeof(faux_hdr_t));
@@ -258,13 +254,19 @@ static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	// Write data
 	if (info->revents & POLLOUT) {
+		ssize_t len = 0;
 		faux_eloop_exclude_fd_event(eloop, info->fd, POLLOUT);
-		if (faux_async_out_easy(ktp->async) < 0) {
+		if ((len = faux_async_out_easy(ktp->async)) < 0) {
 			// Someting went wrong
 			faux_eloop_del_fd(eloop, info->fd);
 			syslog(LOG_ERR, "Problem with async output");
 			return BOOL_FALSE; // Stop event loop
 		}
+		// Execute external callback
+		if (ktp->cb[KTP_SESSION_CB_STDIN].fn)
+			((ktp_session_stdin_cb_fn)
+				ktp->cb[KTP_SESSION_CB_STDIN].fn)(
+				ktp, len, ktp->cb[KTP_SESSION_CB_STDIN].udata);
 	}
 
 	// Read data

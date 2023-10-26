@@ -9,6 +9,8 @@
 #define DEFAULT_CFGFILE "/etc/klish/klish.conf"
 #define DEFAULT_PAGER "/usr/bin/less -I -F -e -X -K -d -R"
 
+#define OBUF_LIMIT 65536
+
 /** @brief Command line and config file options
  */
 struct options {
