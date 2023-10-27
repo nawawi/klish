@@ -357,6 +357,9 @@ static bool_t kexec_prepare(kexec_t *exec)
 	} else {
 		if (pipe(pipefd) < 0)
 			return BOOL_FALSE;
+		// Write end of 'stdin' pipe must be non-blocked
+		fflags = fcntl(pipefd[1], F_GETFL);
+		fcntl(pipefd[1], F_SETFL, fflags | O_NONBLOCK);
 		r_end = pipefd[0];
 		w_end = pipefd[1];
 	}
