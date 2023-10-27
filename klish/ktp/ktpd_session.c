@@ -25,6 +25,8 @@
 #include <klish/ktp.h>
 #include <klish/ktp_session.h>
 
+#define BUF_LIMIT 65536
+
 
 typedef enum {
 	KTPD_SESSION_STATE_DISCONNECTED = 'd',
@@ -876,7 +878,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
-static ssize_t stdin_out(int fd, faux_buf_t *buf)
+static ssize_t stdin_out(int fd, faux_buf_t *buf, bool_t process_all_data)
 {
 	ssize_t total_written = 0;
 
@@ -892,7 +894,7 @@ static ssize_t stdin_out(int fd, faux_buf_t *buf)
 
 		data_to_write = faux_buf_dread_lock_easy(buf, &data);
 		if (data_to_write <= 0)
-			return -1;
+			break;
 
 		bytes_written = write(fd, data, data_to_write);
 		if (bytes_written > 0) {
@@ -910,6 +912,8 @@ static ssize_t stdin_out(int fd, faux_buf_t *buf)
 				return -1;
 		// Not whole data block was written
 		} else if (bytes_written != data_to_write) {
+			break;
+		} else if (!process_all_data) {
 			break;
 		}
 	}
@@ -933,7 +937,11 @@ static bool_t push_stdin(ktpd_session_t *ktpd)
 
 	bufin = kexec_bufin(ktpd->exec);
 	assert(bufin);
-	stdin_out(fd, bufin); // Non-blocking write
+	stdin_out(fd, bufin, BOOL_FALSE); // Non-blocking write
+	// Restore data receiving from client
+	if (faux_buf_len(bufin) < BUF_LIMIT)
+		faux_eloop_include_fd_event(ktpd->eloop,
+			faux_async_fd(ktpd->async), POLLIN);
 	if (faux_buf_len(bufin) != 0) // Try later
 		return BOOL_TRUE;
 
@@ -947,6 +955,8 @@ static bool_t push_stdin(ktpd_session_t *ktpd)
 	return BOOL_TRUE;
 }
 
+
+//size_t max_kexec_stdin = 0;
 
 static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
@@ -997,12 +1007,23 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_buf_write(bufin, line, len);
 	}
 
-	stdin_out(fd, bufin); // Non-blocking write
+//size_t l = faux_buf_len(bufin);
+//if (l > max_kexec_stdin) {
+//max_kexec_stdin = l;
+//fprintf(stderr, "max_kexec_stdin=%ld\n", l);
+//}
+	stdin_out(fd, bufin, BOOL_FALSE); // Non-blocking write
 	if (faux_buf_len(bufin) == 0)
 		return BOOL_TRUE;
 
 	// Non-blocking write can't write all data so plan to write later
 	faux_eloop_include_fd_event(ktpd->eloop, fd, POLLOUT);
+
+	// Temporarily stop data receiving from client because buffer is
+	// full
+	if (faux_buf_len(bufin) > BUF_LIMIT)
+		faux_eloop_exclude_fd_event(ktpd->eloop,
+			faux_async_fd(ktpd->async), POLLIN);
 
 	return BOOL_TRUE;
 }
