@@ -121,11 +121,6 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 			faux_buf_dread_unlock_easy(stream->buf, sent);
 		} while (sent == len);
 	}
-	// Check if there additional data to send
-	if (faux_buf_len(stream->buf) == 0)
-		faux_eloop_exclude_fd_event(eloop, stream->fd_out, POLLOUT);
-	else
-		faux_eloop_include_fd_event(eloop, stream->fd_out, POLLOUT);
 
 	// EOF
 	if (info->revents & POLLHUP) {
@@ -136,9 +131,27 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 			stream->fd_out = -1;
 	}
 
+	// Check if there additional data to send
+	if (stream->fd_out >= 0) {
+		if (faux_buf_len(stream->buf) == 0) {
+			faux_eloop_exclude_fd_event(eloop, stream->fd_out, POLLOUT);
+			// If correspondent IN is closed and buffer is empty
+			// then out stream descriptor is not needed any more too
+			if (stream->fd_in < 0)
+				stream->fd_out = -1;
+		} else {
+			faux_eloop_include_fd_event(eloop, stream->fd_out, POLLOUT);
+		}
+	}
+
 	iter = faux_list_head(stream_list);
 	while((cur_stream = (grabber_stream_t *)faux_list_each(&iter))) {
+		// Check is there any writers
 		if (cur_stream->fd_in != -1)
+			return BOOL_TRUE;
+		// Process can have no writers but buffer can be non-empty in
+		// same time
+		if (cur_stream->fd_out != -1)
 			return BOOL_TRUE;
 	}
 

@@ -497,10 +497,12 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 		// Restore orig output streams
 		// stdout
 		fflush(stdout);
+		close(STDOUT_FILENO);
 		dup2(saved_stdout, STDOUT_FILENO);
 		close(saved_stdout);
 		// stderr
 		fflush(stderr);
+		close(STDERR_FILENO);
 		dup2(saved_stderr, STDERR_FILENO);
 		close(saved_stderr);
 
