@@ -507,25 +507,16 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 		close(saved_stderr);
 
 		return BOOL_TRUE;
-	}
 
 	// Child (Output grabber)
-	close(pipe_stdout[1]);
-	close(pipe_stderr[1]);
-
-	{
+	} else {
 		int fds[][2] = {
 			{pipe_stdout[0], kcontext_stdout(context)},
 			{pipe_stderr[0], kcontext_stderr(context)},
 			{-1, -1},
-			};
-		grabber(fds);
+		};
+		grabber(fds); // Grabber will not return
 	}
-
-	close(pipe_stdout[0]);
-	close(pipe_stderr[0]);
-
-	_exit(0);
 
 	exec = exec; // Happy compiler
 

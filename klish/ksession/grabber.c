@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
@@ -123,7 +124,7 @@ static bool_t grabber_fd_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	}
 
 	// EOF
-	if (info->revents & POLLHUP) {
+	if (info->revents & (POLLHUP | POLLERR | POLLNVAL)) {
 		faux_eloop_del_fd(eloop, info->fd);
 		if (IN == direction)
 			stream->fd_in = -1;
@@ -164,6 +165,23 @@ void grabber(int fds[][2])
 	faux_eloop_t *eloop = NULL;
 	int i = 0;
 	faux_list_t *stream_list = NULL;
+	int fdmax = 0;
+
+	// Close all inherited fds except fds[] array
+	fdmax = (int)sysconf(_SC_OPEN_MAX);
+	for (i = (STDERR_FILENO + 1); i < fdmax; i++) {
+		int j = 0;
+		bool_t dont_close = BOOL_FALSE;
+		while (fds[j][0] != -1) {
+			if ((fds[j][0] == i) || (fds[j][1] == i)) {
+				dont_close = BOOL_TRUE;
+				break;
+			}
+			j++;
+		}
+		if (!dont_close)
+			close(i);
+	}
 
 	stream_list = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
 		NULL, NULL, (void (*)(void *))grabber_stream_free);
@@ -196,4 +214,14 @@ void grabber(int fds[][2])
 	faux_eloop_free(eloop);
 
 	faux_list_free(stream_list);
+
+	// Close file handlers
+	i = 0;
+	while (fds[i][0] != -1) {
+		close(fds[i][0]);
+		close(fds[i][1]);
+		i++;
+	}
+
+	_exit(0);
 }
