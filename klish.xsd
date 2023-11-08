@@ -33,6 +33,7 @@
 	<xs:element name="COMPL" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="HELP" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="PROMPT" type="command_t"/> <!-- Wrapper -->
+	<xs:element name="LOG" type="command_t"/> <!-- Wrapper -->
 	<xs:element name="PTYPE" type="ptype_t"/> <!-- Wrapper -->
 	<xs:element name="PARAM" type="param_t"/> <!-- Wrapper -->
 	<xs:element name="SWITCH" type="param_t"/> <!-- Wrapper -->
@@ -57,6 +58,7 @@
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="LOG" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
@@ -311,6 +313,7 @@
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="LOG" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
@@ -388,6 +391,7 @@
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="PROMPT" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="LOG" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>
@@ -423,6 +427,7 @@
 			<xs:element ref="COND" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="COMPL" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="HELP" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="LOG" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SWITCH" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="SEQ" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:choice>

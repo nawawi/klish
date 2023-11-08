@@ -358,15 +358,37 @@ bool_t kscheme_prepare_entry(kscheme_t *scheme, kentry_t *entry,
 	if (!kscheme_prepare_action_list(scheme, entry, error))
 		retcode = BOOL_FALSE;
 
-	// Process nested ENTRYs
+	// Create fast links to nested entries with special purposes. Do it
+	// before preparing child elements because some fields can be inhereted
+	// by child from its parent
 	iter = kentry_entrys_iter(entry);
-	while ((nested_entry = kentry_entrys_each(&iter))) {
-		if (!kscheme_prepare_entry(scheme, nested_entry, error))
-			retcode = BOOL_FALSE;
-		// Create fast links to nested entries with special purposes
+	while ((nested_entry = kentry_entrys_each(&iter)))
 		kentry_set_nested_by_purpose(entry,
 			kentry_purpose(nested_entry), nested_entry);
+	// Inherit LOG from parent if it's not specified explicitly
+	if (!kentry_nested_by_purpose(entry, KENTRY_PURPOSE_LOG)) {
+		kentry_t *parent = kentry_parent(entry);
+		if (parent) { // Get LOG from parent entry
+			kentry_set_nested_by_purpose(entry, KENTRY_PURPOSE_LOG,
+				kentry_nested_by_purpose(parent,
+				KENTRY_PURPOSE_LOG));
+		} else { // High level entries has no parents
+			iter = kscheme_entrys_iter(scheme);
+			while ((nested_entry = kscheme_entrys_each(&iter))) {
+				if (kentry_purpose(nested_entry) !=
+					KENTRY_PURPOSE_LOG)
+					continue;
+				kentry_set_nested_by_purpose(entry,
+					KENTRY_PURPOSE_LOG, nested_entry);
+			}
+		}
 	}
+
+	// Process nested ENTRYs
+	iter = kentry_entrys_iter(entry);
+	while ((nested_entry = kentry_entrys_each(&iter)))
+		if (!kscheme_prepare_entry(scheme, nested_entry, error))
+			retcode = BOOL_FALSE;
 
 	return retcode;
 }

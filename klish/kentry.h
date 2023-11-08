@@ -33,6 +33,7 @@ typedef enum {
 	KENTRY_PURPOSE_COND, // Conditional expression
 	KENTRY_PURPOSE_COMPLETION, // Engine to generate completions
 	KENTRY_PURPOSE_HELP,
+	KENTRY_PURPOSE_LOG, // Log klish commands
 	KENTRY_PURPOSE_MAX,
 } kentry_purpose_e;
 

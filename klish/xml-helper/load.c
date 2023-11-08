@@ -54,6 +54,7 @@ typedef enum {
 	KTAG_COMPL,
 	KTAG_HELP,
 	KTAG_PROMPT,
+	KTAG_LOG,
 	KTAG_HOTKEY,
 	KTAG_MAX,
 } ktags_e;
@@ -75,6 +76,7 @@ static const char * const kxml_tags[] = {
 	"COMPL",
 	"HELP",
 	"PROMPT",
+	"LOG",
 	"HOTKEY",
 };
 
@@ -91,6 +93,7 @@ static kxml_process_fn *kxml_handlers[] = {
 	process_plugin,
 	process_klish,
 	process_entry,
+	process_command,
 	process_command,
 	process_command,
 	process_command,
@@ -791,7 +794,7 @@ err:
 }
 
 
-// COMMAND, FILTER, COND, COMPL, HELP, PROMPT
+// COMMAND, FILTER, COND, COMPL, HELP, PROMPT, LOG
 static bool_t process_command(const kxml_node_t *element, void *parent,
 	faux_error_t *error)
 {
@@ -827,6 +830,9 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		case KTAG_PROMPT:
 			ientry.name = "__prompt";
 			break;
+		case KTAG_LOG:
+			ientry.name = "__log";
+			break;
 		default:
 			faux_error_sprintf(error, TAG": Unknown tag");
 			return BOOL_FALSE;
@@ -848,6 +854,9 @@ static bool_t process_command(const kxml_node_t *element, void *parent,
 		break;
 	case KTAG_PROMPT:
 		ientry.purpose = "prompt";
+		break;
+	case KTAG_LOG:
+		ientry.purpose = "log";
 		break;
 	default:
 		ientry.purpose = "common";
