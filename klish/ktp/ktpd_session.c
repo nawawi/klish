@@ -167,7 +167,7 @@ static char *generate_prompt(ktpd_session_t *ktpd)
 			bool_t res = BOOL_FALSE;
 
 			res = ksession_exec_locally(ktpd->session,
-				prompt_entry, NULL, &rc, &prompt);
+				prompt_entry, NULL, NULL, &rc, &prompt);
 			if (!res || (rc < 0) || !prompt) {
 				if (prompt)
 					faux_str_free(prompt);
@@ -660,7 +660,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 			parg = kparg_new(candidate, prefix);
 			kpargv_set_candidate_parg(pargv, parg);
 			res = ksession_exec_locally(ktpd->session, completion,
-				pargv, &rc, &out);
+				pargv, NULL, &rc, &out);
 			kparg_free(parg);
 			if (!res || (rc < 0) || !out) {
 				if (out)
@@ -797,7 +797,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 				parg = kparg_new(candidate, prefix);
 				kpargv_set_candidate_parg(pargv, parg);
 				ksession_exec_locally(ktpd->session,
-					help, pargv, &rc, &out);
+					help, pargv, NULL, &rc, &out);
 				kparg_free(parg);
 
 				if (out) {

@@ -46,6 +46,11 @@ const kpargv_t *kcontext_parent_pargv(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_parent_pargv(kcontext_t *context,
 	const kpargv_t *parent_pargv);
 
+// Parent context object
+const kcontext_t *kcontext_parent_context(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_parent_context(kcontext_t *context,
+	const kcontext_t *parent_context);
+
 // Action iterator
 faux_list_node_t *kcontext_action_iter(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_action_iter(kcontext_t *context, faux_list_node_t *action_iter);

@@ -25,6 +25,7 @@ struct kcontext_s {
 	kplugin_t *plugin;
 	kpargv_t *pargv;
 	const kpargv_t *parent_pargv; // Parent
+	const kcontext_t *parent_context; // Parent context (if available)
 	faux_list_node_t *action_iter; // Current action
 	ksym_t *sym;
 	int stdin;
@@ -63,6 +64,10 @@ FAUX_HIDDEN KSET(context, kpargv_t *, pargv);
 // Parent pargv
 KGET(context, const kpargv_t *, parent_pargv);
 FAUX_HIDDEN KSET(context, const kpargv_t *, parent_pargv);
+
+// Parent context
+KGET(context, const kcontext_t *, parent_context);
+FAUX_HIDDEN KSET(context, const kcontext_t *, parent_context);
 
 // Action iterator
 KGET(context, faux_list_node_t *, action_iter);
@@ -109,6 +114,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->plugin = NULL;
 	context->pargv = NULL;
 	context->parent_pargv = NULL; // Don't free
+	context->parent_context = NULL; // Don't free
 	context->action_iter = NULL;
 	context->sym = NULL;
 	context->stdin = -1;
