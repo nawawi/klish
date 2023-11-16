@@ -51,6 +51,11 @@ const kcontext_t *kcontext_parent_context(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_parent_context(kcontext_t *context,
 	const kcontext_t *parent_context);
 
+// Parent exec object
+const kexec_t *kcontext_parent_exec(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_parent_exec(kcontext_t *context,
+	const kexec_t *parent_exec);
+
 // Action iterator
 faux_list_node_t *kcontext_action_iter(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_action_iter(kcontext_t *context, faux_list_node_t *action_iter);
@@ -78,6 +83,14 @@ FAUX_HIDDEN bool_t kcontext_set_session(kcontext_t *context, ksession_t *session
 // Done
 bool_t kcontext_done(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_done(kcontext_t *context, bool_t done);
+
+// Line
+const char *kcontext_line(const kcontext_t *exec);
+bool_t kcontext_set_line(kcontext_t *exec, const char *line);
+
+// Pipeline stage
+size_t kcontext_pipeline_stage(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_pipeline_stage(kcontext_t *context, size_t pipeline_stage);
 
 // Wrappers
 kparg_t *kcontext_candidate_parg(const kcontext_t *context);

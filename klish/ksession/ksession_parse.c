@@ -45,7 +45,7 @@ static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
 	if (!ptype_entry)
 		return BOOL_FALSE;
 
-	if (!ksession_exec_locally(session, ptype_entry, pargv, NULL,
+	if (!ksession_exec_locally(session, ptype_entry, pargv, NULL, NULL,
 		&retcode, &out)) {
 		return BOOL_FALSE;
 	}
@@ -580,6 +580,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 	kpargv_t *pargv = NULL;
 	kexec_t *exec = NULL;
 	bool_t is_piped = BOOL_FALSE;
+	size_t index = 0;
 
 	assert(session);
 	if (!session)
@@ -603,6 +604,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		faux_list_free(split);
 		return NULL;
 	}
+	kexec_set_line(exec, raw_line);
 
 	iter = faux_list_head(split);
 	while (iter) {
@@ -626,10 +628,13 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		kcontext_set_pargv(context, pargv);
 		// Context for ACTION execution contains session
 		kcontext_set_session(context, session);
+		kcontext_set_line(context, faux_argv_line(argv));
+		kcontext_set_pipeline_stage(context, index);
 		kexec_add_contexts(exec, context);
 
 		// Next component
 		iter = faux_list_next_node(iter);
+		index++;
 	}
 
 	faux_list_free(split);
@@ -639,7 +644,8 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 
 
 kexec_t *ksession_parse_for_local_exec(ksession_t *session, const kentry_t *entry,
-	const kpargv_t *parent_pargv, const kcontext_t *parent_context)
+	const kpargv_t *parent_pargv, const kcontext_t *parent_context,
+	const kexec_t *parent_exec)
 {
 	faux_argv_node_t *argv_iter = NULL;
 	kpargv_t *pargv = NULL;
@@ -685,6 +691,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session, const kentry_t *entr
 	kcontext_set_pargv(context, pargv);
 	kcontext_set_parent_pargv(context, parent_pargv);
 	kcontext_set_parent_context(context, parent_context);
+	kcontext_set_parent_exec(context, parent_exec);
 	kcontext_set_session(context, session);
 	kexec_add_contexts(exec, context);
 
@@ -790,7 +797,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
 	kpargv_t *parent_pargv, const kcontext_t *parent_context,
-	int *retcode, char **out)
+	const kexec_t *parent_exec, int *retcode, char **out)
 {
 	kexec_t *exec = NULL;
 	faux_eloop_t *eloop = NULL;
@@ -804,7 +811,7 @@ bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
 
 	// Parsing
 	exec = ksession_parse_for_local_exec(session, entry,
-		parent_pargv, parent_context);
+		parent_pargv, parent_context, parent_exec);
 	if (!exec)
 		return BOOL_FALSE;
 

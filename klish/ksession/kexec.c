@@ -44,6 +44,7 @@ struct kexec_s {
 	kpath_t *saved_path;
 	char *pts_fname; // Pseudoterminal slave file name
 	int pts; // Pseudoterminal slave handler
+	char *line; // Full command to execute (text)
 };
 
 // Dry-run
@@ -77,6 +78,10 @@ KSET(exec, faux_buf_t *, buferr);
 // Saved path
 KGET(exec, kpath_t *, saved_path);
 
+// Line
+KGET_STR(exec, line);
+KSET_STR(exec, line);
+
 // CONTEXT list
 KADD_NESTED(exec, kcontext_t *, contexts);
 KNESTED_LEN(exec, contexts);
@@ -108,6 +113,7 @@ kexec_t *kexec_new(ksession_t *session, kcontext_type_e type)
 	exec->session = session;
 	exec->dry_run = BOOL_FALSE;
 	exec->saved_path = NULL;
+	exec->line = NULL;
 
 	// List of execute contexts
 	exec->contexts = faux_list_new(FAUX_LIST_UNSORTED, FAUX_LIST_NONUNIQUE,
@@ -150,6 +156,7 @@ void kexec_free(kexec_t *exec)
 	faux_buf_free(exec->buferr);
 
 	faux_str_free(exec->pts_fname);
+	faux_str_free(exec->line);
 
 	kpath_free(exec->saved_path);
 

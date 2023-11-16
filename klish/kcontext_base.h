@@ -9,6 +9,7 @@
 #include <faux/faux.h>
 
 typedef struct kcontext_s kcontext_t;
+typedef struct kexec_s kexec_t; // To use with context structure
 
 typedef enum {
 	KCONTEXT_TYPE_NONE,

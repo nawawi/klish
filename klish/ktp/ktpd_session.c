@@ -55,6 +55,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
+static bool_t ktpd_session_log(ktpd_session_t *ktpd, const kexec_t *exec);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	int *retcode, faux_error_t *error,
 	bool_t dry_run, bool_t *view_was_changed);
@@ -167,7 +168,7 @@ static char *generate_prompt(ktpd_session_t *ktpd)
 			bool_t res = BOOL_FALSE;
 
 			res = ksession_exec_locally(ktpd->session,
-				prompt_entry, NULL, NULL, &rc, &prompt);
+				prompt_entry, NULL, NULL, NULL, &rc, &prompt);
 			if (!res || (rc < 0) || !prompt) {
 				if (prompt)
 					faux_str_free(prompt);
@@ -459,6 +460,7 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 			*view_was_changed_p = !kpath_is_equal(
 				ksession_path(ktpd->session),
 				kexec_saved_path(exec));
+		ktpd_session_log(ktpd, exec);
 		kexec_free(exec);
 		return BOOL_TRUE;
 	}
@@ -521,6 +523,7 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
 
+	ktpd_session_log(ktpd, ktpd->exec);
 	view_was_changed = !kpath_is_equal(
 		ksession_path(ktpd->session), kexec_saved_path(ktpd->exec));
 
@@ -555,6 +558,17 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	if (ktpd->exit)
 		return BOOL_FALSE;
+
+	return BOOL_TRUE;
+}
+
+
+static bool_t ktpd_session_log(ktpd_session_t *ktpd, const kexec_t *exec)
+{
+	fprintf(stderr, "LOG\n");
+
+	ktpd = ktpd;
+	exec = exec;
 
 	return BOOL_TRUE;
 }
@@ -660,7 +674,7 @@ static bool_t ktpd_session_process_completion(ktpd_session_t *ktpd, faux_msg_t *
 			parg = kparg_new(candidate, prefix);
 			kpargv_set_candidate_parg(pargv, parg);
 			res = ksession_exec_locally(ktpd->session, completion,
-				pargv, NULL, &rc, &out);
+				pargv, NULL, NULL, &rc, &out);
 			kparg_free(parg);
 			if (!res || (rc < 0) || !out) {
 				if (out)
@@ -797,7 +811,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 				parg = kparg_new(candidate, prefix);
 				kpargv_set_candidate_parg(pargv, parg);
 				ksession_exec_locally(ktpd->session,
-					help, pargv, NULL, &rc, &out);
+					help, pargv, NULL, NULL, &rc, &out);
 				kparg_free(parg);
 
 				if (out) {

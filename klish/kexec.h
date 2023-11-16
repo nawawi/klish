@@ -47,6 +47,9 @@ bool_t kexec_done(const kexec_t *exec);
 bool_t kexec_retcode(const kexec_t *exec, int *status);
 // Saved path
 kpath_t *kexec_saved_path(const kexec_t *exec);
+// Line
+const char *kexec_line(const kexec_t *exec);
+bool_t kexec_set_line(kexec_t *exec, const char *line);
 
 // CONTEXTs
 bool_t kexec_add_contexts(kexec_t *exec, kcontext_t *context);

@@ -15,6 +15,7 @@
 #include <klish/ksession.h>
 #include <klish/kaction.h>
 #include <klish/kscheme.h>
+#include <klish/kexec.h>
 
 
 struct kcontext_s {
@@ -26,6 +27,7 @@ struct kcontext_s {
 	kpargv_t *pargv;
 	const kpargv_t *parent_pargv; // Parent
 	const kcontext_t *parent_context; // Parent context (if available)
+	const kexec_t *parent_exec; // Parent exec (if available)
 	faux_list_node_t *action_iter; // Current action
 	ksym_t *sym;
 	int stdin;
@@ -33,6 +35,8 @@ struct kcontext_s {
 	int stderr;
 	pid_t pid;
 	bool_t done; // If all actions are done
+	char *line; // Text command context belong to
+	size_t pipeline_stage; // Index of current command within full pipeline
 };
 
 
@@ -69,6 +73,10 @@ FAUX_HIDDEN KSET(context, const kpargv_t *, parent_pargv);
 KGET(context, const kcontext_t *, parent_context);
 FAUX_HIDDEN KSET(context, const kcontext_t *, parent_context);
 
+// Parent exec
+KGET(context, const kexec_t *, parent_exec);
+FAUX_HIDDEN KSET(context, const kexec_t *, parent_exec);
+
 // Action iterator
 KGET(context, faux_list_node_t *, action_iter);
 FAUX_HIDDEN KSET(context, faux_list_node_t *, action_iter);
@@ -97,6 +105,14 @@ FAUX_HIDDEN KSET(context, ksession_t *, session);
 KGET_BOOL(context, done);
 FAUX_HIDDEN KSET_BOOL(context, done);
 
+// Line
+KGET_STR(context, line);
+FAUX_HIDDEN KSET_STR(context, line);
+
+// Pipeline stage
+KGET(context, size_t, pipeline_stage);
+FAUX_HIDDEN KSET(context, size_t, pipeline_stage);
+
 
 kcontext_t *kcontext_new(kcontext_type_e type)
 {
@@ -115,6 +131,7 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->pargv = NULL;
 	context->parent_pargv = NULL; // Don't free
 	context->parent_context = NULL; // Don't free
+	context->parent_exec = NULL; // Don't free
 	context->action_iter = NULL;
 	context->sym = NULL;
 	context->stdin = -1;
@@ -123,6 +140,8 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->pid = -1; // PID of currently executed ACTION
 	context->session = NULL; // Don't free
 	context->done = BOOL_FALSE;
+	context->line = NULL;
+	context->pipeline_stage = 0;
 
 	return context;
 }
@@ -141,6 +160,8 @@ void kcontext_free(kcontext_t *context)
 		close(context->stdout);
 	if (context->stderr != -1)
 		close(context->stderr);
+
+	faux_str_free(context->line);
 
 	faux_free(context);
 }
