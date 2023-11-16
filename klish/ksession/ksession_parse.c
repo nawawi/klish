@@ -611,6 +611,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
 		kcontext_t *context = NULL;
 		bool_t is_first = (iter == faux_list_head(split));
+		char *context_line = NULL;
 
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC, !is_first);
 		// All components must be ready for execution
@@ -628,7 +629,9 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		kcontext_set_pargv(context, pargv);
 		// Context for ACTION execution contains session
 		kcontext_set_session(context, session);
-		kcontext_set_line(context, faux_argv_line(argv));
+		context_line = faux_argv_line(argv);
+		kcontext_set_line(context, context_line);
+		faux_str_free(context_line);
 		kcontext_set_pipeline_stage(context, index);
 		kexec_add_contexts(exec, context);
 

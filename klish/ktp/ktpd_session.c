@@ -565,10 +565,25 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 static bool_t ktpd_session_log(ktpd_session_t *ktpd, const kexec_t *exec)
 {
-	fprintf(stderr, "LOG\n");
+	kexec_contexts_node_t *iter = NULL;
+	kcontext_t *context = NULL;
 
-	ktpd = ktpd;
-	exec = exec;
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		const kentry_t *entry = kcontext_command(context);
+		const kentry_t *log_entry = NULL;
+		int rc = -1;
+
+		if (!entry)
+			continue;
+		log_entry = kentry_nested_by_purpose(entry, KENTRY_PURPOSE_LOG);
+		if (!log_entry)
+			continue;
+		if (kentry_actions_len(log_entry) == 0)
+			continue;
+		ksession_exec_locally(ktpd->session, log_entry,
+			kcontext_pargv(context), context, exec, &rc, NULL);
+	}
 
 	return BOOL_TRUE;
 }
