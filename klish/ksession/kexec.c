@@ -204,11 +204,15 @@ bool_t kexec_done(const kexec_t *exec)
 }
 
 
-// Retcode of kexec is a retcode of its first context execution because
-// next contexts just a filters. Retcode valid if kexec is done. Else current
+// Retcode of kexec is a 0 if all pipelined stages have retcode=0 or first
+// non-null retcode else.
+// Retcode valid if kexec is done. Else current
 // retcode is non-valid and will not be returned at all.
 bool_t kexec_retcode(const kexec_t *exec, int *status)
 {
+	kexec_contexts_node_t *iter = NULL;
+	kcontext_t *context = NULL;
+
 	assert(exec);
 	if (!exec)
 		return BOOL_FALSE;
@@ -219,9 +223,18 @@ bool_t kexec_retcode(const kexec_t *exec, int *status)
 	if (!kexec_done(exec)) // Unfinished execution
 		return BOOL_FALSE;
 
-	if (status)
-		*status = kcontext_retcode(
-			(kcontext_t *)faux_list_data(faux_list_head(exec->contexts)));
+	if (!status) // User don't want to see retcode value
+		return BOOL_TRUE;
+
+	*status = 0;
+	iter = kexec_contexts_iter(exec);
+	while ((context = kexec_contexts_each(&iter))) {
+		int retcode = kcontext_retcode(context);
+		if (retcode != 0) {
+			*status = retcode;
+			break;
+		}
+	}
 
 	return BOOL_TRUE;
 }

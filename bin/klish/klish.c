@@ -511,7 +511,7 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	if (!ktp_session_retcode(ktp, &rc))
 		rc = -1;
 	error = ktp_session_error(ktp);
-	if (rc < 0) {
+	if (rc != 0) {
 		if (faux_error_len(error) > 0) {
 			faux_error_node_t *err_iter = faux_error_iter(error);
 			const char *err = NULL;
