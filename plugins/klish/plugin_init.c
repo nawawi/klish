@@ -35,6 +35,9 @@ int kplugin_klish_init(kcontext_t *context)
 		KSYM_PERMANENT, KSYM_SYNC));
 	kplugin_add_syms(plugin, ksym_new("prompt", klish_prompt));
 
+	// Log
+	kplugin_add_syms(plugin, ksym_new("syslog", klish_syslog));
+
 	// Navigation
 	// Navigation must be permanent (no dry-run) and sync. Because unsync
 	// actions will be fork()-ed so it can't change current path.

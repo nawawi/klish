@@ -399,6 +399,7 @@ static bool_t process_action(const kxml_node_t *element, void *parent,
 		(KTAG_COMPL != parent_tag) &&
 		(KTAG_HELP != parent_tag) &&
 		(KTAG_PROMPT != parent_tag) &&
+		(KTAG_LOG != parent_tag) &&
 		(KTAG_PTYPE != parent_tag)) {
 		faux_error_sprintf(error,
 			TAG": Tag \"%s\" can't contain ACTION tag",

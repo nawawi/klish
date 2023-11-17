@@ -84,6 +84,7 @@ int main(int argc, char **argv)
 	int client_fd = -1;
 	struct sigaction sig_act = {};
 	sigset_t sig_set = {};
+	char *log_service_name = NULL;
 
 	// Parse command line options
 	opts = opts_init();
@@ -190,7 +191,8 @@ err: // For listen daemon
 	eloop = NULL;
 
 	// Re-Initialize syslog
-	openlog(LOG_SERVICE_NAME, logoptions, opts->log_facility);
+	log_service_name = faux_str_sprintf(LOG_SERVICE_NAME "[%d]", getpid());
+	openlog(log_service_name, logoptions, opts->log_facility);
 	if (!opts->verbose)
 		setlogmask(LOG_UPTO(LOG_INFO));
 
@@ -237,6 +239,8 @@ err_client:
 	// Free command line options
 	opts_free(opts);
 	faux_ini_free(config);
+
+	faux_str_free(log_service_name);
 
 	return retval;
 }
