@@ -68,7 +68,7 @@ ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 	ktp->eloop = eloop;
 	ktp->stop_on_answer = BOOL_TRUE; // Non-interactive by default
 	ktp->error = NULL;
-	ktp->cmd_retcode = -1;
+	ktp->cmd_retcode = 0;
 	ktp->cmd_retcode_available = BOOL_FALSE;
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;

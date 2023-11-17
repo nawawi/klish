@@ -256,6 +256,9 @@ int main(int argc, char **argv)
 	// Main loop
 	faux_eloop_loop(eloop);
 
+	if (ctx.mode != MODE_INTERACTIVE)
+		ktp_session_retcode(ktp, &retcode);
+
 	retval = 0;
 err:
 	// Restore stdin mode
