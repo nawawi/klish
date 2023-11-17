@@ -1,6 +1,6 @@
-db_LTLIBRARIES += kdb-ischeme.la
-kdb_ischeme_la_SOURCES =
-kdb_ischeme_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version -module
+lib_LTLIBRARIES += libklish-db-ischeme.la
+libklish_db_ischeme_la_SOURCES =
+libklish_db_ischeme_la_LDFLAGS = $(AM_LDFLAGS)
 
-kdb_ischeme_la_SOURCES += \
+libklish_db_ischeme_la_SOURCES += \
 	dbs/ischeme/ischeme_plugin.c

@@ -2,12 +2,6 @@ lib_LTLIBRARIES += libklish.la
 libklish_la_SOURCES =
 libklish_la_LDFLAGS = $(AM_LDFLAGS) $(VERSION_INFO)
 
-# Add RPATH for kdb
-libklish_la_LDFLAGS += '-Wl,-rpath,$(pkglibdir)/@DBS_SUBDIR@:$$ORIGIN/../lib/@PACKAGE@/@DBS_SUBDIR@'
-
-# Add RPATH for plugins
-libklish_la_LDFLAGS += '-Wl,-rpath,$(pkglibdir)/@PLUGINS_SUBDIR@:$$ORIGIN/../lib/@PACKAGE@/@PLUGINS_SUBDIR@'
-
 #if TESTC
 #libklish_la_CFLAGS += -DTESTC
 #endif

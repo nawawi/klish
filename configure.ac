@@ -206,15 +206,6 @@ AC_SUBST([CLISH_PLUGIN_BUILTIN_LIBS])
 
 
 ################################
-# Variables to install plugins
-################################
-DBS_SUBDIR=dbs
-AC_SUBST(DBS_SUBDIR)
-PLUGINS_SUBDIR=plugins
-AC_SUBST(PLUGINS_SUBDIR)
-
-
-################################
 # Check for mandatory faux library
 ################################
 AC_ARG_WITH(faux,

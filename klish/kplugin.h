@@ -21,7 +21,7 @@
 // instead "%s". Consider plugin ID as an "internal native name". The "name"
 // field can differ from ID and it's just used within scheme to refer plugin.
 // Consider it as alias of ID.
-#define KPLUGIN_SONAME_FMT "kplugin-%s.so"
+#define KPLUGIN_SONAME_FMT "libklish-plugin-%s.so"
 
 // Plugin's API version symbols
 #define KPLUGIN_MAJOR_FMT "kplugin_%s_major"

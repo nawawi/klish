@@ -1,6 +1,3 @@
-dbdir = ${pkglibdir}/@DBS_SUBDIR@
-db_LTLIBRARIES =
-
 EXTRA_DIST += \
 	dbs/ischeme/Makefile.am \
 	dbs/libxml2/Makefile.am \

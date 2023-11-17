@@ -1,6 +1,3 @@
-plugindir = ${pkglibdir}/@PLUGINS_SUBDIR@
-plugin_LTLIBRARIES =
-
 EXTRA_DIST += \
 	plugins/klish/Makefile.am \
 	plugins/lua/Makefile.am \

@@ -20,7 +20,7 @@
 // instead "%s". Consider db ID as an "internal native name". The "name"
 // field can differ from ID and it's just used within scheme to refer db.
 // Consider it as alias of ID.
-#define KDB_SONAME_FMT "kdb-%s.so"
+#define KDB_SONAME_FMT "libklish-db-%s.so"
 
 // db's API version symbols
 // One byte (uint8_t) for major and one byte for minor numbers
