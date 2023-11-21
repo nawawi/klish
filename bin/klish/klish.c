@@ -747,11 +747,6 @@ static bool_t tinyrl_key_enter(tinyrl_t *tinyrl, unsigned char key)
 	tinyrl_multi_crlf(tinyrl);
 	tinyrl_reset_line_state(tinyrl);
 	line = tinyrl_line(tinyrl);
-	// Don't do anything on empty line
-	if (faux_str_is_empty(line)) {
-		faux_error_free(error);
-		return BOOL_TRUE;
-	}
 
 	ktp_session_cmd(ctx->ktp, line, error, ctx->opts->dry_run);
 

@@ -417,6 +417,9 @@ static bool_t ktp_session_process_cmd_ack(ktp_session_t *ktp, const faux_msg_t *
 		return BOOL_TRUE;
 	}
 
+	// If retcode param is not present it means all is ok (retcode = 0).
+	// Server will not send retcode in a case of empty command. Empty command
+	// doesn't execute real actions
 	if (faux_msg_get_param_by_type(msg, KTP_PARAM_RETCODE,
 		(void **)&retcode8bit, NULL))
 		ktp->cmd_retcode = (int)(*retcode8bit);
@@ -641,7 +644,7 @@ static bool_t ktp_session_drop_state(ktp_session_t *ktp, faux_error_t *error)
 		return BOOL_FALSE;
 
 	ktp->error = error;
-	ktp->cmd_retcode = -1;
+	ktp->cmd_retcode = 0;
 	ktp->cmd_retcode_available = BOOL_FALSE;
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;

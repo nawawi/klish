@@ -350,14 +350,25 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	bool_t ret = BOOL_TRUE;
 	char *prompt = NULL;
 	bool_t view_was_changed = BOOL_FALSE;
+	faux_msg_t *ack = NULL;
 
 	assert(ktpd);
 	assert(msg);
 
 	// Get line from message
 	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
-		ktp_send_error(ktpd->async, cmd, "The line is not specified");
-		return BOOL_FALSE;
+		// Line is not specified. User sent empty command.
+		// It's not bug. Send OK to user and regenerate prompt
+		ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
+		// Generate prompt
+		prompt = generate_prompt(ktpd);
+		if (prompt) {
+			faux_msg_add_param(ack, KTP_PARAM_PROMPT, prompt, strlen(prompt));
+			faux_str_free(prompt);
+		}
+		faux_msg_send_async(ack, ktpd->async);
+		faux_msg_free(ack);
+		return BOOL_TRUE;
 	}
 
 	// Get dry-run flag from message
@@ -395,7 +406,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	}
 
 	// Prepare ACK message
-	faux_msg_t *ack = ktp_msg_preform(cmd, status);
+	ack = ktp_msg_preform(cmd, status);
 	if (rc) {
 		uint8_t retcode8bit = 0;
 		retcode8bit = (uint8_t)(retcode & 0xff);
