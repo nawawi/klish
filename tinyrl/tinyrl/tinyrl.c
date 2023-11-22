@@ -18,6 +18,10 @@
 #define LINE_CHUNK 80
 
 
+static void tinyrl_save_mode(tinyrl_t *tinyrl);
+static void tinyrl_restore_mode(tinyrl_t *tinyrl);
+
+
 tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	const char *hist_fname, size_t hist_stifle)
 {
@@ -69,15 +73,15 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 
 	// VT100 terminal
 	tinyrl->term = vt100_new(istream, ostream);
-	// To save terminal settings
-	tinyrl_set_istream(tinyrl, istream);
 	tinyrl->width = vt100_width(tinyrl->term);
 
 	// History object
 	tinyrl->hist = hist_new(hist_fname, hist_stifle);
 	tinyrl_hist_restore(tinyrl);
 
-	tinyrl_raw_mode(tinyrl);
+	// Save terminal settings
+	tinyrl_save_mode(tinyrl);
+	tinyrl_native_mode(tinyrl);
 
 	return tinyrl;
 }
@@ -103,7 +107,10 @@ void tinyrl_free(tinyrl_t *tinyrl)
 }
 
 
-void tinyrl_raw_mode(tinyrl_t *tinyrl)
+// Native mode is like a raw mode but it use some post processing. ONLCR is very
+// usefull with standard-style output like printf() with "\n". So "native" mode
+// is more suitable for command line interface with some user messages output
+void tinyrl_native_mode(tinyrl_t *tinyrl)
 {
 	struct termios new_termios = {};
 	FILE *istream = NULL;
@@ -120,12 +127,6 @@ void tinyrl_raw_mode(tinyrl_t *tinyrl)
 	new_termios.c_iflag = 0;
 	new_termios.c_oflag = OPOST | ONLCR;
 	new_termios.c_lflag = 0;
-
-//	new_termios.c_cflag = CS8 | CREAD;
-//	new_termios.c_iflag = IGNPAR | IUTF8;
-//	new_termios.c_oflag = OPOST | ONLCR | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
-//	new_termios.c_lflag = ECHOCTL | ECHOKE;
-
 	new_termios.c_cc[VMIN] = 1;
 	new_termios.c_cc[VTIME] = 0;
 
@@ -136,7 +137,53 @@ void tinyrl_raw_mode(tinyrl_t *tinyrl)
 }
 
 
-void tinyrl_restore_mode(tinyrl_t *tinyrl)
+void tinyrl_raw_mode(tinyrl_t *tinyrl)
+{
+	struct termios new_termios = {};
+	FILE *istream = NULL;
+	int fd = -1;
+
+	if (!tinyrl)
+		return;
+	istream = vt100_istream(tinyrl->term);
+	if (!istream)
+		return;
+	fd = fileno(istream);
+	if (tcgetattr(fd, &new_termios) < 0)
+		return;
+
+	new_termios.c_iflag |= IGNPAR;
+	new_termios.c_iflag &= ~(ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
+#ifdef IUCLC
+	new_termios.c_iflag &= ~IUCLC;
+#endif
+	new_termios.c_lflag &= ~(ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHONL);
+#ifdef IEXTEN
+	new_termios.c_lflag &= ~IEXTEN;
+#endif
+	new_termios.c_oflag &= ~OPOST;
+	new_termios.c_cc[VMIN] = 1;
+	new_termios.c_cc[VTIME] = 0;
+
+	// Mode switch
+	tcsetattr(fd, TCSADRAIN, &new_termios);
+}
+
+
+static void tinyrl_save_mode(tinyrl_t *tinyrl)
+{
+	FILE *istream = NULL;
+	int fd = -1;
+
+	istream = vt100_istream(tinyrl->term);
+	if (!istream)
+		return;
+	fd = fileno(istream);
+	tcgetattr(fd, &tinyrl->saved_termios);
+}
+
+
+static void tinyrl_restore_mode(tinyrl_t *tinyrl)
 {
 	FILE *istream = NULL;
 	int fd = -1;
@@ -215,9 +262,6 @@ void tinyrl_set_istream(tinyrl_t *tinyrl, FILE *istream)
 		return;
 
 	vt100_set_istream(tinyrl->term, istream);
-	// Save terminal settings to restore on exit
-	if (istream)
-		tcgetattr(fileno(istream), &tinyrl->saved_termios);
 }
 
 
