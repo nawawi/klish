@@ -492,6 +492,8 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 		it_was_pager = BOOL_TRUE;
 	}
 
+	// Set tinyrl native mode for interactive command line
+	tinyrl_native_mode(ctx->tinyrl);
 	// Disable SIGINT caught for non-interactive commands.
 	// Do it after pager exit. Else it can restore wrong tty mode after
 	// ISIG disabling
@@ -559,6 +561,9 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 		return BOOL_TRUE;
 
 	if (ktp_session_state(ktp) == KTP_SESSION_STATE_WAIT_FOR_CMD) {
+		// Make raw terminal for commands that need terminal as output
+		if (KTP_STATUS_IS_INTERACTIVE(ktp_session_cmd_features(ktp)))
+			tinyrl_raw_mode(ctx->tinyrl);
 		// Cmd need stdin so restore stdin handler
 		if (KTP_STATUS_IS_NEED_STDIN(ktp_session_cmd_features(ktp))) {
 			// Disable SIGINT signal (it is used for commands that
@@ -567,6 +572,10 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 			tinyrl_disable_isig(ctx->tinyrl);
 			faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
 				stdin_cb, ctx);
+		} else {
+			// Raw mode setting can disable ISIG internally.
+			// So restore it
+			tinyrl_enable_isig(ctx->tinyrl);
 		}
 	}
 
