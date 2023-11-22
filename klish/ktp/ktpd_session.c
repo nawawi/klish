@@ -356,7 +356,8 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 	assert(msg);
 
 	// Get line from message
-	if (!(line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE))) {
+	line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE);
+	if (faux_str_is_empty(line)) {
 		// Line is not specified. User sent empty command.
 		// It's not bug. Send OK to user and regenerate prompt
 		ack = ktp_msg_preform(cmd, KTP_STATUS_NONE);
