@@ -51,7 +51,7 @@ struct tinyrl_s {
 	tinyrl_key_func_t *hotkey_fn; // Handler for non-standard hotkeys
 	hist_t *hist; // History object
 	vt100_t *term; // VT100 terminal object
-	struct termios default_termios; // Saved terminal settings
+	struct termios saved_termios; // Saved terminal settings
 	unsigned int width; // Terminal width
 	bool_t utf8; // Is encoding UTF-8 flag. Default is UTF-8
 	line_t line; // Current line
