@@ -572,7 +572,7 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 		rc = ktp_session_process_stderr(ktp, msg);
 		break;
 	default:
-		syslog(LOG_WARNING, "Unsupported command: 0x%04u\n", cmd); // Ignore
+		syslog(LOG_WARNING, "Unsupported command: 0x%04x\n", cmd); // Ignore
 		break;
 	}
 
