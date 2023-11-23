@@ -76,6 +76,7 @@ static bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 static bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
+static bool_t notification_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 
 // Eloop callbacks
 //static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
@@ -224,6 +225,8 @@ int main(int argc, char **argv)
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_COMPLETION_ACK,
 		completion_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_HELP_ACK, help_ack_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_NOTIFICATION,
+		notification_cb, &ctx);
 
 	// Commands from cmdline
 	if (ctx.mode == MODE_CMDLINE) {
@@ -1095,6 +1098,32 @@ static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 		if (faux_write_block(STDOUT_FILENO, line, len) < 0)
 			return BOOL_FALSE;
 	}
+
+	return BOOL_TRUE;
+}
+
+
+bool_t notification_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
+{
+	char *str = NULL;
+	ctx_t *ctx = (ctx_t *)udata;
+
+	str = faux_msg_get_str_param_by_type(msg, KTP_PARAM_ERROR);
+	if (!str)
+		return BOOL_TRUE;
+
+	if (ctx->mode == MODE_INTERACTIVE) {
+		tinyrl_multi_crlf(ctx->tinyrl);
+		tinyrl_reset_line_state(ctx->tinyrl);
+	}
+	fprintf(stderr, "Note: %s\n", str);
+	fflush(stderr);
+	if (ctx->mode == MODE_INTERACTIVE)
+		tinyrl_redisplay(ctx->tinyrl);
+
+	faux_str_free(str);
+
+	ktp = ktp; // Happy compiler
 
 	return BOOL_TRUE;
 }

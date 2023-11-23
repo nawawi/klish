@@ -1257,21 +1257,21 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 		break;
 	case KTP_STDIN_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
-			err = "No active command is running (closing stdin)";
+//			err = "No active command is running (closing stdin)";
 			break;
 		}
 		ktpd_session_process_stdin_close(ktpd, msg);
 		break;
 	case KTP_STDOUT_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
-			err = "No active command is running (closing stdout)";
+//			err = "No active command is running (closing stdout)";
 			break;
 		}
 		ktpd_session_process_stdout_close(ktpd, msg);
 		break;
 	case KTP_STDERR_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
-			err = "No active command is running (closing stderr)";
+//			err = "No active command is running (closing stderr)";
 			break;
 		}
 		ktpd_session_process_stderr_close(ktpd, msg);

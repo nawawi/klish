@@ -497,6 +497,26 @@ static bool_t ktp_session_process_help_ack(ktp_session_t *ktp, const faux_msg_t 
 }
 
 
+static bool_t ktp_session_process_notification(ktp_session_t *ktp, const faux_msg_t *msg)
+{
+	assert(ktp);
+	assert(msg);
+
+	// Get exit flag from message
+	if (KTP_STATUS_IS_EXIT(faux_msg_get_status(msg)))
+		ktp->done = BOOL_TRUE;
+
+	// Execute external callback
+	if (ktp->cb[KTP_SESSION_CB_NOTIFICATION].fn)
+		((ktp_session_event_cb_fn)
+			ktp->cb[KTP_SESSION_CB_NOTIFICATION].fn)(
+			ktp, msg,
+			ktp->cb[KTP_SESSION_CB_NOTIFICATION].udata);
+
+	return BOOL_TRUE;
+}
+
+
 /*
 static bool_t ktp_session_process_exit(ktp_session_t *ktp, const faux_msg_t *msg)
 {
@@ -570,6 +590,9 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 			break;
 		}
 		rc = ktp_session_process_stderr(ktp, msg);
+		break;
+	case KTP_NOTIFICATION:
+		rc = ktp_session_process_notification(ktp, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04x\n", cmd); // Ignore
