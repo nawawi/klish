@@ -67,18 +67,19 @@ bool_t tinyrl_key_end_of_line(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_kill(tinyrl_t *tinyrl, unsigned char key)
 {
-/*
-	// release any old kill string 
-	lub_string_free(tinyrl->kill_string);
+	// Free old buffered string
+	faux_str_free(tinyrl->buffer);
+	tinyrl->buffer = NULL;
 
-	// store the killed string 
-	tinyrl->kill_string = lub_string_dup(&tinyrl->buffer[tinyrl->point]);
+	// Nothing to kill
+	if (tinyrl->line.pos == tinyrl->line.len)
+		return BOOL_TRUE;
+	// Store killed string
+	tinyrl->buffer = faux_str_dup(tinyrl->line.str + tinyrl->line.pos);
+	// Delete text to the end of the line
+	tinyrl_line_delete(tinyrl, tinyrl->line.pos, tinyrl->line.len);
 
-	// delete the text to the end of the line 
-	tinyrl_delete_text(tinyrl, tinyrl->point, tinyrl->end);
-*/
 	// Happy compiler
-	tinyrl = tinyrl;
 	key = key;
 
 	return BOOL_TRUE;
@@ -87,18 +88,15 @@ bool_t tinyrl_key_kill(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_yank(tinyrl_t *tinyrl, unsigned char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	if (tinyrl->kill_string) {
-		// insert the kill string at the current insertion point 
-		result = tinyrl_insert_text(tinyrl, tinyrl->kill_string);
-	}
-*/
+	if (!tinyrl->buffer)
+		return BOOL_TRUE;
+
+	tinyrl_line_insert(tinyrl, tinyrl->buffer, strlen(tinyrl->buffer));
+
 	// Happy compiler
-	tinyrl = tinyrl;
 	key = key;
 
-	return result;
+	return BOOL_TRUE;
 }
 
 
@@ -233,23 +231,45 @@ bool_t tinyrl_key_delete(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_backword(tinyrl_t *tinyrl, unsigned char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-    // remove current whitespace before cursor 
-	while (tinyrl->point > 0 && isspace(tinyrl->line[tinyrl->point - 1]))
-        tinyrl_key_backspace(tinyrl, KEY_BS);
+	size_t new_pos = tinyrl->line.pos;
 
-    // delete word before cusor 
-	while (tinyrl->point > 0 && !isspace(tinyrl->line[tinyrl->point - 1]))
-        tinyrl_key_backspace(tinyrl, KEY_BS);
+	// Free old buffered string
+	faux_str_free(tinyrl->buffer);
+	tinyrl->buffer = NULL;
 
-	result = BOOL_TRUE;
-*/
+	if (tinyrl->line.pos == 0)
+		return BOOL_TRUE;
+
+	// Remove spaces before cursor
+	while (new_pos > 0) {
+		size_t prev_pos = tinyrl->utf8 ?
+			utf8_move_left(tinyrl->line.str, new_pos) : (new_pos - 1);
+		if (!isspace(tinyrl->line.str[prev_pos]))
+			break;
+		new_pos = prev_pos;
+	}
+
+	// Delete word before cusor
+	while (new_pos > 0) {
+		size_t prev_pos = tinyrl->utf8 ?
+			utf8_move_left(tinyrl->line.str, new_pos) : (new_pos - 1);
+		if (isspace(tinyrl->line.str[prev_pos]))
+			break;
+		new_pos = prev_pos;
+	}
+
+	if (new_pos == tinyrl->line.pos)
+		return BOOL_TRUE;
+
+	// Store string
+	tinyrl->buffer = faux_str_dupn(tinyrl->line.str + new_pos,
+		tinyrl->line.pos - new_pos);
+	tinyrl_line_delete(tinyrl, new_pos, tinyrl->line.pos - new_pos);
+
 	// Happy compiler
-	tinyrl = tinyrl;
 	key = key;
 
-	return result;
+	return BOOL_TRUE;
 }
 
 
@@ -267,58 +287,31 @@ bool_t tinyrl_key_clear_screen(tinyrl_t *tinyrl, unsigned char key)
 
 bool_t tinyrl_key_erase_line(tinyrl_t *tinyrl, unsigned char key)
 {
-/*	unsigned int end;
+	// Free old buffered string
+	faux_str_free(tinyrl->buffer);
+	tinyrl->buffer = NULL;
 
-	// release any old kill string 
-	lub_string_free(tinyrl->kill_string);
-
-	if (!tinyrl->point) {
-		tinyrl->kill_string = NULL;
+	// Nothing to erase
+	if (tinyrl->line.len == 0)
 		return BOOL_TRUE;
-	}
+	// Store string
+	tinyrl->buffer = faux_str_dup(tinyrl->line.str);
+	// Delete text to the end of the line
+	tinyrl_line_delete(tinyrl, 0, tinyrl->line.len);
 
-	end = tinyrl->point - 1;
-
-	// store the killed string 
-	tinyrl->kill_string = malloc(tinyrl->point + 1);
-	memcpy(tinyrl->kill_string, tinyrl->buffer, tinyrl->point);
-	tinyrl->kill_string[tinyrl->point] = '\0';
-
-	// delete the text from the start of the line 
-	tinyrl_delete_text(tinyrl, 0, end);
-	tinyrl->point = 0;
-*/
 	// Happy compiler
-	tinyrl = tinyrl;
 	key = key;
 
 	return BOOL_TRUE;
 }
 
 
+// Key tab handler is needed to mask real <tab> output
 bool_t tinyrl_key_tab(tinyrl_t *tinyrl, unsigned char key)
 {
-	bool_t result = BOOL_FALSE;
-/*
-	tinyrl_match_e status = tinyrl_complete_with_extensions(tinyrl);
-
-	switch (status) {
-	case TINYRL_COMPLETED_MATCH:
-	case TINYRL_MATCH:
-		// everything is OK with the world... 
-		result = tinyrl_insert_text(tinyrl, " ");
-		break;
-	case TINYRL_NO_MATCH:
-	case TINYRL_MATCH_WITH_EXTENSIONS:
-	case TINYRL_AMBIGUOUS:
-	case TINYRL_COMPLETED_AMBIGUOUS:
-		// oops don't change the result and let the bell ring 
-		break;
-	}
-*/
 	// Happy compiler
 	tinyrl = tinyrl;
 	key = key;
 
-	return result;
+	return BOOL_TRUE;
 }

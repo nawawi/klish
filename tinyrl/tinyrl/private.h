@@ -10,8 +10,8 @@
 // UTF-8 functions
 ssize_t utf8_to_wchar(const char *sp, unsigned long *sym_out);
 bool_t utf8_wchar_is_cjk(unsigned long sym);
-off_t utf8_move_left(const char *line, off_t cur_pos);
-off_t utf8_move_right(const char *line, off_t cur_pos);
+size_t utf8_move_left(const char *line, size_t cur_pos);
+size_t utf8_move_right(const char *line, size_t cur_pos);
 ssize_t utf8_nsyms(const char *str, size_t len);
 
 // Keys
@@ -61,6 +61,7 @@ struct tinyrl_s {
 	size_t prompt_chars; // Symbol positions
 	void *udata; // Arbitrary user data
 	bool_t busy; // Long executed commands set this flag
+	char *buffer; // Internal buffer for kill/yank operations
 
 	// Input processing vars. Input is processed char by char so
 	// the current state of processing is necessary.

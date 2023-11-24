@@ -79,6 +79,9 @@ tinyrl_t *tinyrl_new(FILE *istream, FILE *ostream,
 	tinyrl->hist = hist_new(hist_fname, hist_stifle);
 	tinyrl_hist_restore(tinyrl);
 
+	// Internal buffer for edit operations like kill/yank
+	tinyrl->buffer = NULL;
+
 	// Save terminal settings
 	tinyrl_save_mode(tinyrl);
 	tinyrl_native_mode(tinyrl);
@@ -102,6 +105,7 @@ void tinyrl_free(tinyrl_t *tinyrl)
 	faux_str_free(tinyrl->prompt);
 	tinyrl_reset_line_state(tinyrl); // It's really reset 'last' string
 	faux_str_free(tinyrl->line.str);
+	faux_str_free(tinyrl->buffer);
 
 	faux_free(tinyrl);
 }

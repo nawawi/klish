@@ -170,7 +170,7 @@ bool_t utf8_wchar_is_cjk(unsigned long sym)
  * @param [in] cur_pos Current position within UTF-8 string.
  * @return Position of previous UTF-8 character or NULL on error.
  */
-off_t utf8_move_left(const char *line, off_t cur_pos)
+size_t utf8_move_left(const char *line, size_t cur_pos)
 {
 	const char *pos = line + cur_pos;
 
@@ -192,7 +192,7 @@ off_t utf8_move_left(const char *line, off_t cur_pos)
  * @param [in] cur_pos Current position within UTF-8 string.
  * @return Position of next UTF-8 character or NULL on error.
  */
-off_t utf8_move_right(const char *line, off_t cur_pos)
+size_t utf8_move_right(const char *line, size_t cur_pos)
 {
 	const char *pos = line + cur_pos;
 
