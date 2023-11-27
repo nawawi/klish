@@ -23,6 +23,10 @@ typedef int (*ksym_fn)(kcontext_t *context);
 #define KSYM_UNSYNC TRI_FALSE
 #define KSYM_SYNC TRI_TRUE
 
+// Aliases for silent flag
+#define KSYM_SILENT BOOL_TRUE
+#define KSYM_NONSILENT TRI_FALSE
+
 
 C_DECL_BEGIN
 
@@ -42,6 +46,9 @@ bool_t ksym_set_permanent(ksym_t *sym, tri_t permanent);
 
 tri_t ksym_sync(const ksym_t *sym);
 bool_t ksym_set_sync(ksym_t *sym, tri_t sync);
+
+bool_t ksym_silent(const ksym_t *sym);
+bool_t ksym_set_silent(ksym_t *sym, bool_t silent);
 
 C_DECL_END
 

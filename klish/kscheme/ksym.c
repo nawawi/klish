@@ -14,8 +14,9 @@
 struct ksym_s {
 	char *name;
 	ksym_fn function;
-	tri_t permanent;
-	tri_t sync;
+	tri_t permanent; // Dry-run option has no effect for permanent sym
+	tri_t sync; // Don't fork before sync sym execution
+	bool_t silent; // Silent syn doesn't have stdin, stdout, stderr
 };
 
 
@@ -37,6 +38,10 @@ KSET(sym, tri_t, permanent);
 KGET(sym, tri_t, sync);
 KSET(sym, tri_t, sync);
 
+// Silent
+KGET(sym, bool_t, silent);
+KSET(sym, bool_t, silent);
+
 
 ksym_t *ksym_new(const char *name, ksym_fn function)
 {
@@ -55,6 +60,7 @@ ksym_t *ksym_new(const char *name, ksym_fn function)
 	sym->function = function;
 	sym->permanent = TRI_UNDEFINED;
 	sym->sync = TRI_UNDEFINED;
+	sym->silent = BOOL_FALSE;
 
 	return sym;
 }
