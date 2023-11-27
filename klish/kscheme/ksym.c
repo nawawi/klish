@@ -67,7 +67,7 @@ ksym_t *ksym_new(const char *name, ksym_fn function)
 
 
 ksym_t *ksym_new_ext(const char *name, ksym_fn function,
-	tri_t permanent, tri_t sync)
+	tri_t permanent, tri_t sync, bool_t silent)
 {
 	ksym_t *sym = NULL;
 
@@ -77,6 +77,7 @@ ksym_t *ksym_new_ext(const char *name, ksym_fn function,
 
 	ksym_set_permanent(sym, permanent);
 	ksym_set_sync(sym, sync);
+	ksym_set_silent(sym, silent);
 
 	return sym;
 }
