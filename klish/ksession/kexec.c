@@ -462,6 +462,20 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 	pid_t child_pid = -1;
 	int pipe_stdout[2] = {};
 	int pipe_stderr[2] = {};
+	ksym_t *sym = NULL;
+
+	sym = kaction_sym(action);
+	fn = ksym_function(kaction_sym(action));
+
+	// Execute silent sync function and continue
+	// Only last in pipeline stage can be silent because last stage
+	// has bufout
+	if (ksym_silent(sym) && kcontext_is_last_pipeline_stage(context)) {
+		exitcode = fn(context);
+		if (retcode)
+			*retcode = exitcode;
+		return BOOL_TRUE;
+	}
 
 	// Create pipes beetween sym function and grabber
 	if (pipe(pipe_stdout) < 0)
@@ -472,7 +486,6 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 		return BOOL_FALSE;
 	}
 
-	fn = ksym_function(kaction_sym(action));
 
 	// Prepare streams before fork
 	fflush(stdout);

@@ -34,6 +34,8 @@ int kplugin_klish_init(kcontext_t *context)
 	kplugin_add_syms(plugin, ksym_new_ext("pwd", klish_pwd,
 		KSYM_PERMANENT, KSYM_SYNC, KSYM_NONSILENT));
 	kplugin_add_syms(plugin, ksym_new("prompt", klish_prompt));
+kplugin_add_syms(plugin, ksym_new_ext("silent-test", klish_silent_test,
+	KSYM_PERMANENT, KSYM_SYNC, KSYM_SILENT));
 
 	// Log
 	kplugin_add_syms(plugin, ksym_new("syslog", klish_syslog));
@@ -49,9 +51,9 @@ int kplugin_klish_init(kcontext_t *context)
 	kplugin_add_syms(plugin, ksym_new_ext("COMMAND", klish_ptype_COMMAND,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
 	kplugin_add_syms(plugin, ksym_new_ext("completion_COMMAND", klish_completion_COMMAND,
-		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_NONSILENT));
 	kplugin_add_syms(plugin, ksym_new_ext("help_COMMAND", klish_help_COMMAND,
-		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_NONSILENT));
 	kplugin_add_syms(plugin, ksym_new_ext("COMMAND_CASE", klish_ptype_COMMAND_CASE,
 		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
 	kplugin_add_syms(plugin, ksym_new_ext("INT", klish_ptype_INT,

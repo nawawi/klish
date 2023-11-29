@@ -33,10 +33,13 @@ struct kcontext_s {
 	int stdin;
 	int stdout;
 	int stderr;
+	faux_buf_t *bufout; // Don't free. Just a link
+	faux_buf_t *buferr; // Don't free. Just a link
 	pid_t pid;
 	bool_t done; // If all actions are done
 	char *line; // Text command context belong to
 	size_t pipeline_stage; // Index of current command within full pipeline
+	bool_t is_last_pipeline_stage;
 };
 
 
@@ -93,6 +96,14 @@ FAUX_HIDDEN KSET(context, int, stdout);
 KGET(context, int, stderr);
 FAUX_HIDDEN KSET(context, int, stderr);
 
+// bufout
+KGET(context, faux_buf_t *, bufout);
+FAUX_HIDDEN KSET(context, faux_buf_t *, bufout);
+
+// buferr
+KGET(context, faux_buf_t *, buferr);
+FAUX_HIDDEN KSET(context, faux_buf_t *, buferr);
+
 // PID
 KGET(context, pid_t, pid);
 FAUX_HIDDEN KSET(context, pid_t, pid);
@@ -112,6 +123,10 @@ FAUX_HIDDEN KSET_STR(context, line);
 // Pipeline stage
 KGET(context, size_t, pipeline_stage);
 FAUX_HIDDEN KSET(context, size_t, pipeline_stage);
+
+// Is last pipeline stage
+KGET(context, bool_t, is_last_pipeline_stage);
+FAUX_HIDDEN KSET(context, bool_t, is_last_pipeline_stage);
 
 
 kcontext_t *kcontext_new(kcontext_type_e type)
@@ -137,11 +152,14 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->stdin = -1;
 	context->stdout = -1;
 	context->stderr = -1;
+	context->bufout = NULL;
+	context->buferr = NULL;
 	context->pid = -1; // PID of currently executed ACTION
 	context->session = NULL; // Don't free
 	context->done = BOOL_FALSE;
 	context->line = NULL;
 	context->pipeline_stage = 0;
+	context->is_last_pipeline_stage = BOOL_TRUE;
 
 	return context;
 }

@@ -7,6 +7,7 @@
 #define _klish_kcontext_h
 
 #include <faux/list.h>
+#include <faux/buf.h>
 #include <klish/kcontext_base.h>
 #include <klish/kpargv.h>
 #include <klish/kscheme.h>
@@ -72,6 +73,14 @@ FAUX_HIDDEN bool_t kcontext_set_stdout(kcontext_t *context, int stdout);
 int kcontext_stderr(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_stderr(kcontext_t *context, int stderr);
 
+// bufout
+faux_buf_t *kcontext_bufout(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_bufout(kcontext_t *context, faux_buf_t *bufout);
+
+// buferr
+faux_buf_t *kcontext_buferr(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_buferr(kcontext_t *context, faux_buf_t *buferr);
+
 // PID
 pid_t kcontext_pid(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pid(kcontext_t *context, pid_t pid);
@@ -91,6 +100,10 @@ bool_t kcontext_set_line(kcontext_t *exec, const char *line);
 // Pipeline stage
 size_t kcontext_pipeline_stage(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_pipeline_stage(kcontext_t *context, size_t pipeline_stage);
+
+// Is last pipeline stage
+bool_t kcontext_is_last_pipeline_stage(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_is_last_pipeline_stage(kcontext_t *context, bool_t is_last_pipeline_stage);
 
 // Wrappers
 kparg_t *kcontext_candidate_parg(const kcontext_t *context);

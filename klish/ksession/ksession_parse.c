@@ -611,6 +611,7 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		faux_argv_t *argv = (faux_argv_t *)faux_list_data(iter);
 		kcontext_t *context = NULL;
 		bool_t is_first = (iter == faux_list_head(split));
+		bool_t is_last = (iter == faux_list_tail(split));
 		char *context_line = NULL;
 
 		pargv = ksession_parse_line(session, argv, KPURPOSE_EXEC, !is_first);
@@ -633,6 +634,11 @@ kexec_t *ksession_parse_for_exec(ksession_t *session, const char *raw_line,
 		kcontext_set_line(context, context_line);
 		faux_str_free(context_line);
 		kcontext_set_pipeline_stage(context, index);
+		kcontext_set_is_last_pipeline_stage(context, is_last);
+		if (is_last) {
+			kcontext_set_bufout(context, kexec_bufout(exec));
+			kcontext_set_buferr(context, kexec_buferr(exec));
+		}
 		kexec_add_contexts(exec, context);
 
 		// Next component
@@ -695,6 +701,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session, const kentry_t *entr
 	kcontext_set_parent_pargv(context, parent_pargv);
 	kcontext_set_parent_context(context, parent_context);
 	kcontext_set_parent_exec(context, parent_exec);
+	kcontext_set_bufout(context, kexec_bufout(exec));
 	kcontext_set_session(context, session);
 	kexec_add_contexts(exec, context);
 
@@ -833,24 +840,20 @@ bool_t ksession_exec_locally(ksession_t *session, const kentry_t *entry,
 		return BOOL_FALSE; // Something went wrong
 	}
 	// If kexec contains only non-exec (for example dry-run) ACTIONs then
-	// we don't need event loop and can return here.
-	if (kexec_retcode(exec, retcode)) {
-		kexec_free(exec);
-		return BOOL_TRUE;
+	// we don't need event loop
+	if (!kexec_retcode(exec, retcode)) {
+		// Local service loop
+		eloop = faux_eloop_new(NULL);
+		faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, session);
+		faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
+		faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);
+		faux_eloop_add_signal(eloop, SIGCHLD, action_terminated_ev, exec);
+		faux_eloop_add_fd(eloop, kexec_stdout(exec), POLLIN,
+			action_stdout_ev, exec);
+		faux_eloop_loop(eloop);
+		faux_eloop_free(eloop);
+		kexec_retcode(exec, retcode);
 	}
-
-	// Local service loop
-	eloop = faux_eloop_new(NULL);
-	faux_eloop_add_signal(eloop, SIGINT, stop_loop_ev, session);
-	faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
-	faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);
-	faux_eloop_add_signal(eloop, SIGCHLD, action_terminated_ev, exec);
-	faux_eloop_add_fd(eloop, kexec_stdout(exec), POLLIN,
-		action_stdout_ev, exec);
-	faux_eloop_loop(eloop);
-	faux_eloop_free(eloop);
-
-	kexec_retcode(exec, retcode);
 
 	if (!out) {
 		kexec_free(exec);

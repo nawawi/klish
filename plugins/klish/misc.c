@@ -152,3 +152,25 @@ int klish_prompt(kcontext_t *context)
 
 	return 0;
 }
+
+
+int klish_silent_test(kcontext_t *context)
+{
+	const char *script = NULL;
+	char *str = NULL;
+	faux_buf_t *bufout = kcontext_bufout(context);
+
+	script = kcontext_script(context);
+	if (faux_str_is_empty(script))
+		script = "";
+
+	str = faux_str_sprintf("%s\n", script);
+
+	if (bufout)
+		faux_buf_write(kcontext_bufout(context), str, strlen(str));
+	else
+		printf("%s", str);
+	faux_str_free(str);
+
+	return 0;
+}

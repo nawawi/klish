@@ -64,7 +64,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t get_stream(ktpd_session_t *ktpd, int fd, bool_t is_stderr,
+static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_stderr,
 	bool_t process_all_data);
 
 
@@ -493,6 +493,9 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 			*view_was_changed_p = !kpath_is_equal(
 				ksession_path(ktpd->session),
 				kexec_saved_path(exec));
+		// 'Silent' sym can write directly to stdout/stderr buffer
+		get_stream(ktpd, exec, -1, BOOL_FALSE, BOOL_TRUE);
+		get_stream(ktpd, exec, -1, BOOL_TRUE, BOOL_TRUE);
 		ktpd_session_log(ktpd, exec);
 		kexec_free(exec);
 		return BOOL_TRUE;
@@ -550,8 +553,8 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Sometimes SIGCHILD signal can appear before all data were really read
 	// from process stdout buffer. So read the least data before closing
 	// file descriptors and send it to client.
-	get_stream(ktpd, kexec_stdout(ktpd->exec), BOOL_FALSE, BOOL_TRUE);
-	get_stream(ktpd, kexec_stderr(ktpd->exec), BOOL_TRUE, BOOL_TRUE);
+	get_stream(ktpd, ktpd->exec, kexec_stdout(ktpd->exec), BOOL_FALSE, BOOL_TRUE);
+	get_stream(ktpd, ktpd->exec, kexec_stderr(ktpd->exec), BOOL_TRUE, BOOL_TRUE);
 	faux_eloop_del_fd(eloop, kexec_stdin(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
 	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
@@ -1380,7 +1383,7 @@ int ktpd_session_fd(const ktpd_session_t *ktpd)
 }
 
 
-static bool_t get_stream(ktpd_session_t *ktpd, int fd, bool_t is_stderr,
+static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_stderr,
 	bool_t process_all_data)
 {
 	ssize_t r = -1;
@@ -1391,27 +1394,30 @@ static bool_t get_stream(ktpd_session_t *ktpd, int fd, bool_t is_stderr,
 
 	if (!ktpd)
 		return BOOL_TRUE;
-	if (!ktpd->exec)
+	if (!exec)
 		return BOOL_TRUE;
 
 	if (is_stderr)
-		faux_buf = kexec_buferr(ktpd->exec);
+		faux_buf = kexec_buferr(exec);
 	else
-		faux_buf = kexec_bufout(ktpd->exec);
+		faux_buf = kexec_bufout(exec);
 	assert(faux_buf);
 
-	do {
-		void *linear_buf = NULL;
-		ssize_t really_readed = 0;
-		ssize_t linear_len =
-			faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
-		// Non-blocked read. The fd became non-blocked while
-		// kexec_prepare().
-		r = read(fd, linear_buf, linear_len);
-		if (r > 0)
-			really_readed = r;
-		faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
-	} while ((r > 0) && process_all_data);
+	// Don't read stream if fd == -1
+	if (fd >= 0) {
+		do {
+			void *linear_buf = NULL;
+			ssize_t really_readed = 0;
+			ssize_t linear_len =
+				faux_buf_dwrite_lock_easy(faux_buf, &linear_buf);
+			// Non-blocked read. The fd became non-blocked while
+			// kexec_prepare().
+			r = read(fd, linear_buf, linear_len);
+			if (r > 0)
+				really_readed = r;
+			faux_buf_dwrite_unlock_easy(faux_buf, really_readed);
+		} while ((r > 0) && process_all_data);
+	}
 
 	len = faux_buf_len(faux_buf);
 	if (0 == len)
@@ -1450,7 +1456,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		push_stdin(ktpd);
 
 	if (info->revents & POLLIN)
-		get_stream(ktpd, info->fd, BOOL_FALSE, BOOL_FALSE);
+		get_stream(ktpd, ktpd->exec, info->fd, BOOL_FALSE, BOOL_FALSE);
 
 	// Some errors or fd is closed so remove it from polling
 	// EOF || POLERR || POLLNVAL
@@ -1470,7 +1476,7 @@ static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	ktpd_session_t *ktpd = (ktpd_session_t *)user_data;
 
 	if (info->revents & POLLIN)
-		get_stream(ktpd, info->fd, BOOL_TRUE, BOOL_FALSE);
+		get_stream(ktpd, ktpd->exec, info->fd, BOOL_TRUE, BOOL_FALSE);
 
 	// Some errors or fd is closed so remove it from polling
 	// EOF || POLERR || POLLNVAL
