@@ -33,12 +33,12 @@ int kplugin_klish_init(kcontext_t *context)
 	kplugin_add_syms(plugin, ksym_new("printl", klish_printl));
 	kplugin_add_syms(plugin, ksym_new_ext("pwd", klish_pwd,
 		KSYM_PERMANENT, KSYM_SYNC, KSYM_NONSILENT));
-	kplugin_add_syms(plugin, ksym_new("prompt", klish_prompt));
-kplugin_add_syms(plugin, ksym_new_ext("silent-test", klish_silent_test,
-	KSYM_PERMANENT, KSYM_SYNC, KSYM_SILENT));
+	kplugin_add_syms(plugin, ksym_new_ext("prompt", klish_prompt,
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
 
 	// Log
-	kplugin_add_syms(plugin, ksym_new("syslog", klish_syslog));
+	kplugin_add_syms(plugin, ksym_new_ext("syslog", klish_syslog,
+		KSYM_USERDEFINED_PERMANENT, KSYM_SYNC, KSYM_SILENT));
 
 	// Navigation
 	// Navigation must be permanent (no dry-run) and sync. Because unsync

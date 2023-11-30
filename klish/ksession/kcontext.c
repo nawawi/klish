@@ -335,3 +335,75 @@ kplugin_t *kcontext_plugin(const kcontext_t *context)
 
 	return kaction_plugin(action);
 }
+
+
+static int kcontext_vprintf(const kcontext_t *context,
+	bool_t is_stderr, const char *fmt, va_list ap)
+{
+	const kaction_t *action = NULL;
+	const ksym_t *sym = NULL;
+	faux_buf_t *buf = NULL;
+	int rc = -1;
+	FILE *f = NULL;
+
+	if (!context)
+		return -1;
+	action = kcontext_action(context);
+	if (!action)
+		return -1;
+	sym = kaction_sym(action);
+	if (!sym)
+		return -1;
+
+	if (is_stderr) {
+		buf = kcontext_buferr(context);
+		f = stderr;
+	} else {
+		buf = kcontext_bufout(context);
+		f = stdout;
+	}
+
+	// "Silent" output
+	if (ksym_sync(sym) &&
+		ksym_silent(sym) &&
+		kcontext_is_last_pipeline_stage(context) &&
+		buf) {
+		char *line = NULL;
+		line = faux_str_vsprintf(fmt, ap);
+		rc = strlen(line);
+		if (rc > 0)
+			faux_buf_write(buf, line, rc);
+		faux_str_free(line);
+	} else {
+		rc = vfprintf(f, fmt, ap);
+		fflush(f);
+	}
+
+	return rc;
+}
+
+
+int kcontext_printf(const kcontext_t *context, const char *fmt, ...)
+{
+	int rc = -1;
+	va_list ap;
+
+	va_start(ap, fmt);
+	rc = kcontext_vprintf(context, BOOL_FALSE, fmt, ap);
+	va_end(ap);
+
+	return rc;
+}
+
+
+int kcontext_printf_err(const kcontext_t *context, const char *fmt, ...)
+{
+	int rc = -1;
+	va_list ap;
+
+	va_start(ap, fmt);
+	rc = kcontext_vprintf(context, BOOL_TRUE, fmt, ap);
+	va_end(ap);
+
+	return rc;
+}

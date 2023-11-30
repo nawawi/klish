@@ -105,6 +105,10 @@ FAUX_HIDDEN bool_t kcontext_set_pipeline_stage(kcontext_t *context, size_t pipel
 bool_t kcontext_is_last_pipeline_stage(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_is_last_pipeline_stage(kcontext_t *context, bool_t is_last_pipeline_stage);
 
+// Output
+int kcontext_printf(const kcontext_t *context, const char *fmt, ...);
+int kcontext_printf_err(const kcontext_t *context, const char *fmt, ...);
+
 // Wrappers
 kparg_t *kcontext_candidate_parg(const kcontext_t *context);
 const kentry_t *kcontext_candidate_entry(const kcontext_t *context);

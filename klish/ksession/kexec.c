@@ -471,11 +471,13 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 	// Only last in pipeline stage can be silent because last stage
 	// has bufout
 	if (ksym_silent(sym) && kcontext_is_last_pipeline_stage(context)) {
+fprintf(stderr, "silent %s\n", ksym_name(sym));
 		exitcode = fn(context);
 		if (retcode)
 			*retcode = exitcode;
 		return BOOL_TRUE;
 	}
+fprintf(stderr, "sync %s\n", ksym_name(sym));
 
 	// Create pipes beetween sym function and grabber
 	if (pipe(pipe_stdout) < 0)
@@ -485,7 +487,6 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 		close(pipe_stdout[1]);
 		return BOOL_FALSE;
 	}
-
 
 	// Prepare streams before fork
 	fflush(stdout);
@@ -573,6 +574,7 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 	sigset_t sigs;
 
 	fn = ksym_function(kaction_sym(action));
+fprintf(stderr, "Async %s\n", ksym_name(kaction_sym(action)));
 
 	// Oh, it's amazing world of stdio!
 	// Flush buffers before fork() because buffer content will be inherited
