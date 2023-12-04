@@ -71,6 +71,11 @@ kudata_t *kustore_slot_new(kustore_t *ustore,
 	kudata_set_data(udata, data);
 	kudata_set_free_fn(udata, free_fn);
 
+	if (!kustore_add_udatas(ustore, udata)) {
+		kudata_free(udata);
+		return NULL;
+	}
+
 	return udata;
 }
 
