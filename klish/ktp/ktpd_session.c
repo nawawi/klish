@@ -339,23 +339,6 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
-static bool_t line_has_content(const char *line)
-{
-	const char *l = line;
-
-	if (faux_str_is_empty(line))
-		return BOOL_FALSE;
-
-	while (*l) {
-		if (!isspace(*l))
-			return BOOL_TRUE;
-		l++;
-	}
-
-	return BOOL_FALSE;
-}
-
-
 static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
@@ -375,7 +358,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	// Get line from message
 	line = faux_msg_get_str_param_by_type(msg, KTP_PARAM_LINE);
-	if (!line_has_content(line)) {
+	if (!faux_str_has_content(line)) {
 		faux_str_free(line);
 		// Line is not specified. User sent empty command.
 		// It's not bug. Send OK to user and regenerate prompt
