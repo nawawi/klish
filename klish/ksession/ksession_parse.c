@@ -24,6 +24,9 @@
 #include <klish/ksession_parse.h>
 
 
+#define ARGV_ALT_QUOTES "'"
+
+
 static bool_t ksession_validate_arg(ksession_t *session, kpargv_t *pargv)
 {
 	char *out = NULL;
@@ -403,6 +406,7 @@ faux_list_t *ksession_split_pipes(const char *raw_line, faux_error_t *error)
 	assert(argv);
 	if (!argv)
 		return NULL;
+	faux_argv_set_quotes(argv, ARGV_ALT_QUOTES);
 	if (faux_argv_parse(argv, raw_line) < 0) {
 		faux_argv_free(argv);
 		return NULL;
@@ -676,6 +680,7 @@ kexec_t *ksession_parse_for_local_exec(ksession_t *session, const kentry_t *entr
 
 	argv = faux_argv_new();
 	assert(argv);
+	faux_argv_set_quotes(argv, ARGV_ALT_QUOTES);
 	faux_argv_parse(argv, line);
 	argv_iter = faux_argv_iter(argv);
 
