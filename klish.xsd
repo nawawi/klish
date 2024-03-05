@@ -157,10 +157,10 @@
 *	be interrupted by Ctrl^C. Default is false.
 *
 * [in="true/false/tty"] - Does ACTION need input. The "tty" means action can use
-*	terminal.
+*	terminal. Default is "false".
 *
 * [out="true/false/tty"] - How does ACTION use output. The "tty" means action
-*	generate output for terminal.
+*	generate output for terminal. Default is "true".
 *
 * [exec_on="fail/success/always/never"] - ACTION's execution depends on
 *	return code of previous elements of ACTION chain. If the
