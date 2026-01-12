@@ -1311,6 +1311,23 @@ All symbols in this section are intended for use in `PTYPE` elements, unless oth
 
 The `COMMAND` symbol checks that the entered argument matches the command name. That is, with the `name` or `value` attributes of the `COMMAND` or `PARAM` elements. If the `value` attribute is set, its value is used as the command name. If not set, the value of the `name` attribute is used. The case of characters in the command name is not taken into account.
 
+Sometimes it’s convenient to have shortcuts for commands so you don’t have to
+type the full names. For example, for a command with the full name
+`environment`, you can define allowed abbreviations, and then entering `env`
+will be enough to invoke it. To define allowed abbreviations, the `value`
+attribute is used (it won’t work with the `name` attribute). In the attribute’s
+value, the mandatory prefix of the command is separated by the `|` symbol from
+the optional part. For example:
+
+```
+<COMMAND name="environment" value="env|ironment" />
+```
+
+For such a command, you can use abbreviations like `env`, `envi`, `envir`, and
+so on. However, strings like `e` and `en` won’t work because they are shorter
+than the minimum required prefix `env`.
+
+
 #### Symbol `completion_COMMAND`
 
 The `completion_COMMAND` symbol is intended for the `COMPL` element nested in `PTYPE`. The symbol is used to form an auto-completion string for a command. The auto-completion for a command is the name of the command itself. If the `value` attribute is set, its value is used as the command name. If not set, the value of the `name` attribute is used.

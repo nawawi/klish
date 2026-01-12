@@ -5,11 +5,14 @@
  * or entry's name.
  *
  * The "value" field supports short variants of commands. That means the user
- * can specify something like this 'value="environment 3"' where "environment" is
- * a full command name and the "3" is minimal prefix length enough for PTYPE to
- * satisfy comparison and return success as return code. I.e. user can type
- * "env", "envi", "envir", ..., "environment" to execute this command. But the
- * strings "e" or "en" is not a case because their length is less than "3".
+ * can specify something like this 'value="env|ironment"' where "environment"
+ * is a full command name and the substring before the "|" is a minimal prefix
+ * enough for PTYPE to satisfy comparison and return success as return code.
+ * I.e. user can type "env", "envi", "envir", ..., "environment" to execute
+ * this command. But the strings "e" or "en" is not a case because their length
+ * is less than minimal prefix. Note the short commands are available only for
+ * the "value" attribute but not for the "name". Because name is a component of
+ * the "path" that allows to address scheme elements.
  *
  * The COMMAND PTYPE uses internal user data attached to the kentry_t structure
  * to store pre-parsed command name with length information. It's necessary to
