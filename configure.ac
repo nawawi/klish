@@ -247,7 +247,7 @@ AM_CONDITIONAL(WITH_LIBXML2,test x$use_libxml2 != xno)
 
 case x$use_libxml2 in
 xno)
-	/bin/true
+	true
 	;;
 xyes)
 	# I would love to avoid using pkg-config (which may not be available on
@@ -314,7 +314,7 @@ AM_CONDITIONAL(WITH_ROXML,test x$use_roxml != xno)
 
 case x$use_roxml in
 xno)
-	/bin/true
+	true
 	;;
 xyes)
 	# we choose to NOT rely on pkg-config on this one. We may do it as
@@ -423,7 +423,7 @@ AM_CONDITIONAL(WITH_EXPAT,test x$use_expat != xno)
 
 case x$use_expat in
 xno)
-	/bin/true
+	true
 	;;
 xyes)
 	# we choose to NOT rely on pkg-config on this one. Instead, we
