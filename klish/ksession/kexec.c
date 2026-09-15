@@ -14,6 +14,7 @@
 #include <termios.h>
 #include <signal.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 #include <faux/list.h>
 #include <faux/buf.h>
