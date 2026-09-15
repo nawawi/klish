@@ -13,7 +13,6 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <sys/fsuid.h>
 #include <sys/wait.h>
 #include <poll.h>
 #include <time.h>
