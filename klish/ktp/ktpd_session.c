@@ -1,4 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -277,11 +283,13 @@ static bool_t add_hotkeys_to_msg(ktpd_session_t *ktpd, faux_msg_t *msg)
 #define CRED_UID(cred) ((cred).cr_uid)
 
 #else
+
 #define CRED_TYPE struct ucred
 #define CRED_LEVEL SOL_SOCKET
 #define CRED_OPTION SO_PEERCRED
 #define CRED_PID(cred) ((cred).pid)
 #define CRED_UID(cred) ((cred).uid)
+
 #endif
 
 
