@@ -36,9 +36,9 @@ struct kexec_s {
 	ksession_t *session;
 	faux_list_t *contexts;
 	bool_t dry_run;
-	int stdin;
-	int stdout;
-	int stderr;
+	int std_in;
+	int std_out;
+	int std_err;
 	faux_buf_t *bufin;
 	faux_buf_t *bufout;
 	faux_buf_t *buferr;
@@ -53,16 +53,16 @@ KGET_BOOL(exec, dry_run);
 KSET_BOOL(exec, dry_run);
 
 // STDIN
-KGET(exec, int, stdin);
-KSET(exec, int, stdin);
+KGET(exec, int, std_in);
+KSET(exec, int, std_in);
 
 // STDOUT
-KGET(exec, int, stdout);
-KSET(exec, int, stdout);
+KGET(exec, int, std_out);
+KSET(exec, int, std_out);
 
 // STDERR
-KGET(exec, int, stderr);
-KSET(exec, int, stderr);
+KGET(exec, int, std_err);
+KSET(exec, int, std_err);
 
 // BufIN
 KGET(exec, faux_buf_t *, bufin);
@@ -122,9 +122,9 @@ kexec_t *kexec_new(ksession_t *session, kcontext_type_e type)
 	assert(exec->contexts);
 
 	// I/O
-	exec->stdin = -1;
-	exec->stdout = -1;
-	exec->stderr = -1;
+	exec->std_in = -1;
+	exec->std_out = -1;
+	exec->std_err = -1;
 
 	exec->bufin = faux_buf_new(0);
 	exec->bufout = faux_buf_new(0);
@@ -145,12 +145,12 @@ void kexec_free(kexec_t *exec)
 
 	faux_list_free(exec->contexts);
 
-	if (exec->stdin != -1)
-		close(exec->stdin);
-	if (exec->stdout != -1)
-		close(exec->stdout);
-	if (exec->stderr != -1)
-		close(exec->stderr);
+	if (exec->std_in != -1)
+		close(exec->std_in);
+	if (exec->std_out != -1)
+		close(exec->std_out);
+	if (exec->std_err != -1)
+		close(exec->std_err);
 
 	faux_buf_free(exec->bufin);
 	faux_buf_free(exec->bufout);
@@ -311,14 +311,14 @@ static bool_t kexec_prepare(kexec_t *exec)
 {
 	int pipefd[2] = {};
 	faux_list_node_t *iter = NULL;
-	int global_stderr = -1;
+	int global_std_err = -1;
 	int fflags = 0;
 	int r_end = -1;
 	int w_end = -1;
 	// Pseudoterminal related vars
-	bool_t isatty_stdin = BOOL_FALSE;
-	bool_t isatty_stdout = BOOL_FALSE;
-	bool_t isatty_stderr = BOOL_FALSE;
+	bool_t isatty_std_in = BOOL_FALSE;
+	bool_t isatty_std_out = BOOL_FALSE;
+	bool_t isatty_std_err = BOOL_FALSE;
 	int pts = -1;
 	int ptm = -1;
 	char *pts_name = NULL;
@@ -335,15 +335,15 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// pseudoterminal. Service actions (internal actions like PTYPE checks)
 	// never get terminal
 	if (exec->type == KCONTEXT_TYPE_ACTION) {
-		isatty_stdin = ksession_isatty_stdin(exec->session);
+		isatty_std_in = ksession_isatty_std_in(exec->session);
 		// Only if last command in pipeline is interactive then stdout
 		// can be pts. Because client adds its own pager to pipeline in
 		// a case of non-interactive commands
 		if (kexec_interactive(exec))
-			isatty_stdout = ksession_isatty_stdout(exec->session);
-		isatty_stderr = ksession_isatty_stderr(exec->session);
+			isatty_std_out = ksession_isatty_std_out(exec->session);
+		isatty_std_err = ksession_isatty_std_err(exec->session);
 	}
-	if (isatty_stdin || isatty_stdout || isatty_stderr) {
+	if (isatty_std_in || isatty_std_out || isatty_std_err) {
 		ptm = open(PTMX_PATH, O_RDWR, O_NOCTTY);
 		if (ptm < 0)
 			return BOOL_FALSE;
@@ -372,7 +372,7 @@ static bool_t kexec_prepare(kexec_t *exec)
 	// Create "global" stdin, stdout, stderr for the whole job execution.
 
 	// STDIN
-	if (isatty_stdin) {
+	if (isatty_std_in) {
 		r_end = pts;
 		w_end = ptm;
 	} else {
@@ -384,12 +384,12 @@ static bool_t kexec_prepare(kexec_t *exec)
 		r_end = pipefd[0];
 		w_end = pipefd[1];
 	}
-	kcontext_set_stdin(faux_list_data(
+	kcontext_set_std_in(faux_list_data(
 		faux_list_head(exec->contexts)), r_end); // Read end
-	kexec_set_stdin(exec, w_end); // Write end
+	kexec_set_std_in(exec, w_end); // Write end
 
 	// STDOUT
-	if (isatty_stdout) {
+	if (isatty_std_out) {
 		r_end = ptm;
 		w_end = pts;
 	} else {
@@ -401,12 +401,12 @@ static bool_t kexec_prepare(kexec_t *exec)
 		r_end = pipefd[0];
 		w_end = pipefd[1];
 	}
-	kexec_set_stdout(exec, r_end); // Read end
-	kcontext_set_stdout(
+	kexec_set_std_out(exec, r_end); // Read end
+	kcontext_set_std_out(
 		faux_list_data(faux_list_tail(exec->contexts)), w_end); // Write end
 
 	// STDERR
-	if (isatty_stderr) {
+	if (isatty_std_err) {
 		r_end = ptm;
 		w_end = pts;
 	} else {
@@ -418,9 +418,9 @@ static bool_t kexec_prepare(kexec_t *exec)
 		r_end = pipefd[0];
 		w_end = pipefd[1];
 	}
-	kexec_set_stderr(exec, r_end); // Read end
+	kexec_set_std_err(exec, r_end); // Read end
 	// STDERR write end will be set to all list members as stderr
-	global_stderr = w_end; // Write end
+	global_std_err = w_end; // Write end
 
 	// Save current path
 	if (ksession_path(exec->session))
@@ -433,15 +433,15 @@ static bool_t kexec_prepare(kexec_t *exec)
 		kcontext_t *context = (kcontext_t *)faux_list_data(iter);
 
 		// Set the same STDERR to all contexts
-		kcontext_set_stderr(context, global_stderr);
+		kcontext_set_std_err(context, global_std_err);
 
 		// Create pipes beetween processes
 		if (next) {
 			kcontext_t *next_context = (kcontext_t *)faux_list_data(next);
 			if (pipe(pipefd) < 0)
 				return BOOL_FALSE;
-			kcontext_set_stdout(context, pipefd[1]); // Write end
-			kcontext_set_stdin(next_context, pipefd[0]); // Read end
+			kcontext_set_std_out(context, pipefd[1]); // Write end
+			kcontext_set_std_in(next_context, pipefd[0]); // Read end
 		}
 	}
 
@@ -461,8 +461,8 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 	ksym_fn fn = NULL;
 	int exitcode = 0;
 	pid_t child_pid = -1;
-	int pipe_stdout[2] = {};
-	int pipe_stderr[2] = {};
+	int pipe_std_out[2] = {};
+	int pipe_std_err[2] = {};
 	ksym_t *sym = NULL;
 
 	sym = kaction_sym(action);
@@ -481,11 +481,11 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 //fprintf(stderr, "sync %s\n", ksym_name(sym));
 
 	// Create pipes beetween sym function and grabber
-	if (pipe(pipe_stdout) < 0)
+	if (pipe(pipe_std_out) < 0)
 		return BOOL_FALSE;
-	if (pipe(pipe_stderr) < 0) {
-		close(pipe_stdout[0]);
-		close(pipe_stdout[1]);
+	if (pipe(pipe_std_err) < 0) {
+		close(pipe_std_out[0]);
+		close(pipe_std_out[1]);
 		return BOOL_FALSE;
 	}
 
@@ -496,17 +496,17 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 	// Fork the grabber
 	child_pid = fork();
 	if (child_pid == -1) {
-		close(pipe_stdout[0]);
-		close(pipe_stdout[1]);
-		close(pipe_stderr[0]);
-		close(pipe_stderr[1]);
+		close(pipe_std_out[0]);
+		close(pipe_std_out[1]);
+		close(pipe_std_err[0]);
+		close(pipe_std_err[1]);
 		return BOOL_FALSE;
 	}
 
 	// Parent
 	if (child_pid != 0) {
-		int saved_stdout = -1;
-		int saved_stderr = -1;
+		int saved_std_out = -1;
+		int saved_std_err = -1;
 
 		// Save pid of grabber
 		if (pid)
@@ -514,15 +514,15 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 
 		// Temporarily replace orig output streams by pipe
 		// stdout
-		saved_stdout = dup(STDOUT_FILENO);
-		dup2(pipe_stdout[1], STDOUT_FILENO);
-		close(pipe_stdout[0]);
-		close(pipe_stdout[1]);
+		saved_std_out = dup(STDOUT_FILENO);
+		dup2(pipe_std_out[1], STDOUT_FILENO);
+		close(pipe_std_out[0]);
+		close(pipe_std_out[1]);
 		// stderr
-		saved_stderr = dup(STDERR_FILENO);
-		dup2(pipe_stderr[1], STDERR_FILENO);
-		close(pipe_stderr[0]);
-		close(pipe_stderr[1]);
+		saved_std_err = dup(STDERR_FILENO);
+		dup2(pipe_std_err[1], STDERR_FILENO);
+		close(pipe_std_err[0]);
+		close(pipe_std_err[1]);
 
 		// Execute sym function right here
 		exitcode = fn(context);
@@ -533,21 +533,21 @@ static bool_t exec_action_sync(const kexec_t *exec, kcontext_t *context,
 		// stdout
 		fflush(stdout);
 		close(STDOUT_FILENO);
-		dup2(saved_stdout, STDOUT_FILENO);
-		close(saved_stdout);
+		dup2(saved_std_out, STDOUT_FILENO);
+		close(saved_std_out);
 		// stderr
 		fflush(stderr);
 		close(STDERR_FILENO);
-		dup2(saved_stderr, STDERR_FILENO);
-		close(saved_stderr);
+		dup2(saved_std_err, STDERR_FILENO);
+		close(saved_std_err);
 
 		return BOOL_TRUE;
 
 	// Child (Output grabber)
 	} else {
 		int fds[][2] = {
-			{pipe_stdout[0], kcontext_stdout(context)},
-			{pipe_stderr[0], kcontext_stderr(context)},
+			{pipe_std_out[0], kcontext_std_out(context)},
+			{pipe_std_err[0], kcontext_std_err(context)},
 			{-1, -1},
 		};
 		grabber(fds); // Grabber will not return
@@ -612,17 +612,17 @@ static bool_t exec_action_async(const kexec_t *exec, kcontext_t *context,
 		fd = open(exec->pts_fname, O_RDWR, 0);
 		if (fd < 0)
 			_exit(-1);
-		if (isatty(kcontext_stdin(context)))
-			kcontext_set_stdin(context, fd);
-		if (isatty(kcontext_stdout(context)))
-			kcontext_set_stdout(context, fd);
-		if (isatty(kcontext_stderr(context)))
-			kcontext_set_stderr(context, fd);
+		if (isatty(kcontext_std_in(context)))
+			kcontext_set_std_in(context, fd);
+		if (isatty(kcontext_std_out(context)))
+			kcontext_set_std_out(context, fd);
+		if (isatty(kcontext_std_err(context)))
+			kcontext_set_std_err(context, fd);
 	}
 
-	dup2(kcontext_stdin(context), STDIN_FILENO);
-	dup2(kcontext_stdout(context), STDOUT_FILENO);
-	dup2(kcontext_stderr(context), STDERR_FILENO);
+	dup2(kcontext_std_in(context), STDIN_FILENO);
+	dup2(kcontext_std_out(context), STDOUT_FILENO);
+	dup2(kcontext_std_err(context), STDERR_FILENO);
 
 	// Close all inherited fds except stdin, stdout, stderr
 	fdmax = (int)sysconf(_SC_OPEN_MAX);
@@ -721,14 +721,14 @@ static bool_t exec_action_sequence(const kexec_t *exec, kcontext_t *context,
 			// Close the stdout of finished ACTION sequence to inform
 			// process next in pipe about EOF. Else filter will not
 			// stop at all.
-			close(kcontext_stdout(context));
-			kcontext_set_stdout(context, -1);
+			close(kcontext_std_out(context));
+			kcontext_set_std_out(context, -1);
 
 			// Close the stdin of finished ACTION sequence to inform
 			// process previous in pipe. Else previous command will
 			// try to write to the pipe continously.
-			close(kcontext_stdin(context));
-			kcontext_set_stdin(context, -1);
+			close(kcontext_std_in(context));
+			kcontext_set_std_in(context, -1);
 
 			return BOOL_TRUE;
 		}
@@ -851,7 +851,7 @@ bool_t kexec_interactive(const kexec_t *exec)
 
 // If some kexec's kentry has tty as "in" then consider kexec as need_stdin.
 // The first kentry with "in=true" also does kexec need_stdin
-bool_t kexec_need_stdin(const kexec_t *exec)
+bool_t kexec_need_std_in(const kexec_t *exec)
 {
 	faux_list_node_t *iter = NULL;
 	size_t num = 0;

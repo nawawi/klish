@@ -767,7 +767,7 @@ static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-static bool_t get_stdout(kexec_t *exec)
+static bool_t get_std_out(kexec_t *exec)
 {
 	ssize_t r = -1;
 	faux_buf_t *faux_buf = NULL;
@@ -777,7 +777,7 @@ static bool_t get_stdout(kexec_t *exec)
 	if (!exec)
 		return BOOL_FALSE;
 
-	fd = kexec_stdout(exec);
+	fd = kexec_std_out(exec);
 	assert(fd != -1);
 	faux_buf = kexec_bufout(exec);
 	assert(faux_buf);
@@ -815,7 +815,7 @@ static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Check if kexec is done now
 	if (kexec_done(exec)) {
 		// May be buffer still contains data
-		get_stdout(exec);
+		get_std_out(exec);
 		return BOOL_FALSE; // To break a loop
 	}
 
@@ -828,7 +828,7 @@ static bool_t action_terminated_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t action_std_out_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	kexec_t *exec = (kexec_t *)user_data;
@@ -838,7 +838,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	type = type;
 	associated_data = associated_data;
 
-	return get_stdout(exec);
+	return get_std_out(exec);
 }
 
 
@@ -885,8 +885,8 @@ bool_t ksession_exec_locally(ksession_t *session, kentry_t *entry,
 		faux_eloop_add_signal(eloop, SIGTERM, stop_loop_ev, session);
 		faux_eloop_add_signal(eloop, SIGQUIT, stop_loop_ev, session);
 		faux_eloop_add_signal(eloop, SIGCHLD, action_terminated_ev, exec);
-		faux_eloop_add_fd(eloop, kexec_stdout(exec), POLLIN,
-			action_stdout_ev, exec);
+		faux_eloop_add_fd(eloop, kexec_std_out(exec), POLLIN,
+			action_std_out_ev, exec);
 		faux_eloop_loop(eloop);
 		faux_eloop_free(eloop);
 		kexec_retcode(exec, retcode);

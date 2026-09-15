@@ -69,9 +69,9 @@ typedef enum {
 	KTP_SESSION_CB_MAX,
 } ktp_session_cb_e;
 
-typedef bool_t (*ktp_session_stdin_cb_fn)(ktp_session_t *ktp,
+typedef bool_t (*ktp_session_std_in_cb_fn)(ktp_session_t *ktp,
 	size_t len, void *udata);
-typedef bool_t (*ktp_session_stdout_cb_fn)(ktp_session_t *ktp,
+typedef bool_t (*ktp_session_std_out_cb_fn)(ktp_session_t *ktp,
 	const char *line, size_t len, void *udata);
 typedef bool_t (*ktp_session_event_cb_fn)(ktp_session_t *ktp,
 	const faux_msg_t *msg, void *udata);
@@ -98,14 +98,14 @@ bool_t ktp_session_auth(ktp_session_t *ktp, faux_error_t *error);
 bool_t ktp_session_completion(ktp_session_t *ktp, const char *line,
 	bool_t dry_run);
 bool_t ktp_session_help(ktp_session_t *ktp, const char *line);
-bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len);
-bool_t ktp_session_stdin_close(ktp_session_t *ktp);
-bool_t ktp_session_stdout_close(ktp_session_t *ktp);
-bool_t ktp_session_stderr_close(ktp_session_t *ktp);
+bool_t ktp_session_std_in(ktp_session_t *ktp, const char *line, size_t line_len);
+bool_t ktp_session_std_in_close(ktp_session_t *ktp);
+bool_t ktp_session_std_out_close(ktp_session_t *ktp);
+bool_t ktp_session_std_err_close(ktp_session_t *ktp);
 bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode);
 ktp_status_e ktp_session_cmd_features(const ktp_session_t *ktp);
-bool_t ktp_session_stdout_need_newline(ktp_session_t *ktp);
-bool_t ktp_session_stderr_need_newline(ktp_session_t *ktp);
+bool_t ktp_session_std_out_need_newline(ktp_session_t *ktp);
+bool_t ktp_session_std_err_need_newline(ktp_session_t *ktp);
 int ktp_session_last_stream(ktp_session_t *ktp);
 
 

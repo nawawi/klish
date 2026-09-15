@@ -23,9 +23,9 @@ struct ksession_s {
 	pid_t pid; // Client's PID
 	uid_t uid; // Client's UID
 	char *user; // Client's user name (get by uid)
-	bool_t isatty_stdin;
-	bool_t isatty_stdout;
-	bool_t isatty_stderr;
+	bool_t isatty_std_in;
+	bool_t isatty_std_out;
+	bool_t isatty_std_err;
 };
 
 
@@ -64,12 +64,12 @@ KSET_STR(session, user);
 KGET_STR(session, user);
 
 // isatty
-KGET_BOOL(session, isatty_stdin);
-KSET_BOOL(session, isatty_stdin);
-KGET_BOOL(session, isatty_stdout);
-KSET_BOOL(session, isatty_stdout);
-KGET_BOOL(session, isatty_stderr);
-KSET_BOOL(session, isatty_stderr);
+KGET_BOOL(session, isatty_std_in);
+KSET_BOOL(session, isatty_std_in);
+KGET_BOOL(session, isatty_std_out);
+KSET_BOOL(session, isatty_std_out);
+KGET_BOOL(session, isatty_std_err);
+KSET_BOOL(session, isatty_std_err);
 
 
 ksession_t *ksession_new(kscheme_t *scheme, const char *starting_entry)
@@ -108,9 +108,9 @@ ksession_t *ksession_new(kscheme_t *scheme, const char *starting_entry)
 	session->pid = -1;
 	session->uid = -1;
 	session->user = NULL;
-	session->isatty_stdin = BOOL_FALSE;
-	session->isatty_stdout = BOOL_FALSE;
-	session->isatty_stderr = BOOL_FALSE;
+	session->isatty_std_in = BOOL_FALSE;
+	session->isatty_std_out = BOOL_FALSE;
+	session->isatty_std_err = BOOL_FALSE;
 	session->spid = getpid(); // For forked processes
 
 	return session;

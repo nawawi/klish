@@ -35,8 +35,8 @@ struct ktp_session_s {
 	ktp_status_e cmd_features;
 	bool_t cmd_features_available;
 	bool_t stop_on_answer; // Stop the loop when answer is received (for non-interactive mode)
-	bool_t stdout_need_newline; // Does stdout has final line feed. If no then newline is needed
-	bool_t stderr_need_newline; // Does stderr has final line feed. If no then newline is needed
+	bool_t std_out_need_newline; // Does stdout has final line feed. If no then newline is needed
+	bool_t std_err_need_newline; // Does stderr has final line feed. If no then newline is needed
 	int last_stream; // Last active stream: stdout or stderr
 };
 
@@ -73,8 +73,8 @@ ktp_session_t *ktp_session_new(int sock, faux_eloop_t *eloop)
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;
 	ktp->cmd_features_available = BOOL_FALSE;
-	ktp->stdout_need_newline = BOOL_FALSE;
-	ktp->stderr_need_newline = BOOL_FALSE;
+	ktp->std_out_need_newline = BOOL_FALSE;
+	ktp->std_err_need_newline = BOOL_FALSE;
 	ktp->last_stream = STDOUT_FILENO;
 
 	// Async object
@@ -264,7 +264,7 @@ static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		}
 		// Execute external callback
 		if (ktp->cb[KTP_SESSION_CB_STDIN].fn)
-			((ktp_session_stdin_cb_fn)
+			((ktp_session_std_in_cb_fn)
 				ktp->cb[KTP_SESSION_CB_STDIN].fn)(
 				ktp, len, ktp->cb[KTP_SESSION_CB_STDIN].udata);
 	}
@@ -297,7 +297,8 @@ static bool_t server_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *msg)
+static bool_t ktp_session_process_std_out(ktp_session_t *ktp,
+	const faux_msg_t *msg)
 {
 	char *line = NULL;
 	unsigned int len = 0;
@@ -313,18 +314,18 @@ static bool_t ktp_session_process_stdout(ktp_session_t *ktp, const faux_msg_t *m
 
 	if (len > 0) {
 		if (line[len - 1] == '\n')
-			ktp->stdout_need_newline = BOOL_FALSE;
+			ktp->std_out_need_newline = BOOL_FALSE;
 		else
-			ktp->stdout_need_newline = BOOL_TRUE;
+			ktp->std_out_need_newline = BOOL_TRUE;
 		ktp->last_stream = STDOUT_FILENO;
 	}
 
-	return ((ktp_session_stdout_cb_fn)ktp->cb[KTP_SESSION_CB_STDOUT].fn)(
+	return ((ktp_session_std_out_cb_fn)ktp->cb[KTP_SESSION_CB_STDOUT].fn)(
 		ktp, line, len, ktp->cb[KTP_SESSION_CB_STDOUT].udata);
 }
 
 
-static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *msg)
+static bool_t ktp_session_process_std_err(ktp_session_t *ktp, const faux_msg_t *msg)
 {
 	char *line = NULL;
 	unsigned int len = 0;
@@ -341,13 +342,13 @@ static bool_t ktp_session_process_stderr(ktp_session_t *ktp, const faux_msg_t *m
 
 	if (len > 0) {
 		if (line[len - 1] == '\n')
-			ktp->stderr_need_newline = BOOL_FALSE;
+			ktp->std_err_need_newline = BOOL_FALSE;
 		else
-			ktp->stderr_need_newline = BOOL_TRUE;
+			ktp->std_err_need_newline = BOOL_TRUE;
 		ktp->last_stream = STDERR_FILENO;
 	}
 
-	return ((ktp_session_stdout_cb_fn)ktp->cb[KTP_SESSION_CB_STDERR].fn)(
+	return ((ktp_session_std_out_cb_fn)ktp->cb[KTP_SESSION_CB_STDERR].fn)(
 		ktp, line, len, ktp->cb[KTP_SESSION_CB_STDERR].udata);
 }
 
@@ -582,14 +583,14 @@ static bool_t ktp_session_dispatch(ktp_session_t *ktp, faux_msg_t *msg)
 			syslog(LOG_WARNING, "Unexpected KTP_STDOUT was received\n");
 			break;
 		}
-		rc = ktp_session_process_stdout(ktp, msg);
+		rc = ktp_session_process_std_out(ktp, msg);
 		break;
 	case KTP_STDERR:
 		if (ktp->state != KTP_SESSION_STATE_WAIT_FOR_CMD) {
 			syslog(LOG_WARNING, "Unexpected KTP_STDERR was received\n");
 			break;
 		}
-		rc = ktp_session_process_stderr(ktp, msg);
+		rc = ktp_session_process_std_err(ktp, msg);
 		break;
 	case KTP_NOTIFICATION:
 		rc = ktp_session_process_notification(ktp, msg);
@@ -678,8 +679,8 @@ static bool_t ktp_session_drop_state(ktp_session_t *ktp, faux_error_t *error)
 	ktp->request_done = BOOL_FALSE;
 	ktp->cmd_features = KTP_STATUS_NONE;
 	ktp->cmd_features_available = BOOL_FALSE;
-	ktp->stdout_need_newline = BOOL_FALSE;
-	ktp->stderr_need_newline = BOOL_FALSE;
+	ktp->std_out_need_newline = BOOL_FALSE;
+	ktp->std_err_need_newline = BOOL_FALSE;
 	ktp->last_stream = STDOUT_FILENO;
 
 	return BOOL_TRUE;
@@ -784,7 +785,7 @@ bool_t ktp_session_help(ktp_session_t *ktp, const char *line)
 }
 
 
-bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len)
+bool_t ktp_session_std_in(ktp_session_t *ktp, const char *line, size_t line_len)
 {
 	if (!ktp_session_req(ktp, KTP_STDIN, line, line_len,
 		NULL, BOOL_TRUE, BOOL_FALSE))
@@ -794,7 +795,7 @@ bool_t ktp_session_stdin(ktp_session_t *ktp, const char *line, size_t line_len)
 }
 
 
-bool_t ktp_session_stdin_close(ktp_session_t *ktp)
+bool_t ktp_session_std_in_close(ktp_session_t *ktp)
 {
 	if (!ktp_session_req(ktp, KTP_STDIN_CLOSE, NULL, 0,
 		NULL, BOOL_TRUE, BOOL_FALSE))
@@ -804,7 +805,7 @@ bool_t ktp_session_stdin_close(ktp_session_t *ktp)
 }
 
 
-bool_t ktp_session_stdout_close(ktp_session_t *ktp)
+bool_t ktp_session_std_out_close(ktp_session_t *ktp)
 {
 	if (!ktp_session_req(ktp, KTP_STDOUT_CLOSE, NULL, 0,
 		NULL, BOOL_TRUE, BOOL_FALSE))
@@ -814,7 +815,7 @@ bool_t ktp_session_stdout_close(ktp_session_t *ktp)
 }
 
 
-bool_t ktp_session_stderr_close(ktp_session_t *ktp)
+bool_t ktp_session_std_err_close(ktp_session_t *ktp)
 {
 	if (!ktp_session_req(ktp, KTP_STDERR_CLOSE, NULL, 0,
 		NULL, BOOL_TRUE, BOOL_FALSE))
@@ -836,21 +837,21 @@ bool_t ktp_session_retcode(ktp_session_t *ktp, int *retcode)
 }
 
 
-bool_t ktp_session_stdout_need_newline(ktp_session_t *ktp)
+bool_t ktp_session_std_out_need_newline(ktp_session_t *ktp)
 {
 	if (!ktp)
 		return BOOL_FALSE;
 
-	return ktp->stdout_need_newline;
+	return ktp->std_out_need_newline;
 }
 
 
-bool_t ktp_session_stderr_need_newline(ktp_session_t *ktp)
+bool_t ktp_session_std_err_need_newline(ktp_session_t *ktp)
 {
 	if (!ktp)
 		return BOOL_FALSE;
 
-	return ktp->stderr_need_newline;
+	return ktp->std_err_need_newline;
 }
 
 

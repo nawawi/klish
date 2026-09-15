@@ -51,7 +51,7 @@ struct ktpd_session_s {
 	faux_eloop_t *eloop; // External link, dont's free()
 	kexec_t *exec;
 	bool_t exit;
-	bool_t stdin_must_be_closed;
+	bool_t std_in_must_be_closed;
 };
 
 
@@ -66,11 +66,11 @@ static bool_t ktpd_session_log(ktpd_session_t *ktpd, const kexec_t *exec);
 static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 	int *retcode, faux_error_t *error,
 	bool_t dry_run, bool_t *view_was_changed);
-static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t action_std_out_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t action_std_err_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
-static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_stderr,
+static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_std_err,
 	bool_t process_all_data);
 
 
@@ -102,7 +102,7 @@ ktpd_session_t *ktpd_session_new(int sock, kscheme_t *scheme,
 	// Client can send command to close stdin but it can't be done
 	// immediately because stdin buffer can still contain data. So really
 	// close stdin after all data is written.
-	ktpd->stdin_must_be_closed = BOOL_FALSE;
+	ktpd->std_in_must_be_closed = BOOL_FALSE;
 	// Exit flag. It differs from ksession done flag because KTPD session
 	// can't exit immediately. It must finish current command processing
 	// before really stop the event loop. Note: User defined plugin
@@ -335,11 +335,11 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	// Get tty information from auth message status
 	client_status = faux_msg_get_status(msg);
-	ksession_set_isatty_stdin(ktpd->session,
+	ksession_set_isatty_std_in(ktpd->session,
 		KTP_STATUS_IS_TTY_STDIN(client_status));
-	ksession_set_isatty_stdout(ktpd->session,
+	ksession_set_isatty_std_out(ktpd->session,
 		KTP_STATUS_IS_TTY_STDOUT(client_status));
-	ksession_set_isatty_stderr(ktpd->session,
+	ksession_set_isatty_std_err(ktpd->session,
 		KTP_STATUS_IS_TTY_STDERR(client_status));
 
 	// init session for plugins
@@ -423,7 +423,7 @@ static bool_t ktpd_session_process_cmd(ktpd_session_t *ktpd, faux_msg_t *msg)
 		ktp_status_e status = KTP_STATUS_INCOMPLETED;
 		if (kexec_interactive(ktpd->exec))
 			status |= KTP_STATUS_INTERACTIVE;
-		if (kexec_need_stdin(ktpd->exec))
+		if (kexec_need_std_in(ktpd->exec))
 			status |= KTP_STATUS_NEED_STDIN;
 		ack = ktp_msg_preform(cmd, status);
 		faux_msg_send_async(ack, ktpd->async);
@@ -520,14 +520,14 @@ static bool_t ktpd_session_exec(ktpd_session_t *ktpd, const char *line,
 
 	// Set stdin, stdout, stderr handlers. It's so complex because stdin,
 	// stdout and stderr actually can be the same fd
-	faux_eloop_add_fd(ktpd->eloop, kexec_stdin(exec), 0,
-		action_stdout_ev, ktpd);
-	faux_eloop_add_fd(ktpd->eloop, kexec_stdout(exec), 0,
-		action_stdout_ev, ktpd);
-	faux_eloop_add_fd(ktpd->eloop, kexec_stderr(exec), 0,
-		action_stderr_ev, ktpd);
-	faux_eloop_include_fd_event(ktpd->eloop, kexec_stdout(exec), POLLIN);
-	faux_eloop_include_fd_event(ktpd->eloop, kexec_stderr(exec), POLLIN);
+	faux_eloop_add_fd(ktpd->eloop, kexec_std_in(exec), 0,
+		action_std_out_ev, ktpd);
+	faux_eloop_add_fd(ktpd->eloop, kexec_std_out(exec), 0,
+		action_std_out_ev, ktpd);
+	faux_eloop_add_fd(ktpd->eloop, kexec_std_err(exec), 0,
+		action_std_err_ev, ktpd);
+	faux_eloop_include_fd_event(ktpd->eloop, kexec_std_out(exec), POLLIN);
+	faux_eloop_include_fd_event(ktpd->eloop, kexec_std_err(exec), POLLIN);
 
 	return BOOL_TRUE;
 }
@@ -566,11 +566,11 @@ static bool_t wait_for_actions_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Sometimes SIGCHILD signal can appear before all data were really read
 	// from process stdout buffer. So read the least data before closing
 	// file descriptors and send it to client.
-	get_stream(ktpd, ktpd->exec, kexec_stdout(ktpd->exec), BOOL_FALSE, BOOL_TRUE);
-	get_stream(ktpd, ktpd->exec, kexec_stderr(ktpd->exec), BOOL_TRUE, BOOL_TRUE);
-	faux_eloop_del_fd(eloop, kexec_stdin(ktpd->exec));
-	faux_eloop_del_fd(eloop, kexec_stdout(ktpd->exec));
-	faux_eloop_del_fd(eloop, kexec_stderr(ktpd->exec));
+	get_stream(ktpd, ktpd->exec, kexec_std_out(ktpd->exec), BOOL_FALSE, BOOL_TRUE);
+	get_stream(ktpd, ktpd->exec, kexec_std_err(ktpd->exec), BOOL_TRUE, BOOL_TRUE);
+	faux_eloop_del_fd(eloop, kexec_std_in(ktpd->exec));
+	faux_eloop_del_fd(eloop, kexec_std_out(ktpd->exec));
+	faux_eloop_del_fd(eloop, kexec_std_err(ktpd->exec));
 
 	ktpd_session_log(ktpd, ktpd->exec);
 	view_was_changed = !kpath_is_equal(
@@ -958,7 +958,7 @@ static bool_t ktpd_session_process_help(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
-static ssize_t stdin_out(int fd, faux_buf_t *buf, bool_t process_all_data)
+static ssize_t std_in_out(int fd, faux_buf_t *buf, bool_t process_all_data)
 {
 	ssize_t total_written = 0;
 
@@ -1002,7 +1002,7 @@ static ssize_t stdin_out(int fd, faux_buf_t *buf, bool_t process_all_data)
 }
 
 
-static bool_t push_stdin(ktpd_session_t *ktpd)
+static bool_t push_std_in(ktpd_session_t *ktpd)
 {
 	faux_buf_t *bufin = NULL;
 	int fd = -1;
@@ -1011,13 +1011,13 @@ static bool_t push_stdin(ktpd_session_t *ktpd)
 		return BOOL_TRUE;
 	if (!ktpd->exec)
 		return BOOL_TRUE;
-	fd = kexec_stdin(ktpd->exec);
+	fd = kexec_std_in(ktpd->exec);
 	if (fd < 0) // May be fd is already closed
 		return BOOL_FALSE;
 
 	bufin = kexec_bufin(ktpd->exec);
 	assert(bufin);
-	stdin_out(fd, bufin, BOOL_FALSE); // Non-blocking write
+	std_in_out(fd, bufin, BOOL_FALSE); // Non-blocking write
 	// Restore data receiving from client
 	if (faux_buf_len(bufin) < BUF_LIMIT)
 		faux_eloop_include_fd_event(ktpd->eloop,
@@ -1027,16 +1027,16 @@ static bool_t push_stdin(ktpd_session_t *ktpd)
 
 	// All data is written
 	faux_eloop_exclude_fd_event(ktpd->eloop, fd, POLLOUT);
-	if (ktpd->stdin_must_be_closed) {
+	if (ktpd->std_in_must_be_closed) {
 		close(fd);
-//		kexec_set_stdin(ktpd->exec, -1);
+//		kexec_set_std_in(ktpd->exec, -1);
 	}
 
 	return BOOL_TRUE;
 }
 
 
-static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
+static bool_t ktpd_session_process_std_in(ktpd_session_t *ktpd, faux_msg_t *msg)
 {
 	char *line = NULL;
 	unsigned int len = 0;
@@ -1050,7 +1050,7 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	if (!ktpd->exec)
 		return BOOL_FALSE;
-	fd = kexec_stdin(ktpd->exec);
+	fd = kexec_std_in(ktpd->exec);
 	if (fd < 0)
 		return BOOL_FALSE;
 
@@ -1085,7 +1085,7 @@ static bool_t ktpd_session_process_stdin(ktpd_session_t *ktpd, faux_msg_t *msg)
 		faux_buf_write(bufin, line, len);
 	}
 
-	stdin_out(fd, bufin, BOOL_FALSE); // Non-blocking write
+	std_in_out(fd, bufin, BOOL_FALSE); // Non-blocking write
 	if (faux_buf_len(bufin) == 0)
 		return BOOL_TRUE;
 
@@ -1153,7 +1153,7 @@ static bool_t ktpd_session_process_notification(ktpd_session_t *ktpd, faux_msg_t
 }
 
 
-static bool_t ktpd_session_process_stdin_close(ktpd_session_t *ktpd,
+static bool_t ktpd_session_process_std_in_close(ktpd_session_t *ktpd,
 	faux_msg_t *msg)
 {
 	int fd = -1;
@@ -1163,18 +1163,18 @@ static bool_t ktpd_session_process_stdin_close(ktpd_session_t *ktpd,
 
 	if (!ktpd->exec)
 		return BOOL_FALSE;
-	fd = kexec_stdin(ktpd->exec);
+	fd = kexec_std_in(ktpd->exec);
 	if (fd < 0)
 		return BOOL_FALSE;
 	// Schedule to close stdin
-	ktpd->stdin_must_be_closed = BOOL_TRUE;
-	push_stdin(ktpd);
+	ktpd->std_in_must_be_closed = BOOL_TRUE;
+	push_std_in(ktpd);
 
 	return BOOL_TRUE;
 }
 
 
-static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
+static bool_t ktpd_session_process_std_out_close(ktpd_session_t *ktpd,
 	faux_msg_t *msg)
 {
 	int fd = -1;
@@ -1184,7 +1184,7 @@ static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
 
 	if (!ktpd->exec)
 		return BOOL_FALSE;
-	fd = kexec_stdout(ktpd->exec);
+	fd = kexec_std_out(ktpd->exec);
 	if (fd < 0)
 		return BOOL_FALSE;
 	close(fd);
@@ -1196,7 +1196,7 @@ static bool_t ktpd_session_process_stdout_close(ktpd_session_t *ktpd,
 }
 
 
-static bool_t ktpd_session_process_stderr_close(ktpd_session_t *ktpd,
+static bool_t ktpd_session_process_std_err_close(ktpd_session_t *ktpd,
 	faux_msg_t *msg)
 {
 	int fd = -1;
@@ -1206,7 +1206,7 @@ static bool_t ktpd_session_process_stderr_close(ktpd_session_t *ktpd,
 
 	if (!ktpd->exec)
 		return BOOL_FALSE;
-	fd = kexec_stderr(ktpd->exec);
+	fd = kexec_std_err(ktpd->exec);
 	if (fd < 0)
 		return BOOL_FALSE;
 	close(fd);
@@ -1271,7 +1271,7 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 			err = "Nobody is waiting for stdin";
 			break;
 		}
-		ktpd_session_process_stdin(ktpd, msg);
+		ktpd_session_process_std_in(ktpd, msg);
 		break;
 	case KTP_NOTIFICATION:
 		ktpd_session_process_notification(ktpd, msg);
@@ -1281,21 +1281,21 @@ static bool_t ktpd_session_dispatch(ktpd_session_t *ktpd, faux_msg_t *msg)
 //			err = "No active command is running (closing stdin)";
 			break;
 		}
-		ktpd_session_process_stdin_close(ktpd, msg);
+		ktpd_session_process_std_in_close(ktpd, msg);
 		break;
 	case KTP_STDOUT_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
 //			err = "No active command is running (closing stdout)";
 			break;
 		}
-		ktpd_session_process_stdout_close(ktpd, msg);
+		ktpd_session_process_std_out_close(ktpd, msg);
 		break;
 	case KTP_STDERR_CLOSE:
 		if (ktpd->state != KTPD_SESSION_STATE_WAIT_FOR_PROCESS) {
 //			err = "No active command is running (closing stderr)";
 			break;
 		}
-		ktpd_session_process_stderr_close(ktpd, msg);
+		ktpd_session_process_std_err_close(ktpd, msg);
 		break;
 	default:
 		syslog(LOG_WARNING, "Unsupported command: 0x%04x", cmd);
@@ -1401,7 +1401,7 @@ int ktpd_session_fd(const ktpd_session_t *ktpd)
 }
 
 
-static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_stderr,
+static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_std_err,
 	bool_t process_all_data)
 {
 	ssize_t r = -1;
@@ -1415,7 +1415,7 @@ static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_
 	if (!exec)
 		return BOOL_TRUE;
 
-	if (is_stderr)
+	if (is_std_err)
 		faux_buf = kexec_buferr(exec);
 	else
 		faux_buf = kexec_bufout(exec);
@@ -1445,7 +1445,7 @@ static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_
 	faux_buf_read(faux_buf, buf, len);
 
 	// Create KTP_STDOUT/KTP_STDERR message to send to client
-	ack = ktp_msg_preform(is_stderr ? KTP_STDERR : KTP_STDOUT, KTP_STATUS_NONE);
+	ack = ktp_msg_preform(is_std_err ? KTP_STDERR : KTP_STDOUT, KTP_STATUS_NONE);
 	faux_msg_add_param(ack, KTP_PARAM_LINE, buf, len);
 	faux_msg_send_async(ack, ktpd->async);
 	faux_msg_free(ack);
@@ -1461,7 +1461,7 @@ static bool_t get_stream(ktpd_session_t *ktpd, kexec_t *exec, int fd, bool_t is_
 }
 
 
-static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t action_std_out_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
@@ -1471,7 +1471,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// getting stdout but for writing stdin too. Because pseudo-terminal
 	// uses the same fd for in and out.
 	if (info->revents & POLLOUT)
-		push_stdin(ktpd);
+		push_std_in(ktpd);
 
 	if (info->revents & POLLIN)
 		get_stream(ktpd, ktpd->exec, info->fd, BOOL_FALSE, BOOL_FALSE);
@@ -1487,7 +1487,7 @@ static bool_t action_stdout_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-static bool_t action_stderr_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t action_std_err_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data)
 {
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
@@ -1530,9 +1530,9 @@ bool_t client_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 		if (ktpd->exec &&
 			faux_buf_len(faux_async_obuf(async)) < BUF_LIMIT) {
 			faux_eloop_include_fd_event(ktpd->eloop,
-				kexec_stdout(ktpd->exec), POLLIN);
+				kexec_std_out(ktpd->exec), POLLIN);
 			faux_eloop_include_fd_event(ktpd->eloop,
-				kexec_stderr(ktpd->exec), POLLIN);
+				kexec_std_err(ktpd->exec), POLLIN);
 		}
 	}
 

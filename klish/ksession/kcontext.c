@@ -30,9 +30,9 @@ struct kcontext_s {
 	const kexec_t *parent_exec; // Parent exec (if available)
 	faux_list_node_t *action_iter; // Current action
 	ksym_t *sym;
-	int stdin;
-	int stdout;
-	int stderr;
+	int std_in;
+	int std_out;
+	int std_err;
 	faux_buf_t *bufout; // Don't free. Just a link
 	faux_buf_t *buferr; // Don't free. Just a link
 	pid_t pid;
@@ -85,16 +85,16 @@ KGET(context, faux_list_node_t *, action_iter);
 FAUX_HIDDEN KSET(context, faux_list_node_t *, action_iter);
 
 // STDIN
-KGET(context, int, stdin);
-FAUX_HIDDEN KSET(context, int, stdin);
+KGET(context, int, std_in);
+FAUX_HIDDEN KSET(context, int, std_in);
 
 // STDOUT
-KGET(context, int, stdout);
-FAUX_HIDDEN KSET(context, int, stdout);
+KGET(context, int, std_out);
+FAUX_HIDDEN KSET(context, int, std_out);
 
 // STDERR
-KGET(context, int, stderr);
-FAUX_HIDDEN KSET(context, int, stderr);
+KGET(context, int, std_err);
+FAUX_HIDDEN KSET(context, int, std_err);
 
 // bufout
 KGET(context, faux_buf_t *, bufout);
@@ -149,9 +149,9 @@ kcontext_t *kcontext_new(kcontext_type_e type)
 	context->parent_exec = NULL; // Don't free
 	context->action_iter = NULL;
 	context->sym = NULL;
-	context->stdin = -1;
-	context->stdout = -1;
-	context->stderr = -1;
+	context->std_in = -1;
+	context->std_out = -1;
+	context->std_err = -1;
 	context->bufout = NULL;
 	context->buferr = NULL;
 	context->pid = -1; // PID of currently executed ACTION
@@ -172,12 +172,12 @@ void kcontext_free(kcontext_t *context)
 
 	kpargv_free(context->pargv);
 
-	if (context->stdin != -1)
-		close(context->stdin);
-	if (context->stdout != -1)
-		close(context->stdout);
-	if (context->stderr != -1)
-		close(context->stderr);
+	if (context->std_in != -1)
+		close(context->std_in);
+	if (context->std_out != -1)
+		close(context->std_out);
+	if (context->std_err != -1)
+		close(context->std_err);
 
 	faux_str_free(context->line);
 

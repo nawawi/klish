@@ -50,12 +50,12 @@ const char *ksession_user(const ksession_t *session);
 bool_t ksession_set_user(ksession_t *session, const char *user);
 
 // Client isatty
-bool_t ksession_isatty_stdin(const ksession_t *session);
-bool_t ksession_set_isatty_stdin(ksession_t *session, bool_t isatty_stdin);
-bool_t ksession_isatty_stdout(const ksession_t *session);
-bool_t ksession_set_isatty_stdout(ksession_t *session, bool_t isatty_stdout);
-bool_t ksession_isatty_stderr(const ksession_t *session);
-bool_t ksession_set_isatty_stderr(ksession_t *session, bool_t isatty_stderr);
+bool_t ksession_isatty_std_in(const ksession_t *session);
+bool_t ksession_set_isatty_std_in(ksession_t *session, bool_t isatty_std_in);
+bool_t ksession_isatty_std_out(const ksession_t *session);
+bool_t ksession_set_isatty_std_out(ksession_t *session, bool_t isatty_std_out);
+bool_t ksession_isatty_std_err(const ksession_t *session);
+bool_t ksession_set_isatty_std_err(ksession_t *session, bool_t isatty_std_err);
 
 C_DECL_END
 

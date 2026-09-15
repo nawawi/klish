@@ -62,16 +62,16 @@ faux_list_node_t *kcontext_action_iter(const kcontext_t *context);
 FAUX_HIDDEN bool_t kcontext_set_action_iter(kcontext_t *context, faux_list_node_t *action_iter);
 
 // STDIN
-int kcontext_stdin(const kcontext_t *context);
-FAUX_HIDDEN bool_t kcontext_set_stdin(kcontext_t *context, int stdin);
+int kcontext_std_in(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_std_in(kcontext_t *context, int std_in);
 
 // STDOUT
-int kcontext_stdout(const kcontext_t *context);
-FAUX_HIDDEN bool_t kcontext_set_stdout(kcontext_t *context, int stdout);
+int kcontext_std_out(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_std_out(kcontext_t *context, int std_out);
 
 // STDERR
-int kcontext_stderr(const kcontext_t *context);
-FAUX_HIDDEN bool_t kcontext_set_stderr(kcontext_t *context, int stderr);
+int kcontext_std_err(const kcontext_t *context);
+FAUX_HIDDEN bool_t kcontext_set_std_err(kcontext_t *context, int std_err);
 
 // bufout
 faux_buf_t *kcontext_bufout(const kcontext_t *context);

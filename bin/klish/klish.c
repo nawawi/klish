@@ -64,16 +64,16 @@ typedef struct ctx_s {
 	faux_list_node_t *cmdline_iter; // MODE_CMDLINE
 	faux_list_node_t *files_iter; // MODE_FILES
 	faux_file_t *files_fd; // MODE_FILES
-	faux_file_t *stdin_fd; // MODE_STDIN
+	faux_file_t *std_in_fd; // MODE_STDIN
 } ctx_t;
 
 
 // KTP session static functions
-static bool_t async_stdin_sent_cb(ktp_session_t *ktp, size_t len,
+static bool_t async_std_in_sent_cb(ktp_session_t *ktp, size_t len,
 	void *user_data);
-static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+static bool_t std_out_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
-static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
+static bool_t std_err_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data);
 static bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
 static bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata);
@@ -85,7 +85,7 @@ static bool_t notification_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 // Eloop callbacks
 //static bool_t stop_loop_ev(faux_eloop_t *eloop, faux_eloop_type_e type,
 //	void *associated_data, void *user_data);
-static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t std_in_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
 static bool_t sigwinch_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *user_data);
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 	ctx_t ctx = {};
 	tinyrl_t *tinyrl = NULL;
 	char *hist_path = NULL;
-	int stdin_flags = 0;
+	int std_in_flags = 0;
 	struct sigaction sig_act = {};
 	sigset_t sig_set = {};
 
@@ -200,9 +200,9 @@ int main(int argc, char **argv)
 	ktp_session_set_stop_on_answer(ktp, BOOL_FALSE);
 
 	// Set stdin to O_NONBLOCK mode
-	stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	std_in_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
 	if (ctx.mode != MODE_STDIN)
-		fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
+		fcntl(STDIN_FILENO, F_SETFL, std_in_flags | O_NONBLOCK);
 
 	// TiniRL
 	if (ctx.mode == MODE_INTERACTIVE)
@@ -219,9 +219,9 @@ int main(int argc, char **argv)
 	ctx.opts = opts;
 	ctx.pager_working = TRI_UNDEFINED;
 
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDIN, async_stdin_sent_cb, &ctx);
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, stdout_cb, &ctx);
-	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, stderr_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDIN, async_std_in_sent_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDOUT, std_out_cb, &ctx);
+	ktp_session_set_cb(ktp, KTP_SESSION_CB_STDERR, std_err_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_AUTH_ACK, auth_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK, cmd_ack_cb, &ctx);
 	ktp_session_set_cb(ktp, KTP_SESSION_CB_CMD_ACK_INCOMPLETED,
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 	retval = 0;
 err:
 	// Restore stdin mode
-	fcntl(STDIN_FILENO, F_SETFL, stdin_flags);
+	fcntl(STDIN_FILENO, F_SETFL, std_in_flags);
 	reset_hotkey_table(&ctx);
 	if (tinyrl) {
 		if (tinyrl_busy(tinyrl))
@@ -321,12 +321,12 @@ static bool_t send_next_command(ctx_t *ctx)
 
 	// Commands from stdin
 	} else if (ctx->mode == MODE_STDIN) {
-		if (!ctx->stdin_fd)
-			ctx->stdin_fd = faux_file_fdopen(STDIN_FILENO);
-		if (ctx->stdin_fd)
-			line = faux_file_getline(ctx->stdin_fd);
+		if (!ctx->std_in_fd)
+			ctx->std_in_fd = faux_file_fdopen(STDIN_FILENO);
+		if (ctx->std_in_fd)
+			line = faux_file_getline(ctx->std_in_fd);
 		if (!line) // EOF
-			faux_file_close(ctx->stdin_fd);
+			faux_file_close(ctx->std_in_fd);
 	}
 
 	if (!line) {
@@ -355,7 +355,7 @@ static bool_t send_next_command(ctx_t *ctx)
 }
 
 
-static bool_t stderr_cb(ktp_session_t *ktp, const char *line, size_t len,
+static bool_t std_err_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *user_data)
 {
 	if (faux_write_block(STDERR_FILENO, line, len) < 0)
@@ -471,7 +471,7 @@ bool_t auth_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	if (ctx->mode == MODE_INTERACTIVE) {
 		// Start getting stdin
 		faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-			stdin_cb, ctx);
+			std_in_cb, ctx);
 		// Print prompt for interactive command
 		tinyrl_redisplay(ctx->tinyrl);
 	} else {
@@ -511,11 +511,11 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 	// Sometimes output stream from server doesn't contain final crlf so
 	// goto newline itself
 	if (ktp_session_last_stream(ktp) == STDERR_FILENO) {
-		if (ktp_session_stderr_need_newline(ktp))
+		if (ktp_session_std_err_need_newline(ktp))
 			fprintf(stderr, "\n");
 	} else {
 		// Pager adds newline itself
-		if (ktp_session_stdout_need_newline(ktp) && !it_was_pager)
+		if (ktp_session_std_out_need_newline(ktp) && !it_was_pager)
 			tinyrl_crlf(ctx->tinyrl);
 	}
 
@@ -547,7 +547,7 @@ bool_t cmd_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 			tinyrl_redisplay(ctx->tinyrl);
 		// Operation is finished so restore stdin handler
 		faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-			stdin_cb, ctx);
+			std_in_cb, ctx);
 	}
 
 	// Send next command for non-interactive modes
@@ -580,7 +580,7 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 			// themself interactively.)
 			tinyrl_disable_isig(ctx->tinyrl);
 			faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-				stdin_cb, ctx);
+				std_in_cb, ctx);
 		} else {
 			// Raw mode setting can disable ISIG internally.
 			// So restore it
@@ -595,14 +595,14 @@ bool_t cmd_incompleted_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *u
 }
 
 
-static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
+static bool_t std_in_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	void *associated_data, void *udata)
 {
 	bool_t rc = BOOL_TRUE;
 	ctx_t *ctx = (ctx_t *)udata;
 	ktp_session_state_e state = KTP_SESSION_STATE_ERROR;
 	faux_eloop_info_fd_t *info = (faux_eloop_info_fd_t *)associated_data;
-	bool_t close_stdin = BOOL_FALSE;
+	bool_t close_std_in = BOOL_FALSE;
 	size_t obuf_len = 0;
 
 	if (!ctx)
@@ -611,7 +611,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	// Some errors or fd is closed so stop interactive session
 	// Non-interactive session just removes stdin callback
 	if (info->revents & (POLLHUP | POLLERR | POLLNVAL))
-		close_stdin = BOOL_TRUE;
+		close_std_in = BOOL_TRUE;
 
 	// Temporarily stop stdin reading because too much data is buffered
 	// and all data can't be sent to server yet
@@ -627,7 +627,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 	if ((state == KTP_SESSION_STATE_IDLE) &&
 		(ctx->mode == MODE_INTERACTIVE)) {
 		tinyrl_read(ctx->tinyrl);
-		if (close_stdin) {
+		if (close_std_in) {
 			faux_eloop_del_fd(eloop, STDIN_FILENO);
 			rc = BOOL_FALSE;
 		}
@@ -643,10 +643,10 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 		// Allow another handlers to push already received data to
 		// server
 		if ((bytes_readed = read(fd, buf, sizeof(buf))) > 0)
-			ktp_session_stdin(ctx->ktp, buf, bytes_readed);
+			ktp_session_std_in(ctx->ktp, buf, bytes_readed);
 		// Actually close stdin only when all data is read
-		if (close_stdin && (bytes_readed <= 0)) {
-			ktp_session_stdin_close(ctx->ktp);
+		if (close_std_in && (bytes_readed <= 0)) {
+			ktp_session_std_in_close(ctx->ktp);
 			faux_eloop_del_fd(eloop, STDIN_FILENO);
 		}
 
@@ -665,7 +665,7 @@ static bool_t stdin_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 }
 
 
-static bool_t async_stdin_sent_cb(ktp_session_t *ktp, size_t len,
+static bool_t async_std_in_sent_cb(ktp_session_t *ktp, size_t len,
 	void *user_data)
 {
 	ctx_t *ctx = (ctx_t *)user_data;
@@ -676,7 +676,7 @@ static bool_t async_stdin_sent_cb(ktp_session_t *ktp, size_t len,
 	// to server socket. So if stdin transmit was stopped due to obuf
 	// overflow it's time to rearm transmission
 	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-		stdin_cb, ctx);
+		std_in_cb, ctx);
 
 	len = len; // Happy compiler
 
@@ -744,7 +744,7 @@ static bool_t ctrl_c_cb(faux_eloop_t *eloop, faux_eloop_type_e type,
 
 	state = ktp_session_state(ctx->ktp);
 	if (state == KTP_SESSION_STATE_WAIT_FOR_CMD)
-		ktp_session_stdin(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
+		ktp_session_std_in(ctx->ktp, &ctrl_c, sizeof(ctrl_c));
 
 	// Happy compiler
 	eloop = eloop;
@@ -963,7 +963,7 @@ bool_t completion_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 
 	// Operation is finished so restore stdin handler
 	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-		stdin_cb, ctx);
+		std_in_cb, ctx);
 
 	// Happy compiler
 	ktp = ktp;
@@ -1052,7 +1052,7 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 
 	// Operation is finished so restore stdin handler
 	faux_eloop_add_fd(ktp_session_eloop(ktp), STDIN_FILENO, POLLIN,
-		stdin_cb, ctx);
+		std_in_cb, ctx);
 
 	ktp = ktp; // happy compiler
 
@@ -1060,18 +1060,18 @@ bool_t help_ack_cb(ktp_session_t *ktp, const faux_msg_t *msg, void *udata)
 }
 
 
-//size_t max_stdout_len = 0;
+//size_t max_std_out_len = 0;
 
-static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
+static bool_t std_out_cb(ktp_session_t *ktp, const char *line, size_t len,
 	void *udata)
 {
 	ctx_t *ctx = (ctx_t *)udata;
 
 	assert(ctx);
 
-//if (len > max_stdout_len) {
-//max_stdout_len = len;
-//fprintf(stderr, "max_stdout_len=%ld\n", max_stdout_len);
+//if (len > max_std_out_len) {
+//max_std_out_len = len;
+//fprintf(stderr, "max_std_out_len=%ld\n", max_std_out_len);
 //}
 
 	// Start pager if necessary
@@ -1094,7 +1094,7 @@ static bool_t stdout_cb(ktp_session_t *ktp, const char *line, size_t len,
 		if (faux_write_block(fileno(ctx->pager_pipe), line, len) <= 0) {
 			// If we can't write to pager pipe then send
 			// "SIGPIPE" to server. Pager is finished or broken.
-			ktp_session_stdout_close(ktp);
+			ktp_session_std_out_close(ktp);
 			ctx->pager_working = TRI_FALSE;
 			return BOOL_TRUE; // Don't break the loop
 		}

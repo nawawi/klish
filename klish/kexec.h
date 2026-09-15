@@ -25,14 +25,14 @@ void kexec_free(kexec_t *exec);
 bool_t kexec_dry_run(const kexec_t *exec);
 bool_t kexec_set_dry_run(kexec_t *exec, bool_t dry_run);
 // STDIN
-int kexec_stdin(const kexec_t *exec);
-bool_t kexec_set_stdin(kexec_t *exec, int stdin);
+int kexec_std_in(const kexec_t *exec);
+bool_t kexec_set_std_in(kexec_t *exec, int std_in);
 // STDOUT
-int kexec_stdout(const kexec_t *exec);
-bool_t kexec_set_stdout(kexec_t *exec, int stdout);
+int kexec_std_out(const kexec_t *exec);
+bool_t kexec_set_std_out(kexec_t *exec, int std_out);
 // STDERR
-int kexec_stderr(const kexec_t *exec);
-bool_t kexec_set_stderr(kexec_t *exec, int stderr);
+int kexec_std_err(const kexec_t *exec);
+bool_t kexec_set_std_err(kexec_t *exec, int std_err);
 // BUFIN
 faux_buf_t *kexec_bufin(const kexec_t *exec);
 bool_t kexec_set_bufin(kexec_t *exec, faux_buf_t *bufin);
@@ -60,7 +60,7 @@ kcontext_t *kexec_contexts_each(kexec_contexts_node_t **iter);
 
 bool_t kexec_continue_command_execution(kexec_t *exec, pid_t pid, int wstatus);
 bool_t kexec_exec(kexec_t *exec);
-bool_t kexec_need_stdin(const kexec_t *exec);
+bool_t kexec_need_std_in(const kexec_t *exec);
 bool_t kexec_interactive(const kexec_t *exec);
 bool_t kexec_set_winsize(kexec_t *exec);
 const kaction_t *kexec_current_action(const kexec_t *exec);
