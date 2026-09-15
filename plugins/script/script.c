@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <syslog.h>
+#include <signal.h>
 
 #include <faux/str.h>
 #include <faux/list.h>
