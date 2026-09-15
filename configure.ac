@@ -200,6 +200,15 @@ AC_SUBST([CLISH_PLUGIN_BUILTIN_LIBS])
 
 
 ################################
+# Check for structure xucred (BSD systems)
+################################
+AC_CHECK_TYPES([struct xucred], [], [], [
+#include <sys/types.h>
+#include <sys/ucred.h>
+])
+
+
+################################
 # Check for mandatory faux library
 ################################
 AC_ARG_WITH(faux,

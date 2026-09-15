@@ -264,6 +264,27 @@ static bool_t add_hotkeys_to_msg(ktpd_session_t *ktpd, faux_msg_t *msg)
 }
 
 
+// BSD systems use "struct xucred" to get peer credentials instead
+// "struct ucred" in Linux. Also they use another options for getsockopt().
+#ifdef HAVE_STRUCT_XUCRED
+
+#include <sys/ucred.h>
+
+#define CRED_TYPE struct xucred
+#define CRED_LEVEL SOL_LOCAL
+#define CRED_OPTION LOCAL_PEERCRED
+#define CRED_PID(cred) ((cred).cr_pid)
+#define CRED_UID(cred) ((cred).cr_uid)
+
+#else
+#define CRED_TYPE struct ucred
+#define CRED_LEVEL SOL_SOCKET
+#define CRED_OPTION SO_PEERCRED
+#define CRED_PID(cred) ((cred).pid)
+#define CRED_UID(cred) ((cred).uid)
+#endif
+
+
 // Now it's not really an auth function. Just a hand-shake with client and
 // passing prompt to client.
 static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
@@ -273,7 +294,7 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 	faux_msg_t *ack = NULL;
 	char *prompt = NULL;
 	uint8_t retcode8bit = 0;
-	struct ucred ucred = {};
+	CRED_TYPE ucred = {};
 	socklen_t len = sizeof(ucred);
 	int sock = -1;
 	char *user = NULL;
@@ -286,7 +307,7 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 
 	// Get UNIX socket peer information
 	sock = faux_async_fd(ktpd->async);
-	if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &ucred, &len) < 0) {
+	if (getsockopt(sock, CRED_LEVEL, CRED_OPTION, &ucred, &len) < 0) {
 		const char *err = "Can't get peer credentials";
 		syslog(LOG_ERR, "%s for connection %d", err, sock);
 		ack = ktp_msg_preform(cmd, KTP_STATUS_ERROR | KTP_STATUS_EXIT);
@@ -296,12 +317,12 @@ static bool_t ktpd_session_process_auth(ktpd_session_t *ktpd, faux_msg_t *msg)
 		ktpd->exit = BOOL_TRUE;
 		return BOOL_FALSE;
 	}
-	ksession_set_pid(ktpd->session, ucred.pid);
-	ksession_set_uid(ktpd->session, ucred.uid);
-	user = faux_sysdb_name_by_uid(ucred.uid);
+	ksession_set_pid(ktpd->session, CRED_PID(ucred));
+	ksession_set_uid(ktpd->session, CRED_UID(ucred));
+	user = faux_sysdb_name_by_uid(CRED_UID(ucred));
 	ksession_set_user(ktpd->session, user);
 	syslog(LOG_INFO, "Authenticated user %d(%s), client PID %u\n",
-		ucred.uid, user ? user : "?", ucred.pid);
+		CRED_UID(ucred), user ? user : "?", CRED_PID(ucred));
 	faux_str_free(user);
 
 	// Get tty information from auth message status
